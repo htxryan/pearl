@@ -1,9 +1,27 @@
 version: "3"
 
 vars:
-  # ca loop generates files inside the Dolt DB directory, not the project root
-  LOG_DIR: .beads/embeddeddolt/beads_gui/.compound-agent/agent_logs
-  SESSION_FILE: .beads/embeddeddolt/beads_gui/.beads/loop-session-name
+  # ca loop writes logs to whichever .compound-agent/ it finds; detect the active one
+  LOG_DIR:
+    sh: |
+      if [ -f .compound-agent/agent_logs/.loop-status.json ] && [ .compound-agent/agent_logs/.loop-status.json -nt .beads/embeddeddolt/beads_gui/.compound-agent/agent_logs/.loop-status.json 2>/dev/null ]; then
+        echo ".compound-agent/agent_logs"
+      elif [ -f .beads/embeddeddolt/beads_gui/.compound-agent/agent_logs/.loop-status.json ]; then
+        echo ".beads/embeddeddolt/beads_gui/.compound-agent/agent_logs"
+      elif [ -f .compound-agent/agent_logs/.loop-status.json ]; then
+        echo ".compound-agent/agent_logs"
+      else
+        echo ".compound-agent/agent_logs"
+      fi
+  SESSION_FILE:
+    sh: |
+      if [ -f .beads/loop-session-name ]; then
+        echo ".beads/loop-session-name"
+      elif [ -f .beads/embeddeddolt/beads_gui/.beads/loop-session-name ]; then
+        echo ".beads/embeddeddolt/beads_gui/.beads/loop-session-name"
+      else
+        echo ".beads/loop-session-name"
+      fi
 
 tasks:
   default:
