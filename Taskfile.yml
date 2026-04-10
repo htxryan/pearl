@@ -1,0 +1,78 @@
+version: "3"
+
+vars:
+  # ca loop generates files inside the Dolt DB directory, not the project root
+  LOG_DIR: .beads/embeddeddolt/beads_gui/.compound-agent/agent_logs
+  SESSION_FILE: .beads/embeddeddolt/beads_gui/.beads/loop-session-name
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list
+
+  # --- Loop Monitoring ---
+
+  loop:watch:
+    desc: Tail the active loop's assistant log
+    cmds:
+      - tail -f {{.LOG_DIR}}/$(basename $(readlink {{.LOG_DIR}}/.latest) .jsonl | sed 's/^trace_/loop_/').log
+    preconditions:
+      - sh: test -L {{.LOG_DIR}}/.latest
+        msg: "No active trace found. Is the loop running?"
+
+  loop:trace:
+    desc: Tail the raw stream-json trace
+    cmds:
+      - tail -f {{.LOG_DIR}}/$(readlink {{.LOG_DIR}}/.latest)
+    preconditions:
+      - sh: test -L {{.LOG_DIR}}/.latest
+        msg: "No active trace found. Is the loop running?"
+
+  loop:status:
+    desc: Show current loop status (epic, attempt, status)
+    cmds:
+      - uv run python -m json.tool {{.LOG_DIR}}/.loop-status.json
+    preconditions:
+      - sh: test -f {{.LOG_DIR}}/.loop-status.json
+        msg: "No status file found. Is the loop running?"
+
+  loop:history:
+    desc: Show completed epics with durations
+    cmds:
+      - cat {{.LOG_DIR}}/loop-execution.jsonl 2>/dev/null || echo "No execution history yet"
+
+  loop:attach:
+    desc: Attach to the loop screen session (Ctrl-A D to detach)
+    cmds:
+      - screen -r $(cat {{.SESSION_FILE}})
+    preconditions:
+      - sh: test -f {{.SESSION_FILE}}
+        msg: "No session file found at {{.SESSION_FILE}}"
+
+  loop:kill:
+    desc: Kill the running loop
+    prompt: This will terminate the infinity loop. Continue?
+    cmds:
+      - screen -S $(cat {{.SESSION_FILE}}) -X quit
+      - echo "Loop session terminated."
+    preconditions:
+      - sh: test -f {{.SESSION_FILE}}
+        msg: "No session file found at {{.SESSION_FILE}}"
+
+  # --- Beads (unavailable while loop holds Dolt lock) ---
+
+  bd:ready:
+    desc: Show issues ready to work
+    cmds:
+      - bd ready
+
+  bd:status:
+    desc: Show project stats
+    cmds:
+      - bd stats
+
+  bd:graph:
+    desc: Show dependency graph for all open epics
+    cmds:
+      - bd list --status=open
