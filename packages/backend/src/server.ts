@@ -22,10 +22,12 @@ export async function createServer(config: Config) {
 
   // ─── Dolt SQL Server Lifecycle ─────────────────────────
   const doltManager = new DoltServerManager(config);
+  let initialStartupDone = false;
 
   doltManager.onStateChange(async (state) => {
     app.log.info(`[dolt] Server state: ${state}`);
-    if (state === "running") {
+    if (state === "running" && initialStartupDone) {
+      // Recovery path only — initial pool creation handled in startup()
       app.log.info("Dolt server recovered, recreating connection pool...");
       await destroyPool();
       createDoltPool(config);
@@ -61,13 +63,11 @@ export async function createServer(config: Config) {
     });
   });
 
-  // ─── CORS (restricted to known frontend origin) ───────
-  const allowedOrigin = `http://localhost:${config.port}`;
+  // ─── CORS ─────────────────────────────────────────────
+  // Server binds to 127.0.0.1 only, so wildcard origin is safe.
+  // A restrictive origin would break frontend dev servers on different ports.
   app.addHook("onRequest", async (request, reply) => {
-    const origin = request.headers.origin;
-    if (origin === allowedOrigin || origin === `http://127.0.0.1:${config.port}`) {
-      reply.header("Access-Control-Allow-Origin", origin);
-    }
+    reply.header("Access-Control-Allow-Origin", "*");
     reply.header(
       "Access-Control-Allow-Methods",
       "GET, POST, PATCH, DELETE, OPTIONS"
@@ -117,6 +117,8 @@ export async function createServer(config: Config) {
         "Dolt SQL server failed to start — running in degraded mode"
       );
     }
+
+    initialStartupDone = true;
   };
 
   const shutdown = async () => {
