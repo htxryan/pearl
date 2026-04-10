@@ -91,8 +91,7 @@ export class IssueWriter {
       args.push("--notes", req.notes);
     }
     if (req.pinned !== undefined) {
-      // bd doesn't have a --pinned flag directly, but we can use update
-      // For now, include it in metadata
+      throw validationError("Pinned flag is not yet supported for updates");
     }
     if (req.estimated_minutes !== undefined) {
       args.push("--estimate", String(req.estimated_minutes));
@@ -133,22 +132,4 @@ export class IssueWriter {
     };
   }
 
-  async delete(id: string): Promise<{ stdout: string; hints: InvalidationHint[] }> {
-    // bd doesn't have a direct delete — use close with force
-    // In practice, "delete" in the GUI means close
-    const args: string[] = ["close", id, "--force"];
-
-    const result = await runBd(this.config, args);
-
-    return {
-      stdout: result.stdout,
-      hints: [
-        { entity: "issues", id },
-        { entity: "issues" },
-        { entity: "dependencies" },
-        { entity: "stats" },
-        { entity: "events", id },
-      ],
-    };
-  }
 }

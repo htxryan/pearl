@@ -7,7 +7,7 @@ import type {
   UpdateIssueRequest,
 } from "@beads-gui/shared";
 import { ISSUE_LIST_FIELDS } from "@beads-gui/shared";
-import { getPool, queryWithRetry } from "../dolt/pool.js";
+import { queryWithRetry } from "../dolt/pool.js";
 import { notFoundError, validationError } from "../errors.js";
 import type { Config } from "../config.js";
 import type { WriteService } from "../write-service/write-service.js";
@@ -51,9 +51,14 @@ export function registerIssueRoutes(
 
     // Filter: priority
     if (query.priority) {
-      const priorities = query.priority.split(",").map(Number);
-      sql += ` AND i.priority IN (${priorities.map(() => "?").join(",")})`;
-      params.push(...priorities);
+      const priorities = query.priority.split(",").map(Number).filter(Number.isFinite);
+      if (priorities.length === 0) {
+        // No valid priorities — match nothing
+        sql += ` AND 1=0`;
+      } else {
+        sql += ` AND i.priority IN (${priorities.map(() => "?").join(",")})`;
+        params.push(...priorities);
+      }
     }
 
     // Filter: issue_type
@@ -77,7 +82,8 @@ export function registerIssueRoutes(
     // Filter: search (title + description full-text)
     if (query.search) {
       sql += ` AND (i.title LIKE ? OR i.description LIKE ?)`;
-      const searchTerm = `%${query.search}%`;
+      const escaped = query.search.replace(/[%_\\]/g, "\\$&");
+      const searchTerm = `%${escaped}%`;
       params.push(searchTerm, searchTerm);
     }
 
@@ -99,8 +105,8 @@ export function registerIssueRoutes(
     }
 
     // Pagination
-    const limit = Math.min(parseInt(query.limit || "100", 10), 1000);
-    const offset = parseInt(query.offset || "0", 10);
+    const limit = Math.min(parseInt(query.limit || "100", 10) || 100, 1000);
+    const offset = Math.max(0, parseInt(query.offset || "0", 10) || 0);
     sql += ` LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
@@ -113,10 +119,13 @@ export function registerIssueRoutes(
     const issueRows = issues as RowDataPacket[];
     if (issueRows.length > 0 && validFields.includes("id")) {
       const ids = issueRows.map((r) => r.id);
-      const [labelRows] = await getPool().query<RowDataPacket[]>(
-        `SELECT issue_id, label FROM labels WHERE issue_id IN (${ids.map(() => "?").join(",")})`,
-        ids
-      );
+      const labelRows = await queryWithRetry(config, async (conn) => {
+        const [rows] = await conn.query<RowDataPacket[]>(
+          `SELECT issue_id, label FROM labels WHERE issue_id IN (${ids.map(() => "?").join(",")})`,
+          ids
+        );
+        return rows;
+      }) as RowDataPacket[];
       const labelMap = new Map<string, string[]>();
       for (const row of labelRows) {
         const existing = labelMap.get(row.issue_id) || [];
@@ -148,10 +157,13 @@ export function registerIssueRoutes(
     }
 
     // Fetch labels
-    const [labelRows] = await getPool().query<RowDataPacket[]>(
-      `SELECT label FROM labels WHERE issue_id = ?`,
-      [id]
-    );
+    const labelRows = await queryWithRetry(config, async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT label FROM labels WHERE issue_id = ?`,
+        [id]
+      );
+      return rows;
+    }) as RowDataPacket[];
     issue.labels = labelRows.map((r) => r.label);
 
     return reply.send(issue);
@@ -224,8 +236,8 @@ export function registerIssueRoutes(
   // DELETE /api/issues/:id — close/delete
   app.delete("/api/issues/:id", async (request, reply) => {
     const { id } = request.params as { id: string };
-    const query = request.query as { reason?: string };
-    const result = await writeService.deleteIssue(id);
+    const { reason } = request.query as { reason?: string };
+    const result = await writeService.closeIssue(id, reason);
     return reply.send(result);
   });
 

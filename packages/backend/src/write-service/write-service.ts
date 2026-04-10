@@ -63,17 +63,6 @@ export class WriteService {
     });
   }
 
-  async deleteIssue(id: string): Promise<MutationResponse> {
-    return this.queue.enqueue(async () => {
-      const result = await this.issues.delete(id);
-      return {
-        success: true,
-        data: tryParseJson(result.stdout),
-        invalidationHints: result.hints,
-      };
-    });
-  }
-
   async addComment(
     issueId: string,
     req: CreateCommentRequest
@@ -122,6 +111,7 @@ function tryParseJson(str: string): unknown {
   try {
     return JSON.parse(str);
   } catch {
+    console.warn("[write-service] bd returned non-JSON output:", str.slice(0, 200));
     return { raw: str };
   }
 }

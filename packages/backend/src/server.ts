@@ -23,8 +23,13 @@ export async function createServer(config: Config) {
   // ─── Dolt SQL Server Lifecycle ─────────────────────────
   const doltManager = new DoltServerManager(config);
 
-  doltManager.onStateChange((state) => {
+  doltManager.onStateChange(async (state) => {
     app.log.info(`[dolt] Server state: ${state}`);
+    if (state === "running") {
+      app.log.info("Dolt server recovered, recreating connection pool...");
+      await destroyPool();
+      createDoltPool(config);
+    }
   });
 
   // ─── Connection Pool ──────────────────────────────────
@@ -56,9 +61,13 @@ export async function createServer(config: Config) {
     });
   });
 
-  // ─── CORS (permissive — localhost only) ───────────────
+  // ─── CORS (restricted to known frontend origin) ───────
+  const allowedOrigin = `http://localhost:${config.port}`;
   app.addHook("onRequest", async (request, reply) => {
-    reply.header("Access-Control-Allow-Origin", "*");
+    const origin = request.headers.origin;
+    if (origin === allowedOrigin || origin === `http://127.0.0.1:${config.port}`) {
+      reply.header("Access-Control-Allow-Origin", origin);
+    }
     reply.header(
       "Access-Control-Allow-Methods",
       "GET, POST, PATCH, DELETE, OPTIONS"

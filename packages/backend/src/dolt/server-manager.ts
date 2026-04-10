@@ -147,19 +147,35 @@ export class DoltServerManager {
     return false;
   }
 
+  private static readonly MAX_RESTART_ATTEMPTS = 10;
+
   /**
    * Schedule a restart with debounce.
    * Only restarts after N consecutive failures, not on a single timeout.
+   * Gives up after MAX_RESTART_ATTEMPTS total failures.
    */
   private scheduleRestart(): void {
     this.consecutiveFailures++;
+
+    if (this.consecutiveFailures >= DoltServerManager.MAX_RESTART_ATTEMPTS) {
+      console.error(
+        `[dolt-manager] Giving up after ${this.consecutiveFailures} consecutive failures`
+      );
+      return;
+    }
+
+    if (this.restartTimer) return; // Already scheduled
 
     if (this.consecutiveFailures < this.config.doltRestartThreshold) {
       console.log(
         `[dolt-manager] Failure ${this.consecutiveFailures}/${this.config.doltRestartThreshold}, ` +
         `will restart after threshold`
       );
-      // Try again quickly
+      // Kill any lingering process before quick retry
+      if (this.process) {
+        this.process.kill("SIGKILL");
+        this.process = null;
+      }
       this.restartTimer = setTimeout(() => {
         this.restartTimer = null;
         void this.start();
@@ -172,11 +188,8 @@ export class DoltServerManager {
       `restarting after ${this.config.doltRestartDebounceMs}ms debounce`
     );
 
-    if (this.restartTimer) return; // Already scheduled
-
     this.restartTimer = setTimeout(async () => {
       this.restartTimer = null;
-      this.consecutiveFailures = 0;
 
       // Kill any lingering process
       if (this.process) {

@@ -24,8 +24,12 @@ export async function runBd(
   });
 
   if (result.exitCode !== 0) {
-    const errorMsg = result.stderr || result.stdout || `bd exited with code ${result.exitCode}`;
-    throw cliError(errorMsg);
+    const detail = result.stderr || result.stdout || "";
+    // Log full detail for debugging, but don't expose paths/stack traces to clients
+    if (detail) {
+      console.error(`[bd-runner] CLI error (exit ${result.exitCode}):`, detail);
+    }
+    throw cliError(`bd command failed (exit code ${result.exitCode})`);
   }
 
   return {

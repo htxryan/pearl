@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { createPool, type Pool, type PoolConnection } from "mysql2/promise";
 import type { Config } from "../config.js";
 import { doltUnavailableError, databaseLockedError } from "../errors.js";
@@ -5,6 +6,12 @@ import { doltUnavailableError, databaseLockedError } from "../errors.js";
 let pool: Pool | null = null;
 
 export function createDoltPool(config: Config): Pool {
+  // Destroy any existing pool to prevent connection leaks
+  if (pool) {
+    pool.end().catch(() => {});
+    pool = null;
+  }
+
   pool = createPool({
     host: "127.0.0.1",
     port: config.doltPort,
@@ -77,8 +84,8 @@ export async function queryWithRetry<T>(
 
 function isLockError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
-  const msg = err.message.toLowerCase();
-  return msg.includes("lock") || msg.includes("locked");
+  const errno = (err as { errno?: number }).errno;
+  return errno === 1205 || errno === 1213; // ER_LOCK_WAIT_TIMEOUT, ER_LOCK_DEADLOCK
 }
 
 function isConnectionError(err: unknown): boolean {
@@ -93,6 +100,5 @@ function isConnectionError(err: unknown): boolean {
 }
 
 function getDbName(dbPath: string): string {
-  // Last segment of the path is the database name
-  return dbPath.split("/").filter(Boolean).pop() || "beads_gui";
+  return basename(dbPath) || "beads_gui";
 }
