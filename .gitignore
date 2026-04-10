@@ -3,3 +3,13 @@
 .dolt/
 *.db
 .beads-credential-key
+
+# compound-agent managed
+.compound-agent/
+
+# Build outputs
+packages/*/dist/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/

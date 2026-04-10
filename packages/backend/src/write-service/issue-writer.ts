@@ -1,0 +1,154 @@
+import type {
+  CreateIssueRequest,
+  UpdateIssueRequest,
+  InvalidationHint,
+} from "@beads-gui/shared";
+import type { Config } from "../config.js";
+import { runBd } from "./bd-runner.js";
+import { validationError } from "../errors.js";
+
+export class IssueWriter {
+  constructor(private config: Config) {}
+
+  async create(
+    req: CreateIssueRequest
+  ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+    if (!req.title?.trim()) {
+      throw validationError("Title is required");
+    }
+
+    // Build array-form args — NEVER string interpolation
+    const args: string[] = ["create", req.title];
+
+    if (req.description) {
+      args.push("--description", req.description);
+    }
+    if (req.issue_type) {
+      args.push("--type", req.issue_type);
+    }
+    if (req.priority !== undefined) {
+      args.push("--priority", `P${req.priority}`);
+    }
+    if (req.assignee) {
+      args.push("--assignee", req.assignee);
+    }
+    if (req.labels?.length) {
+      args.push("--labels", req.labels.join(","));
+    }
+    if (req.due) {
+      args.push("--due", req.due);
+    }
+    if (req.parent) {
+      args.push("--parent", req.parent);
+    }
+    if (req.estimated_minutes !== undefined) {
+      args.push("--estimate", String(req.estimated_minutes));
+    }
+
+    const result = await runBd(this.config, args);
+
+    return {
+      stdout: result.stdout,
+      hints: [
+        { entity: "issues" },
+        { entity: "stats" },
+        { entity: "events" },
+      ],
+    };
+  }
+
+  async update(
+    id: string,
+    req: UpdateIssueRequest
+  ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+    const args: string[] = ["update", id];
+
+    if (req.claim) {
+      args.push("--claim");
+    }
+    if (req.title) {
+      args.push("--title", req.title);
+    }
+    if (req.description !== undefined) {
+      args.push("--description", req.description);
+    }
+    if (req.status) {
+      args.push("--status", req.status);
+    }
+    if (req.priority !== undefined) {
+      args.push("--priority", `P${req.priority}`);
+    }
+    if (req.assignee !== undefined) {
+      args.push("--assignee", req.assignee);
+    }
+    if (req.labels) {
+      args.push("--set-labels", req.labels.join(","));
+    }
+    if (req.due !== undefined) {
+      args.push("--due", req.due);
+    }
+    if (req.notes) {
+      args.push("--notes", req.notes);
+    }
+    if (req.pinned !== undefined) {
+      // bd doesn't have a --pinned flag directly, but we can use update
+      // For now, include it in metadata
+    }
+    if (req.estimated_minutes !== undefined) {
+      args.push("--estimate", String(req.estimated_minutes));
+    }
+
+    const result = await runBd(this.config, args);
+
+    return {
+      stdout: result.stdout,
+      hints: [
+        { entity: "issues", id },
+        { entity: "stats" },
+        { entity: "events", id },
+      ],
+    };
+  }
+
+  async close(
+    id: string,
+    reason?: string
+  ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+    const args: string[] = ["close", id];
+    if (reason) {
+      args.push("--reason", reason);
+    }
+
+    const result = await runBd(this.config, args);
+
+    return {
+      stdout: result.stdout,
+      hints: [
+        { entity: "issues", id },
+        { entity: "issues" }, // Other issues may become unblocked
+        { entity: "dependencies" },
+        { entity: "stats" },
+        { entity: "events", id },
+      ],
+    };
+  }
+
+  async delete(id: string): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+    // bd doesn't have a direct delete — use close with force
+    // In practice, "delete" in the GUI means close
+    const args: string[] = ["close", id, "--force"];
+
+    const result = await runBd(this.config, args);
+
+    return {
+      stdout: result.stdout,
+      hints: [
+        { entity: "issues", id },
+        { entity: "issues" },
+        { entity: "dependencies" },
+        { entity: "stats" },
+        { entity: "events", id },
+      ],
+    };
+  }
+}
