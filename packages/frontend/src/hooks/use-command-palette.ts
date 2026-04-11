@@ -1,0 +1,65 @@
+import { useSyncExternalStore, useEffect, useCallback } from "react";
+
+export interface CommandAction {
+  id: string;
+  label: string;
+  shortcut?: string;
+  group?: string;
+  handler: () => void;
+}
+
+// ─── Command palette state ──────────────────────────────
+let isOpen = false;
+let listeners: Array<() => void> = [];
+const registeredActions = new Map<string, CommandAction[]>();
+
+function notify() {
+  listeners.forEach((l) => l());
+}
+
+function subscribe(listener: () => void) {
+  listeners = [...listeners, listener];
+  return () => {
+    listeners = listeners.filter((l) => l !== listener);
+  };
+}
+
+export function openCommandPalette() {
+  isOpen = true;
+  notify();
+}
+
+export function closeCommandPalette() {
+  isOpen = false;
+  notify();
+}
+
+export function toggleCommandPalette() {
+  isOpen = !isOpen;
+  notify();
+}
+
+export function useCommandPaletteOpen() {
+  return useSyncExternalStore(subscribe, () => isOpen);
+}
+
+// ─── Action Registration ────────────────────────────────
+export function useCommandPaletteActions(sourceId: string, actions: CommandAction[]) {
+  useEffect(() => {
+    registeredActions.set(sourceId, actions);
+    notify();
+    return () => {
+      registeredActions.delete(sourceId);
+      notify();
+    };
+  }, [sourceId, actions]);
+}
+
+export function useAllCommandActions(): CommandAction[] {
+  useSyncExternalStore(subscribe, () => registeredActions.size);
+  const all: CommandAction[] = [];
+  for (const actions of registeredActions.values()) {
+    all.push(...actions);
+  }
+  return all;
+}
