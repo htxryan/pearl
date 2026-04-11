@@ -1,6 +1,8 @@
 {
 	"private": true,
-	"workspaces": ["packages/*"],
+	"workspaces": [
+		"packages/*"
+	],
 	"scripts": {
 		"dev": "pnpm --filter @beads-gui/backend dev",
 		"build": "pnpm -r build",
@@ -8,6 +10,7 @@
 		"typecheck": "pnpm -r typecheck"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.59.1",
 		"compound-agent": "^2.7.1"
 	}
 }
