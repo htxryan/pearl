@@ -2,11 +2,10 @@ import { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface MarkdownSectionProps {
   title: string;
-  content: string;
+  content?: string;
   field: string;
   issueId: string;
   onSave: (value: string) => void;
@@ -16,21 +15,20 @@ export function MarkdownSection({
   title,
   content,
   field,
-  issueId,
   onSave,
 }: MarkdownSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(content);
+  const [editValue, setEditValue] = useState(content ?? "");
 
   const handleSave = () => {
-    if (editValue !== content) {
+    if (editValue !== (content ?? "")) {
       onSave(editValue);
     }
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditValue(content);
+    setEditValue(content ?? "");
     setIsEditing(false);
   };
 
@@ -45,7 +43,7 @@ export function MarkdownSection({
             variant="ghost"
             size="sm"
             onClick={() => {
-              setEditValue(content);
+              setEditValue(content ?? "");
               setIsEditing(true);
             }}
             className="text-xs"
@@ -58,6 +56,7 @@ export function MarkdownSection({
       {isEditing ? (
         <div className="space-y-2">
           <textarea
+            name={field}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             className="w-full min-h-[120px] text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring resize-y font-mono"
@@ -78,13 +77,13 @@ export function MarkdownSection({
           role="button"
           tabIndex={0}
           onClick={() => {
-            setEditValue(content);
+            setEditValue(content ?? "");
             setIsEditing(true);
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              setEditValue(content);
+              setEditValue(content ?? "");
               setIsEditing(true);
             }
           }}

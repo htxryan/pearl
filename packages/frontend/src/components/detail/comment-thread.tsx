@@ -5,7 +5,7 @@ import { formatRelativeTime } from "@/lib/utils";
 
 interface CommentThreadProps {
   comments: Comment[];
-  onAdd: (text: string) => void;
+  onAdd: (text: string) => Promise<unknown>;
   isAdding: boolean;
 }
 
@@ -17,8 +17,7 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
     e.preventDefault();
     const trimmed = newComment.trim();
     if (!trimmed) return;
-    onAdd(trimmed);
-    setNewComment("");
+    onAdd(trimmed).then(() => setNewComment(""));
   };
 
   return (

@@ -66,6 +66,7 @@ export function FieldEditor({
       <div className={cn("flex items-center gap-2", className)}>
         <input
           ref={inputRef}
+          name={field}
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={handleSave}

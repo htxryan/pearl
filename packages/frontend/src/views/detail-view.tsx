@@ -28,10 +28,12 @@ import { FieldEditor } from "@/components/detail/field-editor";
 
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-
-  // Guard: redirect if no ID in route params
   if (!id) return <Navigate to="/list" replace />;
+  return <DetailViewContent id={id} />;
+}
+
+function DetailViewContent({ id }: { id: string }) {
+  const navigate = useNavigate();
 
   // Data fetching
   const { data: issue, isLoading, error } = useIssue(id);
@@ -63,7 +65,7 @@ export function DetailView() {
   // Field update handler
   const handleFieldUpdate = useCallback(
     (field: string, value: unknown) => {
-      if (!id) return;
+      setDirtyFields((prev) => new Set(prev).add(field));
       updateMutation.mutate(
         { id, data: { [field]: value } },
         {
@@ -82,13 +84,11 @@ export function DetailView() {
 
   // Close handler
   const handleClose = useCallback(() => {
-    if (!id) return;
     closeMutation.mutate({ id }, { onSuccess: () => navigate("/list") });
   }, [id, closeMutation, navigate]);
 
   // Claim handler
   const handleClaim = useCallback(() => {
-    if (!id) return;
     updateMutation.mutate({ id, data: { claim: true } });
   }, [id, updateMutation]);
 
@@ -186,10 +186,10 @@ export function DetailView() {
           <div className="flex items-center gap-2">
             {issue.status !== "closed" && (
               <>
-                <Button variant="outline" size="sm" onClick={handleClaim}>
+                <Button variant="outline" size="sm" onClick={handleClaim} disabled={updateMutation.isPending}>
                   Claim
                 </Button>
-                <Button variant="destructive" size="sm" onClick={handleClose}>
+                <Button variant="destructive" size="sm" onClick={handleClose} disabled={closeMutation.isPending}>
                   Close
                 </Button>
               </>
@@ -355,7 +355,7 @@ export function DetailView() {
           <CommentThread
             comments={comments}
             onAdd={(text) =>
-              addCommentMutation.mutate({ issueId: id, data: { text } })
+              addCommentMutation.mutateAsync({ issueId: id, data: { text } })
             }
             isAdding={addCommentMutation.isPending}
           />
