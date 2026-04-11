@@ -1,7 +1,17 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
+  type VisibilityState,
+  type ColumnOrderState,
+  type RowSelectionState,
+} from "@tanstack/react-table";
 import type { IssueListItem } from "@beads-gui/shared";
 import { IssueTable } from "./issue-table";
+import { buildColumns } from "./columns";
 
 const mockIssues: IssueListItem[] = [
   {
@@ -34,26 +44,47 @@ const mockIssues: IssueListItem[] = [
   },
 ];
 
-const defaultProps = {
-  data: mockIssues,
-  isLoading: false,
-  sorting: [{ id: "priority", desc: false }],
-  onSortingChange: vi.fn(),
-  columnVisibility: {},
-  onColumnVisibilityChange: vi.fn(),
-  columnOrder: [],
-  onColumnOrderChange: vi.fn(),
-  rowSelection: {},
-  onRowSelectionChange: vi.fn(),
-  activeRowIndex: -1,
-  onRowClick: vi.fn(),
-  onStatusChange: vi.fn(),
-  onPriorityChange: vi.fn(),
-} as const;
+function TableWrapper({
+  data = mockIssues,
+  isLoading = false,
+  activeRowIndex = -1,
+  sorting = [{ id: "priority", desc: false }] as SortingState,
+  highlightedIds,
+}: {
+  data?: IssueListItem[];
+  isLoading?: boolean;
+  activeRowIndex?: number;
+  sorting?: SortingState;
+  highlightedIds?: Set<string>;
+}) {
+  const columns = buildColumns({});
+  const table = useReactTable({
+    data,
+    columns,
+    state: { sorting, columnVisibility: {}, columnOrder: [], rowSelection: {} },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    enableRowSelection: true,
+    enableMultiSort: true,
+    getRowId: (row) => row.id,
+  });
+
+  return (
+    <IssueTable
+      table={table}
+      isLoading={isLoading}
+      activeRowIndex={activeRowIndex}
+      onRowClick={vi.fn()}
+      highlightedIds={highlightedIds}
+    />
+  );
+}
 
 describe("IssueTable", () => {
   it("renders issue rows with correct data", () => {
-    render(<IssueTable {...defaultProps} />);
+    render(<TableWrapper />);
 
     expect(screen.getByText("Fix login bug")).toBeInTheDocument();
     expect(screen.getByText("Add dashboard view")).toBeInTheDocument();
@@ -62,7 +93,7 @@ describe("IssueTable", () => {
   });
 
   it("renders column headers", () => {
-    render(<IssueTable {...defaultProps} />);
+    render(<TableWrapper />);
 
     expect(screen.getByText("ID")).toBeInTheDocument();
     expect(screen.getByText("Title")).toBeInTheDocument();
@@ -73,15 +104,14 @@ describe("IssueTable", () => {
   });
 
   it("shows loading skeleton when loading with no data", () => {
-    render(<IssueTable {...defaultProps} data={[]} isLoading={true} />);
+    render(<TableWrapper data={[]} isLoading={true} />);
 
-    // Should show skeleton rows (animated pulse elements)
     const skeletons = document.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("shows empty state when no data and not loading", () => {
-    render(<IssueTable {...defaultProps} data={[]} />);
+    render(<TableWrapper data={[]} />);
 
     expect(screen.getByText("No issues found")).toBeInTheDocument();
     expect(
@@ -90,7 +120,7 @@ describe("IssueTable", () => {
   });
 
   it("renders labels as pills", () => {
-    render(<IssueTable {...defaultProps} />);
+    render(<TableWrapper />);
 
     // "frontend" appears on both rows
     expect(screen.getAllByText("frontend")).toHaveLength(2);
@@ -98,26 +128,27 @@ describe("IssueTable", () => {
   });
 
   it("highlights active row", () => {
-    render(<IssueTable {...defaultProps} activeRowIndex={0} />);
+    render(<TableWrapper activeRowIndex={0} />);
 
     const rows = document.querySelectorAll("tbody tr");
     expect(rows[0].getAttribute("aria-selected")).toBe("true");
   });
 
   it("renders sort indicators", () => {
-    render(
-      <IssueTable
-        {...defaultProps}
-        sorting={[{ id: "priority", desc: false }]}
-      />,
-    );
+    render(<TableWrapper sorting={[{ id: "priority", desc: false }]} />);
 
     expect(screen.getByLabelText("Sorted ascending")).toBeInTheDocument();
   });
 
   it("renders select-all checkbox in header", () => {
-    render(<IssueTable {...defaultProps} />);
+    render(<TableWrapper />);
 
     expect(screen.getByLabelText("Select all rows")).toBeInTheDocument();
+  });
+
+  it("has aria-label on table element", () => {
+    render(<TableWrapper />);
+
+    expect(screen.getByRole("table")).toHaveAttribute("aria-label", "Issue list");
   });
 });

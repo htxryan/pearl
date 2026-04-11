@@ -2,14 +2,23 @@ import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import type { SortingState } from "@tanstack/react-table";
 import type { IssueStatus, Priority, IssueType } from "@beads-gui/shared";
-import { type FilterState, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
+import { type FilterState } from "@/components/issue-table/filter-bar";
 
-/** Parse URL search params into FilterState + SortingState. */
+const VALID_STATUSES = new Set<string>(["open", "in_progress", "closed", "blocked", "deferred"]);
+const VALID_PRIORITIES = new Set<number>([0, 1, 2, 3, 4]);
+const VALID_TYPES = new Set<string>(["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"]);
+const VALID_SORT_COLUMNS = new Set(["id", "title", "status", "priority", "issue_type", "assignee", "created_at", "updated_at", "due_at"]);
+
+/** Parse URL search params into FilterState + SortingState with validation. */
 function parseFilters(params: URLSearchParams): FilterState {
+  const rawStatus = params.get("status")?.split(",").filter(Boolean) ?? [];
+  const rawPriority = params.get("priority")?.split(",").filter(Boolean).map(Number) ?? [];
+  const rawType = params.get("type")?.split(",").filter(Boolean) ?? [];
+
   return {
-    status: (params.get("status")?.split(",").filter(Boolean) ?? []) as IssueStatus[],
-    priority: (params.get("priority")?.split(",").filter(Boolean).map(Number) ?? []) as Priority[],
-    issue_type: (params.get("type")?.split(",").filter(Boolean) ?? []) as IssueType[],
+    status: rawStatus.filter((s) => VALID_STATUSES.has(s)) as IssueStatus[],
+    priority: rawPriority.filter((p) => VALID_PRIORITIES.has(p)) as Priority[],
+    issue_type: rawType.filter((t) => VALID_TYPES.has(t)) as IssueType[],
     assignee: params.get("assignee") ?? "",
     search: params.get("search") ?? "",
   };
@@ -18,7 +27,7 @@ function parseFilters(params: URLSearchParams): FilterState {
 function parseSorting(params: URLSearchParams): SortingState {
   const sort = params.get("sort");
   const dir = params.get("dir");
-  if (!sort) return [{ id: "priority", desc: false }];
+  if (!sort || !VALID_SORT_COLUMNS.has(sort)) return [{ id: "priority", desc: false }];
   return [{ id: sort, desc: dir === "desc" }];
 }
 

@@ -1,33 +1,16 @@
-import { useMemo, useRef, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
   flexRender,
-  type SortingState,
-  type ColumnOrderState,
-  type VisibilityState,
-  type RowSelectionState,
+  type Table,
 } from "@tanstack/react-table";
-import type { IssueListItem, IssueStatus, Priority } from "@beads-gui/shared";
+import type { IssueListItem } from "@beads-gui/shared";
 import { cn } from "@/lib/utils";
-import { buildColumns } from "./columns";
 
 export interface IssueTableProps {
-  data: IssueListItem[];
+  table: Table<IssueListItem>;
   isLoading: boolean;
-  sorting: SortingState;
-  onSortingChange: (sorting: SortingState) => void;
-  columnVisibility: VisibilityState;
-  onColumnVisibilityChange: (visibility: VisibilityState) => void;
-  columnOrder: ColumnOrderState;
-  onColumnOrderChange: (order: ColumnOrderState) => void;
-  rowSelection: RowSelectionState;
-  onRowSelectionChange: (selection: RowSelectionState) => void;
   activeRowIndex: number;
   onRowClick: (id: string) => void;
-  onStatusChange: (id: string, status: IssueStatus) => void;
-  onPriorityChange: (id: string, priority: Priority) => void;
   highlightedIds?: Set<string>;
 }
 
@@ -44,62 +27,14 @@ function SkeletonRow({ colCount }: { colCount: number }) {
 }
 
 export function IssueTable({
-  data,
+  table,
   isLoading,
-  sorting,
-  onSortingChange,
-  columnVisibility,
-  onColumnVisibilityChange,
-  columnOrder,
-  onColumnOrderChange,
-  rowSelection,
-  onRowSelectionChange,
   activeRowIndex,
   onRowClick,
-  onStatusChange,
-  onPriorityChange,
   highlightedIds,
 }: IssueTableProps) {
   const tableRef = useRef<HTMLTableElement>(null);
-
-  const columns = useMemo(
-    () => buildColumns({ onStatusChange, onPriorityChange }),
-    [onStatusChange, onPriorityChange],
-  );
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      columnOrder,
-      rowSelection,
-    },
-    onSortingChange: (updater) => {
-      const next = typeof updater === "function" ? updater(sorting) : updater;
-      onSortingChange(next);
-    },
-    onColumnVisibilityChange: (updater) => {
-      const next = typeof updater === "function" ? updater(columnVisibility) : updater;
-      onColumnVisibilityChange(next);
-    },
-    onColumnOrderChange: (updater) => {
-      const next = typeof updater === "function" ? updater(columnOrder) : updater;
-      onColumnOrderChange(next);
-    },
-    onRowSelectionChange: (updater) => {
-      const next = typeof updater === "function" ? updater(rowSelection) : updater;
-      onRowSelectionChange(next);
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    enableColumnResizing: true,
-    columnResizeMode: "onChange",
-    enableRowSelection: true,
-    enableMultiSort: true,
-    getRowId: (row) => row.id,
-  });
+  const data = table.getRowModel().rows;
 
   const handleRowClick = useCallback(
     (id: string) => {
@@ -113,7 +48,7 @@ export function IssueTable({
     const visibleColCount = table.getVisibleFlatColumns().length;
     return (
       <div className="overflow-auto">
-        <table ref={tableRef} className="w-full border-collapse text-sm">
+        <table ref={tableRef} className="w-full border-collapse text-sm" aria-label="Issue list">
           <thead>
             <tr className="border-b border-border">
               {table.getHeaderGroups()[0]?.headers.map((header) => (
@@ -152,7 +87,7 @@ export function IssueTable({
 
   return (
     <div className="overflow-auto">
-      <table ref={tableRef} className="w-full border-collapse text-sm">
+      <table ref={tableRef} className="w-full border-collapse text-sm" aria-label="Issue list">
         <thead className="sticky top-0 z-10 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className="border-b border-border">
@@ -189,7 +124,7 @@ export function IssueTable({
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row, index) => (
+          {data.map((row, index) => (
             <tr
               key={row.id}
               onClick={() => handleRowClick(row.original.id)}

@@ -1,18 +1,26 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
-import type {
-  VisibilityState,
-  ColumnOrderState,
-  RowSelectionState,
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  type VisibilityState,
+  type ColumnOrderState,
+  type RowSelectionState,
 } from "@tanstack/react-table";
 import type { IssueStatus, Priority } from "@beads-gui/shared";
 import { IssueTable } from "@/components/issue-table/issue-table";
 import { FilterBar } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
+import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
+import { buildColumns } from "@/components/issue-table/columns";
 import { useIssues, useUpdateIssue, useCloseIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
+
+const VALID_STATUSES = new Set<string>(["open", "in_progress", "closed", "blocked", "deferred"]);
+const VALID_PRIORITIES = new Set<number>([0, 1, 2, 3, 4]);
 
 export function ListView() {
   const navigate = useNavigate();
@@ -41,6 +49,13 @@ export function ListView() {
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
 
+  // Clear highlight after 3 seconds
+  useEffect(() => {
+    if (highlightedIds.size === 0) return;
+    const timer = setTimeout(() => setHighlightedIds(new Set()), 3000);
+    return () => clearTimeout(timer);
+  }, [highlightedIds]);
+
   // Bulk close state
   const [isClosing, setIsClosing] = useState(false);
 
@@ -56,6 +71,7 @@ export function ListView() {
 
   const handleStatusChange = useCallback(
     (id: string, status: IssueStatus) => {
+      if (!VALID_STATUSES.has(status)) return;
       updateMutation.mutate({ id, data: { status } });
     },
     [updateMutation],
@@ -63,6 +79,7 @@ export function ListView() {
 
   const handlePriorityChange = useCallback(
     (id: string, priority: Priority) => {
+      if (!VALID_PRIORITIES.has(priority)) return;
       updateMutation.mutate({ id, data: { priority } });
     },
     [updateMutation],
@@ -72,13 +89,16 @@ export function ListView() {
     if (selectedIds.length === 0) return;
     setIsClosing(true);
     try {
-      // Close all selected issues
-      await Promise.all(
+      const results = await Promise.allSettled(
         selectedIds.map((id) => closeMutation.mutateAsync({ id })),
       );
-      // Highlight newly-unblocked after close
-      setHighlightedIds(new Set(selectedIds));
-      setTimeout(() => setHighlightedIds(new Set()), 3000);
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length > 0) {
+        console.error(`Failed to close ${failed.length} of ${selectedIds.length} issues`);
+      }
+      // Highlight successfully-closed issues
+      const closedIds = selectedIds.filter((_, i) => results[i].status === "fulfilled");
+      setHighlightedIds(new Set(closedIds));
       setRowSelection({});
     } finally {
       setIsClosing(false);
@@ -88,6 +108,46 @@ export function ListView() {
   const handleClearSelection = useCallback(() => {
     setRowSelection({});
   }, []);
+
+  // Build columns and table instance
+  const columns = useMemo(
+    () => buildColumns({ onStatusChange: handleStatusChange, onPriorityChange: handlePriorityChange }),
+    [handleStatusChange, handlePriorityChange],
+  );
+
+  const table = useReactTable({
+    data: issues,
+    columns,
+    state: {
+      sorting,
+      columnVisibility,
+      columnOrder,
+      rowSelection,
+    },
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(next);
+    },
+    onColumnVisibilityChange: (updater) => {
+      const next = typeof updater === "function" ? updater(columnVisibility) : updater;
+      setColumnVisibility(next);
+    },
+    onColumnOrderChange: (updater) => {
+      const next = typeof updater === "function" ? updater(columnOrder) : updater;
+      setColumnOrder(next);
+    },
+    onRowSelectionChange: (updater) => {
+      const next = typeof updater === "function" ? updater(rowSelection) : updater;
+      setRowSelection(next);
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    enableRowSelection: true,
+    enableMultiSort: true,
+    getRowId: (row) => row.id,
+  });
 
   // Keyboard navigation
   const keyBindings = useMemo(
@@ -169,11 +229,14 @@ export function ListView() {
     <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div className="shrink-0 border-b border-border px-4 py-3 space-y-2">
-        <FilterBar
-          filters={filters}
-          onChange={setFilters}
-          searchInputRef={searchInputRef}
-        />
+        <div className="flex items-start justify-between gap-4">
+          <FilterBar
+            filters={filters}
+            onChange={setFilters}
+            searchInputRef={searchInputRef}
+          />
+          <ColumnVisibilityMenu table={table} />
+        </div>
         <BulkActionBar
           selectedCount={selectedIds.length}
           onClose={handleBulkClose}
@@ -185,20 +248,10 @@ export function ListView() {
       {/* Table */}
       <div className="flex-1 overflow-auto">
         <IssueTable
-          data={issues}
+          table={table}
           isLoading={isLoading}
-          sorting={sorting}
-          onSortingChange={setSorting}
-          columnVisibility={columnVisibility}
-          onColumnVisibilityChange={setColumnVisibility}
-          columnOrder={columnOrder}
-          onColumnOrderChange={setColumnOrder}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
           activeRowIndex={activeRowIndex}
           onRowClick={handleRowClick}
-          onStatusChange={handleStatusChange}
-          onPriorityChange={handlePriorityChange}
           highlightedIds={highlightedIds}
         />
       </div>
