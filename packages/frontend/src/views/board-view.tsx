@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   DndContext,
@@ -55,9 +55,6 @@ export function BoardView() {
   const [overColumnStatus, setOverColumnStatus] = useState<IssueStatus | null>(null);
   const isDragging = activeId !== null;
 
-  // Ref to suppress polling during drag
-  const dragCountRef = useRef(0);
-
   // Group issues by status
   const columnData = useMemo(() => {
     const grouped: Record<IssueStatus, IssueListItem[]> = {
@@ -108,7 +105,6 @@ export function BoardView() {
   // Drag handlers
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(String(event.active.id));
-    dragCountRef.current++;
   }, []);
 
   const handleDragOver = useCallback(
@@ -129,7 +125,6 @@ export function BoardView() {
       const { active, over } = event;
       setActiveId(null);
       setOverColumnStatus(null);
-      dragCountRef.current--;
 
       if (!over) return;
 
@@ -156,7 +151,6 @@ export function BoardView() {
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
     setOverColumnStatus(null);
-    dragCountRef.current--;
   }, []);
 
   // Card click → Detail view
@@ -206,19 +200,14 @@ export function BoardView() {
   // Error message state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Show mutation errors briefly
-  const lastErrorRef = useRef<string | null>(null);
-  if (updateMutation.isError && updateMutation.error) {
+  // Show mutation errors briefly via effect (not during render)
+  useEffect(() => {
+    if (!updateMutation.isError || !updateMutation.error) return;
     const msg = updateMutation.error.message || "Failed to update status";
-    if (msg !== lastErrorRef.current) {
-      lastErrorRef.current = msg;
-      setErrorMessage(msg);
-      setTimeout(() => {
-        setErrorMessage(null);
-        lastErrorRef.current = null;
-      }, 3000);
-    }
-  }
+    setErrorMessage(msg);
+    const timer = setTimeout(() => setErrorMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [updateMutation.isError, updateMutation.error]);
 
   return (
     <div className="flex flex-col h-full">
@@ -279,7 +268,7 @@ export function BoardView() {
 
 function BoardSkeleton() {
   return (
-    <div className="flex gap-4 h-full" aria-label="Loading board">
+    <div className="flex gap-4 h-full" role="status" aria-label="Loading board" aria-busy>
       {COLUMN_ORDER.map((status) => (
         <div
           key={status}

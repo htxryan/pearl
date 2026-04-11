@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
@@ -12,7 +13,7 @@ interface KanbanColumnProps {
   isDropTarget?: boolean;
 }
 
-export function KanbanColumn({
+export const KanbanColumn = memo(function KanbanColumn({
   status,
   issues,
   onCardClick,
@@ -64,4 +65,4 @@ export function KanbanColumn({
       </div>
     </div>
   );
-}
+});

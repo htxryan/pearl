@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { IssueListItem } from "@beads-gui/shared";
@@ -11,7 +12,7 @@ interface KanbanCardProps {
   isDragOverlay?: boolean;
 }
 
-export function KanbanCard({ issue, onClick, isDragOverlay }: KanbanCardProps) {
+export const KanbanCard = memo(function KanbanCard({ issue, onClick, isDragOverlay }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -96,7 +97,7 @@ export function KanbanCard({ issue, onClick, isDragOverlay }: KanbanCardProps) {
       </div>
     </div>
   );
-}
+});
 
 /** Drag overlay version — renders without dnd hooks */
 export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
