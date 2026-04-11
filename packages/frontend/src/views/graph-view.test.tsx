@@ -36,49 +36,6 @@ vi.mock("@/hooks/use-dependencies", () => ({
 }));
 
 // Mock React Flow — jsdom doesn't support the DOM measurements React Flow needs
-vi.mock("@xyflow/react", () => {
-  const actual = {
-    MarkerType: { ArrowClosed: "arrowclosed" },
-    Position: { Top: "top", Bottom: "bottom" },
-  };
-
-  return {
-    ...actual,
-    ReactFlow: ({ nodes, edges, onNodeClick, onNodeDoubleClick, children }: any) => (
-      <div data-testid="react-flow" data-node-count={nodes?.length ?? 0} data-edge-count={edges?.length ?? 0}>
-        {nodes?.map((node: any) => (
-          <div
-            key={node.id}
-            data-testid={`node-${node.id}`}
-            data-highlighted={node.data.highlighted}
-            onClick={(e) => onNodeClick?.(e, node)}
-            onDoubleClick={(e) => onNodeDoubleClick?.(e, node)}
-          >
-            <span>{node.data.issue.title}</span>
-            <span data-testid={`status-${node.id}`}>{node.data.issue.status}</span>
-            <span data-testid={`priority-${node.id}`}>{node.data.issue.priority}</span>
-          </div>
-        ))}
-        {children}
-      </div>
-    ),
-    Background: () => <div data-testid="rf-background" />,
-    Controls: () => <div data-testid="rf-controls" />,
-    MiniMap: () => <div data-testid="rf-minimap" />,
-    Panel: ({ children }: any) => <div data-testid="rf-panel">{children}</div>,
-    Handle: () => null,
-    useNodesState: (initial: any[]) => {
-      const [nodes, setNodes] = vi.importActual<typeof import("react")>("react").then(m => m.useState(initial)) as any;
-      // Simplified: just return the initial nodes
-      return [initial, vi.fn(), vi.fn()];
-    },
-    useEdgesState: (initial: any[]) => {
-      return [initial, vi.fn(), vi.fn()];
-    },
-  };
-});
-
-// Re-mock useNodesState/useEdgesState properly with React
 let mockNodes: any[] = [];
 let mockEdges: any[] = [];
 let mockSetNodes: ReturnType<typeof vi.fn>;

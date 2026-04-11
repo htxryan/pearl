@@ -113,7 +113,7 @@ function computeLayout(
   });
 
   const edges: Edge[] = validEdges.map((dep) => ({
-    id: `${dep.depends_on_id}-${dep.issue_id}`,
+    id: `${dep.depends_on_id}-${dep.type}-${dep.issue_id}`,
     source: dep.depends_on_id,
     target: dep.issue_id,
     type: "default",
@@ -266,6 +266,14 @@ export function GraphView() {
 
   // Selected node for highlighting
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // Clear selection when the selected node is no longer in the filtered set
+  const allIssueIds = useMemo(() => new Set(allIssues.map((i) => i.id)), [allIssues]);
+  useEffect(() => {
+    if (selectedNodeId && !allIssueIds.has(selectedNodeId)) {
+      setSelectedNodeId(null);
+    }
+  }, [selectedNodeId, allIssueIds]);
 
   // Performance cap + subgraph
   const isOverCap = allIssues.length > PERFORMANCE_CAP;
@@ -456,7 +464,7 @@ export function GraphView() {
             fitViewOptions={{ padding: 0.2, maxZoom: 1.5 }}
             minZoom={0.1}
             maxZoom={3}
-            proOptions={{ hideAttribution: true }}
+
           >
             <Background />
             <Controls />
