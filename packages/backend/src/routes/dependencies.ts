@@ -28,7 +28,8 @@ export function registerDependencyRoutes(
       const [rows] = await conn.query(
         `SELECT issue_id, depends_on_id, type, created_at, created_by
          FROM dependencies
-         ORDER BY created_at DESC`
+         ORDER BY created_at DESC
+         LIMIT 5000`
       );
       return rows;
     });

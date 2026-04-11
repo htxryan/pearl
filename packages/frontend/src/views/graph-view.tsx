@@ -60,7 +60,7 @@ function computeLayout(
   deps: Dependency[],
   highlightedIds: Set<string>,
 ): { nodes: GraphNodeType[]; edges: Edge[] } {
-  const g = new dagre.graphlib.Graph();
+  const g = new dagre.graphlib.Graph({ multigraph: true });
   g.setGraph({
     rankdir: "TB",
     nodesep: 40,
@@ -86,7 +86,7 @@ function computeLayout(
   for (const dep of deps) {
     if (issueMap.has(dep.issue_id) && issueMap.has(dep.depends_on_id)) {
       // Edge direction: depends_on_id → issue_id (dependency points upward)
-      g.setEdge(dep.depends_on_id, dep.issue_id);
+      g.setEdge(dep.depends_on_id, dep.issue_id, {}, dep.type);
       validEdges.push(dep);
     }
   }

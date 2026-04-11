@@ -48,6 +48,9 @@ function DetailViewContent({ id }: { id: string }) {
   const addDepMutation = useAddDependency();
   const removeDepMutation = useRemoveDependency();
 
+  // Inline error banner state
+  const [mutationError, setMutationError] = useState<string | null>(null);
+
   // Dirty state for unsaved changes warning
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const isDirty = dirtyFields.size > 0;
@@ -92,13 +95,13 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Close handler
   const handleClose = useCallback(() => {
+    setMutationError(null);
     closeMutation.mutate(
       { id },
       {
         onSuccess: () => navigate("/list"),
         onError: () => {
-          // Surface close failure to user
-          window.alert("Failed to close issue. Please try again.");
+          setMutationError("Failed to close issue. Please try again.");
         },
       },
     );
@@ -106,11 +109,12 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Claim handler
   const handleClaim = useCallback(() => {
+    setMutationError(null);
     updateMutation.mutate(
       { id, data: { claim: true } },
       {
         onError: () => {
-          window.alert("Failed to claim issue. Please try again.");
+          setMutationError("Failed to claim issue. Please try again.");
         },
       },
     );
@@ -234,6 +238,17 @@ function DetailViewContent({ id }: { id: string }) {
           )}
         />
 
+        {mutationError && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded px-3 py-2">
+            <span>{mutationError}</span>
+            <button
+              onClick={() => setMutationError(null)}
+              className="ml-auto shrink-0 hover:text-red-800 dark:hover:text-red-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         {isDirty && (
           <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
             Unsaved changes in: {Array.from(dirtyFields).join(", ")}

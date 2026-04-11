@@ -73,9 +73,9 @@ const listIssuesQuerySchema = {
   querystring: {
     type: "object",
     properties: {
-      status: { type: "string", maxLength: 200 },
+      status: { type: "string", maxLength: 200, pattern: `^(${ISSUE_STATUSES.join("|")})(,(${ISSUE_STATUSES.join("|")}))*$` },
       priority: { type: "string", maxLength: 50 },
-      issue_type: { type: "string", maxLength: 200 },
+      issue_type: { type: "string", maxLength: 200, pattern: `^(${ISSUE_TYPES.join("|")})(,(${ISSUE_TYPES.join("|")}))*$` },
       assignee: { type: "string", maxLength: 200 },
       search: { type: "string", maxLength: 500 },
       labels: { type: "string", maxLength: 500 },
