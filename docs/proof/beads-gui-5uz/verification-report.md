@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-All 15 integration contracts verified. **294 tests pass** (240 frontend + 54 backend). TypeScript compiles cleanly across all 3 packages. Full build succeeds. All API endpoints respond correctly when the backend is running with Dolt SQL server.
+15 integration contracts evaluated. **294 tests pass** (240 frontend + 54 backend). TypeScript compiles cleanly across all 3 packages. Full build succeeds. All read-path API endpoints verified live. **2 contracts (3, 4) are PARTIAL**: their write paths (PATCH, POST) are mock-verified only — live write verification is blocked by the Dolt file lock bug (beads-gui-054).
 
 ---
 
@@ -135,9 +135,9 @@ Test coverage:
 
 **GET /api/issues/:id returns full Issue, PATCH persists, comments POST works**
 
-**Result: PASS**
+**Result: PARTIAL** — Read path verified live; write path (PATCH, POST comments) mock-verified only. Live write verification blocked by Dolt file lock bug (beads-gui-054).
 
-Evidence from live API:
+Evidence from live API (read path):
 ```json
 {
     "id": "beads-gui-054",
@@ -155,8 +155,8 @@ Events endpoint returns full event history with event_type, actor, old_value, ne
 
 Test coverage:
 - `detail-view.test.tsx`: 6 tests for issue detail rendering
-- `golden-path.test.tsx`: View composition List → Detail → Back (7 tests)
-- `data-flow.test.ts`: useUpdateIssue optimistic updates (5 tests)
+- `golden-path.test.tsx`: View composition List → Detail → Back (7 tests) — uses mocked API client
+- `data-flow.test.ts`: useUpdateIssue optimistic updates (5 tests) — uses mocked API client
 
 ---
 
@@ -164,9 +164,9 @@ Test coverage:
 
 **PATCH /api/issues/:id status change triggers via DnD, optimistic + confirm**
 
-**Result: PASS**
+**Result: PARTIAL** — UI correctly invokes mutation hooks (mock-verified). Live PATCH verification blocked by Dolt file lock bug (beads-gui-054).
 
-Test coverage:
+Test coverage (all using mocked API client):
 - `golden-path.test.tsx`: SC5+SC10 Kanban board tests (4 tests)
   - Renders issues in correct status columns
   - Wires up useUpdateIssue hook
@@ -426,14 +426,16 @@ access-control-allow-headers: Content-Type, Authorization
 
 | Scenario | Description | Test Coverage | Result |
 |---|---|---|---|
-| SC2+SC1 | Create issue via form, verify in List | golden-path.test.tsx: 3 tests | PASS |
-| SC5+SC10 | Kanban board drag, verify graph/list update | golden-path.test.tsx: 4 tests | PASS |
-| SC8+SC10 | Close issue, highlight newly-unblocked | golden-path.test.tsx: 3 tests | PASS |
-| SC9+SC2 | Command palette create, all views update | golden-path.test.tsx: 5 tests | PASS |
+| SC2+SC1 | Create issue via form, verify in List | golden-path.test.tsx: 3 tests (mocked API) | PARTIAL |
+| SC5+SC10 | Kanban board drag, verify graph/list update | golden-path.test.tsx: 4 tests (mocked API) | PARTIAL |
+| SC8+SC10 | Close issue, highlight newly-unblocked | golden-path.test.tsx: 3 tests (mocked API) | PARTIAL |
+| SC9+SC2 | Command palette create, all views update | golden-path.test.tsx: 5 tests (mocked API) | PARTIAL |
 | SC11+SC13 | Keyboard nav across views (1/2/3, j/k) | golden-path.test.tsx: 8 tests + view-navigation: 19 tests | PASS |
 | STPA H1 | Poll suppression during mutations | data-flow.test.ts: 3 tests | PASS |
 | STPA H2 | Write serialization (no race conditions) | write-serialization.integration.test.ts: 12 tests | PASS |
 | W4 | Dolt crash → error state → recovery | error-recovery.test.tsx: 25 tests + errors.integration.test.ts: 28 tests | PASS |
+
+**Note**: Scenarios marked PARTIAL have UI behavior verified against mocked API stubs. Live write-path verification (POST, PATCH, DELETE) is blocked by beads-gui-054 (Dolt file lock conflict).
 
 ---
 
@@ -460,8 +462,8 @@ This is tracked as beads-gui-054 and does not invalidate the integration test re
 | Live API endpoints | 14/14 | PASS |
 | Contract 1: E1→E2 (health check) | Verified | PASS |
 | Contract 2: E1→E3 (issues list) | Verified | PASS |
-| Contract 3: E1→E4 (issue detail) | Verified | PASS |
-| Contract 4: E1→E5 (Kanban DnD) | Verified | PASS |
+| Contract 3: E1→E4 (issue detail) | Read: live verified; Write: mock-only (beads-gui-054) | PARTIAL |
+| Contract 4: E1→E5 (Kanban DnD) | Mock-verified only; live PATCH blocked (beads-gui-054) | PARTIAL |
 | Contract 5: E1→E6 (dependency DAG) | Verified | PASS |
 | Contract 6: E2→E3 (keyboard/list) | Verified | PASS |
 | Contract 7: E2→E4 (URL/detail) | Verified | PASS |
@@ -474,4 +476,4 @@ This is tracked as beads-gui-054 and does not invalidate the integration test re
 | Contract 14: STPA H2 (write serialization) | Verified | PASS |
 | Contract 15: Dolt crash/recovery | Verified | PASS |
 
-**Overall**: 15/15 contracts verified. 294/294 tests pass. All quality gates green.
+**Overall**: 13/15 contracts fully verified, 2/15 partial (write-path mock-only due to beads-gui-054). 294/294 tests pass. All quality gates green.
