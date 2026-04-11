@@ -49,6 +49,7 @@ export function BoardView() {
 
   // Mutation for status changes
   const updateMutation = useUpdateIssue();
+  const { mutate: updateStatus } = updateMutation;
 
   // Drag state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -93,7 +94,7 @@ export function BoardView() {
       const strId = String(id);
       // Column droppable IDs are "column-{status}"
       if (strId.startsWith("column-")) {
-        return strId.replace("column-", "") as IssueStatus;
+        return strId.slice("column-".length) as IssueStatus;
       }
       // Otherwise it's a card ID — find its column
       const issue = issues.find((i) => i.id === strId);
@@ -143,9 +144,9 @@ export function BoardView() {
       if (!DROPPABLE_STATUSES.has(targetStatus)) return;
 
       // Trigger optimistic status update
-      updateMutation.mutate({ id: issueId, data: { status: targetStatus } });
+      updateStatus({ id: issueId, data: { status: targetStatus } });
     },
-    [issues, getStatusFromDroppableId, updateMutation],
+    [issues, getStatusFromDroppableId, updateStatus],
   );
 
   const handleDragCancel = useCallback(() => {

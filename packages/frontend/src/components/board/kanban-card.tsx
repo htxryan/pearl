@@ -9,10 +9,9 @@ import { cn } from "@/lib/utils";
 interface KanbanCardProps {
   issue: IssueListItem;
   onClick: (id: string) => void;
-  isDragOverlay?: boolean;
 }
 
-export const KanbanCard = memo(function KanbanCard({ issue, onClick, isDragOverlay }: KanbanCardProps) {
+export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -25,6 +24,8 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isDragOverl
     data: { type: "card", issue },
   });
 
+  const { onKeyDown: dndKeyDown, ...restListeners } = listeners ?? {};
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -35,18 +36,17 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isDragOverl
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
+      {...restListeners}
       role="button"
       tabIndex={0}
       aria-roledescription="draggable issue card"
       aria-label={`${issue.id}: ${issue.title}`}
       onClick={(e) => {
-        // Don't navigate if we just finished a drag
-        if (isDragOverlay) return;
         e.stopPropagation();
         onClick(issue.id);
       }}
       onKeyDown={(e) => {
+        dndKeyDown?.(e);
         if (e.key === "Enter" && !e.defaultPrevented) {
           e.stopPropagation();
           onClick(issue.id);
@@ -57,7 +57,6 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isDragOverl
         "hover:border-ring hover:shadow-md transition-all duration-150",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isDragging && "opacity-30",
-        isDragOverlay && "shadow-lg ring-2 ring-ring cursor-grabbing rotate-2",
       )}
     >
       {/* Header: ID + Priority */}

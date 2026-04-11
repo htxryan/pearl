@@ -1,8 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router";
 import type { IssueListItem } from "@beads-gui/shared";
+
+// Mock navigation
+const mockNavigate = vi.fn();
+vi.mock("react-router", async () => {
+  const actual = await vi.importActual("react-router");
+  return { ...actual, useNavigate: () => mockNavigate };
+});
 
 // Mock API module
 vi.mock("@/lib/api-client", () => ({
@@ -251,6 +258,15 @@ describe("BoardView", () => {
     const card = screen.getByRole("button", { name: /beads-001: Fix login bug/ });
     expect(card).toBeInTheDocument();
     expect(card).toHaveAttribute("aria-roledescription", "draggable issue card");
+  });
+
+  it("navigates to issue detail on card click", () => {
+    renderBoard();
+
+    const card = screen.getByRole("button", { name: /beads-001: Fix login bug/ });
+    fireEvent.click(card);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001");
   });
 
   it("shows labels on cards", () => {
