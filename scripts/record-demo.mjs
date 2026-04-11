@@ -1,7 +1,6 @@
 import { chromium } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5173';
-const SLOW = 800; // ms between actions for visibility
 
 async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -11,169 +10,152 @@ async function demo() {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
-    recordVideo: { dir: './docs/demo/', size: { width: 1440, height: 900 } },
+    recordVideo: {
+      dir: './docs/demo/',
+      size: { width: 1440, height: 900 },
+    },
   });
   const page = await context.newPage();
 
-  // ── List View ──
-  console.log('1. Opening List View...');
+  // ── 1. List View ──
+  console.log('1. List View — full table with issues');
   await page.goto(`${BASE_URL}/list`);
-  await page.waitForSelector('table', { timeout: 10000 });
-  await sleep(2000); // let user see the full table
+  await page.waitForSelector('tbody tr', { timeout: 10000 });
+  await sleep(3000);
 
-  // Scroll down slowly to show all issues
-  console.log('2. Scrolling through issues...');
-  await page.mouse.wheel(0, 200);
+  // Scroll down to show more issues
+  console.log('2. Scrolling through issues');
+  await page.mouse.wheel(0, 250);
+  await sleep(2000);
+  await page.mouse.wheel(0, -250);
   await sleep(1500);
-  await page.mouse.wheel(0, 200);
-  await sleep(1500);
-  await page.mouse.wheel(0, -400); // scroll back up
-  await sleep(1000);
 
-  // Click on a filter or sort
-  console.log('3. Filtering by status...');
-  const statusFilter = page.locator('select, [data-filter="status"], [role="combobox"]').first();
-  if (await statusFilter.isVisible()) {
-    await statusFilter.click();
-    await sleep(SLOW);
-    // Try to select "open" if dropdown
-    const openOption = page.locator('option[value="open"], [data-value="open"]').first();
-    if (await openOption.isVisible()) {
-      await openOption.click();
-      await sleep(1500);
-    }
-  }
-  await sleep(1000);
-
-  // Click on a column header to sort
-  console.log('4. Sorting by priority...');
-  const priorityHeader = page.locator('th, [role="columnheader"]').filter({ hasText: /priority/i }).first();
-  if (await priorityHeader.isVisible()) {
+  // ── 2. Sort by priority ──
+  console.log('3. Sorting by priority');
+  const priorityHeader = page.locator('th').filter({ hasText: /priority/i }).first();
+  if (await priorityHeader.isVisible().catch(() => false)) {
     await priorityHeader.click();
-    await sleep(1500);
+    await sleep(2000);
   }
 
-  // Click on an issue to open detail
-  console.log('5. Opening issue detail...');
-  const firstRow = page.locator('tr[data-row-id], tbody tr').first();
-  if (await firstRow.isVisible()) {
-    await firstRow.click();
-    await sleep(2500); // let detail panel open and render
+  // ── 3. Click an issue to open detail ──
+  console.log('4. Opening issue detail panel');
+  const bugRow = page.locator('tbody tr').filter({ hasText: /Login form crashes/ }).first();
+  if (await bugRow.isVisible().catch(() => false)) {
+    await bugRow.click();
+  } else {
+    await page.locator('tbody tr').first().click();
   }
+  await sleep(3000);
 
-  // Scroll detail panel to see comments/timeline
-  console.log('6. Scrolling detail panel...');
-  const detailPanel = page.locator('[data-panel="detail"], .detail-panel, aside').first();
-  if (await detailPanel.isVisible()) {
-    await detailPanel.evaluate(el => el.scrollBy(0, 300));
-    await sleep(1500);
-    await detailPanel.evaluate(el => el.scrollBy(0, 300));
-    await sleep(1500);
-  }
+  // Scroll detail to see description, comments
+  console.log('5. Reading issue detail — description, fields, comments');
+  const detailScroll = page.locator('main, [role="main"], .detail-panel, aside').last();
+  await detailScroll.evaluate(el => el.scrollBy(0, 300)).catch(() => {});
+  await sleep(2000);
+  await detailScroll.evaluate(el => el.scrollBy(0, 300)).catch(() => {});
+  await sleep(2000);
 
-  // Close detail and go back to list
-  console.log('7. Closing detail panel...');
+  // Close detail
+  console.log('6. Closing detail');
   await page.keyboard.press('Escape');
-  await sleep(1000);
+  await sleep(1500);
 
-  // ── Command Palette ──
-  console.log('8. Opening command palette (Cmd+K)...');
+  // ── 4. Command Palette ──
+  console.log('7. Opening command palette (Cmd+K)');
   await page.keyboard.press('Meta+k');
-  await sleep(1500);
-  // Type something
-  await page.keyboard.type('create', { delay: 100 });
-  await sleep(1500);
+  await sleep(2000);
+  await page.keyboard.type('board', { delay: 150 });
+  await sleep(2000);
   await page.keyboard.press('Escape');
-  await sleep(SLOW);
-
-  // ── Board View ──
-  console.log('9. Switching to Board View...');
-  // Try keyboard shortcut first
-  await page.keyboard.press('2');
-  await sleep(500);
-  // If that didn't work, try navigation
-  const currentUrl = page.url();
-  if (!currentUrl.includes('/board')) {
-    await page.goto(`${BASE_URL}/board`);
-  }
-  await page.waitForLoadState('networkidle');
-  await sleep(2500); // let kanban board render fully
-
-  // Pan across columns
-  console.log('10. Viewing kanban columns...');
-  await page.mouse.wheel(300, 0);
-  await sleep(1500);
-  await page.mouse.wheel(-300, 0);
   await sleep(1000);
 
-  // ── Graph View ──
-  console.log('11. Switching to Graph View...');
-  await page.keyboard.press('3');
-  await sleep(500);
-  const graphUrl = page.url();
-  if (!graphUrl.includes('/graph')) {
-    await page.goto(`${BASE_URL}/graph`);
-  }
+  // ── 5. Board View ──
+  console.log('8. Navigating to Board View');
+  await page.goto(`${BASE_URL}/board`);
   await page.waitForLoadState('networkidle');
-  await sleep(3000); // let graph layout settle
+  await sleep(3500);
 
-  // Zoom and pan on graph
-  console.log('12. Exploring dependency graph...');
-  // Zoom in
-  await page.mouse.wheel(0, -200);
-  await sleep(1000);
-  // Pan
+  // Pan to see all columns
+  console.log('9. Viewing kanban columns — Open, In Progress, Closed, Blocked');
+  await page.mouse.wheel(400, 0);
+  await sleep(2000);
+  await page.mouse.wheel(-400, 0);
+  await sleep(2000);
+
+  // ── 6. Graph View ──
+  console.log('10. Navigating to Dependency Graph');
+  await page.goto(`${BASE_URL}/graph`);
+  await page.waitForLoadState('networkidle');
+  await sleep(4000);
+
+  // Zoom in to see node detail
+  console.log('11. Zooming into graph');
+  for (let i = 0; i < 3; i++) {
+    await page.mouse.wheel(0, -100);
+    await sleep(500);
+  }
+  await sleep(2000);
+
+  // Pan around
+  console.log('12. Panning the graph');
   await page.mouse.move(720, 450);
   await page.mouse.down();
-  await page.mouse.move(520, 350, { steps: 20 });
+  await page.mouse.move(500, 300, { steps: 30 });
   await page.mouse.up();
-  await sleep(1500);
-  // Zoom out
-  await page.mouse.wheel(0, 200);
-  await sleep(1500);
+  await sleep(2000);
 
-  // Click a node
-  console.log('13. Clicking a graph node...');
-  const graphNode = page.locator('.react-flow__node, [data-id]').first();
-  if (await graphNode.isVisible()) {
-    await graphNode.click();
+  // Zoom back out
+  console.log('13. Zooming out');
+  for (let i = 0; i < 4; i++) {
+    await page.mouse.wheel(0, 100);
+    await sleep(400);
+  }
+  await sleep(2000);
+
+  // ── 7. Dark Mode ──
+  console.log('14. Toggling dark mode');
+  const themeBtn = page.locator('button').filter({ hasText: /🌙|☀|theme|dark|light/i }).first();
+  if (await themeBtn.isVisible().catch(() => false)) {
+    await themeBtn.click();
+    await sleep(3000);
+    // Toggle back
+    await themeBtn.click();
     await sleep(2000);
+  } else {
+    // Try aria-label
+    const ariaBtn = page.locator('[aria-label*="theme"], [aria-label*="Theme"], [aria-label*="dark"], [aria-label*="mode"]').first();
+    if (await ariaBtn.isVisible().catch(() => false)) {
+      await ariaBtn.click();
+      await sleep(3000);
+      await ariaBtn.click();
+      await sleep(2000);
+    }
   }
 
-  // ── Back to List View ──
-  console.log('14. Back to List View...');
-  await page.keyboard.press('1');
-  await sleep(500);
-  if (!page.url().includes('/list')) {
-    await page.goto(`${BASE_URL}/list`);
-  }
+  // ── 8. Back to list for final view ──
+  console.log('15. Final — back to list view');
+  await page.goto(`${BASE_URL}/list`);
   await page.waitForLoadState('networkidle');
-  await sleep(2000);
+  await sleep(3000);
 
-  // ── Dark mode toggle ──
-  console.log('15. Toggling dark mode...');
-  const darkToggle = page.locator('[data-theme-toggle], button:has-text("dark"), button:has-text("theme"), [aria-label*="theme"], [aria-label*="dark"]').first();
-  if (await darkToggle.isVisible()) {
-    await darkToggle.click();
-    await sleep(2000);
-    await darkToggle.click();
-    await sleep(1500);
-  }
-
-  // Final pause
-  console.log('16. Final overview...');
-  await sleep(2000);
-
-  // Close
-  console.log('Recording complete. Saving video...');
+  // Done
+  console.log('Recording complete.');
   await page.close();
   await context.close();
   await browser.close();
 
-  console.log('Video saved to docs/demo/');
+  // Rename the video
+  const fs = await import('fs');
+  const files = fs.readdirSync('./docs/demo/').filter(f => f.endsWith('.webm'));
+  const latest = files.sort().pop();
+  if (latest && latest !== 'beads-gui-demo.webm') {
+    fs.renameSync(`./docs/demo/${latest}`, './docs/demo/beads-gui-demo.webm');
+  }
+  console.log('Video saved as docs/demo/beads-gui-demo.webm');
 }
 
 demo().catch(e => {
-  console.error('Demo failed:', e);
+  console.error('Demo failed:', e.message);
   process.exit(1);
 });
