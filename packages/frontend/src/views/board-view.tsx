@@ -1,8 +1,303 @@
+import { useState, useCallback, useMemo, useRef } from "react";
+import { useNavigate } from "react-router";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+  type DragStartEvent,
+  type DragEndEvent,
+  type DragOverEvent,
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@beads-gui/shared";
+import { KanbanColumn } from "@/components/board/kanban-column";
+import { KanbanCardOverlay } from "@/components/board/kanban-card";
+import { FilterBar, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
+import { useIssues, useUpdateIssue } from "@/hooks/use-issues";
+import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
+import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
+import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
+
+/** Statuses that users can drag cards into */
+const DROPPABLE_STATUSES: Set<IssueStatus> = new Set([
+  "open",
+  "in_progress",
+  "closed",
+  "deferred",
+]);
+
+/** Column order for display */
+const COLUMN_ORDER: IssueStatus[] = ISSUE_STATUSES;
+
 export function BoardView() {
+  const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Shared URL filter state (same as List view)
+  const { filters, sorting, setFilters } = useUrlFilters();
+  const apiParams = useMemo(
+    () => buildApiParams(filters, sorting),
+    [filters, sorting],
+  );
+
+  // Data fetching — shared cache with List view
+  const { data: issues = [], isLoading } = useIssues(apiParams);
+
+  // Mutation for status changes
+  const updateMutation = useUpdateIssue();
+
+  // Drag state
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overColumnStatus, setOverColumnStatus] = useState<IssueStatus | null>(null);
+  const isDragging = activeId !== null;
+
+  // Ref to suppress polling during drag
+  const dragCountRef = useRef(0);
+
+  // Group issues by status
+  const columnData = useMemo(() => {
+    const grouped: Record<IssueStatus, IssueListItem[]> = {
+      open: [],
+      in_progress: [],
+      closed: [],
+      blocked: [],
+      deferred: [],
+    };
+    for (const issue of issues) {
+      if (grouped[issue.status]) {
+        grouped[issue.status].push(issue);
+      }
+    }
+    return grouped;
+  }, [issues]);
+
+  // Find the active issue for the drag overlay
+  const activeIssue = useMemo(
+    () => (activeId ? issues.find((i) => i.id === activeId) : undefined),
+    [activeId, issues],
+  );
+
+  // DnD sensors
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: { distance: 5 },
+  });
+  const keyboardSensor = useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates,
+  });
+  const sensors = useSensors(pointerSensor, keyboardSensor);
+
+  // Extract status from a droppable/sortable ID
+  const getStatusFromDroppableId = useCallback(
+    (id: string | number): IssueStatus | null => {
+      const strId = String(id);
+      // Column droppable IDs are "column-{status}"
+      if (strId.startsWith("column-")) {
+        return strId.replace("column-", "") as IssueStatus;
+      }
+      // Otherwise it's a card ID — find its column
+      const issue = issues.find((i) => i.id === strId);
+      return issue?.status ?? null;
+    },
+    [issues],
+  );
+
+  // Drag handlers
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+    dragCountRef.current++;
+  }, []);
+
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const overId = event.over?.id;
+      if (!overId) {
+        setOverColumnStatus(null);
+        return;
+      }
+      const status = getStatusFromDroppableId(overId);
+      setOverColumnStatus(status);
+    },
+    [getStatusFromDroppableId],
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      setActiveId(null);
+      setOverColumnStatus(null);
+      dragCountRef.current--;
+
+      if (!over) return;
+
+      const issueId = String(active.id);
+      const targetStatus = getStatusFromDroppableId(over.id);
+      if (!targetStatus) return;
+
+      // Find the issue's current status
+      const issue = issues.find((i) => i.id === issueId);
+      if (!issue) return;
+
+      // No-op if same column
+      if (issue.status === targetStatus) return;
+
+      // Don't allow dragging into blocked (auto-computed)
+      if (!DROPPABLE_STATUSES.has(targetStatus)) return;
+
+      // Trigger optimistic status update
+      updateMutation.mutate({ id: issueId, data: { status: targetStatus } });
+    },
+    [issues, getStatusFromDroppableId, updateMutation],
+  );
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+    setOverColumnStatus(null);
+    dragCountRef.current--;
+  }, []);
+
+  // Card click → Detail view
+  const handleCardClick = useCallback(
+    (id: string) => {
+      navigate(`/issues/${id}`);
+    },
+    [navigate],
+  );
+
+  // Keyboard shortcuts
+  const keyBindings = useMemo(
+    () => [
+      {
+        key: "/",
+        handler: () => searchInputRef.current?.focus(),
+        description: "Focus search",
+      },
+    ],
+    [],
+  );
+
+  useKeyboardScope("board", keyBindings);
+
+  // Command palette actions
+  const paletteActions: CommandAction[] = useMemo(
+    () => [
+      {
+        id: "board-focus-search",
+        label: "Focus search",
+        shortcut: "/",
+        group: "Board",
+        handler: () => searchInputRef.current?.focus(),
+      },
+      {
+        id: "board-clear-filters",
+        label: "Clear all filters",
+        group: "Board",
+        handler: () => setFilters(EMPTY_FILTERS),
+      },
+    ],
+    [setFilters],
+  );
+
+  useCommandPaletteActions("board-view", paletteActions);
+
+  // Error message state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Show mutation errors briefly
+  const lastErrorRef = useRef<string | null>(null);
+  if (updateMutation.isError && updateMutation.error) {
+    const msg = updateMutation.error.message || "Failed to update status";
+    if (msg !== lastErrorRef.current) {
+      lastErrorRef.current = msg;
+      setErrorMessage(msg);
+      setTimeout(() => {
+        setErrorMessage(null);
+        lastErrorRef.current = null;
+      }, 3000);
+    }
+  }
+
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold">Board View</h2>
-      <p className="mt-2 text-muted-foreground">Kanban board will be implemented in E5.</p>
+    <div className="flex flex-col h-full">
+      {/* Toolbar — same filter bar as list view */}
+      <div className="shrink-0 border-b border-border px-4 py-3">
+        <FilterBar
+          filters={filters}
+          onChange={setFilters}
+          searchInputRef={searchInputRef}
+        />
+        {errorMessage && (
+          <div className="mt-2 px-1 py-1 text-sm text-red-600 dark:text-red-400">
+            {errorMessage}
+          </div>
+        )}
+      </div>
+
+      {/* Board */}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
+        {isLoading && issues.length === 0 ? (
+          <BoardSkeleton />
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <div
+              className="flex gap-4 h-full"
+              role="region"
+              aria-label="Kanban board"
+            >
+              {COLUMN_ORDER.map((status) => (
+                <KanbanColumn
+                  key={status}
+                  status={status}
+                  issues={columnData[status]}
+                  onCardClick={handleCardClick}
+                  isDropTarget={isDragging && overColumnStatus === status}
+                />
+              ))}
+            </div>
+
+            <DragOverlay dropAnimation={null}>
+              {activeIssue ? (
+                <KanbanCardOverlay issue={activeIssue} />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BoardSkeleton() {
+  return (
+    <div className="flex gap-4 h-full" aria-label="Loading board">
+      {COLUMN_ORDER.map((status) => (
+        <div
+          key={status}
+          className="flex flex-col min-w-[280px] w-[280px] rounded-lg border border-border bg-muted/30"
+        >
+          <div className="px-3 py-2.5 border-b border-border">
+            <div className="h-5 w-20 rounded bg-muted animate-pulse" />
+          </div>
+          <div className="p-2 space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-24 rounded-lg bg-muted animate-pulse"
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

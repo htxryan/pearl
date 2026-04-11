@@ -1,0 +1,127 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { IssueListItem } from "@beads-gui/shared";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { TypeBadge } from "@/components/ui/type-badge";
+import { cn } from "@/lib/utils";
+
+interface KanbanCardProps {
+  issue: IssueListItem;
+  onClick: (id: string) => void;
+  isDragOverlay?: boolean;
+}
+
+export function KanbanCard({ issue, onClick, isDragOverlay }: KanbanCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: issue.id,
+    data: { type: "card", issue },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      role="button"
+      tabIndex={0}
+      aria-roledescription="draggable issue card"
+      aria-label={`${issue.id}: ${issue.title}`}
+      onClick={(e) => {
+        // Don't navigate if we just finished a drag
+        if (isDragOverlay) return;
+        e.stopPropagation();
+        onClick(issue.id);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !e.defaultPrevented) {
+          e.stopPropagation();
+          onClick(issue.id);
+        }
+      }}
+      className={cn(
+        "group cursor-grab rounded-lg border border-border bg-background p-3 shadow-sm",
+        "hover:border-ring hover:shadow-md transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        isDragging && "opacity-30",
+        isDragOverlay && "shadow-lg ring-2 ring-ring cursor-grabbing rotate-2",
+      )}
+    >
+      {/* Header: ID + Priority */}
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <span className="text-xs text-muted-foreground font-mono truncate">
+          {issue.id}
+        </span>
+        <PriorityIndicator priority={issue.priority} />
+      </div>
+
+      {/* Title */}
+      <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">
+        {issue.title}
+      </p>
+
+      {/* Footer: Type + Assignee + Labels */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <TypeBadge type={issue.issue_type} />
+          {issue.labels.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {issue.labels.length === 1
+                ? issue.labels[0]
+                : `${issue.labels[0]} +${issue.labels.length - 1}`}
+            </span>
+          )}
+        </div>
+
+        {issue.assignee && (
+          <span
+            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent text-xs font-medium text-accent-foreground shrink-0"
+            title={issue.assignee}
+          >
+            {issue.assignee.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Drag overlay version — renders without dnd hooks */
+export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
+  return (
+    <div
+      className="rounded-lg border border-ring bg-background p-3 shadow-lg ring-2 ring-ring cursor-grabbing rotate-2 w-[260px]"
+      aria-hidden
+    >
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <span className="text-xs text-muted-foreground font-mono truncate">
+          {issue.id}
+        </span>
+        <PriorityIndicator priority={issue.priority} />
+      </div>
+      <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">
+        {issue.title}
+      </p>
+      <div className="flex items-center justify-between gap-2">
+        <TypeBadge type={issue.issue_type} />
+        {issue.assignee && (
+          <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-accent text-xs font-medium text-accent-foreground shrink-0">
+            {issue.assignee.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
