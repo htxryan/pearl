@@ -73,13 +73,14 @@ function invalidateFromHints(
 
 // ─── List Hook ──────────────────────────────────────────
 export function useIssues(params?: URLSearchParams) {
-  const pendingMutations = useIsMutating({ mutationKey: ["issues"] });
+  const pendingIssueMutations = useIsMutating({ mutationKey: ["issues"] });
+  const pendingDepMutations = useIsMutating({ mutationKey: ["dependencies"] });
 
   return useQuery<IssueListItem[]>({
     queryKey: issueKeys.list(params),
     queryFn: () => api.fetchIssues(params),
     // STPA H1: Suppress polling while mutations are pending
-    refetchInterval: pendingMutations > 0 ? false : 2000,
+    refetchInterval: pendingIssueMutations + pendingDepMutations > 0 ? false : 2000,
   });
 }
 

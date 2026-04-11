@@ -7,7 +7,7 @@ import { useIssue } from "@/hooks/use-issues";
 interface DependencyListProps {
   issueId: string;
   dependencies: Dependency[];
-  onAdd: (dependsOnId: string) => void;
+  onAdd: (dependsOnId: string) => Promise<unknown>;
   onRemove: (issueId: string, dependsOnId: string) => void;
   isAdding: boolean;
 }
@@ -26,13 +26,21 @@ export function DependencyList({
   const blockedBy = dependencies.filter((d) => d.issue_id === issueId);
   const blocking = dependencies.filter((d) => d.depends_on_id === issueId);
 
+  const [addError, setAddError] = useState<string | null>(null);
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newDepId.trim();
     if (!trimmed) return;
-    onAdd(trimmed);
-    setNewDepId("");
-    setShowAddForm(false);
+    setAddError(null);
+    onAdd(trimmed)
+      .then(() => {
+        setNewDepId("");
+        setShowAddForm(false);
+      })
+      .catch(() => {
+        setAddError("Failed to add dependency. Check the issue ID and try again.");
+      });
   };
 
   return (
@@ -52,18 +60,23 @@ export function DependencyList({
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleAdd} className="flex items-center gap-2 mb-3">
-          <input
-            value={newDepId}
-            onChange={(e) => setNewDepId(e.target.value)}
-            placeholder="Issue ID (e.g., beads-gui-abc)"
-            className="flex-1 text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
-            autoFocus
-          />
-          <Button type="submit" size="sm" disabled={!newDepId.trim() || isAdding}>
-            {isAdding ? "Adding..." : "Add"}
-          </Button>
-        </form>
+        <>
+          <form onSubmit={handleAdd} className="flex items-center gap-2 mb-3">
+            <input
+              value={newDepId}
+              onChange={(e) => setNewDepId(e.target.value)}
+              placeholder="Issue ID (e.g., beads-gui-abc)"
+              className="flex-1 text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
+              autoFocus
+            />
+            <Button type="submit" size="sm" disabled={!newDepId.trim() || isAdding}>
+              {isAdding ? "Adding..." : "Add"}
+            </Button>
+          </form>
+          {addError && (
+            <p className="text-xs text-destructive mb-3">{addError}</p>
+          )}
+        </>
       )}
 
       {/* Blocked by (depends on) */}

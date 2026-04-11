@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import type { Comment } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
 import { formatRelativeTime } from "@/lib/utils";
@@ -11,13 +11,20 @@ interface CommentThreadProps {
 
 export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps) {
   const [newComment, setNewComment] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const submitComment = () => {
+    const trimmed = newComment.trim();
+    if (!trimmed) return;
+    setError(null);
+    onAdd(trimmed)
+      .then(() => setNewComment(""))
+      .catch(() => setError("Failed to post comment. Please try again."));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = newComment.trim();
-    if (!trimmed) return;
-    onAdd(trimmed).then(() => setNewComment(""));
+    submitComment();
   };
 
   return (
@@ -51,7 +58,6 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
       {/* Add comment form */}
       <form onSubmit={handleSubmit} className="space-y-2">
         <textarea
-          ref={textareaRef}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
@@ -59,10 +65,13 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               e.preventDefault();
-              handleSubmit(e);
+              submitComment();
             }
           }}
         />
+        {error && (
+          <p className="text-xs text-destructive">{error}</p>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
             Cmd+Enter to submit

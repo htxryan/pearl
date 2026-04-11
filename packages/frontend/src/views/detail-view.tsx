@@ -76,10 +76,17 @@ function DetailViewContent({ id }: { id: string }) {
               return next;
             });
           },
+          onError: () => {
+            setDirtyFields((prev) => {
+              const next = new Set(prev);
+              next.delete(field);
+              return next;
+            });
+          },
         },
       );
     },
-    [id, updateMutation],
+    [id, updateMutation.mutate],
   );
 
   // Close handler
@@ -301,7 +308,6 @@ function DetailViewContent({ id }: { id: string }) {
             title="Description"
             content={issue.description}
             field="description"
-            issueId={id}
             onSave={(val) => handleFieldUpdate("description", val)}
           />
 
@@ -311,7 +317,6 @@ function DetailViewContent({ id }: { id: string }) {
               title="Design Notes"
               content={issue.design}
               field="design"
-              issueId={id}
               onSave={(val) => handleFieldUpdate("design", val)}
             />
           )}
@@ -322,7 +327,6 @@ function DetailViewContent({ id }: { id: string }) {
               title="Acceptance Criteria"
               content={issue.acceptance_criteria}
               field="acceptance_criteria"
-              issueId={id}
               onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
             />
           )}
@@ -333,7 +337,6 @@ function DetailViewContent({ id }: { id: string }) {
               title="Notes"
               content={issue.notes}
               field="notes"
-              issueId={id}
               onSave={(val) => handleFieldUpdate("notes", val)}
             />
           )}
@@ -343,7 +346,7 @@ function DetailViewContent({ id }: { id: string }) {
             issueId={id}
             dependencies={dependencies}
             onAdd={(dependsOnId) =>
-              addDepMutation.mutate({ issue_id: id, depends_on_id: dependsOnId })
+              addDepMutation.mutateAsync({ issue_id: id, depends_on_id: dependsOnId })
             }
             onRemove={(depIssueId, depDependsOnId) =>
               removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })

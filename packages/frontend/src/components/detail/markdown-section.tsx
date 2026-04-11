@@ -7,7 +7,6 @@ interface MarkdownSectionProps {
   title: string;
   content?: string;
   field: string;
-  issueId: string;
   onSave: (value: string) => void;
 }
 
