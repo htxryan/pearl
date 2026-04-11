@@ -64,7 +64,9 @@ export async function queryWithRetry<T>(
         console.warn(
           `[db] Database lock detected, retry ${attempt + 1}/${config.dbLockMaxRetries}`
         );
-        await new Promise((r) => setTimeout(r, config.dbLockRetryDelayMs));
+        const jitteredDelay =
+          config.dbLockRetryDelayMs * (attempt + 1) + Math.random() * 200;
+        await new Promise((r) => setTimeout(r, jitteredDelay));
         continue;
       }
       if (isConnectionError(err)) {

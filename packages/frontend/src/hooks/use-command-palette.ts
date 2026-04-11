@@ -10,19 +10,21 @@ export interface CommandAction {
 
 // ─── Command palette state ──────────────────────────────
 let isOpen = false;
-let listeners: Array<() => void> = [];
+const listeners = new Set<() => void>();
 const registeredActions = new Map<string, CommandAction[]>();
 let actionsVersion = 0;
 
 function notify() {
   actionsVersion++;
-  listeners.forEach((l) => l());
+  // Snapshot the set so removals during iteration are safe
+  const snapshot = [...listeners];
+  snapshot.forEach((l) => l());
 }
 
 function subscribe(listener: () => void) {
-  listeners = [...listeners, listener];
+  listeners.add(listener);
   return () => {
-    listeners = listeners.filter((l) => l !== listener);
+    listeners.delete(listener);
   };
 }
 

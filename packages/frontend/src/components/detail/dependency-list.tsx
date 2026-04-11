@@ -52,7 +52,10 @@ export function DependencyList({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            setAddError(null);
+          }}
           className="text-xs"
         >
           {showAddForm ? "Cancel" : "+ Add"}

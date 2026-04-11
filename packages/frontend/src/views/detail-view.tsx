@@ -57,6 +57,7 @@ function DetailViewContent({ id }: { id: string }) {
     if (!isDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
+      e.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
@@ -91,13 +92,29 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Close handler
   const handleClose = useCallback(() => {
-    closeMutation.mutate({ id }, { onSuccess: () => navigate("/list") });
-  }, [id, closeMutation, navigate]);
+    closeMutation.mutate(
+      { id },
+      {
+        onSuccess: () => navigate("/list"),
+        onError: () => {
+          // Surface close failure to user
+          window.alert("Failed to close issue. Please try again.");
+        },
+      },
+    );
+  }, [id, closeMutation.mutate, navigate]);
 
   // Claim handler
   const handleClaim = useCallback(() => {
-    updateMutation.mutate({ id, data: { claim: true } });
-  }, [id, updateMutation]);
+    updateMutation.mutate(
+      { id, data: { claim: true } },
+      {
+        onError: () => {
+          window.alert("Failed to claim issue. Please try again.");
+        },
+      },
+    );
+  }, [id, updateMutation.mutate]);
 
   // Keyboard shortcuts
   const keyBindings = useMemo(

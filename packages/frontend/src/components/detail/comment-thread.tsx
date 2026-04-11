@@ -14,6 +14,7 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
   const [error, setError] = useState<string | null>(null);
 
   const submitComment = () => {
+    if (isAdding) return;
     const trimmed = newComment.trim();
     if (!trimmed) return;
     setError(null);

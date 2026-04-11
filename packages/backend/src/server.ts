@@ -48,9 +48,10 @@ export async function createServer(config: Config) {
 
     // Fastify validation errors
     if ("validation" in error && error.validation) {
+      app.log.warn({ validation: error.validation }, "Request validation failed");
       return reply.code(400).send({
         code: "VALIDATION_ERROR",
-        message: error.message,
+        message: "Invalid request parameters",
         retryable: false,
       });
     }
@@ -85,7 +86,7 @@ export async function createServer(config: Config) {
   // ─── Content type ─────────────────────────────────────
   app.addContentTypeParser(
     "application/json",
-    { parseAs: "string" },
+    { parseAs: "string", bodyLimit: 1048576 },
     (_req, body, done) => {
       try {
         const json = body ? JSON.parse(body as string) : {};

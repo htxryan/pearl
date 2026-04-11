@@ -36,26 +36,41 @@ function matchesBinding(e: KeyboardEvent, binding: KeyBinding): boolean {
   return true;
 }
 
-// Global keyboard listener
-if (typeof window !== "undefined") {
-  window.addEventListener("keydown", (e) => {
-    // Walk the scope stack from top to bottom
-    for (let i = scopeStack.length - 1; i >= 0; i--) {
-      const entry = scopeStack[i];
-      for (const binding of entry.bindings) {
-        if (matchesBinding(e, binding)) {
-          // Skip number shortcuts when typing in inputs
-          const hasNoModifiers = !binding.modifiers?.length;
-          if (hasNoModifiers && isInputElement(e.target)) continue;
+// Global keyboard listener — lazily attached on first scope registration,
+// removed when all scopes are unmounted.
+let globalListenerAttached = false;
 
-          e.preventDefault();
-          e.stopPropagation();
-          binding.handler();
-          return;
-        }
+function handleKeyDown(e: KeyboardEvent) {
+  // Walk the scope stack from top to bottom
+  for (let i = scopeStack.length - 1; i >= 0; i--) {
+    const entry = scopeStack[i];
+    for (const binding of entry.bindings) {
+      if (matchesBinding(e, binding)) {
+        // Skip number shortcuts when typing in inputs
+        const hasNoModifiers = !binding.modifiers?.length;
+        if (hasNoModifiers && isInputElement(e.target)) continue;
+
+        e.preventDefault();
+        e.stopPropagation();
+        binding.handler();
+        return;
       }
     }
-  });
+  }
+}
+
+function attachListener() {
+  if (typeof window === "undefined" || globalListenerAttached) return;
+  window.addEventListener("keydown", handleKeyDown);
+  globalListenerAttached = true;
+}
+
+function detachListener() {
+  if (!globalListenerAttached) return;
+  if (scopeStack.length === 0) {
+    window.removeEventListener("keydown", handleKeyDown);
+    globalListenerAttached = false;
+  }
 }
 
 /**
@@ -68,6 +83,7 @@ export function useKeyboardScope(scope: string, bindings: KeyBinding[]) {
 
   // Register scope once on mount, remove on unmount
   useEffect(() => {
+    attachListener();
     const entry: ScopeEntry = { scope, bindings };
     entryRef.current = entry;
     scopeStack.push(entry);
@@ -76,6 +92,7 @@ export function useKeyboardScope(scope: string, bindings: KeyBinding[]) {
       const idx = scopeStack.indexOf(entry);
       if (idx !== -1) scopeStack.splice(idx, 1);
       entryRef.current = null;
+      detachListener();
     };
     // Only re-register when scope identity changes, not bindings
     // eslint-disable-next-line react-hooks/exhaustive-deps

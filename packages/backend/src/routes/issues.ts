@@ -69,6 +69,27 @@ const deleteIssueSchema = {
   },
 } as const;
 
+const listIssuesQuerySchema = {
+  querystring: {
+    type: "object",
+    properties: {
+      status: { type: "string", maxLength: 200 },
+      priority: { type: "string", maxLength: 50 },
+      issue_type: { type: "string", maxLength: 200 },
+      assignee: { type: "string", maxLength: 200 },
+      search: { type: "string", maxLength: 500 },
+      labels: { type: "string", maxLength: 500 },
+      pinned: { type: "string", maxLength: 5 },
+      sort: { type: "string", maxLength: 50 },
+      direction: { type: "string", maxLength: 4 },
+      fields: { type: "string", maxLength: 500 },
+      limit: { type: "string", maxLength: 10 },
+      offset: { type: "string", maxLength: 10 },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
 const addCommentSchema = {
   body: {
     type: "object",
@@ -86,7 +107,7 @@ export function registerIssueRoutes(
   writeService: WriteService
 ): void {
   // GET /api/issues — list with filtering, sorting, column projection
-  app.get("/api/issues", async (request, reply) => {
+  app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
     const query = request.query as Record<string, string | undefined>;
 
     // Column projection — never SELECT *
