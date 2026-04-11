@@ -4,7 +4,7 @@ import {
   closeCommandPalette,
   useAllCommandActions,
 } from "@/hooks/use-command-palette";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 export function CommandPalette() {
   const open = useCommandPaletteOpen();
@@ -18,16 +18,19 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  if (!open) return null;
+  // Group actions by group field (memoized)
+  const groups = useMemo(() => {
+    const grouped = new Map<string, typeof actions>();
+    for (const action of actions) {
+      const group = action.group ?? "Actions";
+      const existing = grouped.get(group) ?? [];
+      existing.push(action);
+      grouped.set(group, existing);
+    }
+    return grouped;
+  }, [actions]);
 
-  // Group actions by group field
-  const groups = new Map<string, typeof actions>();
-  for (const action of actions) {
-    const group = action.group ?? "Actions";
-    const existing = groups.get(group) ?? [];
-    existing.push(action);
-    groups.set(group, existing);
-  }
+  if (!open) return null;
 
   return (
     <div

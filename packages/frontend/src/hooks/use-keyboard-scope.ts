@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 
 export interface KeyBinding {
   key: string;
@@ -92,10 +92,3 @@ export function getRegisteredBindings(): Array<{ scope: string } & KeyBinding> {
   return result;
 }
 
-/**
- * Convenience: create a stable binding array that only changes when deps change.
- */
-export function useBindings(factory: () => KeyBinding[], deps: unknown[]): KeyBinding[] {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useCallback(factory, deps)();
-}
