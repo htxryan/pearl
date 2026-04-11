@@ -32,3 +32,5 @@ export {
   healthKeys,
   dependencyKeys,
 } from "./use-issues";
+
+export { useAllDependencies } from "./use-dependencies";
