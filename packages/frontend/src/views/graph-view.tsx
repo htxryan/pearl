@@ -35,19 +35,23 @@ import "@xyflow/react/dist/style.css";
 
 const PERFORMANCE_CAP = 200;
 
-const edgeColorByType: Record<DependencyType, string> = {
+const edgeColorByType: Partial<Record<string, string>> = {
   blocks: "#ef4444",       // red
   depends_on: "#3b82f6",   // blue
   relates_to: "#a855f7",   // purple
   discovered_from: "#6b7280", // gray
+  "parent-child": "#22c55e",  // green
 };
 
-const edgeDashByType: Record<DependencyType, string | undefined> = {
+const edgeDashByType: Partial<Record<string, string | undefined>> = {
   blocks: undefined,
   depends_on: undefined,
   relates_to: "5,5",
   discovered_from: "3,3",
+  "parent-child": "8,4",
 };
+
+const DEFAULT_EDGE_COLOR = "#6b7280";
 
 // ─── Node Types (stable ref) ──────────────────────────
 
@@ -112,25 +116,28 @@ function computeLayout(
     };
   });
 
-  const edges: Edge[] = validEdges.map((dep) => ({
-    id: `${dep.depends_on_id}-${dep.type}-${dep.issue_id}`,
-    source: dep.depends_on_id,
-    target: dep.issue_id,
-    type: "default",
-    style: {
-      stroke: edgeColorByType[dep.type],
-      strokeDasharray: edgeDashByType[dep.type],
-      strokeWidth: 2,
-    },
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      color: edgeColorByType[dep.type],
-      width: 16,
-      height: 16,
-    },
-    label: dep.type === "relates_to" ? "relates" : undefined,
-    labelStyle: { fontSize: 10, fill: "#888" },
-  }));
+  const edges: Edge[] = validEdges.map((dep) => {
+    const color = edgeColorByType[dep.type] ?? DEFAULT_EDGE_COLOR;
+    return {
+      id: `${dep.depends_on_id}-${dep.type}-${dep.issue_id}`,
+      source: dep.depends_on_id,
+      target: dep.issue_id,
+      type: "default",
+      style: {
+        stroke: color,
+        strokeDasharray: edgeDashByType[dep.type],
+        strokeWidth: 2,
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color,
+        width: 16,
+        height: 16,
+      },
+      label: dep.type === "relates_to" ? "relates" : dep.type === "parent-child" ? "child" : undefined,
+      labelStyle: { fontSize: 10, fill: "#888" },
+    };
+  });
 
   return { nodes, edges };
 }
@@ -303,17 +310,22 @@ export function GraphView() {
   useEffect(() => {
     if (prevLayoutRef.current !== layoutResult) {
       prevLayoutRef.current = layoutResult;
-      setNodes(layoutResult.nodes);
-      setEdges(layoutResult.edges);
+      setNodesRef.current(layoutResult.nodes);
+      setEdgesRef.current(layoutResult.edges);
     }
-  }, [layoutResult, setNodes, setEdges]);
+  }, [layoutResult]);
 
-  // Auto-layout
+  // Auto-layout — use refs for setNodes/setEdges to avoid cascading re-renders
+  const setNodesRef = useRef(setNodes);
+  const setEdgesRef = useRef(setEdges);
+  setNodesRef.current = setNodes;
+  setEdgesRef.current = setEdges;
+
   const handleAutoLayout = useCallback(() => {
     const result = computeLayout(displayIssues, allDeps, highlightedIds);
-    setNodes(result.nodes);
-    setEdges(result.edges);
-  }, [displayIssues, allDeps, highlightedIds, setNodes, setEdges]);
+    setNodesRef.current(result.nodes);
+    setEdgesRef.current(result.edges);
+  }, [displayIssues, allDeps, highlightedIds]);
 
   // Node click → select for highlight
   const handleNodeClick: NodeMouseHandler<GraphNodeType> = useCallback(
@@ -355,7 +367,12 @@ export function GraphView() {
 
   useKeyboardScope("graph", keyBindings);
 
-  // Command palette actions
+  // Command palette actions — use refs for handlers to keep the actions array stable
+  const handleAutoLayoutRef = useRef(handleAutoLayout);
+  handleAutoLayoutRef.current = handleAutoLayout;
+  const setFiltersRef = useRef(setFilters);
+  setFiltersRef.current = setFilters;
+
   const paletteActions: CommandAction[] = useMemo(
     () => [
       {
@@ -369,14 +386,14 @@ export function GraphView() {
         id: "graph-clear-filters",
         label: "Clear all filters",
         group: "Graph",
-        handler: () => setFilters(EMPTY_FILTERS),
+        handler: () => setFiltersRef.current(EMPTY_FILTERS),
       },
       {
         id: "graph-auto-layout",
         label: "Re-run auto layout",
         shortcut: "l",
         group: "Graph",
-        handler: handleAutoLayout,
+        handler: () => handleAutoLayoutRef.current(),
       },
       {
         id: "graph-clear-selection",
@@ -386,7 +403,8 @@ export function GraphView() {
         handler: () => setSelectedNodeId(null),
       },
     ],
-    [setFilters, handleAutoLayout],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   useCommandPaletteActions("graph-view", paletteActions);

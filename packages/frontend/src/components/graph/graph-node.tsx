@@ -55,7 +55,7 @@ function truncate(text: string, max: number): string {
 
 export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeType>) {
   const { issue, highlighted } = data;
-  const priority = priorityConfig[issue.priority];
+  const priority = priorityConfig[issue.priority] ?? { label: `P${issue.priority}`, className: "bg-gray-300 text-gray-700" };
 
   return (
     <div

@@ -10,7 +10,7 @@ const priorityConfig: Record<Priority, { label: string; className: string }> = {
 };
 
 export function PriorityIndicator({ priority, className }: { priority: Priority; className?: string }) {
-  const config = priorityConfig[priority];
+  const config = priorityConfig[priority] ?? { label: `P${priority}`, className: "bg-gray-300 text-gray-700" };
   return (
     <span
       className={cn(
