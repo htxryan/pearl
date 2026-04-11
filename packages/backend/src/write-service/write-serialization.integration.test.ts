@@ -69,22 +69,25 @@ describe("WriteQueue — Write Serialization (STPA H2)", () => {
 
     it("each write starts only after the previous one completes", async () => {
       const queue = new WriteQueue();
-      const timestamps: Array<{ id: number; start: number; end: number }> = [];
+      // Use a logical ordering counter instead of wall-clock timestamps
+      // to avoid flaky failures from timer granularity on slow/loaded machines.
+      let counter = 0;
+      const events: Array<{ id: number; startOrder: number; endOrder: number }> = [];
 
       const makeTask = (id: number, duration: number) =>
         queue.enqueue(async () => {
-          const start = Date.now();
+          const startOrder = counter++;
           await sleep(duration);
-          const end = Date.now();
-          timestamps.push({ id, start, end });
+          const endOrder = counter++;
+          events.push({ id, startOrder, endOrder });
           return id;
         });
 
       await Promise.all([makeTask(1, 30), makeTask(2, 20), makeTask(3, 10)]);
 
-      // Each task's start should be >= the previous task's end
-      for (let i = 1; i < timestamps.length; i++) {
-        expect(timestamps[i].start).toBeGreaterThanOrEqual(timestamps[i - 1].end);
+      // Each task's start must come after the previous task's end
+      for (let i = 1; i < events.length; i++) {
+        expect(events[i].startOrder).toBeGreaterThan(events[i - 1].endOrder);
       }
     });
   });

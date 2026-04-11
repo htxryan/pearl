@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router";
@@ -371,19 +371,10 @@ describe("ApiClientError handling", () => {
 // ─── Health Hook Retry Behavior ────────────────────────
 
 describe("useHealth hook configuration", () => {
-  it("configures 5-second polling interval", () => {
-    // We test this by verifying the hook's queryOptions indirectly.
-    // Since useHealth is mocked in this file, we test the actual implementation
-    // by importing the real module's source behavior.
-    // The actual useHealth hook is defined with refetchInterval: 5000 and retry: 0.
-    // We verify these behaviors through the hook's options shape.
-
-    // Instead of testing the mocked version, let's verify the hook source config
-    // by checking the actual module. We can unmock and reimport for this test.
-    // However, since the module is already mocked, we verify through an integration
-    // approach: the HealthBanner correctly reflects error state immediately.
-
-    // Test that error state is immediately reflected (retry: 0 means no retry)
+  it("displays error state immediately when health check fails (no retry)", () => {
+    // useHealth is mocked here, so we cannot verify the actual polling interval.
+    // This test verifies that error state is immediately reflected in the banner
+    // (consistent with retry: 0 configuration in the real hook).
     mockHealthReturn({
       isLoading: false,
       error: new Error("Network error"),

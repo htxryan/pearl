@@ -18,7 +18,6 @@ vi.mock("@/lib/api-client", () => ({
   closeIssue: vi.fn(),
   fetchComments: vi.fn(),
   fetchEvents: vi.fn(),
-  fetchDependencies: vi.fn(),
   fetchAllDependencies: vi.fn(),
   fetchStats: vi.fn(),
   fetchHealth: vi.fn(),

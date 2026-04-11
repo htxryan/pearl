@@ -29,7 +29,6 @@ vi.mock("@/lib/api-client", () => ({
   closeIssue: vi.fn(),
   fetchComments: vi.fn(),
   fetchEvents: vi.fn(),
-  fetchDependencies: vi.fn(),
   fetchAllDependencies: vi.fn(),
   fetchIssueDependencies: vi.fn(),
   addComment: vi.fn(),
@@ -483,7 +482,7 @@ describe("SC2+SC1: Create issue via form", () => {
 // SC5+SC10: Drag card on Kanban -> verify data updates
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-describe("SC5+SC10: Kanban drag-and-drop status update", () => {
+describe("SC5+SC10: Kanban board column rendering and mutation wiring", () => {
   it("renders issues in correct status columns on the board", () => {
     setupIssuesMock(mockIssues);
     renderApp("/board");
@@ -501,21 +500,14 @@ describe("SC5+SC10: Kanban drag-and-drop status update", () => {
     expect(within(blockedList).getByText("Blocked Issue")).toBeInTheDocument();
   });
 
-  it("calls updateIssue mutation when handleDragEnd moves a card to a new column", () => {
-    // The BoardView internally uses handleDragEnd which calls updateStatus.
-    // We verify via the mock that useUpdateIssue().mutate is called correctly.
+  it("wires up useUpdateIssue hook and renders the board region", () => {
+    // Note: jsdom cannot simulate real DnD events from dnd-kit.
+    // This test verifies the mutation hook is connected and the board renders.
     setupIssuesMock(mockIssues);
     renderApp("/board");
 
-    // Simulate what happens after a drag: the DndContext onDragEnd fires,
-    // which calls updateStatus({ id, data: { status: targetStatus } }).
-    // Since we can't simulate real DnD in jsdom, we verify the mutation mock
-    // is wired up and the board renders correctly for optimistic update.
-
-    // Verify the update mutation mock is connected
     expect(vi.mocked(useUpdateIssue)).toHaveBeenCalled();
 
-    // The board should render with all columns having correct issue counts
     const board = screen.getByRole("region", { name: "Kanban board" });
     expect(board).toBeInTheDocument();
   });
@@ -593,30 +585,22 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     });
   });
 
-  it("highlights newly-unblocked issues after bulk close", async () => {
-    // Scenario: test-003 is blocked. Closing test-001 unblocks it.
+  it("calls closeMutation for selected issue during bulk close flow", async () => {
+    // This test verifies the close mutation is invoked when bulk-closing.
+    // Note: highlighting of newly-unblocked issues requires end-to-end DnD
+    // and refetch integration that cannot be fully tested with mocked hooks.
     const issuesWithBlocked: IssueListItem[] = [
       ...mockIssues,
     ];
 
-    // Mock the close to succeed
     mockCloseMutateAsync.mockResolvedValue({
       success: true,
       invalidationHints: [{ entity: "issues" as const }],
     });
 
-    // After close, the refetch returns test-003 as no longer blocked
-    const issuesAfterClose: IssueListItem[] = [
-      { ...mockIssues[1] }, // test-002 still in_progress
-      { ...mockIssues[2], status: "open" }, // test-003 was blocked, now open
-    ];
-
-    vi.mocked(api.fetchIssues).mockResolvedValue(issuesAfterClose);
-
     setupIssuesMock(issuesWithBlocked);
     const { queryClient } = renderApp("/list");
 
-    // Seed the cache so handleBulkClose can snapshot blocked issues
     queryClient.setQueryData(["issues", "list", ""], issuesWithBlocked);
 
     // Select test-001
@@ -627,10 +611,9 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     const closeBtn = screen.getByRole("button", { name: /close selected/i });
     fireEvent.click(closeBtn);
 
-    // After closing, the list should update.
-    // The test verifies the data flow: snapshot -> close -> refetch -> highlight
     await waitFor(() => {
       expect(mockCloseMutateAsync).toHaveBeenCalledTimes(1);
+      expect(mockCloseMutateAsync).toHaveBeenCalledWith({ id: "test-001" });
     });
   });
 });
