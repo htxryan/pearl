@@ -1,0 +1,76 @@
+import { useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router";
+import type { SortingState } from "@tanstack/react-table";
+import type { IssueStatus, Priority, IssueType } from "@beads-gui/shared";
+import { type FilterState, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
+
+/** Parse URL search params into FilterState + SortingState. */
+function parseFilters(params: URLSearchParams): FilterState {
+  return {
+    status: (params.get("status")?.split(",").filter(Boolean) ?? []) as IssueStatus[],
+    priority: (params.get("priority")?.split(",").filter(Boolean).map(Number) ?? []) as Priority[],
+    issue_type: (params.get("type")?.split(",").filter(Boolean) ?? []) as IssueType[],
+    assignee: params.get("assignee") ?? "",
+    search: params.get("search") ?? "",
+  };
+}
+
+function parseSorting(params: URLSearchParams): SortingState {
+  const sort = params.get("sort");
+  const dir = params.get("dir");
+  if (!sort) return [{ id: "priority", desc: false }];
+  return [{ id: sort, desc: dir === "desc" }];
+}
+
+/** Serialize FilterState + SortingState into URLSearchParams. */
+function serializeToParams(filters: FilterState, sorting: SortingState): URLSearchParams {
+  const params = new URLSearchParams();
+  if (filters.status.length) params.set("status", filters.status.join(","));
+  if (filters.priority.length) params.set("priority", filters.priority.join(","));
+  if (filters.issue_type.length) params.set("type", filters.issue_type.join(","));
+  if (filters.assignee) params.set("assignee", filters.assignee);
+  if (filters.search) params.set("search", filters.search);
+  if (sorting.length > 0) {
+    params.set("sort", sorting[0].id);
+    params.set("dir", sorting[0].desc ? "desc" : "asc");
+  }
+  return params;
+}
+
+/** Build API query params from filter state + sorting. */
+export function buildApiParams(filters: FilterState, sorting: SortingState): URLSearchParams {
+  const params = new URLSearchParams();
+  if (filters.status.length) params.set("status", filters.status.join(","));
+  if (filters.priority.length) params.set("priority", filters.priority.join(","));
+  if (filters.issue_type.length) params.set("issue_type", filters.issue_type.join(","));
+  if (filters.assignee) params.set("assignee", filters.assignee);
+  if (filters.search) params.set("search", filters.search);
+  if (sorting.length > 0) {
+    params.set("sort", sorting[0].id);
+    params.set("direction", sorting[0].desc ? "desc" : "asc");
+  }
+  return params;
+}
+
+export function useUrlFilters() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  const sorting = useMemo(() => parseSorting(searchParams), [searchParams]);
+
+  const setFilters = useCallback(
+    (next: FilterState) => {
+      setSearchParams(serializeToParams(next, sorting), { replace: true });
+    },
+    [sorting, setSearchParams],
+  );
+
+  const setSorting = useCallback(
+    (next: SortingState) => {
+      setSearchParams(serializeToParams(filters, next), { replace: true });
+    },
+    [filters, setSearchParams],
+  );
+
+  return { filters, sorting, setFilters, setSorting };
+}
