@@ -12,8 +12,10 @@ export interface CommandAction {
 let isOpen = false;
 let listeners: Array<() => void> = [];
 const registeredActions = new Map<string, CommandAction[]>();
+let actionsVersion = 0;
 
 function notify() {
+  actionsVersion++;
   listeners.forEach((l) => l());
 }
 
@@ -56,7 +58,7 @@ export function useCommandPaletteActions(sourceId: string, actions: CommandActio
 }
 
 export function useAllCommandActions(): CommandAction[] {
-  useSyncExternalStore(subscribe, () => registeredActions.size);
+  useSyncExternalStore(subscribe, () => actionsVersion);
   const all: CommandAction[] = [];
   for (const actions of registeredActions.values()) {
     all.push(...actions);

@@ -27,12 +27,14 @@ class ApiClientError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: HeadersInit = { ...init?.headers };
+  if (init?.body != null) {
+    (headers as Record<string, string>)["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {

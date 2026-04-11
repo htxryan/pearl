@@ -4,6 +4,19 @@ import { queryWithRetry } from "../dolt/pool.js";
 import type { Config } from "../config.js";
 import type { WriteService } from "../write-service/write-service.js";
 
+const createDependencySchema = {
+  body: {
+    type: "object",
+    required: ["issue_id", "depends_on_id"],
+    properties: {
+      issue_id: { type: "string", minLength: 1, maxLength: 200 },
+      depends_on_id: { type: "string", minLength: 1, maxLength: 200 },
+      type: { type: "string", enum: ["blocks", "depends_on", "relates_to", "discovered_from"] },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
 export function registerDependencyRoutes(
   app: FastifyInstance,
   config: Config,
@@ -24,7 +37,7 @@ export function registerDependencyRoutes(
   });
 
   // POST /api/dependencies — add dependency
-  app.post("/api/dependencies", async (request, reply) => {
+  app.post("/api/dependencies", { schema: createDependencySchema }, async (request, reply) => {
     const body = request.body as CreateDependencyRequest;
     const result = await writeService.addDependency(body);
     return reply.code(201).send(result);

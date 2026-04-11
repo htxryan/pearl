@@ -13,6 +13,60 @@ import type { Config } from "../config.js";
 import type { WriteService } from "../write-service/write-service.js";
 import type { RowDataPacket } from "mysql2";
 
+// ─── JSON Schema for request body validation ───────────
+const ISSUE_TYPES = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
+const ISSUE_STATUSES = ["open", "in_progress", "closed", "blocked", "deferred"];
+
+const createIssueSchema = {
+  body: {
+    type: "object",
+    required: ["title"],
+    properties: {
+      title: { type: "string", minLength: 1, maxLength: 500 },
+      description: { type: "string", maxLength: 10000 },
+      issue_type: { type: "string", enum: ISSUE_TYPES },
+      priority: { type: "integer", minimum: 0, maximum: 4 },
+      assignee: { type: "string", maxLength: 200 },
+      labels: { type: "array", items: { type: "string", maxLength: 100 }, maxItems: 50 },
+      due: { type: "string", maxLength: 30 },
+      parent: { type: "string", maxLength: 200 },
+      estimated_minutes: { type: "integer", minimum: 0 },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
+const updateIssueSchema = {
+  body: {
+    type: "object",
+    properties: {
+      title: { type: "string", minLength: 1, maxLength: 500 },
+      description: { type: "string", maxLength: 10000 },
+      status: { type: "string", enum: ISSUE_STATUSES },
+      priority: { type: "integer", minimum: 0, maximum: 4 },
+      assignee: { type: ["string", "null"], maxLength: 200 },
+      labels: { type: "array", items: { type: "string", maxLength: 100 }, maxItems: 50 },
+      due: { type: ["string", "null"], maxLength: 30 },
+      notes: { type: "string", maxLength: 10000 },
+      claim: { type: "boolean" },
+      pinned: { type: "boolean" },
+      estimated_minutes: { type: ["integer", "null"], minimum: 0 },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
+const addCommentSchema = {
+  body: {
+    type: "object",
+    required: ["text"],
+    properties: {
+      text: { type: "string", minLength: 1, maxLength: 10000 },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
 export function registerIssueRoutes(
   app: FastifyInstance,
   config: Config,
@@ -219,14 +273,14 @@ export function registerIssueRoutes(
   });
 
   // POST /api/issues — create
-  app.post("/api/issues", async (request, reply) => {
+  app.post("/api/issues", { schema: createIssueSchema }, async (request, reply) => {
     const body = request.body as CreateIssueRequest;
     const result = await writeService.createIssue(body);
     return reply.code(201).send(result);
   });
 
   // PATCH /api/issues/:id — update
-  app.patch("/api/issues/:id", async (request, reply) => {
+  app.patch("/api/issues/:id", { schema: updateIssueSchema }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const body = request.body as UpdateIssueRequest;
     const result = await writeService.updateIssue(id, body);
@@ -242,7 +296,7 @@ export function registerIssueRoutes(
   });
 
   // POST /api/issues/:id/comments — add comment
-  app.post("/api/issues/:id/comments", async (request, reply) => {
+  app.post("/api/issues/:id/comments", { schema: addCommentSchema }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const body = request.body as { text: string };
     const result = await writeService.addComment(id, body);

@@ -66,6 +66,7 @@ if (typeof window !== "undefined") {
 export function useKeyboardScope(scope: string, bindings: KeyBinding[]) {
   const entryRef = useRef<ScopeEntry | null>(null);
 
+  // Register scope once on mount, remove on unmount
   useEffect(() => {
     const entry: ScopeEntry = { scope, bindings };
     entryRef.current = entry;
@@ -76,7 +77,16 @@ export function useKeyboardScope(scope: string, bindings: KeyBinding[]) {
       if (idx !== -1) scopeStack.splice(idx, 1);
       entryRef.current = null;
     };
-  }, [scope, bindings]);
+    // Only re-register when scope identity changes, not bindings
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope]);
+
+  // Update bindings in-place without re-registering the scope entry
+  useEffect(() => {
+    if (entryRef.current) {
+      entryRef.current.bindings = bindings;
+    }
+  }, [bindings]);
 }
 
 /**

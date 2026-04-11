@@ -3,9 +3,7 @@ import type { Config } from "../config.js";
 
 export type DoltServerState = "stopped" | "starting" | "running" | "error";
 
-interface DoltServerEvents {
-  stateChange: (state: DoltServerState) => void;
-}
+type StateChangeListener = (state: DoltServerState) => void;
 
 /**
  * Manages the lifecycle of a dolt sql-server process.
@@ -17,7 +15,7 @@ export class DoltServerManager {
   private consecutiveFailures = 0;
   private restartTimer: ReturnType<typeof setTimeout> | null = null;
   private startedAt: number | null = null;
-  private listeners: Partial<DoltServerEvents> = {};
+  private stateChangeListeners: StateChangeListener[] = [];
 
   constructor(private config: Config) {}
 
@@ -30,15 +28,20 @@ export class DoltServerManager {
     return Math.floor((Date.now() - this.startedAt) / 1000);
   }
 
-  onStateChange(fn: DoltServerEvents["stateChange"]): void {
-    this.listeners.stateChange = fn;
+  onStateChange(fn: StateChangeListener): () => void {
+    this.stateChangeListeners.push(fn);
+    return () => {
+      this.stateChangeListeners = this.stateChangeListeners.filter((l) => l !== fn);
+    };
   }
 
   private setState(newState: DoltServerState): void {
     const oldState = this.state;
     this.state = newState;
     if (oldState !== newState) {
-      this.listeners.stateChange?.(newState);
+      for (const fn of this.stateChangeListeners) {
+        fn(newState);
+      }
     }
   }
 

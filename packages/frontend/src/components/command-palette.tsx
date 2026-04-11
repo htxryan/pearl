@@ -35,9 +35,6 @@ export function CommandPalette() {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) closeCommandPalette();
-      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
@@ -46,7 +43,7 @@ export function CommandPalette() {
       }}
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" />
+      <div className="fixed inset-0 bg-black/50" onClick={closeCommandPalette} />
 
       {/* Palette */}
       <Command

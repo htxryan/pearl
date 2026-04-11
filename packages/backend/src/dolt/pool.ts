@@ -8,7 +8,9 @@ let pool: Pool | null = null;
 export function createDoltPool(config: Config): Pool {
   // Destroy any existing pool to prevent connection leaks
   if (pool) {
-    pool.end().catch(() => {});
+    pool.end().catch((err) => {
+      console.warn("[pool] Error closing previous pool:", err);
+    });
     pool = null;
   }
 

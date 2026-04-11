@@ -54,9 +54,11 @@ export function validationError(message: string): AppError {
 }
 
 export function notFoundError(entity: string, id: string): AppError {
+  // Truncate id to prevent reflected content in logs/downstream systems
+  const safeId = id.length > 100 ? id.slice(0, 100) + "…" : id;
   return new AppError(
     "NOT_FOUND",
-    `${entity} '${id}' not found`,
+    `${entity} '${safeId}' not found`,
     404,
     false
   );

@@ -16,7 +16,7 @@ describe("api-client", () => {
     const result = await fetchIssues();
 
     expect(fetch).toHaveBeenCalledWith("/api/issues", expect.objectContaining({
-      headers: expect.objectContaining({ "Content-Type": "application/json" }),
+      headers: {},
     }));
     expect(result).toEqual(mockData);
   });

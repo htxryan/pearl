@@ -207,7 +207,7 @@ export function useStats() {
   return useQuery({
     queryKey: statsKeys.all,
     queryFn: api.fetchStats,
-    refetchInterval: 2000,
+    refetchInterval: 30000,
   });
 }
 

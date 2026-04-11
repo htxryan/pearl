@@ -73,8 +73,7 @@ export function AppShell() {
         label: "Create Issue",
         group: "Actions",
         handler: () => {
-          // Placeholder — will be implemented in view epics
-          console.log("Create issue action triggered");
+          // TODO: wire to create-issue modal in view epics
         },
       },
     ],
