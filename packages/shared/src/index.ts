@@ -66,6 +66,11 @@ export type IssueType =
   | "gate"
   | "molecule";
 
+/** Canonical value arrays — single source of truth for validation and UI */
+export const ISSUE_STATUSES: IssueStatus[] = ["open", "in_progress", "closed", "blocked", "deferred"];
+export const ISSUE_PRIORITIES: Priority[] = [0, 1, 2, 3, 4];
+export const ISSUE_TYPES: IssueType[] = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
+
 export interface Dependency {
   issue_id: string;
   depends_on_id: string;

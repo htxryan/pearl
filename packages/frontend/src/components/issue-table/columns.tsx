@@ -12,6 +12,14 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function isDateOverdue(iso: string): boolean {
+  const due = new Date(iso);
+  due.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
 export function buildColumns({
   onStatusChange,
   onPriorityChange,
@@ -133,7 +141,7 @@ export function buildColumns({
       header: "Due",
       cell: (info) => {
         const val = info.getValue();
-        const isOverdue = val && new Date(val) < new Date();
+        const isOverdue = val && isDateOverdue(val);
         return (
           <span className={`text-xs ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
             {formatDate(val)}

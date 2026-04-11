@@ -17,10 +17,7 @@ import { buildColumns } from "@/components/issue-table/columns";
 import { useIssues, useUpdateIssue, useCloseIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
-import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
-
-const VALID_STATUSES = new Set<string>(["open", "in_progress", "closed", "blocked", "deferred"]);
-const VALID_PRIORITIES = new Set<number>([0, 1, 2, 3, 4]);
+import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from "@/hooks/use-url-filters";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -46,8 +43,11 @@ export function ListView() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const rowSelectionRef = useRef(rowSelection);
+  rowSelectionRef.current = rowSelection;
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
+  const [closeMessage, setCloseMessage] = useState<string | null>(null);
 
   // Clear highlight after 3 seconds
   useEffect(() => {
@@ -55,6 +55,22 @@ export function ListView() {
     const timer = setTimeout(() => setHighlightedIds(new Set()), 3000);
     return () => clearTimeout(timer);
   }, [highlightedIds]);
+
+  // Clear close message after 3 seconds
+  useEffect(() => {
+    if (!closeMessage) return;
+    const timer = setTimeout(() => setCloseMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [closeMessage]);
+
+  // Clamp activeRowIndex when issues list changes
+  useEffect(() => {
+    setActiveRowIndex((prev) => {
+      if (prev < 0) return prev;
+      if (issues.length === 0) return -1;
+      return Math.min(prev, issues.length - 1);
+    });
+  }, [issues]);
 
   // Bulk close state
   const [isClosing, setIsClosing] = useState(false);
@@ -86,24 +102,35 @@ export function ListView() {
   );
 
   const handleBulkClose = useCallback(async () => {
-    if (selectedIds.length === 0) return;
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
     setIsClosing(true);
     try {
-      const results = await Promise.allSettled(
-        selectedIds.map((id) => closeMutation.mutateAsync({ id })),
-      );
-      const failed = results.filter((r) => r.status === "rejected");
-      if (failed.length > 0) {
-        console.error(`Failed to close ${failed.length} of ${selectedIds.length} issues`);
+      // Process in batches to avoid unbounded parallel requests
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => closeMutation.mutateAsync({ id })),
+        );
+        allResults.push(...results);
       }
-      // Highlight successfully-closed issues
-      const closedIds = selectedIds.filter((_, i) => results[i].status === "fulfilled");
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      if (failed.length > 0) {
+        setCloseMessage(`Closed ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed to close.`);
+      } else {
+        setCloseMessage(`Closed ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+      }
+      // Highlight successfully-closed issues (visible when they remain in list)
+      const closedIds = ids.filter((_, i) => allResults[i].status === "fulfilled");
       setHighlightedIds(new Set(closedIds));
       setRowSelection({});
     } finally {
       setIsClosing(false);
     }
-  }, [selectedIds, closeMutation]);
+  }, [closeMutation]);
 
   const handleClearSelection = useCallback(() => {
     setRowSelection({});
@@ -243,6 +270,9 @@ export function ListView() {
           onClearSelection={handleClearSelection}
           isClosing={isClosing}
         />
+        {closeMessage && (
+          <div className="px-1 py-1 text-sm text-muted-foreground">{closeMessage}</div>
+        )}
       </div>
 
       {/* Table */}

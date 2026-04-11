@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useCallback } from "react";
 import {
   flexRender,
   type Table,
@@ -33,7 +33,6 @@ export function IssueTable({
   onRowClick,
   highlightedIds,
 }: IssueTableProps) {
-  const tableRef = useRef<HTMLTableElement>(null);
   const data = table.getRowModel().rows;
 
   const handleRowClick = useCallback(
@@ -48,7 +47,7 @@ export function IssueTable({
     const visibleColCount = table.getVisibleFlatColumns().length;
     return (
       <div className="overflow-auto">
-        <table ref={tableRef} className="w-full border-collapse text-sm" aria-label="Issue list">
+        <table className="w-full border-collapse text-sm" aria-label="Issue list">
           <thead>
             <tr className="border-b border-border">
               {table.getHeaderGroups()[0]?.headers.map((header) => (
@@ -87,7 +86,7 @@ export function IssueTable({
 
   return (
     <div className="overflow-auto">
-      <table ref={tableRef} className="w-full border-collapse text-sm" aria-label="Issue list">
+      <table className="w-full border-collapse text-sm" aria-label="Issue list">
         <thead className="sticky top-0 z-10 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className="border-b border-border">

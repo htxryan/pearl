@@ -47,7 +47,7 @@ export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
                   onChange={column.getToggleVisibilityHandler()}
                   className="h-3.5 w-3.5 rounded border-border"
                 />
-                <span className="capitalize">{column.id.replace("_", " ")}</span>
+                <span className="capitalize">{column.id.replaceAll("_", " ")}</span>
               </label>
             );
           })}

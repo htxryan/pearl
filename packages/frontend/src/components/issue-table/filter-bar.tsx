@@ -1,5 +1,5 @@
-import { useCallback, useRef } from "react";
-import type { IssueStatus, IssueType, Priority } from "@beads-gui/shared";
+import { useCallback, useRef, useState, useEffect } from "react";
+import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type IssueType, type Priority } from "@beads-gui/shared";
 import { cn } from "@/lib/utils";
 
 export interface FilterState {
@@ -18,9 +18,9 @@ export const EMPTY_FILTERS: FilterState = {
   search: "",
 };
 
-const ALL_STATUSES: IssueStatus[] = ["open", "in_progress", "closed", "blocked", "deferred"];
-const ALL_PRIORITIES: Priority[] = [0, 1, 2, 3, 4];
-const ALL_TYPES: IssueType[] = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
+const ALL_STATUSES = ISSUE_STATUSES;
+const ALL_PRIORITIES = ISSUE_PRIORITIES;
+const ALL_TYPES = ISSUE_TYPES;
 const PRIORITY_LABELS: Record<Priority, string> = { 0: "P0", 1: "P1", 2: "P2", 3: "P3", 4: "P4" };
 const STATUS_LABELS: Record<IssueStatus, string> = {
   open: "Open",
@@ -79,6 +79,39 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = searchInputRef ?? internalRef;
 
+  // Local state for debounced text inputs
+  const [localSearch, setLocalSearch] = useState(filters.search);
+  const [localAssignee, setLocalAssignee] = useState(filters.assignee);
+
+  // Sync external → local (e.g., "Clear all") and cancel pending debounce
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const assigneeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => { setLocalSearch(filters.search); clearTimeout(searchTimer.current); }, [filters.search]);
+  useEffect(() => { setLocalAssignee(filters.assignee); clearTimeout(assigneeTimer.current); }, [filters.assignee]);
+  useEffect(() => () => { clearTimeout(searchTimer.current); clearTimeout(assigneeTimer.current); }, []);
+
+  // Refs to avoid stale closures in debounced callbacks
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const handleSearchChange = useCallback((value: string) => {
+    setLocalSearch(value);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      onChangeRef.current({ ...filtersRef.current, search: value });
+    }, 300);
+  }, []);
+
+  const handleAssigneeChange = useCallback((value: string) => {
+    setLocalAssignee(value);
+    clearTimeout(assigneeTimer.current);
+    assigneeTimer.current = setTimeout(() => {
+      onChangeRef.current({ ...filtersRef.current, assignee: value });
+    }, 300);
+  }, []);
+
   const setField = useCallback(
     <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
       onChange({ ...filters, [key]: value });
@@ -101,15 +134,19 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           <input
             ref={inputRef}
             type="text"
-            value={filters.search}
-            onChange={(e) => setField("search", e.target.value)}
+            value={localSearch}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search issues... (/)"
             className="h-8 w-56 rounded border border-border bg-background pl-3 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             aria-label="Search issues"
           />
-          {filters.search && (
+          {localSearch && (
             <button
-              onClick={() => setField("search", "")}
+              onClick={() => {
+                clearTimeout(searchTimer.current);
+                setLocalSearch("");
+                setField("search", "");
+              }}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               aria-label="Clear search"
             >
@@ -148,8 +185,8 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         {/* Assignee */}
         <input
           type="text"
-          value={filters.assignee}
-          onChange={(e) => setField("assignee", e.target.value)}
+          value={localAssignee}
+          onChange={(e) => handleAssigneeChange(e.target.value)}
           placeholder="Assignee"
           className="h-8 w-32 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           aria-label="Filter by assignee"

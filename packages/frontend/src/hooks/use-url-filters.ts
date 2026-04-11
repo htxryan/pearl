@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import type { SortingState } from "@tanstack/react-table";
-import type { IssueStatus, Priority, IssueType } from "@beads-gui/shared";
+import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type Priority, type IssueType } from "@beads-gui/shared";
 import { type FilterState } from "@/components/issue-table/filter-bar";
 
-const VALID_STATUSES = new Set<string>(["open", "in_progress", "closed", "blocked", "deferred"]);
-const VALID_PRIORITIES = new Set<number>([0, 1, 2, 3, 4]);
-const VALID_TYPES = new Set<string>(["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"]);
+export const VALID_STATUSES = new Set<string>(ISSUE_STATUSES);
+export const VALID_PRIORITIES = new Set<number>(ISSUE_PRIORITIES);
+const VALID_TYPES = new Set<string>(ISSUE_TYPES);
 const VALID_SORT_COLUMNS = new Set(["id", "title", "status", "priority", "issue_type", "assignee", "created_at", "updated_at", "due_at"]);
 
 /** Parse URL search params into FilterState + SortingState with validation. */
@@ -69,16 +69,16 @@ export function useUrlFilters() {
 
   const setFilters = useCallback(
     (next: FilterState) => {
-      setSearchParams(serializeToParams(next, sorting), { replace: true });
+      setSearchParams((prev) => serializeToParams(next, parseSorting(prev)), { replace: true });
     },
-    [sorting, setSearchParams],
+    [setSearchParams],
   );
 
   const setSorting = useCallback(
     (next: SortingState) => {
-      setSearchParams(serializeToParams(filters, next), { replace: true });
+      setSearchParams((prev) => serializeToParams(parseFilters(prev), next), { replace: true });
     },
-    [filters, setSearchParams],
+    [setSearchParams],
   );
 
   return { filters, sorting, setFilters, setSorting };
