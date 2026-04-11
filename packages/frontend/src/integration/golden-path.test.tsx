@@ -6,10 +6,10 @@ import type { IssueListItem, Issue, MutationResponse, InvalidationHint } from "@
 
 // ─── Mock HTMLDialogElement for jsdom ────────────────────
 // jsdom does not implement showModal/close on <dialog>
-HTMLDialogElement.prototype.showModal = HTMLDialogElement.prototype.showModal || function () {
+HTMLDialogElement.prototype.showModal = HTMLDialogElement.prototype.showModal || function (this: HTMLDialogElement) {
   this.setAttribute("open", "");
 };
-HTMLDialogElement.prototype.close = HTMLDialogElement.prototype.close || function () {
+HTMLDialogElement.prototype.close = HTMLDialogElement.prototype.close || function (this: HTMLDialogElement) {
   this.removeAttribute("open");
 };
 

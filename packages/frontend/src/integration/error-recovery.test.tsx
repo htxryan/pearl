@@ -113,7 +113,7 @@ function mockHealthReturn(overrides: Partial<UseQueryResult<HealthResponse>>) {
   } as unknown as ReturnType<typeof useHealth>);
 }
 
-function mockIssuesReturn(overrides: Partial<UseQueryResult<IssueListItem[]>>) {
+function mockIssuesReturn(overrides: Record<string, unknown>) {
   const base = {
     data: undefined,
     error: null,

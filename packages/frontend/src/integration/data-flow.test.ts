@@ -332,7 +332,7 @@ describe("Invalidation from hints", () => {
     });
 
     // Should have invalidated: detail(new-1), lists(), stats
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.detail("new-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
     expect(invalidatedKeys).toContainEqual(statsKeys.all);
@@ -359,7 +359,7 @@ describe("Invalidation from hints", () => {
       await result.current.mutateAsync({ id: "issue-1", data: { title: "Updated" } });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.detail("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
     expect(invalidatedKeys).toContainEqual(issueKeys.events("issue-1"));
@@ -385,7 +385,7 @@ describe("Invalidation from hints", () => {
       await result.current.mutateAsync({ id: "issue-1", reason: "done" });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.detail("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
     expect(invalidatedKeys).toContainEqual(statsKeys.all);
@@ -414,7 +414,7 @@ describe("Invalidation from hints", () => {
       });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.comments("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.events("issue-1"));
   });
@@ -443,7 +443,7 @@ describe("Invalidation from hints", () => {
       });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(dependencyKeys.all);
     expect(invalidatedKeys).toContainEqual(issueKeys.dependencies("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
@@ -471,7 +471,7 @@ describe("Invalidation from hints", () => {
       });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(dependencyKeys.all);
   });
 
@@ -492,7 +492,7 @@ describe("Invalidation from hints", () => {
       await result.current.mutateAsync({ title: "No-id hint" });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     // Should invalidate lists()
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
     // Should NOT have called invalidate with any detail key
@@ -616,7 +616,7 @@ describe("Optimistic updates (useUpdateIssue)", () => {
     });
 
     // onMutate should have cancelled queries for detail(id) and lists()
-    const cancelledKeys = cancelSpy.mock.calls.map((call) => call[0].queryKey);
+    const cancelledKeys = cancelSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(cancelledKeys).toContainEqual(issueKeys.detail("issue-1"));
     expect(cancelledKeys).toContainEqual(issueKeys.lists());
   });
@@ -720,7 +720,7 @@ describe("Invalidation hint entity routing", () => {
       await result.current.mutateAsync({ id: "issue-42", data: { title: "x" } });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.detail("issue-42"));
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
   });
@@ -744,7 +744,7 @@ describe("Invalidation hint entity routing", () => {
       });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(dependencyKeys.all);
     expect(invalidatedKeys).toContainEqual(issueKeys.dependencies("issue-1"));
   });
@@ -765,7 +765,7 @@ describe("Invalidation hint entity routing", () => {
       await result.current.mutateAsync({ issueId: "i1", dependsOnId: "i2" });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(dependencyKeys.all);
     // Should NOT have invalidated a specific dependencies(id)
     const depIdCalls = invalidatedKeys.filter(
@@ -793,7 +793,7 @@ describe("Invalidation hint entity routing", () => {
       });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.comments("issue-5"));
   });
 
@@ -813,7 +813,7 @@ describe("Invalidation hint entity routing", () => {
       await result.current.mutateAsync({ id: "issue-7", data: { title: "x" } });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.events("issue-7"));
   });
 
@@ -833,7 +833,7 @@ describe("Invalidation hint entity routing", () => {
       await result.current.mutateAsync({ id: "issue-1" });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(statsKeys.all);
   });
 
@@ -858,7 +858,7 @@ describe("Invalidation hint entity routing", () => {
       await result.current.mutateAsync({ id: "issue-1" });
     });
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0].queryKey);
+    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => c[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.detail("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
     expect(invalidatedKeys).toContainEqual(statsKeys.all);
