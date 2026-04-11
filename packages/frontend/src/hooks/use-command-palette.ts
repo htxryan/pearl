@@ -48,6 +48,7 @@ export function useCommandPaletteOpen() {
 // ─── Action Registration ────────────────────────────────
 export function useCommandPaletteActions(sourceId: string, actions: CommandAction[]) {
   const sourceIdRef = useRef(sourceId);
+  const mountedRef = useRef(false);
 
   // Register on mount, cleanup on unmount — avoids double-notify on re-registration
   useEffect(() => {
@@ -63,12 +64,15 @@ export function useCommandPaletteActions(sourceId: string, actions: CommandActio
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceId]);
 
-  // Update actions in-place without cleanup/setup cycle (single notify)
+  // Update actions in-place without cleanup/setup cycle (single notify).
+  // Skip the first run — Effect 1 already handled initial registration.
   useEffect(() => {
-    if (sourceIdRef.current) {
-      registeredActions.set(sourceIdRef.current, actions);
-      notify();
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
     }
+    registeredActions.set(sourceIdRef.current, actions);
+    notify();
   }, [actions]);
 }
 
