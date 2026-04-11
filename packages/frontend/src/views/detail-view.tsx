@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Navigate } from "react-router";
 import { useMemo, useCallback, useEffect, useState } from "react";
 import type { Issue, IssueStatus, Priority, IssueType } from "@beads-gui/shared";
 import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
@@ -24,17 +24,20 @@ import { CommentThread } from "@/components/detail/comment-thread";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
-import { cn } from "@/lib/utils";
+
 
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  // Guard: redirect if no ID in route params
+  if (!id) return <Navigate to="/list" replace />;
+
   // Data fetching
-  const { data: issue, isLoading, error } = useIssue(id!);
-  const { data: comments = [] } = useComments(id!);
-  const { data: events = [] } = useEvents(id!);
-  const { data: dependencies = [] } = useDependencies(id!);
+  const { data: issue, isLoading, error } = useIssue(id);
+  const { data: comments = [] } = useComments(id);
+  const { data: events = [] } = useEvents(id);
+  const { data: dependencies = [] } = useDependencies(id);
 
   // Mutations
   const updateMutation = useUpdateIssue();
@@ -56,9 +59,6 @@ export function DetailView() {
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
-
-  // Active section for tab navigation
-  const [activeSection, setActiveSection] = useState<"fields" | "comments" | "activity" | "dependencies">("fields");
 
   // Field update handler
   const handleFieldUpdate = useCallback(
@@ -108,17 +108,8 @@ export function DetailView() {
         },
         description: "Close detail panel",
       },
-      {
-        key: "Tab",
-        handler: () => {
-          const sections = ["fields", "comments", "activity", "dependencies"] as const;
-          const idx = sections.indexOf(activeSection);
-          setActiveSection(sections[(idx + 1) % sections.length]);
-        },
-        description: "Next section",
-      },
     ],
-    [navigate, isDirty, activeSection],
+    [navigate, isDirty],
   );
 
   useKeyboardScope("detail", keyBindings);
@@ -131,7 +122,15 @@ export function DetailView() {
         label: "Close panel / Back to list",
         shortcut: "Esc",
         group: "Detail",
-        handler: () => navigate("/list"),
+        handler: () => {
+          if (isDirty) {
+            if (window.confirm("You have unsaved changes. Discard them?")) {
+              navigate("/list");
+            }
+          } else {
+            navigate("/list");
+          }
+        },
       },
       {
         id: "detail-claim",
@@ -140,7 +139,7 @@ export function DetailView() {
         handler: handleClaim,
       },
     ],
-    [navigate, handleClaim],
+    [navigate, handleClaim, isDirty],
   );
 
   useCommandPaletteActions("detail-view", paletteActions);
@@ -232,6 +231,7 @@ export function DetailView() {
                   value={issue.status}
                   options={ISSUE_STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
                   onChange={(v) => handleFieldUpdate("status", v)}
+                  label="Status"
                 />
               </FieldRow>
               <FieldRow label="Priority">
@@ -239,6 +239,7 @@ export function DetailView() {
                   value={String(issue.priority)}
                   options={ISSUE_PRIORITIES.map((p) => ({ value: String(p), label: `P${p}` }))}
                   onChange={(v) => handleFieldUpdate("priority", Number(v))}
+                  label="Priority"
                 />
               </FieldRow>
               <FieldRow label="Type">
@@ -246,6 +247,7 @@ export function DetailView() {
                   value={issue.issue_type}
                   options={ISSUE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
                   onChange={(v) => handleFieldUpdate("issue_type", v)}
+                  label="Type"
                 />
               </FieldRow>
               <FieldRow label="Assignee">
@@ -264,6 +266,7 @@ export function DetailView() {
                   type="date"
                   value={issue.due_at ? issue.due_at.slice(0, 10) : ""}
                   onChange={(e) => handleFieldUpdate("due", e.target.value || null)}
+                  aria-label="Due date"
                   className="text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </FieldRow>
@@ -298,7 +301,7 @@ export function DetailView() {
             title="Description"
             content={issue.description}
             field="description"
-            issueId={id!}
+            issueId={id}
             onSave={(val) => handleFieldUpdate("description", val)}
           />
 
@@ -308,7 +311,7 @@ export function DetailView() {
               title="Design Notes"
               content={issue.design}
               field="design"
-              issueId={id!}
+              issueId={id}
               onSave={(val) => handleFieldUpdate("design", val)}
             />
           )}
@@ -319,7 +322,7 @@ export function DetailView() {
               title="Acceptance Criteria"
               content={issue.acceptance_criteria}
               field="acceptance_criteria"
-              issueId={id!}
+              issueId={id}
               onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
             />
           )}
@@ -330,20 +333,20 @@ export function DetailView() {
               title="Notes"
               content={issue.notes}
               field="notes"
-              issueId={id!}
+              issueId={id}
               onSave={(val) => handleFieldUpdate("notes", val)}
             />
           )}
 
           {/* Dependencies */}
           <DependencyList
-            issueId={id!}
+            issueId={id}
             dependencies={dependencies}
             onAdd={(dependsOnId) =>
-              addDepMutation.mutate({ issue_id: id!, depends_on_id: dependsOnId })
+              addDepMutation.mutate({ issue_id: id, depends_on_id: dependsOnId })
             }
-            onRemove={(dependsOnId) =>
-              removeDepMutation.mutate({ issueId: id!, dependsOnId })
+            onRemove={(depIssueId, depDependsOnId) =>
+              removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })
             }
             isAdding={addDepMutation.isPending}
           />
@@ -352,7 +355,7 @@ export function DetailView() {
           <CommentThread
             comments={comments}
             onAdd={(text) =>
-              addCommentMutation.mutate({ issueId: id!, data: { text } })
+              addCommentMutation.mutate({ issueId: id, data: { text } })
             }
             isAdding={addCommentMutation.isPending}
           />
@@ -380,15 +383,18 @@ function SelectField({
   value,
   options,
   onChange,
+  label,
 }: {
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+  label: string;
 }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      aria-label={label}
       className="text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
     >
       {options.map((opt) => (
@@ -449,6 +455,7 @@ function LabelEditor({
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={labels.length === 0 ? "Add labels..." : ""}
+        aria-label="Add label"
         className="text-sm bg-transparent border-none outline-none min-w-[80px] flex-1"
       />
     </div>

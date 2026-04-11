@@ -82,15 +82,15 @@ export class IssueWriter {
       args.push("--priority", `P${req.priority}`);
     }
     if (req.assignee !== undefined) {
-      args.push("--assignee", req.assignee);
+      args.push("--assignee", req.assignee ?? "");
     }
     if (req.labels) {
       args.push("--set-labels", req.labels.join(","));
     }
     if (req.due !== undefined) {
-      args.push("--due", req.due);
+      args.push("--due", req.due ?? "");
     }
-    if (req.notes) {
+    if (req.notes !== undefined) {
       args.push("--notes", req.notes);
     }
     if (req.design !== undefined) {

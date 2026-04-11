@@ -8,7 +8,7 @@ interface DependencyListProps {
   issueId: string;
   dependencies: Dependency[];
   onAdd: (dependsOnId: string) => void;
-  onRemove: (dependsOnId: string) => void;
+  onRemove: (issueId: string, dependsOnId: string) => void;
   isAdding: boolean;
 }
 
@@ -77,7 +77,7 @@ export function DependencyList({
               <DependencyRow
                 key={`${dep.issue_id}-${dep.depends_on_id}`}
                 targetId={dep.depends_on_id}
-                onRemove={() => onRemove(dep.depends_on_id)}
+                onRemove={() => onRemove(dep.issue_id, dep.depends_on_id)}
               />
             ))}
           </div>
@@ -95,7 +95,7 @@ export function DependencyList({
               <DependencyRow
                 key={`${dep.issue_id}-${dep.depends_on_id}`}
                 targetId={dep.issue_id}
-                onRemove={() => onRemove(dep.issue_id)}
+                onRemove={() => onRemove(dep.issue_id, dep.depends_on_id)}
               />
             ))}
           </div>

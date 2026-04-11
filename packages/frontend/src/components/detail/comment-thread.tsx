@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import type { Comment } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
+import { formatRelativeTime } from "@/lib/utils";
 
 interface CommentThreadProps {
   comments: Comment[];
@@ -78,20 +79,4 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
       </form>
     </section>
   );
-}
-
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }

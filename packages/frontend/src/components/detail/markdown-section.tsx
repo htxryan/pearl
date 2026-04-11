@@ -75,9 +75,18 @@ export function MarkdownSection({
       ) : content ? (
         <div
           className="prose prose-sm dark:prose-invert max-w-none cursor-pointer rounded-lg p-3 hover:bg-muted/50 transition-colors"
+          role="button"
+          tabIndex={0}
           onClick={() => {
             setEditValue(content);
             setIsEditing(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setEditValue(content);
+              setIsEditing(true);
+            }
           }}
         >
           <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
@@ -85,9 +94,18 @@ export function MarkdownSection({
       ) : (
         <div
           className="text-sm text-muted-foreground italic cursor-pointer rounded-lg p-3 hover:bg-muted/50 transition-colors"
+          role="button"
+          tabIndex={0}
           onClick={() => {
             setEditValue("");
             setIsEditing(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setEditValue("");
+              setIsEditing(true);
+            }
           }}
         >
           No {title.toLowerCase()} yet. Click to add.
