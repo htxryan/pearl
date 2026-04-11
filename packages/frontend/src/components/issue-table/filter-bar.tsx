@@ -8,6 +8,7 @@ export interface FilterState {
   issue_type: IssueType[];
   assignee: string;
   search: string;
+  labels: string[];
 }
 
 export const EMPTY_FILTERS: FilterState = {
@@ -16,6 +17,7 @@ export const EMPTY_FILTERS: FilterState = {
   issue_type: [],
   assignee: "",
   search: "",
+  labels: [],
 };
 
 const ALL_STATUSES = ISSUE_STATUSES;
@@ -119,12 +121,28 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
     [filters, onChange],
   );
 
+  // Local state for debounced labels input
+  const [localLabels, setLocalLabels] = useState(filters.labels.join(","));
+  const labelsTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => { setLocalLabels(filters.labels.join(",")); clearTimeout(labelsTimer.current); }, [filters.labels]);
+  useEffect(() => () => clearTimeout(labelsTimer.current), []);
+
+  const handleLabelsChange = useCallback((value: string) => {
+    setLocalLabels(value);
+    clearTimeout(labelsTimer.current);
+    labelsTimer.current = setTimeout(() => {
+      const parsed = value.split(",").map((s) => s.trim()).filter(Boolean);
+      onChangeRef.current({ ...filtersRef.current, labels: parsed });
+    }, 300);
+  }, []);
+
   const hasActiveFilters =
     filters.status.length > 0 ||
     filters.priority.length > 0 ||
     filters.issue_type.length > 0 ||
     filters.assignee !== "" ||
-    filters.search !== "";
+    filters.search !== "" ||
+    filters.labels.length > 0;
 
   return (
     <div className="flex flex-col gap-2">
@@ -192,6 +210,16 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           aria-label="Filter by assignee"
         />
 
+        {/* Labels */}
+        <input
+          type="text"
+          value={localLabels}
+          onChange={(e) => handleLabelsChange(e.target.value)}
+          placeholder="Labels (comma-sep)"
+          className="h-8 w-40 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="Filter by labels"
+        />
+
         {hasActiveFilters && (
           <button
             onClick={() => onChange(EMPTY_FILTERS)}
@@ -232,6 +260,13 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
               onRemove={() => setField("assignee", "")}
             />
           )}
+          {filters.labels.map((l) => (
+            <FilterPill
+              key={`label-${l}`}
+              label={`Label: ${l}`}
+              onRemove={() => setField("labels", filters.labels.filter((x) => x !== l))}
+            />
+          ))}
           {filters.search && (
             <FilterPill
               label={`Search: "${filters.search}"`}

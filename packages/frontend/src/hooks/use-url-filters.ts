@@ -15,12 +15,15 @@ function parseFilters(params: URLSearchParams): FilterState {
   const rawPriority = params.get("priority")?.split(",").filter(Boolean).map(Number) ?? [];
   const rawType = params.get("type")?.split(",").filter(Boolean) ?? [];
 
+  const rawLabels = params.get("labels")?.split(",").filter(Boolean) ?? [];
+
   return {
     status: rawStatus.filter((s) => VALID_STATUSES.has(s)) as IssueStatus[],
     priority: rawPriority.filter((p) => VALID_PRIORITIES.has(p)) as Priority[],
     issue_type: rawType.filter((t) => VALID_TYPES.has(t)) as IssueType[],
     assignee: params.get("assignee") ?? "",
     search: params.get("search") ?? "",
+    labels: rawLabels,
   };
 }
 
@@ -39,6 +42,7 @@ function serializeToParams(filters: FilterState, sorting: SortingState): URLSear
   if (filters.issue_type.length) params.set("type", filters.issue_type.join(","));
   if (filters.assignee) params.set("assignee", filters.assignee);
   if (filters.search) params.set("search", filters.search);
+  if (filters.labels.length) params.set("labels", filters.labels.join(","));
   if (sorting.length > 0) {
     params.set("sort", sorting[0].id);
     params.set("dir", sorting[0].desc ? "desc" : "asc");
@@ -54,6 +58,7 @@ export function buildApiParams(filters: FilterState, sorting: SortingState): URL
   if (filters.issue_type.length) params.set("issue_type", filters.issue_type.join(","));
   if (filters.assignee) params.set("assignee", filters.assignee);
   if (filters.search) params.set("search", filters.search);
+  if (filters.labels.length) params.set("labels", filters.labels.join(","));
   if (sorting.length > 0) {
     params.set("sort", sorting[0].id);
     params.set("direction", sorting[0].desc ? "desc" : "asc");

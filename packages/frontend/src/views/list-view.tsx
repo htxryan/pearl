@@ -14,7 +14,10 @@ import { FilterBar } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
 import { buildColumns } from "@/components/issue-table/columns";
-import { useIssues, useUpdateIssue, useCloseIssue } from "@/hooks/use-issues";
+import { useIssues, useUpdateIssue, useCloseIssue, issueKeys } from "@/hooks/use-issues";
+import { useQueryClient } from "@tanstack/react-query";
+import type { IssueListItem } from "@beads-gui/shared";
+import * as api from "@/lib/api-client";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from "@/hooks/use-url-filters";
@@ -22,6 +25,8 @@ import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from 
 export function ListView() {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const queryClient = useQueryClient();
 
   // URL-synced filter & sort state
   const { filters, sorting, setFilters, setSorting } = useUrlFilters();
@@ -106,6 +111,12 @@ export function ListView() {
     if (ids.length === 0) return;
     setIsClosing(true);
     try {
+      // Snapshot blocked issues before closing
+      const beforeIssues = queryClient.getQueryData<IssueListItem[]>(issueKeys.list(apiParams));
+      const blockedBefore = new Set(
+        (beforeIssues ?? []).filter((i) => i.status === "blocked").map((i) => i.id),
+      );
+
       // Process in batches to avoid unbounded parallel requests
       const BATCH_SIZE = 5;
       const allResults: PromiseSettledResult<unknown>[] = [];
@@ -123,14 +134,27 @@ export function ListView() {
       } else {
         setCloseMessage(`Closed ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
       }
-      // Highlight successfully-closed issues (visible when they remain in list)
-      const closedIds = ids.filter((_, i) => allResults[i].status === "fulfilled");
-      setHighlightedIds(new Set(closedIds));
+
+      // Refetch issue list and highlight newly-unblocked dependents
+      const closedIdSet = new Set(ids.filter((_, i) => allResults[i].status === "fulfilled"));
+      if (blockedBefore.size > 0 && closedIdSet.size > 0) {
+        const afterIssues = await queryClient.fetchQuery<IssueListItem[]>({
+          queryKey: issueKeys.list(apiParams),
+          queryFn: () => api.fetchIssues(apiParams),
+          staleTime: 0,
+        });
+        const newlyUnblocked = (afterIssues ?? [])
+          .filter((i) => blockedBefore.has(i.id) && !closedIdSet.has(i.id) && i.status !== "blocked")
+          .map((i) => i.id);
+        setHighlightedIds(new Set(newlyUnblocked));
+      } else {
+        setHighlightedIds(new Set());
+      }
       setRowSelection({});
     } finally {
       setIsClosing(false);
     }
-  }, [closeMutation]);
+  }, [closeMutation, queryClient, apiParams]);
 
   const handleClearSelection = useCallback(() => {
     setRowSelection({});
@@ -234,7 +258,7 @@ export function ListView() {
         id: "list-clear-filters",
         label: "Clear all filters",
         group: "List",
-        handler: () => setFilters({ status: [], priority: [], issue_type: [], assignee: "", search: "" }),
+        handler: () => setFilters({ status: [], priority: [], issue_type: [], assignee: "", search: "", labels: [] }),
       },
       {
         id: "list-select-all",

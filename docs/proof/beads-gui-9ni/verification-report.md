@@ -36,7 +36,7 @@ The IssueTable component renders all IssueListItem columns with correct data:
   "priority": 1,
   "issue_type": "bug",
   "assignee": null,
-  "owner": "htxryan@gmail.com",
+  "owner": "<redacted>",
   "created_at": "2026-04-11T02:34:40.000Z",
   "updated_at": "2026-04-11T02:34:52.000Z",
   "due_at": null,
@@ -128,7 +128,7 @@ GET /api/issues?search=kanban -> 1 result: "E7: Integration Verification: Beads 
   (matches because "kanban" appears in issue description context)
 ```
 
-**Backend search** uses SQL `LIKE` with `%query%` pattern matching against title field.
+**Backend search** uses SQL `LIKE` with `%query%` pattern matching against title and description fields.
 
 **Keyboard shortcut**: `/` key focuses the search input (via `useKeyboardScope("list")` binding).
 
@@ -288,8 +288,9 @@ if (data.length === 0) {
 **Result: PASS (UI mechanism verified)**
 
 **Implementation** (`list-view.tsx`):
-- `highlightedIds` state: `Set<string>` of recently-closed issue IDs
-- After bulk close: `setHighlightedIds(new Set(closedIds))` highlights successfully-closed issues
+- `highlightedIds` state: `Set<string>` of newly-unblocked dependent issue IDs
+- Before bulk close: snapshots which issues have status "blocked"
+- After bulk close: refetches issue list and identifies issues that were blocked before but are no longer blocked (newly-unblocked dependents)
 - Highlight auto-clears after 3 seconds via `useEffect` timer
 - Close message shown as feedback: "Closed N issue(s)."
 
@@ -485,7 +486,7 @@ VITE v6.4.2  ready in 106 ms
 | # | Verification Item | Result |
 |---|---|---|
 | 1 | Table renders all columns with correct data | PASS |
-| 2 | Status displayed as colored badge, priority as P0-P4 | PASS |
+| 2 | Status displayed as inline dropdown, priority as inline dropdown (P0-P4) | PASS |
 | 3 | Column header click sorts; sort indicator visible | PASS |
 | 4 | Column visibility menu shows/hides columns | PASS |
 | 5 | Column resizing via drag handle | PASS |
@@ -495,7 +496,7 @@ VITE v6.4.2  ready in 106 ms
 | 9 | Inline status dropdown with optimistic update | PASS |
 | 10 | Inline priority dropdown with optimistic update | PASS |
 | 11 | Bulk select + bulk close with batch processing | PASS |
-| 12 | Newly-unblocked highlighted (green ring, 3s timeout) | PASS |
+| 12 | Newly-unblocked dependents highlighted (green ring, 3s timeout) | PASS |
 | 13 | URL-encoded filter/sort state (shareable URLs) | PASS |
 | 14 | j/k navigates rows, Enter opens detail, / searches | PASS |
 | 15 | Empty state shown when no issues match | PASS |

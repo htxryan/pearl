@@ -7,6 +7,9 @@
 # compound-agent managed
 .compound-agent/
 
+# Nested .claude caches (matches root .claude/.gitignore pattern)
+**/.claude/.cache/
+
 # Build outputs
 packages/*/dist/
 *.tsbuildinfo

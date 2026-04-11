@@ -11,6 +11,7 @@ describe("buildApiParams", () => {
       issue_type: [],
       assignee: "",
       search: "",
+      labels: [],
     };
     const sorting: SortingState = [];
     const params = buildApiParams(filters, sorting);
@@ -24,6 +25,7 @@ describe("buildApiParams", () => {
       issue_type: [],
       assignee: "",
       search: "",
+      labels: [],
     };
     const params = buildApiParams(filters, []);
     expect(params.get("status")).toBe("open,in_progress");
@@ -36,6 +38,7 @@ describe("buildApiParams", () => {
       issue_type: [],
       assignee: "",
       search: "",
+      labels: [],
     };
     const params = buildApiParams(filters, []);
     expect(params.get("priority")).toBe("0,1");
@@ -48,6 +51,7 @@ describe("buildApiParams", () => {
       issue_type: [],
       assignee: "",
       search: "",
+      labels: [],
     };
     const sorting: SortingState = [{ id: "created_at", desc: true }];
     const params = buildApiParams(filters, sorting);
@@ -62,9 +66,23 @@ describe("buildApiParams", () => {
       issue_type: [],
       assignee: "",
       search: "login bug",
+      labels: [],
     };
     const params = buildApiParams(filters, []);
     expect(params.get("search")).toBe("login bug");
+  });
+
+  it("encodes labels filter", () => {
+    const filters: FilterState = {
+      status: [],
+      priority: [],
+      issue_type: [],
+      assignee: "",
+      search: "",
+      labels: ["urgent", "frontend"],
+    };
+    const params = buildApiParams(filters, []);
+    expect(params.get("labels")).toBe("urgent,frontend");
   });
 
   it("encodes all filters together", () => {
@@ -74,6 +92,7 @@ describe("buildApiParams", () => {
       issue_type: ["bug"],
       assignee: "alice",
       search: "fix",
+      labels: [],
     };
     const sorting: SortingState = [{ id: "priority", desc: false }];
     const params = buildApiParams(filters, sorting);

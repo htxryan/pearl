@@ -154,6 +154,15 @@ export function registerIssueRoutes(
       params.push(searchTerm, searchTerm);
     }
 
+    // Filter: labels (issue must have ALL specified labels)
+    if (query.labels) {
+      const labels = query.labels.split(",").filter(Boolean);
+      for (const label of labels) {
+        sql += ` AND EXISTS (SELECT 1 FROM labels l WHERE l.issue_id = i.id AND l.label = ?)`;
+        params.push(label);
+      }
+    }
+
     // Exclude ephemeral/wisp issues from default views
     sql += ` AND (i.ephemeral = 0 OR i.ephemeral IS NULL)`;
 
