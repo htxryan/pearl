@@ -143,8 +143,11 @@ export interface CreateIssueRequest {
 export interface UpdateIssueRequest {
   title?: string;
   description?: string;
+  design?: string;
+  acceptance_criteria?: string;
   status?: IssueStatus;
   priority?: Priority;
+  issue_type?: IssueType;
   assignee?: string;
   labels?: string[];
   due?: string;

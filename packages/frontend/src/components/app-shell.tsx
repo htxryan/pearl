@@ -1,9 +1,10 @@
 import { Outlet, useNavigate } from "react-router";
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { CommandPalette } from "./command-palette";
 import { HealthBanner } from "./health-banner";
+import { CreateIssueDialog } from "./detail/create-issue-dialog";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import {
   toggleCommandPalette,
@@ -13,6 +14,8 @@ import {
 
 export function AppShell() {
   const navigate = useNavigate();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const openCreateDialog = useCallback(() => setCreateDialogOpen(true), []);
 
   // Global keyboard shortcuts
   const bindings = useMemo(
@@ -72,12 +75,10 @@ export function AppShell() {
         id: "create-issue",
         label: "Create Issue",
         group: "Actions",
-        handler: () => {
-          // TODO: wire to create-issue modal in view epics
-        },
+        handler: openCreateDialog,
       },
     ],
-    [navigate],
+    [navigate, openCreateDialog],
   );
 
   useCommandPaletteActions("shell", commands);
@@ -93,6 +94,10 @@ export function AppShell() {
         </main>
       </div>
       <CommandPalette />
+      <CreateIssueDialog
+        isOpen={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+      />
     </div>
   );
 }

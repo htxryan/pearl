@@ -4,6 +4,9 @@ import type {
   Issue,
   CreateIssueRequest,
   UpdateIssueRequest,
+  CreateCommentRequest,
+  CreateDependencyRequest,
+  Dependency,
   InvalidationHint,
 } from "@beads-gui/shared";
 import * as api from "@/lib/api-client";
@@ -196,6 +199,58 @@ export function useCloseIssue() {
     mutationKey: ["issues", "close"],
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       api.closeIssue(id, reason),
+    onSuccess: (response) => {
+      invalidateFromHints(queryClient, response.invalidationHints);
+    },
+  });
+}
+
+// ─── Add Comment Mutation ──────────────────────────────
+export function useAddComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["issues", "comment"],
+    mutationFn: ({ issueId, data }: { issueId: string; data: CreateCommentRequest }) =>
+      api.addComment(issueId, data),
+    onSuccess: (response) => {
+      invalidateFromHints(queryClient, response.invalidationHints);
+    },
+  });
+}
+
+// ─── Dependencies Hook ──────────────────────────────────
+export function useDependencies(issueId: string) {
+  return useQuery<Dependency[]>({
+    queryKey: issueKeys.dependencies(issueId),
+    queryFn: () => api.fetchIssueDependencies(issueId),
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
+    enabled: !!issueId,
+  });
+}
+
+// ─── Add Dependency Mutation ────────────────────────────
+export function useAddDependency() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["dependencies", "add"],
+    mutationFn: (data: CreateDependencyRequest) => api.addDependency(data),
+    onSuccess: (response) => {
+      invalidateFromHints(queryClient, response.invalidationHints);
+    },
+  });
+}
+
+// ─── Remove Dependency Mutation ─────────────────────────
+export function useRemoveDependency() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["dependencies", "remove"],
+    mutationFn: ({ issueId, dependsOnId }: { issueId: string; dependsOnId: string }) =>
+      api.removeDependency(issueId, dependsOnId),
     onSuccess: (response) => {
       invalidateFromHints(queryClient, response.invalidationHints);
     },

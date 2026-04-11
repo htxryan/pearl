@@ -75,6 +75,9 @@ export class IssueWriter {
     if (req.status) {
       args.push("--status", req.status);
     }
+    if (req.issue_type) {
+      args.push("--type", req.issue_type);
+    }
     if (req.priority !== undefined) {
       args.push("--priority", `P${req.priority}`);
     }
@@ -89,6 +92,12 @@ export class IssueWriter {
     }
     if (req.notes) {
       args.push("--notes", req.notes);
+    }
+    if (req.design !== undefined) {
+      args.push("--design", req.design);
+    }
+    if (req.acceptance_criteria !== undefined) {
+      args.push("--acceptance", req.acceptance_criteria);
     }
     if (req.pinned !== undefined) {
       throw validationError("Pinned flag is not yet supported for updates");
