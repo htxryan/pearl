@@ -10,7 +10,7 @@ export function Header() {
         <span className="text-sm text-muted-foreground">
           Press{" "}
           <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
-            ⌘K
+            {navigator.platform?.includes("Mac") ? "⌘K" : "Ctrl+K"}
           </kbd>{" "}
           for command palette
         </span>

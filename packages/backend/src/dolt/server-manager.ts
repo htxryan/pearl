@@ -100,6 +100,10 @@ export class DoltServerManager {
     }
 
     if (this.process) {
+      // Mark stopped before killing so the .then() exit handler
+      // won't re-trigger scheduleRestart() during the await below
+      this.setState("stopped");
+
       this.process.kill("SIGTERM");
       // Give it 5s to shut down gracefully
       const timeout = setTimeout(() => {
@@ -112,9 +116,17 @@ export class DoltServerManager {
       }
       clearTimeout(timeout);
       this.process = null;
+    } else {
+      this.setState("stopped");
     }
 
-    this.setState("stopped");
+    // Clear any restart timer that the exit handler may have set
+    // between kill and await completion
+    if (this.restartTimer) {
+      clearTimeout(this.restartTimer);
+      this.restartTimer = null;
+    }
+
     this.startedAt = null;
   }
 
@@ -191,7 +203,7 @@ export class DoltServerManager {
       `restarting after ${this.config.doltRestartDebounceMs}ms debounce`
     );
 
-    this.restartTimer = setTimeout(async () => {
+    this.restartTimer = setTimeout(() => {
       this.restartTimer = null;
 
       // Kill any lingering process
@@ -200,7 +212,9 @@ export class DoltServerManager {
         this.process = null;
       }
 
-      await this.start();
+      void this.start().catch((err) => {
+        console.error("[dolt-manager] Restart failed:", err);
+      });
     }, this.config.doltRestartDebounceMs);
   }
 }

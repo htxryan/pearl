@@ -56,6 +56,16 @@ const updateIssueSchema = {
   },
 } as const;
 
+const deleteIssueSchema = {
+  querystring: {
+    type: "object",
+    properties: {
+      reason: { type: "string", maxLength: 500 },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
 const addCommentSchema = {
   body: {
     type: "object",
@@ -288,7 +298,7 @@ export function registerIssueRoutes(
   });
 
   // DELETE /api/issues/:id — close/delete
-  app.delete("/api/issues/:id", async (request, reply) => {
+  app.delete("/api/issues/:id", { schema: deleteIssueSchema }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const { reason } = request.query as { reason?: string };
     const result = await writeService.closeIssue(id, reason);

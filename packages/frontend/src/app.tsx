@@ -20,6 +20,7 @@ export function App() {
               <Route path="board" element={<BoardView />} />
               <Route path="graph" element={<GraphView />} />
               <Route path="issues/:id" element={<DetailView />} />
+              <Route path="*" element={<Navigate to="/list" replace />} />
             </Route>
           </Routes>
         </BrowserRouter>
