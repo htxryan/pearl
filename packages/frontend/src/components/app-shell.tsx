@@ -13,6 +13,7 @@ import {
   type CommandAction,
 } from "@/hooks/use-command-palette";
 import { undoLast, useCanUndo } from "@/hooks/use-undo";
+import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -34,6 +35,12 @@ export function AppShell() {
         modifiers: ["meta" as const],
         handler: () => { undoLast(); },
         description: "Undo last action",
+      },
+      {
+        key: "?",
+        modifiers: ["shift" as const],
+        handler: () => toggleKeyboardHelp(),
+        description: "Show keyboard shortcuts",
       },
       {
         key: "1",
@@ -86,6 +93,13 @@ export function AppShell() {
         group: "Actions",
         handler: openCreateDialog,
       },
+      {
+        id: "keyboard-help",
+        label: "Show keyboard shortcuts",
+        shortcut: "?",
+        group: "Actions",
+        handler: () => toggleKeyboardHelp(),
+      },
       ...(canUndo
         ? [
             {
@@ -118,6 +132,7 @@ export function AppShell() {
         isOpen={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
       />
+      <KeyboardHelpOverlay />
       <ToastContainer />
     </div>
   );
