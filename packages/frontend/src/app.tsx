@@ -7,6 +7,7 @@ import { ListView } from "@/views/list-view";
 import { BoardView } from "@/views/board-view";
 import { GraphView } from "@/views/graph-view";
 import { DetailView } from "@/views/detail-view";
+import { NotFoundView } from "@/views/not-found-view";
 
 export function App() {
   return (
@@ -20,7 +21,7 @@ export function App() {
               <Route path="board" element={<BoardView />} />
               <Route path="graph" element={<GraphView />} />
               <Route path="issues/:id" element={<DetailView />} />
-              <Route path="*" element={<Navigate to="/list" replace />} />
+              <Route path="*" element={<NotFoundView />} />
             </Route>
           </Routes>
         </BrowserRouter>
