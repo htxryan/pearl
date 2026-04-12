@@ -122,9 +122,42 @@ describe("loadConfig", () => {
       delete process.env.DOLT_HOST;
     });
 
+    it("reads dolt_server_host from metadata when dolt_host absent", () => {
+      mockMetadata({ dolt_mode: "server", dolt_server_host: "server-host.example.com" });
+      const config = loadConfig();
+      expect(config.doltHost).toBe("server-host.example.com");
+    });
+
+    it("prefers dolt_host over dolt_server_host", () => {
+      mockMetadata({
+        dolt_mode: "server",
+        dolt_host: "primary.example.com",
+        dolt_server_host: "fallback.example.com",
+      });
+      const config = loadConfig();
+      expect(config.doltHost).toBe("primary.example.com");
+    });
+
+    it("reads dolt_server_port from metadata when dolt_port absent", () => {
+      mockMetadata({ dolt_mode: "server", dolt_server_host: "h", dolt_server_port: 3309 });
+      const config = loadConfig();
+      expect(config.doltPort).toBe(3309);
+    });
+
+    it("does not use dolt_server_port in embedded mode", () => {
+      mockMetadata({ dolt_mode: "embedded", dolt_server_port: 9999 });
+      const config = loadConfig();
+      expect(config.doltPort).toBe(3307);
+    });
+
     it("throws when server mode has no host configured", () => {
       mockMetadata({ dolt_mode: "server" });
       expect(() => loadConfig()).toThrow("no dolt_host configured");
+    });
+
+    it("error message mentions dolt_server_host", () => {
+      mockMetadata({ dolt_mode: "server" });
+      expect(() => loadConfig()).toThrow("dolt_server_host");
     });
 
     it("does not derive replicaPath in server mode", () => {

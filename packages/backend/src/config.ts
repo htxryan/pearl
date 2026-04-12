@@ -58,7 +58,7 @@ export function loadConfig(): Config {
     if (!doltHost) {
       throw new Error(
         "dolt_mode is 'server' but no dolt_host configured. " +
-          "Set DOLT_HOST env var or dolt_host in .beads/metadata.json."
+          "Set DOLT_HOST env var or dolt_host/dolt_server_host in .beads/metadata.json."
       );
     }
   } else {
@@ -66,7 +66,12 @@ export function loadConfig(): Config {
   }
 
   const doltPort = parseInt(
-    process.env.DOLT_PORT || String(metadata?.dolt_port || metadata?.dolt_server_port || 3307),
+    process.env.DOLT_PORT ||
+      String(
+        metadata?.dolt_port ||
+          (doltMode === "server" ? metadata?.dolt_server_port : undefined) ||
+          3307
+      ),
     10
   );
 
