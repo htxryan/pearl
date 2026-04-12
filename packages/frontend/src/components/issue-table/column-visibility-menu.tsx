@@ -9,15 +9,17 @@ interface ColumnVisibilityMenuProps {
 
 export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
   const [open, setOpen] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [animateIn, setAnimateIn] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
-      // Trigger entrance animation on next frame
-      requestAnimationFrame(() => setVisible(true));
+      setMounted(true);
+      const raf = requestAnimationFrame(() => setAnimateIn(true));
+      return () => cancelAnimationFrame(raf);
     } else {
-      setVisible(false);
+      setAnimateIn(false);
     }
   }, [open]);
 
@@ -42,12 +44,13 @@ export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
       >
         Columns
       </button>
-      {open && (
+      {mounted && (
         <div
+          onTransitionEnd={() => { if (!open) setMounted(false); }}
           className={cn(
             "absolute right-0 top-full mt-1 z-20 min-w-[180px] rounded border border-border bg-background p-2 shadow-lg",
             "transition-all duration-150 ease-out origin-top-right",
-            visible
+            animateIn
               ? "opacity-100 scale-100 translate-y-0"
               : "opacity-0 scale-95 -translate-y-1",
           )}
