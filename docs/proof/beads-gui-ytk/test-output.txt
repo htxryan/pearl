@@ -1,0 +1,58 @@
+[1A[2K[1/35] [write-tests] › e2e/write-tests/board-dnd.spec.ts:4:7 › Board Drag-and-Drop › board columns are visible
+[1A[2K[2/35] [write-tests] › e2e/write-tests/board-dnd.spec.ts:17:7 › Board Drag-and-Drop › dragging card between columns updates status
+[1A[2K[3/35] [write-tests] › e2e/write-tests/board-dnd.spec.ts:78:7 › Board Drag-and-Drop › quick-add from board column creates issue
+[1A[2K[2m[WebServer] [22m[21:42:42] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:42:43] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[2m[WebServer] [22m[21:42:47] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:42:48] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[4/35] [write-tests] › e2e/write-tests/board-dnd.spec.ts:95:7 › Board Drag-and-Drop › cannot drag to blocked column
+[1A[2K[5/35] [write-tests] › e2e/write-tests/bulk-actions.spec.ts:4:7 › Bulk Actions › bulk close selected issues with confirmation
+[1A[2K[2m[WebServer] [22m[21:42:54] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:42:55] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[2m[WebServer] [22m[21:43:01] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:02] [32mINFO[39m: [36m[replica] Sync completed in 568ms[39m
+[1A[2K[6/35] [write-tests] › e2e/write-tests/bulk-actions.spec.ts:36:7 › Bulk Actions › bulk reassign shows assignee input
+[1A[2K[7/35] [write-tests] › e2e/write-tests/bulk-actions.spec.ts:68:7 › Bulk Actions › bulk reprioritize changes priority
+[1A[2K[8/35] [write-tests] › e2e/write-tests/bulk-actions.spec.ts:103:7 › Bulk Actions › select all via header checkbox then clear
+[1A[2K[9/35] [write-tests] › e2e/write-tests/bulk-actions.spec.ts:119:7 › Bulk Actions › close confirmation shows correct count
+[1A[2K[10/35] [write-tests] › e2e/write-tests/close-issue.spec.ts:7:7 › Close Issue › close button shows confirmation dialog
+[1A[2K[11/35] [write-tests] › e2e/write-tests/close-issue.spec.ts:21:7 › Close Issue › cancel on confirmation dialog does not close issue
+[1A[2K[12/35] [write-tests] › e2e/write-tests/close-issue.spec.ts:40:7 › Close Issue › confirming close navigates back to list
+[1A[2K[2m[WebServer] [22m[21:43:10] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:11] [32mINFO[39m: [36m[replica] Sync completed in 570ms[39m
+[1A[2K[13/35] [write-tests] › e2e/write-tests/close-issue.spec.ts:57:7 › Close Issue › closed issue does not show close button
+[1A[2K[14/35] [write-tests] › e2e/write-tests/comment.spec.ts:7:7 › Comments › existing comments are visible
+[1A[2K[15/35] [write-tests] › e2e/write-tests/comment.spec.ts:21:7 › Comments › add comment via form submission
+[1A[2K[2m[WebServer] [22m[21:43:17] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:17] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[16/35] [write-tests] › e2e/write-tests/comment.spec.ts:44:7 › Comments › comment submit button disabled when empty
+[1A[2K[17/35] [write-tests] › e2e/write-tests/comment.spec.ts:62:7 › Comments › Cmd+Enter submits comment
+[1A[2K[2m[WebServer] [22m[21:43:23] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:23] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[18/35] [write-tests] › e2e/write-tests/comment.spec.ts:79:7 › Comments › empty state shows no comments message
+[1A[2K[19/35] [write-tests] › e2e/write-tests/create-issue.spec.ts:5:9 › Create Issue › Quick-add input › creates issue via quick-add and triggers mutation
+[1A[2K[20/35] [write-tests] › e2e/write-tests/create-issue.spec.ts:17:9 › Create Issue › Quick-add input › quick-add input clears after successful creation
+[1A[2K[21/35] [write-tests] › e2e/write-tests/create-issue.spec.ts:27:9 › Create Issue › Quick-add input › quick-add with empty title does nothing
+[1A[2K[22/35] [write-tests] › e2e/write-tests/create-issue.spec.ts:62:9 › Create Issue › Create dialog (via command palette) › opens create dialog and fills all fields
+[1A[2K[2m[WebServer] [22m[21:43:30] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:30] [32mINFO[39m: [36m[replica] Sync completed in 566ms[39m
+[1A[2K[2m[WebServer] [22m[21:43:34] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:35] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[2m[WebServer] [22m[21:43:41] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:42] [32mINFO[39m: [36m[replica] Sync completed in 569ms[39m
+[1A[2K[23/35] [write-tests] › e2e/write-tests/create-issue.spec.ts:98:9 › Create Issue › Create dialog (via command palette) › create dialog cancel clears form and closes
+[1A[2K[24/35] [write-tests] › e2e/write-tests/create-issue.spec.ts:109:9 › Create Issue › Create dialog (via command palette) › create dialog requires title (submit disabled)
+[1A[2K[25/35] [write-tests] › e2e/write-tests/dependency.spec.ts:7:7 › Dependency Management › add dependency via autocomplete search
+[1A[2K[2m[WebServer] [22m[21:43:49] [32mINFO[39m: [36m[replica] Syncing replica after write...[39m
+[2m[WebServer] [22m[21:43:50] [32mINFO[39m: [36m[replica] Sync completed in 572ms[39m
+[1A[2K[26/35] [write-tests] › e2e/write-tests/dependency.spec.ts:41:7 › Dependency Management › remove dependency with confirmation
+[1A[2K[27/35] [write-tests] › e2e/write-tests/dependency.spec.ts:71:7 › Dependency Management › dependency autocomplete excludes self and linked issues
+[1A[2K[28/35] [write-tests] › e2e/write-tests/dependency.spec.ts:106:7 › Dependency Management › cancel hides dependency autocomplete
+[1A[2K[29/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:7:7 › Edit Issue › change status via select dropdown
+[1A[2K[30/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:28:7 › Edit Issue › change priority via select dropdown
+[1A[2K[31/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:47:7 › Edit Issue › change issue type via select dropdown
+[1A[2K[32/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:68:7 › Edit Issue › edit title inline with click-to-edit
+[1A[2K[33/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:98:7 › Edit Issue › edit assignee inline
+[1A[2K[34/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:135:7 › Edit Issue › due date field is interactive
+[1A[2K[35/35] [write-tests] › e2e/write-tests/edit-issue.spec.ts:154:7 › Edit Issue › edit description markdown section
+  33 passed (1.4m)
