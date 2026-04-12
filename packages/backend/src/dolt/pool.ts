@@ -17,7 +17,8 @@ export function createDoltPool(config: Config): Pool {
   pool = createPool({
     host: config.doltHost,
     port: config.doltPort,
-    user: "root",
+    user: config.doltUser,
+    password: config.doltPassword || undefined,
     database: getDbName(config.doltDbPath),
     waitForConnections: true,
     connectionLimit: config.poolSize,

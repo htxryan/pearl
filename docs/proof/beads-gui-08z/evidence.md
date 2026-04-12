@@ -50,7 +50,7 @@ metadata.dolt_mode: embedded
 config.doltMode: embedded
 ```
 
-Source evidence (`config.ts:46-47`):
+Source evidence (`loadConfig()` in `config.ts`):
 ```typescript
 const metadata = readBeadsMetadata(cwd);
 const doltMode: DoltMode =
@@ -79,9 +79,9 @@ Runtime verification:
 When dolt_mode='server': server
 ```
 
-Source evidence (`config.ts:47`): Strict equality check `=== "server"`.
+Source evidence (`loadConfig()` in `config.ts`): Strict equality check `=== "server"`.
 
-In server mode, `doltHost` is read from `DOLT_HOST` env or `metadata.dolt_host` (`config.ts:50-62`).
+In server mode, `doltHost` is read from `DOLT_HOST` env or `metadata.dolt_host` (server-mode branch of `loadConfig()`).
 
 ### 5. Config defaults to embedded when metadata has no dolt_mode field
 
@@ -95,7 +95,7 @@ When dolt_mode=null: embedded
 
 Source: The expression `metadata?.dolt_mode === "server"` evaluates to `false` for `undefined`, `null`, `"embedded"`, or any other value, falling through to the `"embedded"` default.
 
-`readBeadsMetadata()` returns `null` when no metadata file exists (`config.ts:119`), and `null?.dolt_mode === "server"` is `false`.
+`readBeadsMetadata()` returns `null` when no metadata file exists, and `null?.dolt_mode === "server"` is `false`.
 
 ### 6. pool.ts uses config.doltHost instead of hardcoded 127.0.0.1
 
@@ -121,7 +121,7 @@ config.doltDbPath:   /Users/redhale/src/beads-gui/.beads/embeddeddolt/beads_gui
 config.replicaPath:  /Users/redhale/src/beads-gui/.beads/__replica__/beads_gui
 ```
 
-Source evidence (`config.ts:70-74`):
+Source evidence (replica derivation block in `loadConfig()`):
 ```typescript
 if (doltMode === "embedded") {
   const dbName = basename(doltDbPath) || "beads_gui";

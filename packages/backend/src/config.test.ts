@@ -1,6 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { loadConfig, readBeadsMetadata } from "./config.js";
 import { resolve, basename } from "node:path";
+import { readFileSync as realReadFileSync } from "node:fs";
+
+const { mockedReadFileSync } = vi.hoisted(() => {
+  return { mockedReadFileSync: vi.fn() };
+});
+
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return {
+    ...actual,
+    readFileSync: (...args: Parameters<typeof actual.readFileSync>) => {
+      if (mockedReadFileSync.getMockImplementation()) {
+        return mockedReadFileSync(...args);
+      }
+      return actual.readFileSync(...args);
+    },
+  };
+});
 
 describe("loadConfig", () => {
   const originalEnv = { ...process.env };
@@ -62,6 +80,89 @@ describe("loadConfig", () => {
       const config = loadConfig();
       expect(config.doltPort).toBe(3308);
       delete process.env.DOLT_PORT;
+    });
+  });
+
+  describe("server mode", () => {
+    function mockMetadata(metadata: Record<string, unknown>) {
+      mockedReadFileSync.mockImplementation(
+        (path: unknown, enc: unknown) => {
+          if (String(path).includes("metadata.json")) {
+            return JSON.stringify(metadata);
+          }
+          return realReadFileSync(
+            path as string,
+            enc as BufferEncoding
+          );
+        }
+      );
+    }
+
+    afterEach(() => {
+      mockedReadFileSync.mockReset();
+    });
+
+    it("detects server mode from metadata", () => {
+      mockMetadata({ dolt_mode: "server", dolt_host: "dolt.example.com" });
+      const config = loadConfig();
+      expect(config.doltMode).toBe("server");
+    });
+
+    it("reads dolt_host from metadata in server mode", () => {
+      mockMetadata({ dolt_mode: "server", dolt_host: "dolt.example.com" });
+      const config = loadConfig();
+      expect(config.doltHost).toBe("dolt.example.com");
+    });
+
+    it("prefers DOLT_HOST env var over metadata in server mode", () => {
+      mockMetadata({ dolt_mode: "server", dolt_host: "metadata-host.example.com" });
+      process.env.DOLT_HOST = "env-host.example.com";
+      const config = loadConfig();
+      expect(config.doltHost).toBe("env-host.example.com");
+      delete process.env.DOLT_HOST;
+    });
+
+    it("warns and falls back to 127.0.0.1 when server mode has no host", () => {
+      mockMetadata({ dolt_mode: "server" });
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const config = loadConfig();
+      expect(config.doltHost).toBe("127.0.0.1");
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("no dolt_host configured")
+      );
+      warnSpy.mockRestore();
+    });
+
+    it("does not derive replicaPath in server mode", () => {
+      mockMetadata({ dolt_mode: "server", dolt_host: "dolt.example.com" });
+      const config = loadConfig();
+      expect(config.replicaPath).toBe("");
+    });
+  });
+
+  describe("credentials", () => {
+    it("defaults doltUser to root", () => {
+      const config = loadConfig();
+      expect(config.doltUser).toBe("root");
+    });
+
+    it("defaults doltPassword to empty string", () => {
+      const config = loadConfig();
+      expect(config.doltPassword).toBe("");
+    });
+
+    it("reads doltUser from DOLT_USER env var", () => {
+      process.env.DOLT_USER = "custom_user";
+      const config = loadConfig();
+      expect(config.doltUser).toBe("custom_user");
+      delete process.env.DOLT_USER;
+    });
+
+    it("reads doltPassword from DOLT_PASSWORD env var", () => {
+      process.env.DOLT_PASSWORD = "secret123";
+      const config = loadConfig();
+      expect(config.doltPassword).toBe("secret123");
+      delete process.env.DOLT_PASSWORD;
     });
   });
 });

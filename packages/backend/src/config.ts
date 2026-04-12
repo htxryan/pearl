@@ -32,6 +32,10 @@ export interface Config {
   doltRestartDebounceMs: number;
   /** mysql2 connection pool size */
   poolSize: number;
+  /** Dolt SQL user (default: "root") */
+  doltUser: string;
+  /** Dolt SQL password (default: "") */
+  doltPassword: string;
 }
 
 export function loadConfig(): Config {
@@ -88,6 +92,8 @@ export function loadConfig(): Config {
     doltRestartThreshold: 3,
     doltRestartDebounceMs: 5000,
     poolSize: 5,
+    doltUser: process.env.DOLT_USER || "root",
+    doltPassword: process.env.DOLT_PASSWORD || "",
   };
 }
 
