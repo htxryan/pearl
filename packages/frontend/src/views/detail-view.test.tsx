@@ -117,7 +117,7 @@ describe("DetailView", () => {
 
     renderWithProviders("beads-gui-test");
     // Skeleton should show animated placeholders
-    const skeletonElements = document.querySelectorAll(".animate-pulse");
+    const skeletonElements = document.querySelectorAll(".skeleton-shimmer");
     expect(skeletonElements.length).toBeGreaterThan(0);
   });
 

@@ -106,7 +106,7 @@ describe("IssueTable", () => {
   it("shows loading skeleton when loading with no data", () => {
     render(<TableWrapper data={[]} isLoading={true} />);
 
-    const skeletons = document.querySelectorAll(".animate-pulse");
+    const skeletons = document.querySelectorAll(".skeleton-shimmer");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 

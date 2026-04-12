@@ -444,7 +444,7 @@ describe("View degradation during errors", () => {
       const { ListView } = await import("@/views/list-view");
       renderWithProviders(<ListView />);
 
-      const skeletons = document.querySelectorAll(".animate-pulse");
+      const skeletons = document.querySelectorAll(".skeleton-shimmer");
       expect(skeletons.length).toBeGreaterThan(0);
     });
   });
@@ -461,7 +461,7 @@ describe("View degradation during errors", () => {
       const { BoardView } = await import("@/views/board-view");
       renderWithProviders(<BoardView />);
 
-      const skeletons = document.querySelectorAll(".animate-pulse");
+      const skeletons = document.querySelectorAll(".skeleton-shimmer");
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
