@@ -21,12 +21,24 @@ function isDateOverdue(iso: string): boolean {
   return due < today;
 }
 
+export interface EpicProgress {
+  done: number;
+  total: number;
+  childIds: string[];
+}
+
 export function buildColumns({
   onStatusChange,
   onPriorityChange,
+  epicProgress,
+  expandedEpics,
+  onToggleExpand,
 }: {
   onStatusChange?: (id: string, status: IssueStatus) => void;
   onPriorityChange?: (id: string, priority: Priority) => void;
+  epicProgress?: Map<string, EpicProgress>;
+  expandedEpics?: Set<string>;
+  onToggleExpand?: (id: string) => void;
 }) {
   return [
     col.display({
@@ -63,9 +75,33 @@ export function buildColumns({
     }),
     col.accessor("title", {
       header: "Title",
-      cell: (info) => (
-        <span className="font-medium truncate max-w-[400px] block">{info.getValue()}</span>
-      ),
+      cell: (info) => {
+        const issue = info.row.original;
+        const progress = epicProgress?.get(issue.id);
+        const isExpanded = expandedEpics?.has(issue.id);
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            {progress && onToggleExpand && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleExpand(issue.id); }}
+                className="shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-accent text-muted-foreground text-xs"
+                aria-label={isExpanded ? "Collapse children" : "Expand children"}
+              >
+                {isExpanded ? "\u25BC" : "\u25B6"}
+              </button>
+            )}
+            <span className="font-medium truncate max-w-[400px] block">{info.getValue()}</span>
+            {progress && (
+              <span
+                className="shrink-0 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground"
+                title={`${progress.done} of ${progress.total} children done`}
+              >
+                {progress.done}/{progress.total} done
+              </span>
+            )}
+          </div>
+        );
+      },
       size: 320,
       minSize: 150,
     }),

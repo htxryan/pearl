@@ -6,6 +6,7 @@ import {
   getSortedRowModel,
   type VisibilityState,
   type ColumnOrderState,
+  type ColumnSizingState,
   type RowSelectionState,
 } from "@tanstack/react-table";
 import type { IssueStatus, Priority } from "@beads-gui/shared";
@@ -13,8 +14,9 @@ import { IssueTable } from "@/components/issue-table/issue-table";
 import { FilterBar } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
-import { buildColumns } from "@/components/issue-table/columns";
+import { buildColumns, type EpicProgress } from "@/components/issue-table/columns";
 import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys } from "@/hooks/use-issues";
+import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useQueryClient } from "@tanstack/react-query";
 import type { IssueListItem } from "@beads-gui/shared";
 import * as api from "@/lib/api-client";
@@ -25,6 +27,7 @@ import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { IssuePanel } from "@/components/issue-table/issue-panel";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -43,6 +46,85 @@ export function ListView() {
 
   // Data fetching
   const { data: issues = [], isLoading } = useIssues(apiParams);
+
+  // All dependencies (for epic hierarchy)
+  const { data: allDeps = [] } = useAllDependencies();
+
+  // Compute epic progress from dependency graph
+  const epicProgress = useMemo(() => {
+    const map = new Map<string, EpicProgress>();
+    const issueStatusMap = new Map(issues.map((i) => [i.id, i.status]));
+
+    // For each epic, find its children via dependencies where issue_id = epic and type is "blocks" or related
+    const epicIds = new Set(issues.filter((i) => i.issue_type === "epic").map((i) => i.id));
+
+    for (const dep of allDeps) {
+      if (epicIds.has(dep.issue_id) && dep.depends_on_id !== dep.issue_id) {
+        const existing = map.get(dep.issue_id) ?? { done: 0, total: 0, childIds: [] };
+        existing.childIds.push(dep.depends_on_id);
+        existing.total += 1;
+        const childStatus = issueStatusMap.get(dep.depends_on_id);
+        if (childStatus === "closed") existing.done += 1;
+        map.set(dep.issue_id, existing);
+      }
+    }
+
+    return map;
+  }, [issues, allDeps]);
+
+  // Compute child IDs (issues that are children of any epic)
+  const childIssueIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const progress of epicProgress.values()) {
+      for (const childId of progress.childIds) ids.add(childId);
+    }
+    return ids;
+  }, [epicProgress]);
+
+  // Top-level only filter
+  const [topLevelOnly, setTopLevelOnly] = useState(false);
+
+  // Split-pane detail panel
+  const [panelIssueId, setPanelIssueId] = useState<string | null>(null);
+  const [panelMode, setPanelMode] = usePersistedState<boolean>("beads:panel-mode", false);
+
+  // Expanded epics for inline children
+  const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
+
+  const handleToggleExpand = useCallback((id: string) => {
+    setExpandedEpics((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Filter issues for top-level only
+  const displayIssues = useMemo(() => {
+    if (!topLevelOnly) return issues;
+    return issues.filter((i) => !childIssueIds.has(i.id));
+  }, [issues, topLevelOnly, childIssueIds]);
+
+  // Build expanded list with inline children
+  const tableIssues = useMemo(() => {
+    const result: IssueListItem[] = [];
+    for (const issue of displayIssues) {
+      result.push(issue);
+      // If this epic is expanded, insert its children right after
+      if (expandedEpics.has(issue.id)) {
+        const progress = epicProgress.get(issue.id);
+        if (progress) {
+          const childItems = issues.filter((i) => progress.childIds.includes(i.id));
+          result.push(...childItems.filter((c) => !displayIssues.includes(c) || topLevelOnly));
+          if (!topLevelOnly) {
+            // Children are already in list, no need to add duplicates
+          }
+        }
+      }
+    }
+    return topLevelOnly ? result : displayIssues;
+  }, [displayIssues, expandedEpics, epicProgress, issues, topLevelOnly]);
 
   // Mutations
   const updateMutation = useUpdateIssue();
@@ -77,6 +159,7 @@ export function ListView() {
   // Table state
   const [columnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>("beads:col-visibility", {});
   const [columnOrder, setColumnOrder] = usePersistedState<ColumnOrderState>("beads:col-order", []);
+  const [columnSizing, setColumnSizing] = usePersistedState<ColumnSizingState>("beads:col-sizing", {});
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const rowSelectionRef = useRef(rowSelection);
   rowSelectionRef.current = rowSelection;
@@ -99,8 +182,9 @@ export function ListView() {
     });
   }, [issues]);
 
-  // Bulk close state
+  // Bulk action state
   const [isClosing, setIsClosing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [showBulkCloseConfirm, setShowBulkCloseConfirm] = useState(false);
 
   const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k]);
@@ -108,9 +192,13 @@ export function ListView() {
   // Handlers
   const handleRowClick = useCallback(
     (id: string) => {
-      navigate(`/issues/${id}`, { state: { from: "/list" } });
+      if (panelMode) {
+        setPanelIssueId(id);
+      } else {
+        navigate(`/issues/${id}`, { state: { from: "/list" } });
+      }
     },
-    [navigate],
+    [navigate, panelMode],
   );
 
   const handleStatusChange = useCallback(
@@ -192,19 +280,83 @@ export function ListView() {
     setRowSelection({});
   }, []);
 
+  const handleBulkReassign = useCallback(async (assignee: string) => {
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
+    setIsUpdating(true);
+    try {
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => updateMutation.mutateAsync({ id, data: { assignee } })),
+        );
+        allResults.push(...results);
+      }
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      if (failed.length > 0) {
+        toast.warning(`Reassigned ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
+      } else {
+        toast.success(`Reassigned ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${assignee}.`);
+      }
+      setRowSelection({});
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [updateMutation, toast]);
+
+  const handleBulkReprioritize = useCallback(async (priority: Priority) => {
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
+    setIsUpdating(true);
+    try {
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => updateMutation.mutateAsync({ id, data: { priority } })),
+        );
+        allResults.push(...results);
+      }
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      const label = `P${priority}`;
+      if (failed.length > 0) {
+        toast.warning(`Reprioritized ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
+      } else {
+        toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${label}.`);
+      }
+      setRowSelection({});
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [updateMutation, toast]);
+
   // Build columns and table instance
   const columns = useMemo(
-    () => buildColumns({ onStatusChange: handleStatusChange, onPriorityChange: handlePriorityChange }),
-    [handleStatusChange, handlePriorityChange],
+    () => buildColumns({
+      onStatusChange: handleStatusChange,
+      onPriorityChange: handlePriorityChange,
+      epicProgress,
+      expandedEpics,
+      onToggleExpand: handleToggleExpand,
+    }),
+    [handleStatusChange, handlePriorityChange, epicProgress, expandedEpics, handleToggleExpand],
   );
 
+  const effectiveIssues = topLevelOnly ? tableIssues : displayIssues;
+
   const table = useReactTable({
-    data: issues,
+    data: effectiveIssues,
     columns,
     state: {
       sorting,
       columnVisibility,
       columnOrder,
+      columnSizing,
       rowSelection,
     },
     onSortingChange: (updater) => {
@@ -218,6 +370,10 @@ export function ListView() {
     onColumnOrderChange: (updater) => {
       const next = typeof updater === "function" ? updater(columnOrder) : updater;
       setColumnOrder(next);
+    },
+    onColumnSizingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(columnSizing) : updater;
+      setColumnSizing(next);
     },
     onRowSelectionChange: (updater) => {
       const next = typeof updater === "function" ? updater(rowSelection) : updater;
@@ -309,64 +465,109 @@ export function ListView() {
   useCommandPaletteActions("list-view", paletteActions);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Toolbar */}
-      <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
-        <div className="flex items-start justify-between gap-4">
-          <FilterBar
-            filters={filters}
-            onChange={setFilters}
-            searchInputRef={searchInputRef}
+    <div className="flex h-full">
+      {/* Main list area */}
+      <div className={`flex flex-col ${panelIssueId && panelMode ? "flex-1 min-w-0" : "w-full"}`}>
+        {/* Toolbar */}
+        <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
+          <div className="flex items-start justify-between gap-4">
+            <FilterBar
+              filters={filters}
+              onChange={setFilters}
+              searchInputRef={searchInputRef}
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTopLevelOnly((prev) => !prev)}
+                className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
+                  topLevelOnly
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+                aria-pressed={topLevelOnly}
+              >
+                Top-level only
+              </button>
+              <button
+                onClick={() => {
+                  setPanelMode((prev) => !prev);
+                  if (!panelMode) setPanelIssueId(null);
+                }}
+                className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
+                  panelMode
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+                aria-pressed={panelMode}
+                title="Toggle split-pane detail panel"
+              >
+                Panel
+              </button>
+              <ColumnVisibilityMenu table={table} />
+            </div>
+          </div>
+          <BulkActionBar
+            selectedCount={selectedIds.length}
+            onClose={() => setShowBulkCloseConfirm(true)}
+            onClearSelection={handleClearSelection}
+            onReassign={handleBulkReassign}
+            onReprioritize={handleBulkReprioritize}
+            isClosing={isClosing}
+            isUpdating={isUpdating}
           />
-          <ColumnVisibilityMenu table={table} />
         </div>
-        <BulkActionBar
-          selectedCount={selectedIds.length}
-          onClose={() => setShowBulkCloseConfirm(true)}
-          onClearSelection={handleClearSelection}
-          isClosing={isClosing}
-        />
-      </div>
 
-      {/* Quick-add */}
-      <div className="shrink-0 bg-muted/20 px-4 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">+</span>
-          <input
-            ref={quickAddRef}
-            value={quickAddTitle}
-            onChange={(e) => setQuickAddTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") { e.preventDefault(); handleQuickAdd(); }
-              if (e.key === "Escape") { setQuickAddTitle(""); quickAddRef.current?.blur(); }
-            }}
-            placeholder="Quick add issue... (Enter to create)"
-            disabled={createMutation.isPending}
-            className="flex-1 h-8 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
-            aria-label="Quick add issue"
-          />
-          {quickAddTitle.trim() && (
-            <button
-              onClick={handleQuickAdd}
+        {/* Quick-add */}
+        <div className="shrink-0 bg-muted/20 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-sm">+</span>
+            <input
+              ref={quickAddRef}
+              value={quickAddTitle}
+              onChange={(e) => setQuickAddTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); handleQuickAdd(); }
+                if (e.key === "Escape") { setQuickAddTitle(""); quickAddRef.current?.blur(); }
+              }}
+              placeholder="Quick add issue... (Enter to create)"
               disabled={createMutation.isPending}
-              className="h-7 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
-            >
-              {createMutation.isPending ? "Creating..." : "Create"}
-            </button>
-          )}
+              className="flex-1 h-8 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+              aria-label="Quick add issue"
+            />
+            {quickAddTitle.trim() && (
+              <button
+                onClick={handleQuickAdd}
+                disabled={createMutation.isPending}
+                className="h-7 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+              >
+                {createMutation.isPending ? "Creating..." : "Create"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="flex-1 overflow-auto">
+          <IssueTable
+            table={table}
+            isLoading={isLoading}
+            activeRowIndex={activeRowIndex}
+            onRowClick={handleRowClick}
+            highlightedIds={highlightedIds}
+          />
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-auto">
-        <IssueTable
-          table={table}
-          isLoading={isLoading}
-          activeRowIndex={activeRowIndex}
-          onRowClick={handleRowClick}
-          highlightedIds={highlightedIds}
-        />
-      </div>
+      {/* Split-pane detail panel */}
+      {panelMode && panelIssueId && (
+        <div className="w-[420px] shrink-0 border-l border-border bg-background overflow-hidden">
+          <IssuePanel
+            key={panelIssueId}
+            issueId={panelIssueId}
+            onClose={() => setPanelIssueId(null)}
+          />
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={showBulkCloseConfirm}

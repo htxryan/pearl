@@ -37,7 +37,16 @@ vi.mock("@/hooks/use-issues", () => ({
 }));
 
 vi.mock("@/hooks/use-dependencies", () => ({
-  useAllDependencies: vi.fn(),
+  useAllDependencies: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    isError: false,
+    isFetching: false,
+    isPending: false,
+    isSuccess: true,
+    status: "success",
+  })),
 }));
 
 vi.mock("@/hooks/use-keyboard-scope", () => ({
