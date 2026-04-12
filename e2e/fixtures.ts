@@ -44,7 +44,7 @@ export async function navigateToFirstIssue(page: Page): Promise<string> {
   const table = page.getByRole("table", { name: "Issue list" });
   await expect(table).toBeVisible({ timeout: 15_000 });
   const firstRow = table.locator("tbody tr").first();
-  await firstRow.locator("td").nth(2).click();
+  await firstRow.click();
   await page.waitForURL("**/issues/**");
   const url = page.url();
   return url.split("/issues/")[1];

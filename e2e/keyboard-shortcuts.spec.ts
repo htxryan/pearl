@@ -54,6 +54,16 @@ test.describe("Keyboard Shortcuts", () => {
     await expect(heading).not.toBeVisible({ timeout: 5_000 });
   });
 
+  test("keyboard help closes via backdrop click", async ({ seededPage: page }) => {
+    await pressQuestionMark(page);
+    const heading = page.getByRole("heading", { name: "Keyboard Shortcuts" });
+    await expect(heading).toBeVisible({ timeout: 5_000 });
+
+    // Click the backdrop (top-left corner, outside the modal)
+    await page.mouse.click(10, 10);
+    await expect(heading).not.toBeVisible({ timeout: 5_000 });
+  });
+
   test("pressing 1 navigates to list view", async ({ seededPage: page }) => {
     await page.goto("/board");
     await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({ timeout: 15_000 });

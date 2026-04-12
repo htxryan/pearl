@@ -95,6 +95,7 @@ export function KeyboardHelpOverlay() {
       className="fixed inset-0 z-50 flex items-center justify-center"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="keyboard-help-title"
     >
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50" onClick={closeKeyboardHelp} />
@@ -102,7 +103,7 @@ export function KeyboardHelpOverlay() {
       {/* Modal */}
       <div className="relative z-50 w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-lg font-semibold">Keyboard Shortcuts</h2>
+          <h2 id="keyboard-help-title" className="text-lg font-semibold">Keyboard Shortcuts</h2>
           <button
             onClick={closeKeyboardHelp}
             className="text-muted-foreground hover:text-foreground transition-colors"
