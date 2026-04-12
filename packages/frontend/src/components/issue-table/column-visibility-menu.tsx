@@ -1,6 +1,7 @@
 import type { Table } from "@tanstack/react-table";
 import type { IssueListItem } from "@beads-gui/shared";
 import { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 interface ColumnVisibilityMenuProps {
   table: Table<IssueListItem>;
@@ -8,7 +9,17 @@ interface ColumnVisibilityMenuProps {
 
 export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      // Trigger entrance animation on next frame
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +43,15 @@ export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
         Columns
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 min-w-[180px] rounded border border-border bg-background p-2 shadow-lg">
+        <div
+          className={cn(
+            "absolute right-0 top-full mt-1 z-20 min-w-[180px] rounded border border-border bg-background p-2 shadow-lg",
+            "transition-all duration-150 ease-out origin-top-right",
+            visible
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 -translate-y-1",
+          )}
+        >
           {table.getAllLeafColumns().map((column) => {
             // Don't allow hiding the select column
             if (column.id === "select") return null;
