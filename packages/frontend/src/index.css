@@ -34,6 +34,12 @@
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
 
+  /* Semantic spacing scale (geometric: each step ~1.5x previous) */
+  --spacing-compact: 0.5rem;   /* 8px — tight lists, inline elements */
+  --spacing-default: 1rem;     /* 16px — standard element spacing */
+  --spacing-spacious: 1.5rem;  /* 24px — section gaps */
+  --spacing-section: 2rem;     /* 32px — major section separation */
+
   /* Entrance animation */
   --animate-fade-up: fade-up 0.3s ease-out;
 }
