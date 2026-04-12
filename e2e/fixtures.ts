@@ -1,13 +1,12 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
 /**
- * Shared fixtures for E2E tests.
+ * Shared fixtures for read-only E2E tests.
  *
  * - `seededPage`: a Page with onboarding dismissed and the app loaded.
  *
- * NOTE: Write operations (POST/PATCH/DELETE) are unavailable because
- * the bd CLI cannot write while the Dolt SQL server holds the embedded
- * lock. All tests work with the existing data set.
+ * These tests work with the existing seed data set. Write operations
+ * are tested separately in the write-tests project.
  */
 export const test = base.extend<{
   seededPage: Page;

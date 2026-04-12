@@ -52,8 +52,8 @@ export async function navigateToFirstIssue(page: Page): Promise<string> {
 
 /**
  * Navigate to a specific issue's detail view by its ID.
- * Retries on transient Dolt connection errors (ECONNREFUSED) that can occur
- * after write operations temporarily disrupt the embedded SQL server.
+ * Retries on transient connection errors that can occur while the
+ * embedded Dolt server restarts during replica sync after a write.
  */
 export async function navigateToIssue(page: Page, id: string): Promise<void> {
   const maxRetries = 3;
@@ -69,7 +69,7 @@ export async function navigateToIssue(page: Page, id: string): Promise<void> {
     if (result === "ok") return;
 
     if (attempt < maxRetries) {
-      // Wait for Dolt to recover before retrying
+      // Wait for replica sync to complete before retrying
       await page.waitForTimeout(3_000);
     }
   }

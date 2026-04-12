@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, expectToast } from "./fixtures";
 
 test.describe("Board Drag-and-Drop", () => {
   test("board columns are visible", async ({ seededPage: page }) => {
@@ -49,6 +49,10 @@ test.describe("Board Drag-and-Drop", () => {
       return;
     }
 
+    // Record original card count in In Progress
+    const inProgressCards = inProgressList.locator('[aria-roledescription="draggable issue card"]');
+    const inProgressCountBefore = await inProgressCards.count();
+
     // Perform drag from card center to target column center
     const startX = cardBox.x + cardBox.width / 2;
     const startY = cardBox.y + cardBox.height / 2;
@@ -63,23 +67,12 @@ test.describe("Board Drag-and-Drop", () => {
     await page.mouse.move(endX, endY, { steps: 20 });
     await page.mouse.up();
 
-    // Wait for the mutation to settle
-    // The card should have moved to the In Progress column (optimistic update)
-    // or an error toast might appear
-    // Give it a moment
+    // Wait for the optimistic update to settle
     await page.waitForTimeout(1000);
 
-    // Verify either the card moved or an error appeared (both are valid outcomes)
-    const errorToast = page.getByLabel("Notifications").getByRole("status").filter({ hasText: /failed/i });
-    const hasError = await errorToast.isVisible().catch(() => false);
-
-    if (!hasError) {
-      // Check if card count changed in the In Progress column
-      const inProgressCards = inProgressList.locator('[aria-roledescription="draggable issue card"]');
-      const newCount = await inProgressCards.count();
-      // At least 1 card should be in In Progress (the one we dragged + the existing one, dzp)
-      expect(newCount).toBeGreaterThanOrEqual(1);
-    }
+    // Card should have moved to In Progress column
+    const inProgressCountAfter = await inProgressCards.count();
+    expect(inProgressCountAfter).toBeGreaterThan(inProgressCountBefore);
   });
 
   test("quick-add from board column creates issue", async ({ seededPage: page }) => {
@@ -95,16 +88,8 @@ test.describe("Board Drag-and-Drop", () => {
     await quickAdd.fill(title);
     await quickAdd.press("Enter");
 
-    // Verify success toast or the card appears
-    const toastRegion = page.getByLabel("Notifications");
-
-    // Wait for either a success toast or error
-    await Promise.race([
-      toastRegion.getByRole("status").filter({ hasText: new RegExp(`Created "${title}"`) }).waitFor({ timeout: 10_000 }),
-      toastRegion.getByRole("status").filter({ hasText: /failed/i }).waitFor({ timeout: 10_000 }),
-    ]).catch(() => {
-      // Timeout — no toast appeared, which might be expected if the mutation is still pending
-    });
+    // Verify success toast appears
+    await expectToast(page, new RegExp(`Created`), 15_000);
   });
 
   test("cannot drag to blocked column", async ({ seededPage: page }) => {

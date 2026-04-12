@@ -10,13 +10,8 @@ test.describe("Create Issue", () => {
       await quickAdd.fill(title);
       await quickAdd.press("Enter");
 
-      // Wait for result: either input clears (success) or stays (failure toast may appear)
-      // On success, the input clears and navigates to the new issue
-      // On failure, the input value is restored
-      await Promise.race([
-        expect(quickAdd).toHaveValue("", { timeout: 15_000 }),
-        expect(quickAdd).toHaveValue(title, { timeout: 15_000 }),
-      ]);
+      // Input should clear on successful creation
+      await expect(quickAdd).toHaveValue("", { timeout: 15_000 });
     });
 
     test("quick-add input clears after successful creation", async ({ seededPage: page }) => {
@@ -65,8 +60,6 @@ test.describe("Create Issue", () => {
     }
 
     test("opens create dialog and fills all fields", async ({ seededPage: page }) => {
-      // Write operations may hang due to Dolt embedded lock (known issue)
-      test.slow();
       const dialog = await openCreateDialog(page);
 
       // Fill title (required)
@@ -98,14 +91,8 @@ test.describe("Create Issue", () => {
       // Submit
       await dialog.getByRole("button", { name: "Create Issue" }).click();
 
-      // Dialog should close on success or show error on write lock failure
-      // If bd CLI hangs, neither resolves — that documents the Dolt lock issue
-      await Promise.race([
-        expect(dialog).not.toBeVisible({ timeout: 60_000 }),
-        expect(dialog.getByText(/failed to create/i)).toBeVisible({ timeout: 60_000 }),
-      ]).catch(() => {
-        // Write operation hung — this documents the Dolt embedded lock issue
-      });
+      // Dialog should close on successful creation
+      await expect(dialog).not.toBeVisible({ timeout: 30_000 });
     });
 
     test("create dialog cancel clears form and closes", async ({ seededPage: page }) => {

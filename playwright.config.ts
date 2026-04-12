@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { resolve } from "node:path";
 
+// Backend runs in embedded mode (auto-detected from sample-project/.beads/metadata.json).
+// Writes go to the primary DB via bd CLI; reads come from a replica that syncs after each write.
 const sharedWebServer = [
   {
     command: "pnpm --filter @beads-gui/backend dev",

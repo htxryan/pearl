@@ -1,4 +1,4 @@
-import { test, expect, navigateToIssue } from "./fixtures";
+import { test, expect, navigateToIssue, expectToast } from "./fixtures";
 
 test.describe("Comments", () => {
   // Use an issue that has existing comments
@@ -19,8 +19,6 @@ test.describe("Comments", () => {
   });
 
   test("add comment via form submission", async ({ seededPage: page }) => {
-    // Write operations may hang due to Dolt embedded lock (known issue)
-    test.slow();
     await navigateToIssue(page, ISSUE_WITH_COMMENTS);
 
     const commentsHeading = page.getByRole("heading", { name: /comments/i });
@@ -39,14 +37,8 @@ test.describe("Comments", () => {
     await expect(submitBtn).toBeEnabled();
     await submitBtn.click();
 
-    // Wait for result: either textarea clears (success) or error message shows (write lock)
-    // If bd CLI hangs, neither resolves — that documents the Dolt lock issue
-    await Promise.race([
-      expect(commentTextarea).toHaveValue("", { timeout: 60_000 }),
-      expect(page.getByText(/failed to post comment/i)).toBeVisible({ timeout: 60_000 }),
-    ]).catch(() => {
-      // Write operation hung — this documents the Dolt embedded lock issue
-    });
+    // Textarea should clear after successful comment submission
+    await expect(commentTextarea).toHaveValue("", { timeout: 30_000 });
   });
 
   test("comment submit button disabled when empty", async ({ seededPage: page }) => {
@@ -80,13 +72,8 @@ test.describe("Comments", () => {
     // Use Cmd+Enter (Meta+Enter on macOS, Control+Enter on Linux)
     await commentTextarea.press("Meta+Enter");
 
-    // Verify the textarea clears (success) or error appears
-    await Promise.race([
-      expect(commentTextarea).toHaveValue("", { timeout: 10_000 }),
-      page.waitForSelector("text=/failed to post/i", { timeout: 10_000 }),
-    ]).catch(() => {
-      // Timeout is acceptable — the keyboard shortcut may not work in CI environment
-    });
+    // Textarea should clear after successful submission
+    await expect(commentTextarea).toHaveValue("", { timeout: 15_000 });
   });
 
   test("empty state shows no comments message", async ({ seededPage: page }) => {

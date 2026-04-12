@@ -49,19 +49,9 @@ test.describe("Close Issue", () => {
     // Confirm close
     await dialog.getByRole("button", { name: /close issue/i }).click();
 
-    // Should navigate back to list view (on success) or show error (on write lock failure)
-    // Wait for either navigation or error
-    const result = await Promise.race([
-      page.waitForURL("**/list", { timeout: 10_000 }).then(() => "navigated" as const),
-      page.waitForSelector("text=/failed/i", { timeout: 10_000 }).then(() => "error" as const),
-    ]).catch(() => "timeout" as const);
-
-    if (result === "navigated") {
-      // Verify the issue now shows as closed in the list (if still visible with filters)
-      await expect(page.getByRole("table", { name: "Issue list" })).toBeVisible({ timeout: 15_000 });
-    }
-    // If "error" — the write lock prevented the close, which documents the known Dolt lock issue
-    // Both outcomes are valid for this test
+    // Should navigate back to list view after successful close
+    await page.waitForURL("**/list", { timeout: 15_000 });
+    await expect(page.getByRole("table", { name: "Issue list" })).toBeVisible({ timeout: 15_000 });
   });
 
   test("closed issue does not show close button", async ({ seededPage: page }) => {

@@ -1,12 +1,10 @@
-import { test, expect, navigateToIssue } from "./fixtures";
+import { test, expect, navigateToIssue, expectToast } from "./fixtures";
 
 test.describe("Dependency Management", () => {
   // Use an issue that has existing dependencies
   const ISSUE_WITH_DEPS = "sample-project-6kq"; // Has deps: blocked by elb, blocks v0r/z4g
 
   test("add dependency via autocomplete search", async ({ seededPage: page }) => {
-    // Write operations may hang due to Dolt embedded lock (known issue)
-    test.slow();
     await navigateToIssue(page, ISSUE_WITH_DEPS);
 
     // Scroll to dependencies section
@@ -36,14 +34,8 @@ test.describe("Dependency Management", () => {
     await expect(firstOption).toBeVisible();
     await firstOption.click();
 
-    // After selection: either autocomplete closes (success) or error message appears (write lock)
-    // If bd CLI hangs, neither resolves — that documents the Dolt lock issue
-    await Promise.race([
-      expect(searchInput).not.toBeVisible({ timeout: 60_000 }),
-      expect(page.getByText(/failed to add dependency/i)).toBeVisible({ timeout: 60_000 }),
-    ]).catch(() => {
-      // Write operation hung — this documents the Dolt embedded lock issue
-    });
+    // Autocomplete should close after successful dependency addition
+    await expect(searchInput).not.toBeVisible({ timeout: 30_000 });
   });
 
   test("remove dependency with confirmation", async ({ seededPage: page }) => {
