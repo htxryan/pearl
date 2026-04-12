@@ -12,11 +12,13 @@ import {
   useCommandPaletteActions,
   type CommandAction,
 } from "@/hooks/use-command-palette";
+import { undoLast, useCanUndo } from "@/hooks/use-undo";
 
 export function AppShell() {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const openCreateDialog = useCallback(() => setCreateDialogOpen(true), []);
+  const canUndo = useCanUndo();
 
   // Global keyboard shortcuts
   const bindings = useMemo(
@@ -26,6 +28,12 @@ export function AppShell() {
         modifiers: ["meta" as const],
         handler: () => toggleCommandPalette(),
         description: "Toggle command palette",
+      },
+      {
+        key: "z",
+        modifiers: ["meta" as const],
+        handler: () => { undoLast(); },
+        description: "Undo last action",
       },
       {
         key: "1",
@@ -78,8 +86,19 @@ export function AppShell() {
         group: "Actions",
         handler: openCreateDialog,
       },
+      ...(canUndo
+        ? [
+            {
+              id: "undo-last",
+              label: "Undo last action",
+              shortcut: "⌘Z",
+              group: "Actions",
+              handler: () => { undoLast(); },
+            },
+          ]
+        : []),
     ],
-    [navigate, openCreateDialog],
+    [navigate, openCreateDialog, canUndo],
   );
 
   useCommandPaletteActions("shell", commands);

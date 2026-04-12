@@ -22,6 +22,7 @@ import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
 import { useToastActions } from "@/hooks/use-toast";
+import { useUndoActions } from "@/hooks/use-undo";
 
 /** Statuses that users can drag cards into */
 const DROPPABLE_STATUSES: Set<IssueStatus> = new Set([
@@ -52,6 +53,7 @@ export function BoardView() {
   const updateMutation = useUpdateIssue();
   const { mutate: updateStatus } = updateMutation;
   const toast = useToastActions();
+  const undo = useUndoActions();
 
   // Drag state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -145,10 +147,19 @@ export function BoardView() {
       // Don't allow dragging into blocked (auto-computed)
       if (!DROPPABLE_STATUSES.has(targetStatus)) return;
 
-      // Trigger optimistic status update
-      updateStatus({ id: issueId, data: { status: targetStatus } });
+      // Record undo and trigger optimistic status update
+      const oldStatus = issue.status;
+      const title = issue.title;
+      updateStatus(
+        { id: issueId, data: { status: targetStatus } },
+        {
+          onSuccess: () => {
+            undo.recordStatusChange(issueId, title, oldStatus, targetStatus);
+          },
+        },
+      );
     },
-    [issues, getStatusFromDroppableId, updateStatus],
+    [issues, getStatusFromDroppableId, updateStatus, undo],
   );
 
   const handleDragCancel = useCallback(() => {

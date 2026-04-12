@@ -25,6 +25,7 @@ import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { useToastActions } from "@/hooks/use-toast";
+import { useUndoActions } from "@/hooks/use-undo";
 
 
 export function DetailView() {
@@ -50,6 +51,7 @@ function DetailViewContent({ id }: { id: string }) {
   const removeDepMutation = useRemoveDependency();
 
   const toast = useToastActions();
+  const undo = useUndoActions();
 
   // Dirty state for unsaved changes warning
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
@@ -69,6 +71,7 @@ function DetailViewContent({ id }: { id: string }) {
   // Field update handler
   const handleFieldUpdate = useCallback(
     (field: string, value: unknown) => {
+      const oldValue = issue ? (issue as unknown as Record<string, unknown>)[field] : undefined;
       setDirtyFields((prev) => new Set(prev).add(field));
       updateMutation.mutate(
         { id, data: { [field]: value } },
@@ -79,6 +82,10 @@ function DetailViewContent({ id }: { id: string }) {
               next.delete(field);
               return next;
             });
+            // Record undo for field changes (skip for trivial fields)
+            if (issue && oldValue !== value) {
+              undo.recordFieldEdit(id, issue.title, field, oldValue);
+            }
           },
           onError: () => {
             setDirtyFields((prev) => {
@@ -86,20 +93,22 @@ function DetailViewContent({ id }: { id: string }) {
               next.delete(field);
               return next;
             });
+            toast.error(`Failed to update ${field}.`);
           },
         },
       );
     },
-    [id, updateMutation.mutate],
+    [id, issue, updateMutation.mutate, undo, toast],
   );
 
   // Close handler
   const handleClose = useCallback(() => {
+    const prevStatus = issue?.status ?? "open";
     closeMutation.mutate(
       { id },
       {
         onSuccess: () => {
-          toast.success("Issue closed.");
+          undo.recordClose(id, issue?.title ?? id, prevStatus);
           navigate("/list");
         },
         onError: () => {
@@ -107,7 +116,7 @@ function DetailViewContent({ id }: { id: string }) {
         },
       },
     );
-  }, [id, closeMutation.mutate, navigate, toast]);
+  }, [id, issue, closeMutation.mutate, navigate, undo, toast]);
 
   // Claim handler
   const handleClaim = useCallback(() => {

@@ -22,6 +22,7 @@ import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from "@/hooks/use-url-filters";
 import { useToastActions } from "@/hooks/use-toast";
+import { useUndoActions } from "@/hooks/use-undo";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export function ListView() {
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
   const toast = useToastActions();
+  const undo = useUndoActions();
 
   // Table state
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -87,9 +89,18 @@ export function ListView() {
   const handleStatusChange = useCallback(
     (id: string, status: IssueStatus) => {
       if (!VALID_STATUSES.has(status)) return;
-      updateMutation.mutate({ id, data: { status } });
+      const issue = issues.find((i) => i.id === id);
+      const oldStatus = issue?.status ?? "open";
+      updateMutation.mutate(
+        { id, data: { status } },
+        {
+          onSuccess: () => {
+            undo.recordStatusChange(id, issue?.title ?? id, oldStatus, status);
+          },
+        },
+      );
     },
-    [updateMutation],
+    [updateMutation, issues, undo],
   );
 
   const handlePriorityChange = useCallback(
