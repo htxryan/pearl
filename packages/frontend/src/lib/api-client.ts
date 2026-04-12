@@ -12,6 +12,9 @@ import type {
   HealthResponse,
   StatsResponse,
   ApiError,
+  SetupStatusResponse,
+  SetupInitializeRequest,
+  SetupInitializeResponse,
 } from "@beads-gui/shared";
 
 const API_BASE = "/api";
@@ -143,6 +146,20 @@ export function fetchHealth(): Promise<HealthResponse> {
 
 export function fetchStats(): Promise<StatsResponse> {
   return request("/stats");
+}
+
+// ─── Setup ──────────────────────────────────────────────
+export function fetchSetupStatus(): Promise<SetupStatusResponse> {
+  return request("/setup/status");
+}
+
+export function initializeSetup(
+  data: SetupInitializeRequest
+): Promise<SetupInitializeResponse> {
+  return request("/setup/initialize", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export { ApiClientError };

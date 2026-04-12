@@ -276,3 +276,17 @@ export function useHealth() {
     retry: 0,
   });
 }
+
+// ─── Setup Hook ─────────────────────────────────────────
+export const setupKeys = {
+  status: ["setup", "status"] as const,
+};
+
+export function useSetupStatus() {
+  return useQuery({
+    queryKey: setupKeys.status,
+    queryFn: api.fetchSetupStatus,
+    retry: 1,
+    staleTime: 30000,
+  });
+}
