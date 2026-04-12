@@ -37,19 +37,19 @@
 
 @layer base {
   .dark {
-    --color-background: #0a0a0a;
-    --color-foreground: #fafafa;
-    --color-muted: #262626;
-    --color-muted-foreground: #a3a3a3;
-    --color-border: #262626;
+    --color-background: #111113;
+    --color-foreground: #ececef;
+    --color-muted: #1c1c1f;
+    --color-muted-foreground: #9898a0;
+    --color-border: #2a2a2e;
     --color-primary: #818cf8;
     --color-primary-foreground: #0f0a2e;
     --color-accent: #1e1b4b;
     --color-accent-foreground: #c7d2fe;
-    --color-destructive: #dc2626;
+    --color-destructive: #f87171;
     --color-ring: #818cf8;
 
-    /* Semantic colors — dark mode */
+    /* Semantic colors — dark mode (softer, less harsh) */
     --color-info: #60a5fa;
     --color-info-foreground: #bfdbfe;
     --color-success: #4ade80;
@@ -59,9 +59,9 @@
     --color-danger: #f87171;
     --color-danger-foreground: #fecaca;
 
-    /* Surface colors — dark mode */
-    --color-surface: #0a0a0a;
-    --color-surface-raised: #171717;
+    /* Surface colors — dark mode (distinct from background) */
+    --color-surface: #111113;
+    --color-surface-raised: #1a1a1e;
   }
 }
 
@@ -75,6 +75,20 @@ body {
 
 code, kbd, pre, .font-mono {
   font-family: var(--font-mono);
+}
+
+/* Dark mode shadow refinement — use border glow instead of invisible shadows */
+.dark .shadow-sm {
+  box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.dark .shadow-md {
+  box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.dark .shadow-lg {
+  box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+.dark .shadow-2xl {
+  box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7);
 }
 
 /* Focus ring animation */
