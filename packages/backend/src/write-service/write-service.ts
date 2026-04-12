@@ -17,9 +17,9 @@ import { CommentWriter } from "./comment-writer.js";
  */
 export class WriteService {
   private queue = new WriteQueue();
-  readonly issues: IssueWriter;
-  readonly dependencies: DependencyWriter;
-  readonly comments: CommentWriter;
+  issues: IssueWriter;
+  dependencies: DependencyWriter;
+  comments: CommentWriter;
   private onAfterWrite?: () => Promise<void>;
 
   constructor(config: Config, onAfterWrite?: () => Promise<void>) {
@@ -27,6 +27,18 @@ export class WriteService {
     this.dependencies = new DependencyWriter(config);
     this.comments = new CommentWriter(config);
     this.onAfterWrite = onAfterWrite;
+  }
+
+  /** Update config for all writers (called after setup completes). */
+  updateConfig(newConfig: Config): void {
+    this.issues = new IssueWriter(newConfig);
+    this.dependencies = new DependencyWriter(newConfig);
+    this.comments = new CommentWriter(newConfig);
+  }
+
+  /** Replace the after-write hook (e.g., remove embedded sync for server mode). */
+  setAfterWriteHook(hook: (() => Promise<void>) | undefined): void {
+    this.onAfterWrite = hook;
   }
 
   async createIssue(req: CreateIssueRequest): Promise<MutationResponse> {

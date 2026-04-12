@@ -8,11 +8,24 @@ const VERSION = "0.1.0";
 
 export function registerHealthRoutes(
   app: FastifyInstance,
-  doltManager: DoltServerManager | null,
-  config: Config
+  getDoltManager: () => DoltServerManager | null,
+  getConfig: () => Config
 ): void {
   // GET /api/health
   app.get("/api/health", async (_request, reply) => {
+    const config = getConfig();
+    const doltManager = getDoltManager();
+
+    if (config.needsSetup) {
+      const response: HealthResponse = {
+        status: "degraded",
+        dolt_server: "stopped",
+        uptime_seconds: 0,
+        version: VERSION,
+      };
+      return reply.code(200).send(response);
+    }
+
     if (config.doltMode === "server") {
       // Server mode: check pool connectivity to the external Dolt server
       const health = await serverModeHealth();
@@ -20,8 +33,18 @@ export function registerHealthRoutes(
       return reply.code(statusCode).send(health);
     }
 
+    if (!doltManager) {
+      const response: HealthResponse = {
+        status: "unhealthy",
+        dolt_server: "stopped",
+        uptime_seconds: 0,
+        version: VERSION,
+      };
+      return reply.code(503).send(response);
+    }
+
     // Embedded mode: check DoltServerManager state
-    const doltState = doltManager!.getState();
+    const doltState = doltManager.getState();
 
     let status: HealthResponse["status"];
     if (doltState === "running") {
@@ -35,7 +58,7 @@ export function registerHealthRoutes(
     const response: HealthResponse = {
       status,
       dolt_server: doltState,
-      uptime_seconds: doltManager!.getUptime(),
+      uptime_seconds: doltManager.getUptime(),
       version: VERSION,
     };
 

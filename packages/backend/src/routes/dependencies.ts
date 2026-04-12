@@ -19,12 +19,12 @@ const createDependencySchema = {
 
 export function registerDependencyRoutes(
   app: FastifyInstance,
-  config: Config,
+  getConfig: () => Config,
   writeService: WriteService
 ): void {
   // GET /api/dependencies — full DAG
   app.get("/api/dependencies", async (_request, reply) => {
-    const dependencies = await queryWithRetry(config, async (conn) => {
+    const dependencies = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query(
         `SELECT issue_id, depends_on_id, type, created_at, created_by
          FROM dependencies

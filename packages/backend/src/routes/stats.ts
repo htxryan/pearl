@@ -6,11 +6,11 @@ import type { RowDataPacket } from "mysql2";
 
 export function registerStatsRoutes(
   app: FastifyInstance,
-  config: Config
+  getConfig: () => Config
 ): void {
   // GET /api/stats
   app.get("/api/stats", async (_request, reply) => {
-    const stats = await queryWithRetry(config, async (conn) => {
+    const stats = await queryWithRetry(getConfig(), async (conn) => {
       // Total count
       const [[totalRow]] = await conn.query<RowDataPacket[]>(
         `SELECT COUNT(*) as total FROM issues WHERE (ephemeral = 0 OR ephemeral IS NULL)`

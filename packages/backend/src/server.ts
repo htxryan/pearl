@@ -230,15 +230,27 @@ export async function createServer(initialConfig: Config) {
         createDoltPool(newConfig);
       }
 
+      // Update write service with new config and correct after-write hook
+      writeService.updateConfig(newConfig);
+      if (newConfig.doltMode === "server") {
+        // Server mode: no replica sync needed
+        writeService.setAfterWriteHook(undefined);
+      }
+      // For embedded mode, the existing onAfterWrite closure already reads
+      // the current doltManager and config via lexical scope.
+
       initialStartupDone = true;
       setupMode = false;
       app.log.info("[setup] Setup complete, all routes active");
     },
   });
-  registerIssueRoutes(app, config, writeService);
-  registerDependencyRoutes(app, config, writeService);
-  registerStatsRoutes(app, config);
-  registerHealthRoutes(app, doltManager, config);
+  const getConfig = () => config;
+  const getDoltManager = () => doltManager;
+
+  registerIssueRoutes(app, getConfig, writeService);
+  registerDependencyRoutes(app, getConfig, writeService);
+  registerStatsRoutes(app, getConfig);
+  registerHealthRoutes(app, getDoltManager, getConfig);
 
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {
@@ -291,7 +303,7 @@ export async function createServer(initialConfig: Config) {
     }
 
     // In embedded mode, clean up the replica directory
-    if (isEmbedded) {
+    if (config.doltMode === "embedded" && config.replicaPath) {
       app.log.info("[replica] Cleaning up replica directory...");
       await cleanupReplica(config.replicaPath);
     }

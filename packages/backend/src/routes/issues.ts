@@ -103,7 +103,7 @@ const addCommentSchema = {
 
 export function registerIssueRoutes(
   app: FastifyInstance,
-  config: Config,
+  getConfig: () => Config,
   writeService: WriteService
 ): void {
   // GET /api/issues — list with filtering, sorting, column projection
@@ -207,7 +207,7 @@ export function registerIssueRoutes(
     sql += ` LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
-    const issues = await queryWithRetry(config, async (conn) => {
+    const issues = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query(sql, params);
       return rows;
     });
@@ -216,7 +216,7 @@ export function registerIssueRoutes(
     const issueRows = issues as RowDataPacket[];
     if (issueRows.length > 0 && validFields.includes("id")) {
       const ids = issueRows.map((r) => r.id);
-      const labelRows = await queryWithRetry(config, async (conn) => {
+      const labelRows = await queryWithRetry(getConfig(), async (conn) => {
         const [rows] = await conn.query<RowDataPacket[]>(
           `SELECT issue_id, label FROM labels WHERE issue_id IN (${ids.map(() => "?").join(",")})`,
           ids
@@ -241,7 +241,7 @@ export function registerIssueRoutes(
   app.get("/api/issues/:id", async (request, reply) => {
     const { id } = request.params as { id: string };
 
-    const issue = await queryWithRetry(config, async (conn) => {
+    const issue = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT * FROM issues WHERE id = ?`,
         [id]
@@ -254,7 +254,7 @@ export function registerIssueRoutes(
     }
 
     // Fetch labels
-    const labelRows = await queryWithRetry(config, async (conn) => {
+    const labelRows = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT label FROM labels WHERE issue_id = ?`,
         [id]
@@ -270,7 +270,7 @@ export function registerIssueRoutes(
   app.get("/api/issues/:id/comments", async (request, reply) => {
     const { id } = request.params as { id: string };
 
-    const comments = await queryWithRetry(config, async (conn) => {
+    const comments = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query(
         `SELECT id, issue_id, author, text, created_at
          FROM comments WHERE issue_id = ? ORDER BY created_at ASC`,
@@ -286,7 +286,7 @@ export function registerIssueRoutes(
   app.get("/api/issues/:id/events", async (request, reply) => {
     const { id } = request.params as { id: string };
 
-    const events = await queryWithRetry(config, async (conn) => {
+    const events = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query(
         `SELECT id, issue_id, event_type, actor, old_value, new_value, comment, created_at
          FROM events WHERE issue_id = ? ORDER BY created_at DESC`,
@@ -302,7 +302,7 @@ export function registerIssueRoutes(
   app.get("/api/issues/:id/dependencies", async (request, reply) => {
     const { id } = request.params as { id: string };
 
-    const dependencies = await queryWithRetry(config, async (conn) => {
+    const dependencies = await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query(
         `SELECT issue_id, depends_on_id, type, created_at, created_by
          FROM dependencies

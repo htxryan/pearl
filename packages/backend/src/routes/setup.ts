@@ -15,6 +15,7 @@ export function registerSetupRoutes(
   app: FastifyInstance,
   ctx: SetupContext
 ): void {
+  let isInitializing = false;
   // GET /api/setup/status
   app.get("/api/setup/status", async (_request, reply) => {
     const config = ctx.getConfig();
@@ -46,77 +47,86 @@ export function registerSetupRoutes(
       return reply.send(response);
     }
 
-    const body = request.body as SetupInitializeRequest;
-
-    if (!body.mode || (body.mode !== "embedded" && body.mode !== "server")) {
-      throw validationError("mode must be 'embedded' or 'server'");
+    if (isInitializing) {
+      throw validationError("Setup is already in progress");
     }
+    isInitializing = true;
 
-    if (body.mode === "server") {
-      if (!body.server_host) {
-        throw validationError("server_host is required for server mode");
+    try {
+      const body = request.body as SetupInitializeRequest;
+
+      if (!body.mode || (body.mode !== "embedded" && body.mode !== "server")) {
+        throw validationError("mode must be 'embedded' or 'server'");
       }
-      // Validate connection before saving
-      const port = body.server_port || 3307;
-      const isReachable = await testServerConnection(
-        body.server_host,
-        port,
-        body.database || "beads_gui"
-      );
-      if (!isReachable) {
-        throw validationError(
-          `Cannot connect to Dolt server at ${body.server_host}:${port}. ` +
-            "Ensure the server is running and accessible."
+
+      if (body.mode === "server") {
+        if (!body.server_host) {
+          throw validationError("server_host is required for server mode");
+        }
+        // Validate connection before saving
+        const port = body.server_port || 3307;
+        const isReachable = await testServerConnection(
+          body.server_host,
+          port,
+          body.database || "beads_gui"
+        );
+        if (!isReachable) {
+          throw validationError(
+            `Cannot connect to Dolt server at ${body.server_host}:${port}. ` +
+              "Ensure the server is running and accessible."
+          );
+        }
+      }
+
+      const cwd = process.cwd();
+      const beadsDir = resolve(cwd, ".beads");
+
+      if (body.mode === "embedded") {
+        // Run bd init to create the .beads/ directory and embedded database
+        await runBdInit(config);
+      } else {
+        // Server mode: create .beads/metadata.json manually
+        if (!existsSync(beadsDir)) {
+          mkdirSync(beadsDir, { recursive: true });
+        }
+        const metadata = {
+          database: "dolt",
+          backend: "dolt",
+          dolt_mode: "server" as DoltMode,
+          dolt_host: body.server_host,
+          dolt_port: body.server_port || 3307,
+          dolt_database: body.database || "beads_gui",
+          project_id: crypto.randomUUID(),
+        };
+        writeFileSync(
+          resolve(beadsDir, "metadata.json"),
+          JSON.stringify(metadata, null, 2)
         );
       }
-    }
 
-    const cwd = process.cwd();
-    const beadsDir = resolve(cwd, ".beads");
-
-    if (body.mode === "embedded") {
-      // Run bd init to create the .beads/ directory and embedded database
-      await runBdInit(config);
-    } else {
-      // Server mode: create .beads/metadata.json manually
-      if (!existsSync(beadsDir)) {
-        mkdirSync(beadsDir, { recursive: true });
+      // Verify .beads/ was created
+      if (!findBeadsDir(cwd)) {
+        const response: SetupInitializeResponse = {
+          success: false,
+          message: "Setup failed: .beads directory was not created",
+        };
+        return reply.code(500).send(response);
       }
-      const metadata = {
-        database: "dolt",
-        backend: "dolt",
-        dolt_mode: "server" as DoltMode,
-        dolt_host: body.server_host,
-        dolt_port: body.server_port || 3307,
-        dolt_database: body.database || "beads_gui",
-        project_id: crypto.randomUUID(),
-      };
-      writeFileSync(
-        resolve(beadsDir, "metadata.json"),
-        JSON.stringify(metadata, null, 2)
-      );
-    }
 
-    // Verify .beads/ was created
-    if (!findBeadsDir(cwd)) {
+      // Reload config with the new .beads/ directory
+      const newConfig = loadConfig();
+
+      // Trigger the server to re-initialize with the new config
+      await ctx.onSetupComplete(newConfig);
+
       const response: SetupInitializeResponse = {
-        success: false,
-        message: "Setup failed: .beads directory was not created",
+        success: true,
+        message: `Initialized in ${newConfig.doltMode} mode`,
       };
-      return reply.code(500).send(response);
+      return reply.send(response);
+    } finally {
+      isInitializing = false;
     }
-
-    // Reload config with the new .beads/ directory
-    const newConfig = loadConfig();
-
-    // Trigger the server to re-initialize with the new config
-    await ctx.onSetupComplete(newConfig);
-
-    const response: SetupInitializeResponse = {
-      success: true,
-      message: `Initialized in ${newConfig.doltMode} mode`,
-    };
-    return reply.send(response);
   });
 }
 
@@ -144,8 +154,8 @@ async function testServerConnection(
     const conn = await mysql2.createConnection({
       host,
       port,
-      user: "root",
-      password: "",
+      user: process.env.DOLT_USER || "root",
+      password: process.env.DOLT_PASSWORD || "",
       database,
       connectTimeout: 5000,
     });
