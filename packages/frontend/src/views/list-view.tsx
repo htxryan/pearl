@@ -14,7 +14,7 @@ import { FilterBar } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
 import { buildColumns } from "@/components/issue-table/columns";
-import { useIssues, useUpdateIssue, useCloseIssue, issueKeys } from "@/hooks/use-issues";
+import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys } from "@/hooks/use-issues";
 import { useQueryClient } from "@tanstack/react-query";
 import type { IssueListItem } from "@beads-gui/shared";
 import * as api from "@/lib/api-client";
@@ -45,8 +45,32 @@ export function ListView() {
   // Mutations
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
+  const createMutation = useCreateIssue();
   const toast = useToastActions();
   const undo = useUndoActions();
+
+  // Quick-add state
+  const [quickAddTitle, setQuickAddTitle] = useState("");
+  const quickAddRef = useRef<HTMLInputElement>(null);
+
+  const handleQuickAdd = useCallback(() => {
+    const title = quickAddTitle.trim();
+    if (!title) return;
+    setQuickAddTitle("");
+    createMutation.mutate(
+      { title },
+      {
+        onSuccess: (response) => {
+          toast.success(`Created "${title}"`);
+          if (response.data) navigate(`/issues/${response.data.id}`);
+        },
+        onError: () => {
+          toast.error("Failed to create issue.");
+          setQuickAddTitle(title); // Restore the title
+        },
+      },
+    );
+  }, [quickAddTitle, createMutation, toast, navigate]);
 
   // Table state
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -299,6 +323,35 @@ export function ListView() {
           onClearSelection={handleClearSelection}
           isClosing={isClosing}
         />
+      </div>
+
+      {/* Quick-add */}
+      <div className="shrink-0 border-b border-border px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-sm">+</span>
+          <input
+            ref={quickAddRef}
+            value={quickAddTitle}
+            onChange={(e) => setQuickAddTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); handleQuickAdd(); }
+              if (e.key === "Escape") { setQuickAddTitle(""); quickAddRef.current?.blur(); }
+            }}
+            placeholder="Quick add issue... (Enter to create)"
+            disabled={createMutation.isPending}
+            className="flex-1 h-8 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+            aria-label="Quick add issue"
+          />
+          {quickAddTitle.trim() && (
+            <button
+              onClick={handleQuickAdd}
+              disabled={createMutation.isPending}
+              className="h-7 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+            >
+              {createMutation.isPending ? "Creating..." : "Create"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}

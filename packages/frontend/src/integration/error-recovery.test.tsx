@@ -20,6 +20,10 @@ vi.mock("@/hooks/use-issues", () => ({
     isError: false,
     error: null,
   })),
+  useCreateIssue: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
   issueKeys: {
     all: ["issues"],
     lists: () => ["issues", "list"],

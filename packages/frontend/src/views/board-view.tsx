@@ -17,7 +17,7 @@ import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@beads-gui
 import { KanbanColumn } from "@/components/board/kanban-column";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
 import { FilterBar, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
-import { useIssues, useUpdateIssue } from "@/hooks/use-issues";
+import { useIssues, useUpdateIssue, useCreateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
@@ -52,8 +52,31 @@ export function BoardView() {
   // Mutation for status changes
   const updateMutation = useUpdateIssue();
   const { mutate: updateStatus } = updateMutation;
+  const createMutation = useCreateIssue();
   const toast = useToastActions();
   const undo = useUndoActions();
+
+  // Quick add handler for board columns
+  const handleColumnQuickAdd = useCallback(
+    (title: string, status: IssueStatus) => {
+      createMutation.mutate(
+        { title },
+        {
+          onSuccess: (response) => {
+            toast.success(`Created "${title}"`);
+            // If created in a non-open column, update status
+            if (status !== "open" && response.data) {
+              updateStatus({ id: response.data.id, data: { status } });
+            }
+          },
+          onError: () => {
+            toast.error("Failed to create issue.");
+          },
+        },
+      );
+    },
+    [createMutation, toast, updateStatus],
+  );
 
   // Drag state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -253,6 +276,7 @@ export function BoardView() {
                   issues={columnData[status]}
                   onCardClick={handleCardClick}
                   isDropTarget={isDragging && overColumnStatus === status}
+                  onQuickAdd={handleColumnQuickAdd}
                 />
               ))}
             </div>

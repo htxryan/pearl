@@ -28,6 +28,7 @@ const mockUseUpdateIssue = vi.fn(() => ({
 vi.mock("@/hooks/use-issues", () => ({
   useIssues: vi.fn(),
   useUpdateIssue: () => mockUseUpdateIssue(),
+  useCreateIssue: () => ({ mutate: vi.fn(), isPending: false }),
   issueKeys: {
     all: ["issues"],
     lists: () => ["issues", "list"],

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
@@ -11,6 +11,7 @@ interface KanbanColumnProps {
   issues: IssueListItem[];
   onCardClick: (id: string) => void;
   isDropTarget?: boolean;
+  onQuickAdd?: (title: string, status: IssueStatus) => void;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -18,6 +19,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   issues,
   onCardClick,
   isDropTarget,
+  onQuickAdd,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -63,6 +65,43 @@ export const KanbanColumn = memo(function KanbanColumn({
           </div>
         )}
       </div>
+
+      {/* Quick add at bottom */}
+      {onQuickAdd && <ColumnQuickAdd status={status} onQuickAdd={onQuickAdd} />}
     </div>
   );
 });
+
+function ColumnQuickAdd({
+  status,
+  onQuickAdd,
+}: {
+  status: IssueStatus;
+  onQuickAdd: (title: string, status: IssueStatus) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = () => {
+    if (!title.trim()) return;
+    onQuickAdd(title.trim(), status);
+    setTitle("");
+  };
+
+  return (
+    <div className="border-t border-border px-2 py-1.5">
+      <input
+        ref={inputRef}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); handleSubmit(); }
+          if (e.key === "Escape") { setTitle(""); inputRef.current?.blur(); }
+        }}
+        placeholder="+ Add issue..."
+        className="w-full bg-transparent text-xs placeholder:text-muted-foreground focus:outline-none py-1"
+        aria-label={`Quick add issue to ${status}`}
+      />
+    </div>
+  );
+}
