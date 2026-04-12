@@ -8,9 +8,12 @@ import { registerIssueRoutes } from "./routes/issues.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerStatsRoutes } from "./routes/stats.js";
 import { registerHealthRoutes } from "./routes/health.js";
+import { registerSetupRoutes } from "./routes/setup.js";
 import { AppError } from "./errors.js";
 
-export async function createServer(config: Config) {
+export async function createServer(initialConfig: Config) {
+  // Mutable config — updated after setup completes
+  let config = initialConfig;
   const app = Fastify({
     logger: {
       level: "info",
@@ -172,7 +175,66 @@ export async function createServer(config: Config) {
     }
   );
 
+  // ─── Setup Mode Guard ─────────────────────────────────
+  // When in setup mode, block all non-setup/health routes with a 503.
+  // This flag is flipped to false after setup completes.
+  let setupMode = config.needsSetup;
+
+  app.addHook("onRequest", async (request, reply) => {
+    if (!setupMode) return;
+    const url = request.url;
+    // Allow setup and health endpoints through
+    if (url.startsWith("/api/setup") || url.startsWith("/api/health")) return;
+    // Block all other API routes
+    if (url.startsWith("/api/")) {
+      return reply.code(503).send({
+        code: "SETUP_REQUIRED",
+        message: "Project setup required. Visit /setup to configure.",
+        retryable: false,
+      });
+    }
+  });
+
   // ─── Register Routes ─────────────────────────────────
+  registerSetupRoutes(app, {
+    getConfig: () => config,
+    onSetupComplete: async (newConfig: Config) => {
+      config = newConfig;
+
+      // Initialize Dolt with the new config
+      if (newConfig.doltMode === "embedded") {
+        app.log.info(`[setup] Creating replica at ${newConfig.replicaPath}...`);
+        await createReplica(newConfig.doltDbPath, newConfig.replicaPath);
+
+        // Create a new DoltServerManager for the new config
+        doltManager = new DoltServerManager(newConfig, newConfig.replicaPath);
+        doltManager.onStateChange(async (state) => {
+          app.log.info(`[dolt] Server state: ${state}`);
+          if (state === "running" && initialStartupDone) {
+            app.log.info("Dolt server recovered, recreating connection pool...");
+            await destroyPool();
+            createDoltPool(newConfig);
+          }
+        });
+
+        app.log.info("[setup] Starting Dolt SQL server...");
+        await doltManager.start();
+
+        if (doltManager.getState() === "running") {
+          createDoltPool(newConfig);
+          app.log.info("[setup] Dolt SQL server running, pool created");
+        }
+      } else {
+        // Server mode: just create the pool
+        app.log.info(`[setup] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`);
+        createDoltPool(newConfig);
+      }
+
+      initialStartupDone = true;
+      setupMode = false;
+      app.log.info("[setup] Setup complete, all routes active");
+    },
+  });
   registerIssueRoutes(app, config, writeService);
   registerDependencyRoutes(app, config, writeService);
   registerStatsRoutes(app, config);
@@ -180,6 +242,13 @@ export async function createServer(config: Config) {
 
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {
+    if (config.needsSetup) {
+      app.log.info("No .beads/ directory found — running in setup mode");
+      app.log.info("Visit /setup to configure your project");
+      initialStartupDone = true;
+      return;
+    }
+
     if (isServerMode) {
       // Server mode: connect directly to external Dolt SQL server
       app.log.info(

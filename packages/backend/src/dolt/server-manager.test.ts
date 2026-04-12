@@ -21,6 +21,7 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
     doltUser: "root",
     doltPassword: "",
     doltDatabase: "beads_gui",
+    needsSetup: false,
     ...overrides,
   };
 }

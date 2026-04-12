@@ -12,7 +12,11 @@ async function main() {
   await app.listen({ host: config.host, port: config.port });
 
   console.log(`\n  Beads GUI Backend running at http://${config.host}:${config.port}`);
-  console.log(`  Dolt SQL server on port ${config.doltPort}\n`);
+  if (config.needsSetup) {
+    console.log("  Setup required — open the frontend to configure your project\n");
+  } else {
+    console.log(`  Dolt SQL server on port ${config.doltPort}\n`);
+  }
 
   // Graceful shutdown
   const onSignal = async (signal: string) => {
