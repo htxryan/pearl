@@ -2,16 +2,26 @@ import { cp, rm, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 
 /**
- * Create an initial replica by copying the primary database directory.
- * Removes any existing replica first to ensure a clean copy.
+ * Copy the primary database directory to the replica path,
+ * removing any existing replica first to ensure a clean copy.
  */
-export async function createReplica(
+async function copyPrimaryToReplica(
   primaryPath: string,
   replicaPath: string
 ): Promise<void> {
   await rm(replicaPath, { recursive: true, force: true });
   await mkdir(dirname(replicaPath), { recursive: true });
   await cp(primaryPath, replicaPath, { recursive: true });
+}
+
+/**
+ * Create an initial replica by copying the primary database directory.
+ */
+export async function createReplica(
+  primaryPath: string,
+  replicaPath: string
+): Promise<void> {
+  return copyPrimaryToReplica(primaryPath, replicaPath);
 }
 
 /**
@@ -22,9 +32,7 @@ export async function syncReplica(
   primaryPath: string,
   replicaPath: string
 ): Promise<void> {
-  await rm(replicaPath, { recursive: true, force: true });
-  await mkdir(dirname(replicaPath), { recursive: true });
-  await cp(primaryPath, replicaPath, { recursive: true });
+  return copyPrimaryToReplica(primaryPath, replicaPath);
 }
 
 /**

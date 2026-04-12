@@ -1,7 +1,7 @@
 import Fastify, { type FastifyError } from "fastify";
 import type { Config } from "./config.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
-import { createDoltPool, destroyPool } from "./dolt/pool.js";
+import { createDoltPool, destroyPool, beginSync, endSync } from "./dolt/pool.js";
 import { createReplica, syncReplica, cleanupReplica } from "./dolt/replica-sync.js";
 import { WriteService } from "./write-service/write-service.js";
 import { registerIssueRoutes } from "./routes/issues.js";
@@ -45,18 +45,57 @@ export async function createServer(config: Config) {
   // ─── Write Service ────────────────────────────────────
   // In embedded mode, sync the replica after each write:
   // stop SQL server → copy primary → replica → restart SQL → recreate pool
+  //
+  // The sync barrier (beginSync/endSync) makes concurrent reads wait
+  // instead of failing immediately while the server is restarting.
+  // Recovery logic ensures the server is always restarted, even on errors.
+  const SYNC_TIMEOUT_MS = 30_000;
+
   const onAfterWrite = isEmbedded
     ? async () => {
         app.log.info("[replica] Syncing replica after write...");
         const start = Date.now();
-        await destroyPool();
-        await doltManager.stop();
-        await syncReplica(config.doltDbPath, config.replicaPath);
-        await doltManager.start();
-        if (doltManager.getState() === "running") {
-          createDoltPool(config);
+        beginSync();
+        try {
+          await destroyPool();
+          await doltManager.stop();
+
+          // Guard against cp or start() hanging indefinitely (P2)
+          const syncOp = async () => {
+            await syncReplica(config.doltDbPath, config.replicaPath);
+            await doltManager.start();
+          };
+          const timeout = new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Replica sync timed out")),
+              SYNC_TIMEOUT_MS
+            )
+          );
+          await Promise.race([syncOp(), timeout]);
+
+          if (doltManager.getState() === "running") {
+            createDoltPool(config);
+          }
+          app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
+        } catch (err) {
+          // Recovery: ensure the server and pool are restored so reads
+          // don't stay permanently broken (P0).
+          app.log.error({ err }, "[replica] Sync failed, attempting recovery...");
+          try {
+            if (doltManager.getState() !== "running") {
+              await doltManager.start();
+            }
+            if (doltManager.getState() === "running") {
+              createDoltPool(config);
+              app.log.info("[replica] Recovery successful");
+            }
+          } catch (recoveryErr) {
+            app.log.error({ err: recoveryErr }, "[replica] Recovery failed");
+          }
+          throw err;
+        } finally {
+          endSync();
         }
-        app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
       }
     : undefined;
 

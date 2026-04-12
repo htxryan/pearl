@@ -50,21 +50,25 @@ describe("DoltServerManager", () => {
     expect(mgr.getState()).toBe("stopped");
   });
 
-  it("fires state change listeners", () => {
+  it("fires state change listeners", async () => {
     const mgr = new DoltServerManager(makeConfig());
     const states: string[] = [];
     mgr.onStateChange((s) => states.push(s));
-    // Calling stop from stopped → no change
-    // We can't easily test start without a real dolt process,
-    // but we can verify the listener mechanism via stop()
-    // which only fires if state changes
+    // stop() from "stopped" does not fire (same state)
+    await mgr.stop();
+    expect(states).toEqual([]);
+    // A second stop also doesn't fire — state is still "stopped"
+    await mgr.stop();
+    expect(states).toEqual([]);
   });
 
-  it("unsubscribes state change listener on dispose", () => {
+  it("unsubscribes state change listener on dispose", async () => {
     const mgr = new DoltServerManager(makeConfig());
     const states: string[] = [];
     const unsub = mgr.onStateChange((s) => states.push(s));
     unsub();
-    // After unsubscribe, no events should be received
+    // After unsubscribe, no events should be received even if state changes
+    await mgr.stop();
+    expect(states).toEqual([]);
   });
 });
