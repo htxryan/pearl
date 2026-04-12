@@ -15,6 +15,7 @@ import {
 import { undoLast, useCanUndo } from "@/hooks/use-undo";
 import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 import { PageTransition } from "./page-transition";
+import { OnboardingBanner } from "./onboarding";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -124,6 +125,7 @@ export function AppShell() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <HealthBanner />
         <Header />
+        <OnboardingBanner />
         <main className="flex-1 overflow-auto">
           <PageTransition>
             <Outlet />
