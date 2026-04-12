@@ -54,7 +54,7 @@ export function loadConfig(): Config {
 
   let doltHost: string;
   if (doltMode === "server") {
-    doltHost = process.env.DOLT_HOST || metadata?.dolt_host || "";
+    doltHost = process.env.DOLT_HOST || metadata?.dolt_host || metadata?.dolt_server_host || "";
     if (!doltHost) {
       throw new Error(
         "dolt_mode is 'server' but no dolt_host configured. " +
@@ -66,7 +66,7 @@ export function loadConfig(): Config {
   }
 
   const doltPort = parseInt(
-    process.env.DOLT_PORT || String(metadata?.dolt_port || 3307),
+    process.env.DOLT_PORT || String(metadata?.dolt_port || metadata?.dolt_server_port || 3307),
     10
   );
 
@@ -109,6 +109,10 @@ interface BeadsMetadata {
   dolt_mode?: string;
   dolt_host?: string;
   dolt_port?: number;
+  /** Written by `bd dolt set host` */
+  dolt_server_host?: string;
+  /** Written by `bd dolt set port` */
+  dolt_server_port?: number;
   dolt_database?: string;
   [key: string]: unknown;
 }
