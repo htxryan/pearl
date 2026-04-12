@@ -46,10 +46,20 @@ export function loadConfig(): Config {
   const doltMode: DoltMode =
     metadata?.dolt_mode === "server" ? "server" : "embedded";
 
-  const doltHost =
-    doltMode === "server"
-      ? process.env.DOLT_HOST || metadata?.dolt_host || "127.0.0.1"
-      : "127.0.0.1";
+  let doltHost: string;
+  if (doltMode === "server") {
+    doltHost = process.env.DOLT_HOST || metadata?.dolt_host || "";
+    if (!doltHost) {
+      console.warn(
+        "Warning: dolt_mode is 'server' but no dolt_host configured. " +
+          "Set DOLT_HOST env var or dolt_host in .beads/metadata.json. " +
+          "Falling back to 127.0.0.1."
+      );
+      doltHost = "127.0.0.1";
+    }
+  } else {
+    doltHost = "127.0.0.1";
+  }
 
   const doltPort = parseInt(
     process.env.DOLT_PORT || String(metadata?.dolt_port || 3307),
@@ -57,8 +67,11 @@ export function loadConfig(): Config {
   );
 
   // Derive replica path for embedded mode: sibling __replica__/<dbname>/
-  const dbName = basename(doltDbPath) || "beads_gui";
-  const replicaPath = resolve(dirname(doltDbPath), "..", "__replica__", dbName);
+  let replicaPath = "";
+  if (doltMode === "embedded") {
+    const dbName = basename(doltDbPath) || "beads_gui";
+    replicaPath = resolve(dirname(doltDbPath), "..", "__replica__", dbName);
+  }
 
   return {
     host: "127.0.0.1",
@@ -95,7 +108,8 @@ export function readBeadsMetadata(
     try {
       const raw = readFileSync(metadataPath, "utf-8");
       return JSON.parse(raw) as BeadsMetadata;
-    } catch {
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
       // Not found at this level, go up
     }
     const parent = resolve(dir, "..");
@@ -118,7 +132,8 @@ function findBeadsDbPath(startDir: string): string {
       if (dbDir) {
         return resolve(beadsDir, dbDir.name);
       }
-    } catch {
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
       // Not found at this level, go up
     }
     const parent = resolve(dir, "..");

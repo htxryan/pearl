@@ -49,13 +49,10 @@ describe("loadConfig", () => {
       expect(config.replicaPath).toContain(dbName);
     });
 
-    it("respects DOLT_HOST env var in server mode", () => {
-      // We can't easily force server mode via metadata.json in tests,
-      // but we can verify the env var plumbing works
+    it("ignores DOLT_HOST env var in embedded mode", () => {
       process.env.DOLT_HOST = "dolt.example.com";
-      // Even with env var, embedded mode ignores it (doltHost stays 127.0.0.1)
+      // In embedded mode, doltHost is always 127.0.0.1 regardless of env var
       const config = loadConfig();
-      // Current metadata.json is embedded, so doltHost stays local
       expect(config.doltHost).toBe("127.0.0.1");
       delete process.env.DOLT_HOST;
     });
