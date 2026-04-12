@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type IssueType, type Priority } from "@beads-gui/shared";
 import { cn } from "@/lib/utils";
+import { useFilterPresets } from "@/hooks/use-filter-presets";
+import { addToast } from "@/hooks/use-toast";
 
 export interface FilterState {
   status: IssueStatus[];
@@ -80,6 +82,9 @@ function MultiSelect<T extends string | number>({
 export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps) {
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = searchInputRef ?? internalRef;
+  const { presets, save: savePreset, remove: removePreset } = useFilterPresets();
+  const [showSaveInput, setShowSaveInput] = useState(false);
+  const [presetName, setPresetName] = useState("");
 
   // Local state for debounced text inputs
   const [localSearch, setLocalSearch] = useState(filters.search);
@@ -144,8 +149,81 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
     filters.search !== "" ||
     filters.labels.length > 0;
 
+  const handleSavePreset = () => {
+    if (!presetName.trim()) return;
+    savePreset(presetName.trim(), filters);
+    addToast({ message: `Saved view "${presetName.trim()}"`, variant: "success" });
+    setPresetName("");
+    setShowSaveInput(false);
+  };
+
   return (
     <div className="flex flex-col gap-2">
+      {/* Preset selector */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {presets.map((preset) => (
+          <button
+            key={preset.id}
+            onClick={() => onChange(preset.filters)}
+            className="group inline-flex items-center gap-1 h-7 rounded-full border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            {preset.name}
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                removePreset(preset.id);
+                addToast({ message: `Removed view "${preset.name}"`, variant: "info" });
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.stopPropagation(); removePreset(preset.id); }
+              }}
+              className="hidden group-hover:inline ml-0.5 text-muted-foreground hover:text-destructive"
+              aria-label={`Remove preset ${preset.name}`}
+            >
+              &times;
+            </span>
+          </button>
+        ))}
+        {hasActiveFilters && !showSaveInput && (
+          <button
+            onClick={() => setShowSaveInput(true)}
+            className="h-7 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            + Save view
+          </button>
+        )}
+        {showSaveInput && (
+          <div className="inline-flex items-center gap-1">
+            <input
+              autoFocus
+              value={presetName}
+              onChange={(e) => setPresetName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSavePreset();
+                if (e.key === "Escape") { setShowSaveInput(false); setPresetName(""); }
+              }}
+              placeholder="View name..."
+              className="h-7 w-32 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            <button
+              onClick={handleSavePreset}
+              disabled={!presetName.trim()}
+              className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => { setShowSaveInput(false); setPresetName(""); }}
+              className="h-7 rounded px-1.5 text-xs text-muted-foreground hover:text-foreground"
+            >
+              &times;
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center gap-2 flex-wrap">
         {/* Search */}
         <div className="relative">
