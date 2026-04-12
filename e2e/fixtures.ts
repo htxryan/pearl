@@ -5,6 +5,10 @@ import { test as base, expect, type Page } from "@playwright/test";
  *
  * - `seededPage`: a Page with onboarding dismissed and the app loaded.
  * - `apiUrl`: base URL for the backend API.
+ *
+ * NOTE: Write operations (POST/PATCH/DELETE) are unavailable because
+ * the bd CLI cannot write while the Dolt SQL server holds the embedded
+ * lock. All tests work with the existing data set (100+ issues).
  */
 export const test = base.extend<{
   seededPage: Page;
@@ -23,7 +27,7 @@ export const test = base.extend<{
     await page.waitForURL("**/list");
 
     // Wait for the issue table to be visible (data loaded)
-    await expect(page.getByLabel("Issue list")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("table", { name: "Issue list" })).toBeVisible({ timeout: 15_000 });
 
     await use(page);
   },
@@ -31,22 +35,7 @@ export const test = base.extend<{
 
 export { expect };
 
-/**
- * Create a test issue via the API and return its ID.
- */
-export async function createTestIssue(
-  page: Page,
-  data: { title: string; description?: string; priority?: number; issue_type?: string; status?: string },
-): Promise<string> {
-  const response = await page.request.post("/api/issues", { data });
-  expect(response.ok()).toBeTruthy();
-  const body = await response.json();
-  return body.data.id;
-}
-
-/**
- * Clean up a test issue via the API.
- */
-export async function deleteTestIssue(page: Page, id: string): Promise<void> {
-  await page.request.delete(`/api/issues/${id}?reason=e2e-cleanup`);
+/** Get the issue table locator (strict). */
+export function issueTable(page: Page) {
+  return page.getByRole("table", { name: "Issue list" });
 }

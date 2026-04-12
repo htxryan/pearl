@@ -1,61 +1,64 @@
-import { test, expect, createTestIssue, deleteTestIssue } from "./fixtures";
+import { test, expect } from "./fixtures";
 
 test.describe("Dependency Autocomplete", () => {
-  let parentId: string;
-  let childId: string;
-
-  test.beforeEach(async ({ seededPage: page }) => {
-    parentId = await createTestIssue(page, { title: `E2E-Parent-${Date.now()}` });
-    childId = await createTestIssue(page, { title: `E2E-Child-${Date.now()}` });
+  test("dependencies section heading shows on detail view", async ({ seededPage: page }) => {
+    await page.goto("/issues/beads-gui-9hv");
+    const heading = page.getByRole("heading", { name: /dependencies/i });
+    await heading.scrollIntoViewIfNeeded();
+    await expect(heading).toBeVisible({ timeout: 15_000 });
   });
 
-  test.afterEach(async ({ seededPage: page }) => {
-    await deleteTestIssue(page, parentId);
-    await deleteTestIssue(page, childId);
-  });
+  test("+ Add button reveals autocomplete search input", async ({ seededPage: page }) => {
+    await page.goto("/issues/beads-gui-054");
+    const heading = page.getByRole("heading", { name: /dependencies/i });
+    await heading.scrollIntoViewIfNeeded();
+    await expect(heading).toBeVisible({ timeout: 15_000 });
 
-  test("add dependency via autocomplete search", async ({ seededPage: page }) => {
-    await page.goto(`/issues/${parentId}`);
-    await expect(page.getByText("Dependencies")).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: /\+ add/i }).click();
 
-    // Click "+ Add" button
-    const addBtn = page.getByRole("button", { name: /\+ add/i });
-    await addBtn.click();
-
-    // Autocomplete input should appear
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
     await expect(searchInput).toBeVisible();
-
-    // Type the child issue title
-    await searchInput.fill("E2E-Child-");
-
-    // Wait for dropdown results
-    const dropdown = page.locator("#dep-autocomplete-list");
-    await expect(dropdown).toBeVisible({ timeout: 10_000 });
-
-    // Click on the child issue in the dropdown
-    await dropdown.getByText("E2E-Child-").first().click();
-
-    // Dependency should now appear in the list
-    await expect(page.getByText(childId)).toBeVisible({ timeout: 5_000 });
   });
 
-  test("dependency autocomplete shows search results", async ({ seededPage: page }) => {
-    await page.goto(`/issues/${parentId}`);
-    await expect(page.getByText("Dependencies")).toBeVisible({ timeout: 15_000 });
+  test("autocomplete shows results when typing", async ({ seededPage: page }) => {
+    await page.goto("/issues/beads-gui-054");
+    const heading = page.getByRole("heading", { name: /dependencies/i });
+    await heading.scrollIntoViewIfNeeded();
+    await expect(heading).toBeVisible({ timeout: 15_000 });
 
-    const addBtn = page.getByRole("button", { name: /\+ add/i });
-    await addBtn.click();
+    await page.getByRole("button", { name: /\+ add/i }).click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
-    await searchInput.fill("E2E");
+    await searchInput.fill("Epic");
 
-    // Should show results
     const dropdown = page.locator("#dep-autocomplete-list");
     await expect(dropdown).toBeVisible({ timeout: 10_000 });
 
-    // Should have at least one option
     const options = dropdown.getByRole("option");
     await expect(options.first()).toBeVisible();
+  });
+
+  test("autocomplete has combobox ARIA attributes", async ({ seededPage: page }) => {
+    await page.goto("/issues/beads-gui-054");
+    const heading = page.getByRole("heading", { name: /dependencies/i });
+    await heading.scrollIntoViewIfNeeded();
+
+    await page.getByRole("button", { name: /\+ add/i }).click();
+
+    const searchInput = page.getByPlaceholder("Search issues by title or ID...");
+    await expect(searchInput).toHaveAttribute("role", "combobox");
+    await expect(searchInput).toHaveAttribute("aria-autocomplete", "list");
+  });
+
+  test("cancel button hides the autocomplete", async ({ seededPage: page }) => {
+    await page.goto("/issues/beads-gui-054");
+    const heading = page.getByRole("heading", { name: /dependencies/i });
+    await heading.scrollIntoViewIfNeeded();
+
+    await page.getByRole("button", { name: /\+ add/i }).click();
+    await expect(page.getByPlaceholder("Search issues by title or ID...")).toBeVisible();
+
+    await page.getByRole("button", { name: /cancel/i }).click();
+    await expect(page.getByPlaceholder("Search issues by title or ID...")).not.toBeVisible();
   });
 });
