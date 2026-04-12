@@ -35,20 +35,18 @@ import "@xyflow/react/dist/style.css";
 
 const PERFORMANCE_CAP = 200;
 
-const edgeColorByType: Partial<Record<string, string>> = {
+const edgeColorByType: Partial<Record<DependencyType, string>> = {
   blocks: "#ef4444",       // red
   depends_on: "#3b82f6",   // blue
   relates_to: "#a855f7",   // purple
   discovered_from: "#6b7280", // gray
-  "parent-child": "#22c55e",  // green
 };
 
-const edgeDashByType: Partial<Record<string, string | undefined>> = {
+const edgeDashByType: Partial<Record<DependencyType, string | undefined>> = {
   blocks: undefined,
   depends_on: undefined,
   relates_to: "5,5",
   discovered_from: "3,3",
-  "parent-child": "8,4",
 };
 
 const DEFAULT_EDGE_COLOR = "#6b7280";
