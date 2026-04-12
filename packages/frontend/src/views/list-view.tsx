@@ -24,6 +24,7 @@ import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from 
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -74,8 +75,8 @@ export function ListView() {
   }, [quickAddTitle, createMutation, toast, navigate]);
 
   // Table state
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+  const [columnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>("beads:col-visibility", {});
+  const [columnOrder, setColumnOrder] = usePersistedState<ColumnOrderState>("beads:col-order", []);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const rowSelectionRef = useRef(rowSelection);
   rowSelectionRef.current = rowSelection;
