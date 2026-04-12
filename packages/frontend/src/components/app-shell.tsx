@@ -16,6 +16,7 @@ import { undoLast, useCanUndo } from "@/hooks/use-undo";
 import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 import { PageTransition } from "./page-transition";
 import { OnboardingBanner } from "./onboarding";
+import { useRouteAnnouncer } from "@/hooks/use-route-announcer";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -119,14 +120,35 @@ export function AppShell() {
 
   useCommandPaletteActions("shell", commands);
 
+  const announcerRef = useRouteAnnouncer();
+
   return (
     <div className="flex h-screen min-w-[1024px] max-w-[2560px] overflow-hidden bg-background text-foreground">
+      {/* Skip to content link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("main-content")?.focus();
+        }}
+      >
+        Skip to content
+      </a>
+      {/* Route change announcer for screen readers */}
+      <div
+        ref={announcerRef}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      />
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <HealthBanner />
         <Header />
         <OnboardingBanner />
-        <main className="flex-1 overflow-auto">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
           <PageTransition>
             <Outlet />
           </PageTransition>
