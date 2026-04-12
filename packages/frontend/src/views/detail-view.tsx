@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation, Navigate } from "react-router";
-import { useMemo, useCallback, useEffect, useState } from "react";
+import { useMemo, useCallback, useEffect, useState, Children } from "react";
 import type { Issue, IssueStatus, Priority, IssueType } from "@beads-gui/shared";
 import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
 import {
@@ -276,7 +276,7 @@ function DetailViewContent({ id }: { id: string }) {
 
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto px-6 py-6 space-y-8 [&>section]:animate-fade-up [&>section]:[animation-fill-mode:backwards] [&>section:nth-child(2)]:[animation-delay:80ms] [&>section:nth-child(3)]:[animation-delay:160ms] [&>section:nth-child(4)]:[animation-delay:240ms]">
+        <DetailSections>
           {/* Metadata fields */}
           <section>
             <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
@@ -411,13 +411,30 @@ function DetailViewContent({ id }: { id: string }) {
 
           {/* Activity Timeline */}
           <ActivityTimeline events={events} />
-        </div>
+        </DetailSections>
       </div>
     </div>
   );
 }
 
 // ─── Helper Components ─────────────────────────────────
+
+function DetailSections({ children }: { children: React.ReactNode }) {
+  const items = Children.toArray(children).filter(Boolean);
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
+      {items.map((child, i) => (
+        <div
+          key={i}
+          className="animate-fade-up [animation-fill-mode:backwards]"
+          style={{ animationDelay: `${i * 80}ms` }}
+        >
+          {child}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (

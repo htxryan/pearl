@@ -103,12 +103,11 @@ code, kbd, pre, .font-mono {
   background: linear-gradient(
     90deg,
     var(--color-muted) 25%,
-    var(--color-muted-foreground, #a3a3a3) 37%,
+    color-mix(in srgb, var(--color-muted-foreground) 30%, var(--color-muted)) 37%,
     var(--color-muted) 63%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  opacity: 0.15;
 }
 
 /* Staggered entrance animation */
@@ -144,20 +143,19 @@ code, kbd, pre, .font-mono {
 .elevation-3 { box-shadow: var(--shadow-3); }
 .elevation-4 { box-shadow: var(--shadow-4); }
 
-/* Focus ring animation */
-@keyframes focus-ring-appear {
-  from { box-shadow: 0 0 0 0 var(--color-ring); opacity: 0; }
-  to { box-shadow: 0 0 0 2px var(--color-ring); opacity: 1; }
-}
+.dark .elevation-1 { box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4); }
+.dark .elevation-2 { box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5); }
+.dark .elevation-3 { box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6); }
+.dark .elevation-4 { box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7); }
 
-/* Checkbox toggle animation */
+/* Checkbox toggle animation — only on user interaction, not initial render */
 @keyframes check-pop {
   0% { transform: scale(0.8); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
 
-input[type="checkbox"]:checked {
+input[type="checkbox"]:focus-visible:checked {
   animation: check-pop 0.2s ease-out;
 }
 

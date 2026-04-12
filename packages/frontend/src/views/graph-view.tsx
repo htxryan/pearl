@@ -535,17 +535,19 @@ function GraphSkeleton() {
     >
       <div className="flex flex-col items-center gap-4">
         {/* Placeholder network diagram */}
-        <svg width="200" height="120" viewBox="0 0 200 120" className="opacity-20">
-          <line x1="100" y1="20" x2="50" y2="60" stroke="currentColor" strokeWidth="2" />
-          <line x1="100" y1="20" x2="150" y2="60" stroke="currentColor" strokeWidth="2" />
-          <line x1="50" y1="60" x2="80" y2="100" stroke="currentColor" strokeWidth="2" />
-          <line x1="150" y1="60" x2="120" y2="100" stroke="currentColor" strokeWidth="2" />
-          <rect x="80" y="8" width="40" height="24" rx="4" className="skeleton-shimmer" />
-          <rect x="30" y="48" width="40" height="24" rx="4" className="skeleton-shimmer" />
-          <rect x="130" y="48" width="40" height="24" rx="4" className="skeleton-shimmer" />
-          <rect x="60" y="88" width="40" height="24" rx="4" className="skeleton-shimmer" />
-          <rect x="100" y="88" width="40" height="24" rx="4" className="skeleton-shimmer" />
-        </svg>
+        <div className="relative opacity-20" style={{ width: 200, height: 120 }}>
+          <svg width="200" height="120" viewBox="0 0 200 120" className="absolute inset-0">
+            <line x1="100" y1="20" x2="50" y2="60" stroke="currentColor" strokeWidth="2" />
+            <line x1="100" y1="20" x2="150" y2="60" stroke="currentColor" strokeWidth="2" />
+            <line x1="50" y1="60" x2="80" y2="100" stroke="currentColor" strokeWidth="2" />
+            <line x1="150" y1="60" x2="120" y2="100" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          <div className="absolute skeleton-shimmer rounded" style={{ left: 80, top: 8, width: 40, height: 24 }} />
+          <div className="absolute skeleton-shimmer rounded" style={{ left: 30, top: 48, width: 40, height: 24 }} />
+          <div className="absolute skeleton-shimmer rounded" style={{ left: 130, top: 48, width: 40, height: 24 }} />
+          <div className="absolute skeleton-shimmer rounded" style={{ left: 60, top: 88, width: 40, height: 24 }} />
+          <div className="absolute skeleton-shimmer rounded" style={{ left: 100, top: 88, width: 40, height: 24 }} />
+        </div>
         <span className="text-sm text-muted-foreground">Loading dependency graph...</span>
       </div>
     </div>

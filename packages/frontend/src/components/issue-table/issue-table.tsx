@@ -15,9 +15,9 @@ export interface IssueTableProps {
   highlightedIds?: Set<string>;
 }
 
-function SkeletonRow({ colCount, rowIndex }: { colCount: number; rowIndex: number }) {
+function SkeletonRow({ colCount }: { colCount: number }) {
   return (
-    <tr className="border-b border-border" style={{ animationDelay: `${rowIndex * 80}ms` }}>
+    <tr className="border-b border-border">
       {Array.from({ length: colCount }, (_, i) => (
         <td key={i} className="px-3 py-2.5">
           <div
@@ -74,7 +74,7 @@ export function IssueTable({
           </thead>
           <tbody>
             {Array.from({ length: 8 }, (_, i) => (
-              <SkeletonRow key={i} colCount={visibleColCount} rowIndex={i} />
+              <SkeletonRow key={i} colCount={visibleColCount} />
             ))}
           </tbody>
         </table>

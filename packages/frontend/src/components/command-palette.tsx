@@ -20,9 +20,11 @@ export function CommandPalette() {
   const [issues, setIssues] = useState<IssueListItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     if (open) {
+      setIsMounted(true);
       setSearch("");
       setIssues([]);
       // Trigger entrance animation
@@ -32,6 +34,9 @@ export function CommandPalette() {
       });
     } else {
       setIsVisible(false);
+      // Delay unmount until exit transition completes
+      const timer = setTimeout(() => setIsMounted(false), 150);
+      return () => clearTimeout(timer);
     }
   }, [open]);
 
@@ -79,7 +84,7 @@ export function CommandPalette() {
     navigate(`/issues/${id}`);
   };
 
-  if (!open) return null;
+  if (!open && !isMounted) return null;
 
   const showIssues = issues.length > 0 || isSearching;
   const issueHeading = search.trim()
