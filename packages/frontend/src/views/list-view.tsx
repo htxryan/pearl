@@ -23,6 +23,7 @@ import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-comman
 import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from "@/hooks/use-url-filters";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -99,6 +100,7 @@ export function ListView() {
 
   // Bulk close state
   const [isClosing, setIsClosing] = useState(false);
+  const [showBulkCloseConfirm, setShowBulkCloseConfirm] = useState(false);
 
   const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k]);
 
@@ -319,7 +321,7 @@ export function ListView() {
         </div>
         <BulkActionBar
           selectedCount={selectedIds.length}
-          onClose={handleBulkClose}
+          onClose={() => setShowBulkCloseConfirm(true)}
           onClearSelection={handleClearSelection}
           isClosing={isClosing}
         />
@@ -364,6 +366,18 @@ export function ListView() {
           highlightedIds={highlightedIds}
         />
       </div>
+
+      <ConfirmDialog
+        isOpen={showBulkCloseConfirm}
+        onConfirm={() => {
+          setShowBulkCloseConfirm(false);
+          handleBulkClose();
+        }}
+        onCancel={() => setShowBulkCloseConfirm(false)}
+        title="Close selected issues?"
+        description={`Are you sure you want to close ${selectedIds.length} issue${selectedIds.length !== 1 ? "s" : ""}? This can be undone.`}
+        confirmLabel={`Close ${selectedIds.length} Issue${selectedIds.length !== 1 ? "s" : ""}`}
+      />
     </div>
   );
 }

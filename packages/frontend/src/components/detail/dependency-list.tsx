@@ -3,6 +3,7 @@ import type { Dependency, IssueListItem } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useIssue } from "@/hooks/use-issues";
 import * as api from "@/lib/api-client";
 
@@ -331,25 +332,39 @@ function DependencyRow({
   onRemove: () => void;
 }) {
   const { data: issue } = useIssue(targetId);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-1.5">
-      <div className="flex items-center gap-2 min-w-0">
-        <code className="text-xs text-muted-foreground shrink-0">{targetId}</code>
-        {issue && (
-          <>
-            <StatusBadge status={issue.status} />
-            <span className="text-sm truncate">{issue.title}</span>
-          </>
-        )}
+    <>
+      <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-1.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <code className="text-xs text-muted-foreground shrink-0">{targetId}</code>
+          {issue && (
+            <>
+              <StatusBadge status={issue.status} />
+              <span className="text-sm truncate">{issue.title}</span>
+            </>
+          )}
+        </div>
+        <button
+          onClick={() => setShowConfirm(true)}
+          className="text-xs text-muted-foreground hover:text-destructive shrink-0"
+          title="Remove dependency"
+        >
+          x
+        </button>
       </div>
-      <button
-        onClick={onRemove}
-        className="text-xs text-muted-foreground hover:text-destructive shrink-0"
-        title="Remove dependency"
-      >
-        x
-      </button>
-    </div>
+      <ConfirmDialog
+        isOpen={showConfirm}
+        onConfirm={() => {
+          setShowConfirm(false);
+          onRemove();
+        }}
+        onCancel={() => setShowConfirm(false)}
+        title="Remove dependency?"
+        description={`Remove the dependency link to ${issue?.title ?? targetId}?`}
+        confirmLabel="Remove"
+      />
+    </>
   );
 }

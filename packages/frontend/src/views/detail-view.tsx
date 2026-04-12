@@ -27,6 +27,7 @@ import { FieldEditor } from "@/components/detail/field-editor";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 
 export function DetailView() {
@@ -65,6 +66,9 @@ function DetailViewContent({ id }: { id: string }) {
 
   const toast = useToastActions();
   const undo = useUndoActions();
+
+  // Confirmation dialog state
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   // Dirty state for unsaved changes warning
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
@@ -246,7 +250,7 @@ function DetailViewContent({ id }: { id: string }) {
                 <Button variant="outline" size="sm" onClick={handleClaim} disabled={updateMutation.isPending}>
                   Claim
                 </Button>
-                <Button variant="destructive" size="sm" onClick={handleClose} disabled={closeMutation.isPending}>
+                <Button variant="destructive" size="sm" onClick={() => setShowCloseConfirm(true)} disabled={closeMutation.isPending}>
                   Close
                 </Button>
               </>
@@ -413,6 +417,19 @@ function DetailViewContent({ id }: { id: string }) {
           <ActivityTimeline events={events} />
         </DetailSections>
       </div>
+
+      <ConfirmDialog
+        isOpen={showCloseConfirm}
+        onConfirm={() => {
+          setShowCloseConfirm(false);
+          handleClose();
+        }}
+        onCancel={() => setShowCloseConfirm(false)}
+        title="Close issue?"
+        description={`Are you sure you want to close "${issue.title}"? This can be undone.`}
+        confirmLabel="Close Issue"
+        isPending={closeMutation.isPending}
+      />
     </div>
   );
 }

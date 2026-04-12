@@ -575,9 +575,13 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     fireEvent.keyDown(window, { key: "j" }); // activate row 0
     fireEvent.keyDown(window, { key: "x" }); // select row 0
 
-    // Click "Close selected"
+    // Click "Close selected" — opens confirmation dialog
     const closeBtn = screen.getByRole("button", { name: /close selected/i });
     fireEvent.click(closeBtn);
+
+    // Confirm the bulk close in the dialog
+    const confirmBtn = await screen.findByRole("button", { name: /close 1 issue/i });
+    fireEvent.click(confirmBtn);
 
     // Verify closeMutation was called
     await waitFor(() => {
@@ -607,9 +611,13 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     fireEvent.keyDown(window, { key: "j" });
     fireEvent.keyDown(window, { key: "x" });
 
-    // Click close
+    // Click close — opens confirmation dialog
     const closeBtn = screen.getByRole("button", { name: /close selected/i });
     fireEvent.click(closeBtn);
+
+    // Confirm in the dialog
+    const confirmBtn = await screen.findByRole("button", { name: /close 1 issue/i });
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(mockCloseMutateAsync).toHaveBeenCalledTimes(1);
