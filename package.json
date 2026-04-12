@@ -7,7 +7,9 @@
 		"dev": "pnpm --filter @beads-gui/backend dev",
 		"build": "pnpm -r build",
 		"test": "pnpm -r test",
-		"typecheck": "pnpm -r typecheck"
+		"typecheck": "pnpm -r typecheck",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.59.1",
