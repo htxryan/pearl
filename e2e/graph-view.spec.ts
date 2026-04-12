@@ -58,10 +58,10 @@ test.describe("Graph View", () => {
     const zoomIn = page.locator(".react-flow__controls-zoomin");
     const zoomOut = page.locator(".react-flow__controls-zoomout");
 
-    if (await zoomIn.isVisible()) {
-      await zoomIn.click();
-      await zoomOut.click();
-    }
+    await expect(zoomIn).toBeVisible();
+    await expect(zoomOut).toBeVisible();
+    await zoomIn.click();
+    await zoomOut.click();
   });
 
   test("graph renders nodes for issues", async ({ seededPage: page }) => {

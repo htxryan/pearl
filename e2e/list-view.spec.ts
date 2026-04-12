@@ -28,18 +28,25 @@ test.describe("List View", () => {
   });
 
   test("search filter narrows results", async ({ seededPage: page }) => {
-    const searchInput = page.getByPlaceholder(/search/i).first();
-    await searchInput.fill("Epic");
+    const table = issueTable(page);
+    const rows = table.locator("tbody tr");
+    const initialCount = await rows.count();
 
-    // Wait for debounce + request
-    await page.waitForTimeout(500);
-    const rows = issueTable(page).locator("tbody tr");
+    const searchInput = page.getByPlaceholder(/search/i).first();
+    await searchInput.fill("dashboard");
+
+    // Poll for filtered results instead of fixed timeout
+    await expect.poll(
+      () => rows.count(),
+      { message: "Expected fewer rows after filtering", timeout: 5_000 },
+    ).toBeLessThan(initialCount);
+
     const count = await rows.count();
     expect(count).toBeGreaterThan(0);
 
-    // First result should contain "Epic"
+    // First result should contain the search term
     const firstTitle = await rows.first().locator("td").nth(2).textContent();
-    expect(firstTitle?.toLowerCase()).toContain("epic");
+    expect(firstTitle?.toLowerCase()).toContain("dashboard");
   });
 
   test("sort by column header click", async ({ seededPage: page }) => {

@@ -2,6 +2,8 @@ import { test, expect } from "./fixtures";
 
 test.describe("Command Palette", () => {
   test("opens with Cmd+K", async ({ seededPage: page }) => {
+    // Wait for app to be fully settled before triggering keyboard shortcut
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Meta+k");
     const input = page.getByPlaceholder("Search issues or type a command...");
     await expect(input).toBeVisible({ timeout: 5_000 });
@@ -35,11 +37,13 @@ test.describe("Command Palette", () => {
   });
 
   test("search filters issues by query", async ({ seededPage: page }) => {
+    // Wait for app to be fully settled before triggering keyboard shortcut
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Meta+k");
     const input = page.getByPlaceholder("Search issues or type a command...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
-    await input.fill("Epic");
+    await input.fill("dashboard");
 
     // Should show "Issues matching" heading
     await expect(page.getByText(/issues matching/i)).toBeVisible({ timeout: 10_000 });

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolve } from "node:path";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -33,6 +34,9 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
       cwd: "./sample-project",
+      env: {
+        BEADS_DB_PATH: resolve("sample-project/.beads/embeddeddolt/sample_project"),
+      },
       stdout: "pipe",
       stderr: "pipe",
     },

@@ -26,12 +26,11 @@ test.describe("Board View", () => {
     const board = page.getByRole("region", { name: "Kanban board" });
     await expect(board).toBeVisible({ timeout: 15_000 });
 
-    // Find a known issue title and click it
-    const issueCard = board.getByText("Bug: Dolt SQL server file lock prevents bd CLI writes");
-    if (await issueCard.isVisible()) {
-      await issueCard.click();
-      await page.waitForURL("**/issues/**");
-    }
+    // Click the first visible card (data-agnostic)
+    const firstCard = board.locator('[aria-roledescription="draggable issue card"]').first();
+    await expect(firstCard).toBeVisible();
+    await firstCard.click();
+    await page.waitForURL("**/issues/**");
   });
 
   test("filter bar present on board view", async ({ seededPage: page }) => {
@@ -44,10 +43,20 @@ test.describe("Board View", () => {
 
   test("search filter filters cards", async ({ seededPage: page }) => {
     await page.goto("/board");
-    await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({ timeout: 15_000 });
+    const board = page.getByRole("region", { name: "Kanban board" });
+    await expect(board).toBeVisible({ timeout: 15_000 });
+
+    const cards = board.locator('[aria-roledescription="draggable issue card"]');
+    // Verify cards exist before filtering
+    await expect(cards.first()).toBeVisible();
 
     const searchInput = page.getByPlaceholder(/search/i).first();
     await searchInput.fill("zzz-nonexistent-e2e-term");
-    await page.waitForTimeout(500);
+
+    // Wait for filter to take effect — poll instead of fixed timeout
+    await expect.poll(
+      () => cards.count(),
+      { message: "Expected no cards after filtering with non-matching term", timeout: 5_000 },
+    ).toBe(0);
   });
 });

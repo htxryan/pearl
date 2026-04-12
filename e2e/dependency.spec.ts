@@ -1,15 +1,15 @@
-import { test, expect } from "./fixtures";
+import { test, expect, navigateToFirstIssue } from "./fixtures";
 
 test.describe("Dependency Autocomplete", () => {
   test("dependencies section heading shows on detail view", async ({ seededPage: page }) => {
-    await page.goto("/issues/beads-gui-9hv");
+    await navigateToFirstIssue(page);
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
     await expect(heading).toBeVisible({ timeout: 15_000 });
   });
 
   test("+ Add button reveals autocomplete search input", async ({ seededPage: page }) => {
-    await page.goto("/issues/beads-gui-054");
+    await navigateToFirstIssue(page);
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
     await expect(heading).toBeVisible({ timeout: 15_000 });
@@ -21,7 +21,7 @@ test.describe("Dependency Autocomplete", () => {
   });
 
   test("autocomplete shows results when typing", async ({ seededPage: page }) => {
-    await page.goto("/issues/beads-gui-054");
+    await navigateToFirstIssue(page);
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
     await expect(heading).toBeVisible({ timeout: 15_000 });
@@ -29,17 +29,18 @@ test.describe("Dependency Autocomplete", () => {
     await page.getByRole("button", { name: /\+ add/i }).click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
-    await searchInput.fill("Epic");
+    // Search for a term that matches multiple issues in the sample dataset
+    await searchInput.fill("rate");
 
     const dropdown = page.locator("#dep-autocomplete-list");
-    await expect(dropdown).toBeVisible({ timeout: 10_000 });
+    await expect(dropdown).toBeVisible({ timeout: 15_000 });
 
     const options = dropdown.getByRole("option");
-    await expect(options.first()).toBeVisible();
+    await expect(options.first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("autocomplete has combobox ARIA attributes", async ({ seededPage: page }) => {
-    await page.goto("/issues/beads-gui-054");
+    await navigateToFirstIssue(page);
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
 
@@ -51,7 +52,7 @@ test.describe("Dependency Autocomplete", () => {
   });
 
   test("cancel button hides the autocomplete", async ({ seededPage: page }) => {
-    await page.goto("/issues/beads-gui-054");
+    await navigateToFirstIssue(page);
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
 

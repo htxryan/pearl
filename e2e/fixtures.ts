@@ -4,18 +4,14 @@ import { test as base, expect, type Page } from "@playwright/test";
  * Shared fixtures for E2E tests.
  *
  * - `seededPage`: a Page with onboarding dismissed and the app loaded.
- * - `apiUrl`: base URL for the backend API.
  *
  * NOTE: Write operations (POST/PATCH/DELETE) are unavailable because
  * the bd CLI cannot write while the Dolt SQL server holds the embedded
- * lock. All tests work with the existing data set (100+ issues).
+ * lock. All tests work with the existing data set.
  */
 export const test = base.extend<{
   seededPage: Page;
-  apiUrl: string;
 }>({
-  apiUrl: ["http://127.0.0.1:3456/api", { option: true }],
-
   seededPage: async ({ page }, use) => {
     // Dismiss onboarding banner so it doesn't interfere with tests
     await page.addInitScript(() => {
@@ -38,4 +34,18 @@ export { expect };
 /** Get the issue table locator (strict). */
 export function issueTable(page: Page) {
   return page.getByRole("table", { name: "Issue list" });
+}
+
+/**
+ * Navigate to the first issue's detail view from the list.
+ * Returns the issue ID extracted from the URL.
+ */
+export async function navigateToFirstIssue(page: Page): Promise<string> {
+  const table = page.getByRole("table", { name: "Issue list" });
+  await expect(table).toBeVisible({ timeout: 15_000 });
+  const firstRow = table.locator("tbody tr").first();
+  await firstRow.locator("td").nth(2).click();
+  await page.waitForURL("**/issues/**");
+  const url = page.url();
+  return url.split("/issues/")[1];
 }

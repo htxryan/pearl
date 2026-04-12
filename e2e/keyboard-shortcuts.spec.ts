@@ -44,14 +44,14 @@ test.describe("Keyboard Shortcuts", () => {
     await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).not.toBeVisible({ timeout: 5_000 });
   });
 
-  test("keyboard help closes via backdrop click", async ({ seededPage: page }) => {
+  test("keyboard help closes via Escape key", async ({ seededPage: page }) => {
     await pressQuestionMark(page);
-    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({ timeout: 5_000 });
+    const heading = page.getByRole("heading", { name: "Keyboard Shortcuts" });
+    await expect(heading).toBeVisible({ timeout: 5_000 });
 
-    // Click the backdrop at a position that doesn't overlap the modal
-    // The modal is centered and max-w-lg (~512px), so clicking at (10, 10) hits the backdrop
-    await page.mouse.click(10, 10);
-    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).not.toBeVisible({ timeout: 5_000 });
+    // Press Escape to close the dialog
+    await page.keyboard.press("Escape");
+    await expect(heading).not.toBeVisible({ timeout: 5_000 });
   });
 
   test("pressing 1 navigates to list view", async ({ seededPage: page }) => {

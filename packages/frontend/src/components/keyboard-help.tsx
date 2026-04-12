@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 // ─── State ─────────────────────────────────────────────
 let isOpen = false;
@@ -75,17 +75,26 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
 export function KeyboardHelpOverlay() {
   const open = useKeyboardHelpOpen();
 
+  // Close on Escape key at document level
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeKeyboardHelp();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          closeKeyboardHelp();
-        }
-      }}
+      role="dialog"
+      aria-modal="true"
     >
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50" onClick={closeKeyboardHelp} />
