@@ -16,8 +16,11 @@ export class DoltServerManager {
   private restartTimer: ReturnType<typeof setTimeout> | null = null;
   private startedAt: number | null = null;
   private stateChangeListeners: StateChangeListener[] = [];
+  private readonly dbPath: string;
 
-  constructor(private config: Config) {}
+  constructor(private config: Config, dbPath?: string) {
+    this.dbPath = dbPath || config.doltDbPath;
+  }
 
   getState(): DoltServerState {
     return this.state;
@@ -60,7 +63,7 @@ export class DoltServerManager {
         "--port", String(this.config.doltPort),
         "--no-auto-commit",
       ], {
-        cwd: this.config.doltDbPath,
+        cwd: this.dbPath,
         reject: false,
         stdio: ["ignore", "pipe", "pipe"],
       });

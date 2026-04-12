@@ -2,6 +2,7 @@ import Fastify, { type FastifyError } from "fastify";
 import type { Config } from "./config.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { createDoltPool, destroyPool } from "./dolt/pool.js";
+import { createReplica, syncReplica, cleanupReplica } from "./dolt/replica-sync.js";
 import { WriteService } from "./write-service/write-service.js";
 import { registerIssueRoutes } from "./routes/issues.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
@@ -21,7 +22,11 @@ export async function createServer(config: Config) {
   });
 
   // ─── Dolt SQL Server Lifecycle ─────────────────────────
-  const doltManager = new DoltServerManager(config);
+  // In embedded mode, the SQL server runs on the REPLICA (not primary).
+  // bd CLI writes to primary; replica is synced after each write.
+  const isEmbedded = config.doltMode === "embedded";
+  const serverDbPath = isEmbedded ? config.replicaPath : undefined;
+  const doltManager = new DoltServerManager(config, serverDbPath);
   let initialStartupDone = false;
 
   doltManager.onStateChange(async (state) => {
@@ -38,7 +43,24 @@ export async function createServer(config: Config) {
   // Pool is created after Dolt server starts
 
   // ─── Write Service ────────────────────────────────────
-  const writeService = new WriteService(config);
+  // In embedded mode, sync the replica after each write:
+  // stop SQL server → copy primary → replica → restart SQL → recreate pool
+  const onAfterWrite = isEmbedded
+    ? async () => {
+        app.log.info("[replica] Syncing replica after write...");
+        const start = Date.now();
+        await destroyPool();
+        await doltManager.stop();
+        await syncReplica(config.doltDbPath, config.replicaPath);
+        await doltManager.start();
+        if (doltManager.getState() === "running") {
+          createDoltPool(config);
+        }
+        app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
+      }
+    : undefined;
+
+  const writeService = new WriteService(config, onAfterWrite);
 
   // ─── Error Handler ────────────────────────────────────
   app.setErrorHandler((error: FastifyError | AppError, _request, reply) => {
@@ -105,9 +127,16 @@ export async function createServer(config: Config) {
 
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {
-    // Start Dolt SQL server
     app.log.info(`Starting Dolt SQL server on port ${config.doltPort}...`);
     app.log.info(`Database path: ${config.doltDbPath}`);
+
+    // In embedded mode, create the replica before starting the SQL server
+    if (isEmbedded) {
+      app.log.info(`[replica] Creating replica at ${config.replicaPath}...`);
+      await createReplica(config.doltDbPath, config.replicaPath);
+      app.log.info(`[replica] Replica created, starting SQL server on replica`);
+    }
+
     await doltManager.start();
 
     if (doltManager.getState() === "running") {
@@ -126,6 +155,12 @@ export async function createServer(config: Config) {
     app.log.info("Shutting down...");
     await destroyPool();
     await doltManager.stop();
+
+    // In embedded mode, clean up the replica directory
+    if (isEmbedded) {
+      app.log.info("[replica] Cleaning up replica directory...");
+      await cleanupReplica(config.replicaPath);
+    }
   };
 
   return { app, startup, shutdown, doltManager };

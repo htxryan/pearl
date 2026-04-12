@@ -20,16 +20,19 @@ export class WriteService {
   readonly issues: IssueWriter;
   readonly dependencies: DependencyWriter;
   readonly comments: CommentWriter;
+  private onAfterWrite?: () => Promise<void>;
 
-  constructor(config: Config) {
+  constructor(config: Config, onAfterWrite?: () => Promise<void>) {
     this.issues = new IssueWriter(config);
     this.dependencies = new DependencyWriter(config);
     this.comments = new CommentWriter(config);
+    this.onAfterWrite = onAfterWrite;
   }
 
   async createIssue(req: CreateIssueRequest): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.issues.create(req);
+      await this.syncAfterWrite();
       return {
         success: true,
         data: tryParseJson(result.stdout),
@@ -44,6 +47,7 @@ export class WriteService {
   ): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.issues.update(id, req);
+      await this.syncAfterWrite();
       return {
         success: true,
         data: tryParseJson(result.stdout),
@@ -55,6 +59,7 @@ export class WriteService {
   async closeIssue(id: string, reason?: string): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.issues.close(id, reason);
+      await this.syncAfterWrite();
       return {
         success: true,
         data: tryParseJson(result.stdout),
@@ -69,6 +74,7 @@ export class WriteService {
   ): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.comments.add(issueId, req);
+      await this.syncAfterWrite();
       return {
         success: true,
         data: tryParseJson(result.stdout),
@@ -80,6 +86,7 @@ export class WriteService {
   async addDependency(req: CreateDependencyRequest): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.dependencies.add(req);
+      await this.syncAfterWrite();
       return {
         success: true,
         data: tryParseJson(result.stdout),
@@ -94,12 +101,26 @@ export class WriteService {
   ): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.dependencies.remove(issueId, dependsOnId);
+      await this.syncAfterWrite();
       return {
         success: true,
         data: tryParseJson(result.stdout),
         invalidationHints: result.hints,
       };
     });
+  }
+
+  /**
+   * Sync the read replica after a successful write.
+   * Non-fatal: log errors but don't fail the write response.
+   */
+  private async syncAfterWrite(): Promise<void> {
+    if (!this.onAfterWrite) return;
+    try {
+      await this.onAfterWrite();
+    } catch (err) {
+      console.error("[write-service] Post-write replica sync failed:", err);
+    }
   }
 
   get pendingWrites(): number {
