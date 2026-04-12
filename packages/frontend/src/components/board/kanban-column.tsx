@@ -52,8 +52,13 @@ export const KanbanColumn = memo(function KanbanColumn({
         aria-label={`${status} issues`}
       >
         <SortableContext items={issueIds} strategy={verticalListSortingStrategy}>
-          {issues.map((issue) => (
-            <div key={issue.id} role="listitem">
+          {issues.map((issue, index) => (
+            <div
+              key={issue.id}
+              role="listitem"
+              className="animate-fade-up [animation-fill-mode:backwards]"
+              style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
+            >
               <KanbanCard issue={issue} onClick={onCardClick} />
             </div>
           ))}

@@ -276,7 +276,7 @@ function DetailViewContent({ id }: { id: string }) {
 
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
+        <div className="max-w-4xl mx-auto px-6 py-6 space-y-8 [&>section]:animate-fade-up [&>section]:[animation-fill-mode:backwards] [&>section:nth-child(2)]:[animation-delay:80ms] [&>section:nth-child(3)]:[animation-delay:160ms] [&>section:nth-child(4)]:[animation-delay:240ms]">
           {/* Metadata fields */}
           <section>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">

@@ -129,10 +129,12 @@ export function IssueTable({
               className={cn(
                 "border-b border-border cursor-pointer transition-colors",
                 "hover:bg-accent/50",
+                "animate-fade-up [animation-fill-mode:backwards]",
                 index === activeRowIndex && "bg-accent",
                 highlightedIds?.has(row.original.id) &&
                   "ring-2 ring-inset ring-green-500/50 bg-green-50 dark:bg-green-950/20",
               )}
+              style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
               data-row-index={index}
               aria-selected={index === activeRowIndex}
             >
