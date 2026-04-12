@@ -222,7 +222,7 @@ function DetailViewContent({ id }: { id: string }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header bar */}
-      <div className="shrink-0 border-b border-border px-6 py-4">
+      <div className="shrink-0 bg-muted/30 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {/* Breadcrumb */}
@@ -514,7 +514,7 @@ function LabelEditor({
 function DetailSkeleton() {
   return (
     <div className="flex flex-col h-full animate-pulse">
-      <div className="shrink-0 border-b border-border px-6 py-4 space-y-3">
+      <div className="shrink-0 bg-muted/30 px-6 py-4 space-y-3">
         <div className="h-5 bg-muted rounded w-48" />
         <div className="h-8 bg-muted rounded w-96" />
       </div>

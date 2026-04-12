@@ -308,7 +308,7 @@ export function ListView() {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="shrink-0 border-b border-border px-4 py-3 space-y-2">
+      <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
         <div className="flex items-start justify-between gap-4">
           <FilterBar
             filters={filters}
@@ -326,7 +326,7 @@ export function ListView() {
       </div>
 
       {/* Quick-add */}
-      <div className="shrink-0 border-b border-border px-4 py-2">
+      <div className="shrink-0 bg-muted/20 px-4 py-2">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm">+</span>
           <input

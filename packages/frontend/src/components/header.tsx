@@ -5,7 +5,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border px-4">
+    <header className="flex h-14 items-center justify-between bg-muted/30 px-4">
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">
           Press{" "}

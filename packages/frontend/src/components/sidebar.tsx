@@ -43,9 +43,9 @@ const navItems: { to: string; label: string; shortcut: string; icon: ReactNode }
 
 export function Sidebar() {
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-muted/40">
-      <div className="flex h-14 items-center border-b border-border px-4">
-        <span className="text-lg font-semibold">Beads</span>
+    <aside className="flex w-56 shrink-0 flex-col bg-muted/50">
+      <div className="flex h-14 items-center px-4">
+        <span className="text-lg font-semibold tracking-tight">Beads</span>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-2">
         {navItems.map((item) => (
