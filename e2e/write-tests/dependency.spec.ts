@@ -1,10 +1,30 @@
 import { test, expect, navigateToIssue, expectToast } from "./fixtures";
 
+const API_BASE = "http://127.0.0.1:3456";
+
+// Original seed dependencies for this issue — anything else was added by prior test runs
+const ORIGINAL_DEPS = new Set([
+  "sample-project-6kq:sample-project-elb",
+  "sample-project-v0r:sample-project-6kq",
+  "sample-project-z4g:sample-project-6kq",
+]);
+
 test.describe("Dependency Management", () => {
   // Use an issue that has existing dependencies
   const ISSUE_WITH_DEPS = "sample-project-6kq"; // Has deps: blocked by elb, blocks v0r/z4g
 
   test("add dependency via autocomplete search", async ({ seededPage: page }) => {
+    // Remove extra dependencies accumulated from prior test runs
+    const resp = await page.request.get(`${API_BASE}/api/issues/${ISSUE_WITH_DEPS}/dependencies`);
+    const deps: Array<{ issue_id: string; depends_on_id: string }> = await resp.json();
+    for (const dep of deps) {
+      const key = `${dep.issue_id}:${dep.depends_on_id}`;
+      if (!ORIGINAL_DEPS.has(key)) {
+        await page.request.delete(`${API_BASE}/api/dependencies/${dep.issue_id}/${dep.depends_on_id}`);
+      }
+    }
+    await page.waitForTimeout(3_000);
+
     await navigateToIssue(page, ISSUE_WITH_DEPS);
 
     // Scroll to dependencies section

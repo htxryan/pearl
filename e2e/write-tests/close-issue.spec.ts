@@ -1,10 +1,17 @@
 import { test, expect, navigateToIssue } from "./fixtures";
 
+const API_BASE = "http://127.0.0.1:3456";
+
 test.describe("Close Issue", () => {
   // Use an open issue that we can close — P3 task with no critical dependencies
   const CLOSEABLE_ISSUE_ID = "sample-project-7v4"; // "Dark mode support" - open, P3, feature
 
   test("close button shows confirmation dialog", async ({ seededPage: page }) => {
+    // Reopen issue if closed by a prior test run
+    await page.request.patch(`${API_BASE}/api/issues/${CLOSEABLE_ISSUE_ID}`, {
+      data: { status: "open" },
+    });
+    await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
     const closeBtn = page.getByRole("button", { name: "Close" }).first();
@@ -19,6 +26,11 @@ test.describe("Close Issue", () => {
   });
 
   test("cancel on confirmation dialog does not close issue", async ({ seededPage: page }) => {
+    // Reopen issue if closed by a prior test run
+    await page.request.patch(`${API_BASE}/api/issues/${CLOSEABLE_ISSUE_ID}`, {
+      data: { status: "open" },
+    });
+    await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
     const closeBtn = page.getByRole("button", { name: "Close" }).first();
@@ -38,6 +50,11 @@ test.describe("Close Issue", () => {
   });
 
   test("confirming close navigates back to list", async ({ seededPage: page }) => {
+    // Reopen issue if closed by a prior test run
+    await page.request.patch(`${API_BASE}/api/issues/${CLOSEABLE_ISSUE_ID}`, {
+      data: { status: "open" },
+    });
+    await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
     const closeBtn = page.getByRole("button", { name: "Close" }).first();

@@ -11,8 +11,11 @@ test.describe("Comments", () => {
     await commentsHeading.scrollIntoViewIfNeeded();
     await expect(commentsHeading).toBeVisible({ timeout: 15_000 });
 
-    // Should show comment count
-    await expect(commentsHeading).toContainText("2");
+    // Should show comment count (at least the seed comments; may grow from prior test runs)
+    const headingText = await commentsHeading.textContent();
+    const match = headingText!.match(/\((\d+)\)/);
+    expect(match).toBeTruthy();
+    expect(Number(match![1])).toBeGreaterThanOrEqual(2);
 
     // Comment text should be visible
     await expect(page.getByText(/empty email throws TypeError/i)).toBeVisible();
