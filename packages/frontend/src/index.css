@@ -34,6 +34,13 @@
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
 
+  /* Elevation shadow system (5 levels) */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-3: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-4: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+
   /* Semantic spacing scale (geometric: each step ~1.5x previous) */
   --spacing-compact: 0.5rem;   /* 8px — tight lists, inline elements */
   --spacing-default: 1rem;     /* 16px — standard element spacing */
@@ -99,18 +106,25 @@ code, kbd, pre, .font-mono {
 }
 
 /* Dark mode shadow refinement — use border glow instead of invisible shadows */
-.dark .shadow-sm {
+.dark .shadow-sm, .dark [style*="--shadow-1"] {
   box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
-.dark .shadow-md {
+.dark .shadow-md, .dark [style*="--shadow-2"] {
   box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
-.dark .shadow-lg {
+.dark .shadow-lg, .dark [style*="--shadow-3"] {
   box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6);
 }
-.dark .shadow-2xl {
+.dark .shadow-2xl, .dark [style*="--shadow-4"] {
   box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7);
 }
+
+/* Elevation utility classes */
+.elevation-0 { box-shadow: var(--shadow-0); }
+.elevation-1 { box-shadow: var(--shadow-1); }
+.elevation-2 { box-shadow: var(--shadow-2); }
+.elevation-3 { box-shadow: var(--shadow-3); }
+.elevation-4 { box-shadow: var(--shadow-4); }
 
 /* Focus ring animation */
 @keyframes focus-ring-appear {
