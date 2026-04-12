@@ -21,26 +21,33 @@ export async function createServer(config: Config) {
     },
   });
 
+  const isEmbedded = config.doltMode === "embedded";
+  const isServerMode = config.doltMode === "server";
+
   // ─── Dolt SQL Server Lifecycle ─────────────────────────
   // In embedded mode, the SQL server runs on the REPLICA (not primary).
   // bd CLI writes to primary; replica is synced after each write.
-  const isEmbedded = config.doltMode === "embedded";
-  const serverDbPath = isEmbedded ? config.replicaPath : undefined;
-  const doltManager = new DoltServerManager(config, serverDbPath);
+  // In server mode, no subprocess — we connect to an external Dolt server.
+  let doltManager: DoltServerManager | null = null;
   let initialStartupDone = false;
 
-  doltManager.onStateChange(async (state) => {
-    app.log.info(`[dolt] Server state: ${state}`);
-    if (state === "running" && initialStartupDone) {
-      // Recovery path only — initial pool creation handled in startup()
-      app.log.info("Dolt server recovered, recreating connection pool...");
-      await destroyPool();
-      createDoltPool(config);
-    }
-  });
+  if (!isServerMode) {
+    const serverDbPath = isEmbedded ? config.replicaPath : undefined;
+    doltManager = new DoltServerManager(config, serverDbPath);
+
+    doltManager.onStateChange(async (state) => {
+      app.log.info(`[dolt] Server state: ${state}`);
+      if (state === "running" && initialStartupDone) {
+        // Recovery path only — initial pool creation handled in startup()
+        app.log.info("Dolt server recovered, recreating connection pool...");
+        await destroyPool();
+        createDoltPool(config);
+      }
+    });
+  }
 
   // ─── Connection Pool ──────────────────────────────────
-  // Pool is created after Dolt server starts
+  // Pool is created after Dolt server starts (embedded) or immediately (server mode)
 
   // ─── Write Service ────────────────────────────────────
   // In embedded mode, sync the replica after each write:
@@ -49,6 +56,9 @@ export async function createServer(config: Config) {
   // The sync barrier (beginSync/endSync) makes concurrent reads wait
   // instead of failing immediately while the server is restarting.
   // Recovery logic ensures the server is always restarted, even on errors.
+  //
+  // In server mode, writes go through bd CLI which writes to the external
+  // server directly — no sync hook needed.
   const SYNC_TIMEOUT_MS = 30_000;
 
   const onAfterWrite = isEmbedded
@@ -58,12 +68,12 @@ export async function createServer(config: Config) {
         beginSync();
         try {
           await destroyPool();
-          await doltManager.stop();
+          await doltManager!.stop();
 
           // Guard against cp or start() hanging indefinitely (P2)
           const syncOp = async () => {
             await syncReplica(config.doltDbPath, config.replicaPath);
-            await doltManager.start();
+            await doltManager!.start();
           };
           const timeout = new Promise<never>((_, reject) =>
             setTimeout(
@@ -73,7 +83,7 @@ export async function createServer(config: Config) {
           );
           await Promise.race([syncOp(), timeout]);
 
-          if (doltManager.getState() === "running") {
+          if (doltManager!.getState() === "running") {
             createDoltPool(config);
           }
           app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
@@ -82,10 +92,10 @@ export async function createServer(config: Config) {
           // don't stay permanently broken (P0).
           app.log.error({ err }, "[replica] Sync failed, attempting recovery...");
           try {
-            if (doltManager.getState() !== "running") {
-              await doltManager.start();
+            if (doltManager!.getState() !== "running") {
+              await doltManager!.start();
             }
-            if (doltManager.getState() === "running") {
+            if (doltManager!.getState() === "running") {
               createDoltPool(config);
               app.log.info("[replica] Recovery successful");
             }
@@ -162,29 +172,38 @@ export async function createServer(config: Config) {
   registerIssueRoutes(app, config, writeService);
   registerDependencyRoutes(app, config, writeService);
   registerStatsRoutes(app, config);
-  registerHealthRoutes(app, doltManager);
+  registerHealthRoutes(app, doltManager, config);
 
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {
-    app.log.info(`Starting Dolt SQL server on port ${config.doltPort}...`);
-    app.log.info(`Database path: ${config.doltDbPath}`);
-
-    // In embedded mode, create the replica before starting the SQL server
-    if (isEmbedded) {
-      app.log.info(`[replica] Creating replica at ${config.replicaPath}...`);
-      await createReplica(config.doltDbPath, config.replicaPath);
-      app.log.info(`[replica] Replica created, starting SQL server on replica`);
-    }
-
-    await doltManager.start();
-
-    if (doltManager.getState() === "running") {
-      app.log.info("Dolt SQL server is running, creating connection pool...");
-      createDoltPool(config);
-    } else {
-      app.log.warn(
-        "Dolt SQL server failed to start — running in degraded mode"
+    if (isServerMode) {
+      // Server mode: connect directly to external Dolt SQL server
+      app.log.info(
+        `Connecting to external Dolt SQL server at ${config.doltHost}:${config.doltPort}...`
       );
+      createDoltPool(config);
+      app.log.info("Connection pool created for external Dolt server");
+    } else {
+      // Embedded mode: manage our own Dolt SQL server process
+      app.log.info(`Starting Dolt SQL server on port ${config.doltPort}...`);
+      app.log.info(`Database path: ${config.doltDbPath}`);
+
+      if (isEmbedded) {
+        app.log.info(`[replica] Creating replica at ${config.replicaPath}...`);
+        await createReplica(config.doltDbPath, config.replicaPath);
+        app.log.info(`[replica] Replica created, starting SQL server on replica`);
+      }
+
+      await doltManager!.start();
+
+      if (doltManager!.getState() === "running") {
+        app.log.info("Dolt SQL server is running, creating connection pool...");
+        createDoltPool(config);
+      } else {
+        app.log.warn(
+          "Dolt SQL server failed to start — running in degraded mode"
+        );
+      }
     }
 
     initialStartupDone = true;
@@ -193,7 +212,10 @@ export async function createServer(config: Config) {
   const shutdown = async () => {
     app.log.info("Shutting down...");
     await destroyPool();
-    await doltManager.stop();
+
+    if (doltManager) {
+      await doltManager.stop();
+    }
 
     // In embedded mode, clean up the replica directory
     if (isEmbedded) {
