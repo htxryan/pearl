@@ -12,6 +12,7 @@ const sharedWebServer = [
     cwd: "./sample-project",
     env: {
       BEADS_DB_PATH: resolve("sample-project/.beads/embeddeddolt/sample_project"),
+      DOLT_DATABASE: "sample_project",
     },
     stdout: "pipe" as const,
     stderr: "pipe" as const,
