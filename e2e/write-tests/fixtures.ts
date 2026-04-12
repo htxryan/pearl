@@ -52,8 +52,28 @@ export async function navigateToFirstIssue(page: Page): Promise<string> {
 
 /**
  * Navigate to a specific issue's detail view by its ID.
+ * Retries on transient Dolt connection errors (ECONNREFUSED) that can occur
+ * after write operations temporarily disrupt the embedded SQL server.
  */
 export async function navigateToIssue(page: Page, id: string): Promise<void> {
+  const maxRetries = 3;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    await page.goto(`/issues/${id}`);
+    const breadcrumb = page.getByLabel("Breadcrumb");
+    const errorText = page.getByText("Issue not found");
+    const result = await Promise.race([
+      breadcrumb.waitFor({ state: "visible", timeout: 15_000 }).then(() => "ok" as const),
+      errorText.waitFor({ state: "visible", timeout: 15_000 }).then(() => "error" as const),
+    ]).catch(() => "timeout" as const);
+
+    if (result === "ok") return;
+
+    if (attempt < maxRetries) {
+      // Wait for Dolt to recover before retrying
+      await page.waitForTimeout(3_000);
+    }
+  }
+  // Final attempt — assert normally so Playwright reports the actual failure
   await page.goto(`/issues/${id}`);
   await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
 }
