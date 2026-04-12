@@ -126,7 +126,7 @@ export function CommandPalette() {
                   key={issue.id}
                   value={`${issue.id} ${issue.title}`}
                   onSelect={() => handleIssueSelect(issue.id)}
-                  className="flex cursor-pointer items-center gap-2 rounded-[var(--radius)] px-2 py-2 text-sm aria-selected:bg-accent aria-selected:text-accent-foreground"
+                  className="flex cursor-pointer items-center gap-2 rounded-[var(--radius)] px-2 py-2 text-sm transition-colors duration-100 aria-selected:bg-accent aria-selected:text-accent-foreground"
                 >
                   <PriorityIndicator priority={issue.priority} />
                   <StatusBadge status={issue.status} />
@@ -160,7 +160,7 @@ export function CommandPalette() {
                     closeCommandPalette();
                     action.handler();
                   }}
-                  className="flex cursor-pointer items-center justify-between rounded-[var(--radius)] px-2 py-2 text-sm aria-selected:bg-accent aria-selected:text-accent-foreground"
+                  className="flex cursor-pointer items-center justify-between rounded-[var(--radius)] px-2 py-2 text-sm transition-colors duration-100 aria-selected:bg-accent aria-selected:text-accent-foreground"
                 >
                   <span>{action.label}</span>
                   {action.shortcut && (

@@ -54,8 +54,9 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
       }}
       className={cn(
         "group cursor-grab rounded-lg border border-border bg-background p-3 shadow-sm",
-        "hover:border-ring hover:shadow-md transition-all duration-150",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "hover:border-ring hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 ease-out",
+        "active:scale-[0.98] active:transition-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isDragging && "opacity-30",
       )}
     >
