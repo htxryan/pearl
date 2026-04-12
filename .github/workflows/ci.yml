@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, "feat/*"]
+    branches: [main, "feat/**"]
   pull_request:
     branches: [main]
 
@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -53,7 +53,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
 
       - name: Restore workspace
         uses: actions/cache/restore@v4
@@ -63,6 +63,7 @@ jobs:
             packages/*/node_modules
             packages/shared/dist
           key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
 
       - run: pnpm typecheck
 
@@ -79,7 +80,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
 
       - name: Restore workspace
         uses: actions/cache/restore@v4
@@ -89,6 +90,7 @@ jobs:
             packages/*/node_modules
             packages/shared/dist
           key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
 
       - run: pnpm test
 
@@ -105,7 +107,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
 
       - name: Restore workspace
         uses: actions/cache/restore@v4
@@ -115,5 +117,6 @@ jobs:
             packages/*/node_modules
             packages/shared/dist
           key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
 
       - run: pnpm build
