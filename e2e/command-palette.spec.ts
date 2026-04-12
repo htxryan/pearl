@@ -8,6 +8,8 @@ test.describe("Command Palette", () => {
   });
 
   test("closes with Escape", async ({ seededPage: page }) => {
+    // Ensure page is fully settled before triggering keyboard shortcut
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Meta+k");
     const input = page.getByPlaceholder("Search issues or type a command...");
     await expect(input).toBeVisible({ timeout: 5_000 });
