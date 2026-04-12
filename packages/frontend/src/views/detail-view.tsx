@@ -129,7 +129,7 @@ function DetailViewContent({ id }: { id: string }) {
         },
       },
     );
-  }, [id, issue, closeMutation.mutate, navigate, undo, toast]);
+  }, [id, issue, closeMutation.mutate, navigate, backPath, undo, toast]);
 
   // Claim handler
   const handleClaim = useCallback(() => {
@@ -163,7 +163,7 @@ function DetailViewContent({ id }: { id: string }) {
         description: "Close detail panel",
       },
     ],
-    [navigate, isDirty],
+    [navigate, isDirty, backPath],
   );
 
   useKeyboardScope("detail", keyBindings);
@@ -193,7 +193,7 @@ function DetailViewContent({ id }: { id: string }) {
         handler: handleClaim,
       },
     ],
-    [navigate, handleClaim, isDirty],
+    [navigate, handleClaim, isDirty, backPath],
   );
 
   useCommandPaletteActions("detail-view", paletteActions);

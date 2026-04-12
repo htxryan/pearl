@@ -18,7 +18,6 @@ function ToastItem({ toast }: { toast: Toast }) {
   return (
     <div
       role="status"
-      aria-live="polite"
       className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg backdrop-blur-sm animate-in slide-in-from-right-full duration-200 ${variantStyles[toast.variant]}`}
     >
       <span className="shrink-0 text-sm font-medium">{iconMap[toast.variant]}</span>

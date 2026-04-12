@@ -177,7 +177,12 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
                 addToast({ message: `Removed view "${preset.name}"`, variant: "info" });
               }}
               onKeyDown={(e) => {
-                if (e.key === "Enter") { e.stopPropagation(); removePreset(preset.id); }
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  removePreset(preset.id);
+                  addToast({ message: `Removed view "${preset.name}"`, variant: "info" });
+                }
               }}
               className="hidden group-hover:inline ml-0.5 text-muted-foreground hover:text-destructive"
               aria-label={`Remove preset ${preset.name}`}

@@ -96,7 +96,7 @@ export function CommandPalette() {
       <Command
         className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
         loop
-        shouldFilter={!search.trim() || issues.length === 0}
+        shouldFilter={false}
       >
         <Command.Input
           ref={inputRef}
@@ -140,13 +140,19 @@ export function CommandPalette() {
           )}
 
           {/* Command groups */}
-          {[...groups.entries()].map(([group, groupActions]) => (
+          {[...groups.entries()].map(([group, groupActions]) => {
+            const searchLower = search.trim().toLowerCase();
+            const filtered = searchLower
+              ? groupActions.filter((a) => a.label.toLowerCase().includes(searchLower))
+              : groupActions;
+            if (filtered.length === 0) return null;
+            return (
             <Command.Group
               key={group}
               heading={group}
               className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
             >
-              {groupActions.map((action) => (
+              {filtered.map((action) => (
                 <Command.Item
                   key={action.id}
                   value={action.label}
@@ -165,7 +171,8 @@ export function CommandPalette() {
                 </Command.Item>
               ))}
             </Command.Group>
-          ))}
+            );
+          })}
         </Command.List>
       </Command>
     </div>

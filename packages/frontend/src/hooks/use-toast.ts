@@ -60,6 +60,15 @@ export function dismissToast(id: string) {
   notify();
 }
 
+export function __resetForTesting() {
+  for (const timer of timers.values()) clearTimeout(timer);
+  timers.clear();
+  toasts = [];
+  version = 0;
+  listeners.clear();
+  idCounter = 0;
+}
+
 // ─── Hook ──────────────────────────────────────────────
 export function useToasts(): Toast[] {
   return useSyncExternalStore(subscribe, getSnapshot);

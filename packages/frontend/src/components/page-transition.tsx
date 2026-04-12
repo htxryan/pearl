@@ -10,11 +10,11 @@ export function PageTransition({ children }: PageTransitionProps) {
   const [displayedChildren, setDisplayedChildren] = useState(children);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const prevPathRef = useRef(location.pathname);
+  const childrenRef = useRef(children);
+  childrenRef.current = children;
 
   useEffect(() => {
     if (location.pathname === prevPathRef.current) {
-      // Same path (search param changes, etc.) — update immediately
-      setDisplayedChildren(children);
       return;
     }
 
@@ -23,19 +23,19 @@ export function PageTransition({ children }: PageTransitionProps) {
 
     // Short fade-out, then swap content and fade-in
     const timer = setTimeout(() => {
-      setDisplayedChildren(children);
+      setDisplayedChildren(childrenRef.current);
       setIsTransitioning(false);
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [location.pathname, children]);
+  }, [location.pathname]);
 
   return (
     <div
       className={`page-transition ${isTransitioning ? "page-transition-exit" : "page-transition-enter"}`}
       style={{ height: "100%", width: "100%" }}
     >
-      {displayedChildren}
+      {isTransitioning ? displayedChildren : children}
     </div>
   );
 }

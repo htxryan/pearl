@@ -64,6 +64,13 @@ export async function undoLast(): Promise<void> {
   await performUndo(history[0].id);
 }
 
+export function __resetForTesting() {
+  history = [];
+  version = 0;
+  listeners.clear();
+  entryCounter = 0;
+}
+
 // ─── Hook ──────────────────────────────────────────────
 export function useUndoHistory(): UndoEntry[] {
   return useSyncExternalStore(subscribe, () => history);
