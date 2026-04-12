@@ -51,7 +51,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
   const handleTimestampClick = useCallback((eventId: string) => {
     const anchor = `#event-${eventId}`;
     const url = `${window.location.pathname}${window.location.search}${anchor}`;
-    navigator.clipboard.writeText(window.location.origin + url).catch(() => {
+    navigator.clipboard?.writeText(window.location.origin + url).catch(() => {
       // Fallback: update the URL hash so the link is at least visible
     });
     window.location.hash = `event-${eventId}`;
@@ -148,7 +148,10 @@ function describeEvent(event: Event): string {
     case "assignee_change":
       return `changed assignee from ${formatValue(old_value)} to ${formatValue(new_value)}`;
     case "title_change":
-      return `changed title from "${formatValue(old_value)}" to "${formatValue(new_value)}"`;
+      if (old_value && new_value) return `changed title from "${formatValue(old_value)}" to "${formatValue(new_value)}"`;
+      if (new_value) return `changed title to "${formatValue(new_value)}"`;
+      if (old_value) return `changed title (was "${formatValue(old_value)}")`;
+      return `changed title`;
 
     case "description_change":
       return `updated description`;

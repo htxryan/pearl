@@ -142,6 +142,18 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">
             Comments ({comments.length})
           </h3>
+          {comments.length > 5 && (
+            <p className="text-xs text-muted-foreground mb-2">
+              Showing last 5 of {comments.length} comments.{" "}
+              <button
+                type="button"
+                onClick={() => navigate(`/issues/${issueId}`, { state: { from: "/list" } })}
+                className="underline hover:text-foreground"
+              >
+                View all
+              </button>
+            </p>
+          )}
           {comments.length > 0 && (
             <div className="space-y-2 mb-2">
               {comments.slice(-5).map((c) => (

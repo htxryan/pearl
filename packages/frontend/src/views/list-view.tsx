@@ -108,22 +108,34 @@ export function ListView() {
 
   // Build expanded list with inline children
   const tableIssues = useMemo(() => {
+    // In default mode, collect children of expanded epics so we can skip them
+    // at their original position and re-insert them directly after their epic
+    const expandedChildIds = new Set<string>();
+    if (!topLevelOnly) {
+      for (const epicId of expandedEpics) {
+        const progress = epicProgress.get(epicId);
+        if (progress) {
+          for (const childId of progress.childIds) expandedChildIds.add(childId);
+        }
+      }
+    }
+
     const result: IssueListItem[] = [];
     for (const issue of displayIssues) {
+      // Skip children that will be inserted after their expanded epic
+      if (expandedChildIds.has(issue.id)) continue;
+
       result.push(issue);
       // If this epic is expanded, insert its children right after
       if (expandedEpics.has(issue.id)) {
         const progress = epicProgress.get(issue.id);
         if (progress) {
           const childItems = issues.filter((i) => progress.childIds.includes(i.id));
-          result.push(...childItems.filter((c) => !displayIssues.includes(c) || topLevelOnly));
-          if (!topLevelOnly) {
-            // Children are already in list, no need to add duplicates
-          }
+          result.push(...childItems);
         }
       }
     }
-    return topLevelOnly ? result : displayIssues;
+    return result;
   }, [displayIssues, expandedEpics, epicProgress, issues, topLevelOnly]);
 
   // Mutations
@@ -347,10 +359,8 @@ export function ListView() {
     [handleStatusChange, handlePriorityChange, epicProgress, expandedEpics, handleToggleExpand],
   );
 
-  const effectiveIssues = topLevelOnly ? tableIssues : displayIssues;
-
   const table = useReactTable({
-    data: effectiveIssues,
+    data: tableIssues,
     columns,
     state: {
       sorting,
