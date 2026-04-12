@@ -24,6 +24,7 @@ import { CommentThread } from "@/components/detail/comment-thread";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
+import { RelativeTime } from "@/components/ui/relative-time";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 
@@ -319,19 +320,15 @@ function DetailViewContent({ id }: { id: string }) {
               </FieldRow>
               <FieldRow label="Created">
                 <span className="text-sm text-muted-foreground">
-                  {formatDate(issue.created_at)} by {issue.created_by}
+                  <RelativeTime iso={issue.created_at} /> by {issue.created_by}
                 </span>
               </FieldRow>
               <FieldRow label="Updated">
-                <span className="text-sm text-muted-foreground">
-                  {formatDate(issue.updated_at)}
-                </span>
+                <RelativeTime iso={issue.updated_at} className="text-sm text-muted-foreground" />
               </FieldRow>
               {issue.closed_at && (
                 <FieldRow label="Closed">
-                  <span className="text-sm text-muted-foreground">
-                    {formatDate(issue.closed_at)}
-                  </span>
+                  <RelativeTime iso={issue.closed_at} className="text-sm text-muted-foreground" />
                 </FieldRow>
               )}
             </div>
@@ -520,17 +517,6 @@ function DetailSkeleton() {
 }
 
 // ─── Utility Functions ─────────────────────────────────
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function statusLabel(status: IssueStatus): string {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Comment } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
-import { formatRelativeTime } from "@/lib/utils";
+import { RelativeTime } from "@/components/ui/relative-time";
 
 interface CommentThreadProps {
   comments: Comment[];
@@ -44,9 +44,7 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium">{comment.author}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatRelativeTime(comment.created_at)}
-                </span>
+                <RelativeTime iso={comment.created_at} className="text-xs text-muted-foreground" />
               </div>
               <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
             </div>

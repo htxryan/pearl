@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import type { Event } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
-import { formatRelativeTime } from "@/lib/utils";
+import { RelativeTime } from "@/components/ui/relative-time";
 
 interface ActivityTimelineProps {
   events: Event[];
@@ -48,9 +48,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
                     {event.comment}
                   </p>
                 )}
-                <span className="text-xs text-muted-foreground">
-                  {formatRelativeTime(event.created_at)}
-                </span>
+                <RelativeTime iso={event.created_at} className="text-xs text-muted-foreground" />
               </div>
             </div>
           ))}

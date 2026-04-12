@@ -3,6 +3,7 @@ import type { IssueListItem, IssueStatus, Priority } from "@beads-gui/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { RelativeTime } from "@/components/ui/relative-time";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -133,7 +134,7 @@ export function buildColumns({
     col.accessor("created_at", {
       header: "Created",
       cell: (info) => (
-        <span className="text-xs text-muted-foreground">{formatDate(info.getValue())}</span>
+        <RelativeTime iso={info.getValue()} className="text-xs text-muted-foreground" />
       ),
       size: 90,
     }),
