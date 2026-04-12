@@ -63,17 +63,21 @@ export async function createServer(config: Config) {
 
   const onAfterWrite = isEmbedded
     ? async () => {
+        // doltManager is guaranteed non-null when isEmbedded is true
+        // (set in the `if (!isServerMode)` block above).
+        const manager = doltManager!;
+
         app.log.info("[replica] Syncing replica after write...");
         const start = Date.now();
         beginSync();
         try {
           await destroyPool();
-          await doltManager!.stop();
+          await manager.stop();
 
           // Guard against cp or start() hanging indefinitely (P2)
           const syncOp = async () => {
             await syncReplica(config.doltDbPath, config.replicaPath);
-            await doltManager!.start();
+            await manager.start();
           };
           const timeout = new Promise<never>((_, reject) =>
             setTimeout(
@@ -83,7 +87,7 @@ export async function createServer(config: Config) {
           );
           await Promise.race([syncOp(), timeout]);
 
-          if (doltManager!.getState() === "running") {
+          if (manager.getState() === "running") {
             createDoltPool(config);
           }
           app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
@@ -92,10 +96,10 @@ export async function createServer(config: Config) {
           // don't stay permanently broken (P0).
           app.log.error({ err }, "[replica] Sync failed, attempting recovery...");
           try {
-            if (doltManager!.getState() !== "running") {
-              await doltManager!.start();
+            if (manager.getState() !== "running") {
+              await manager.start();
             }
-            if (doltManager!.getState() === "running") {
+            if (manager.getState() === "running") {
               createDoltPool(config);
               app.log.info("[replica] Recovery successful");
             }

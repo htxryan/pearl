@@ -122,15 +122,9 @@ describe("loadConfig", () => {
       delete process.env.DOLT_HOST;
     });
 
-    it("warns and falls back to 127.0.0.1 when server mode has no host", () => {
+    it("throws when server mode has no host configured", () => {
       mockMetadata({ dolt_mode: "server" });
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const config = loadConfig();
-      expect(config.doltHost).toBe("127.0.0.1");
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("no dolt_host configured")
-      );
-      warnSpy.mockRestore();
+      expect(() => loadConfig()).toThrow("no dolt_host configured");
     });
 
     it("does not derive replicaPath in server mode", () => {

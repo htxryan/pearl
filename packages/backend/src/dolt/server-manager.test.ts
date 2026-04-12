@@ -20,6 +20,7 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
     poolSize: 5,
     doltUser: "root",
     doltPassword: "",
+    doltDatabase: "beads_gui",
     ...overrides,
   };
 }

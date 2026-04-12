@@ -36,6 +36,8 @@ export interface Config {
   doltUser: string;
   /** Dolt SQL password (default: "") */
   doltPassword: string;
+  /** Dolt database name (server mode: from metadata; embedded: from path) */
+  doltDatabase: string;
 }
 
 export function loadConfig(): Config {
@@ -54,12 +56,10 @@ export function loadConfig(): Config {
   if (doltMode === "server") {
     doltHost = process.env.DOLT_HOST || metadata?.dolt_host || "";
     if (!doltHost) {
-      console.warn(
-        "Warning: dolt_mode is 'server' but no dolt_host configured. " +
-          "Set DOLT_HOST env var or dolt_host in .beads/metadata.json. " +
-          "Falling back to 127.0.0.1."
+      throw new Error(
+        "dolt_mode is 'server' but no dolt_host configured. " +
+          "Set DOLT_HOST env var or dolt_host in .beads/metadata.json."
       );
-      doltHost = "127.0.0.1";
     }
   } else {
     doltHost = "127.0.0.1";
@@ -76,6 +76,13 @@ export function loadConfig(): Config {
     const dbName = basename(doltDbPath) || "beads_gui";
     replicaPath = resolve(dirname(doltDbPath), "..", "__replica__", dbName);
   }
+
+  // Database name: in server mode, prefer explicit metadata; in embedded, derive from path
+  const doltDatabase =
+    process.env.DOLT_DATABASE ||
+    metadata?.dolt_database ||
+    basename(doltDbPath) ||
+    "beads_gui";
 
   return {
     host: "127.0.0.1",
@@ -94,6 +101,7 @@ export function loadConfig(): Config {
     poolSize: 5,
     doltUser: process.env.DOLT_USER || "root",
     doltPassword: process.env.DOLT_PASSWORD || "",
+    doltDatabase,
   };
 }
 

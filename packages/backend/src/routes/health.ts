@@ -15,7 +15,9 @@ export function registerHealthRoutes(
   app.get("/api/health", async (_request, reply) => {
     if (config.doltMode === "server") {
       // Server mode: check pool connectivity to the external Dolt server
-      return reply.code(200).send(await serverModeHealth());
+      const health = await serverModeHealth();
+      const statusCode = health.status === "healthy" ? 200 : 503;
+      return reply.code(statusCode).send(health);
     }
 
     // Embedded mode: check DoltServerManager state

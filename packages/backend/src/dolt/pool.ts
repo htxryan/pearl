@@ -1,4 +1,3 @@
-import { basename } from "node:path";
 import { createPool, type Pool, type PoolConnection } from "mysql2/promise";
 import type { Config } from "../config.js";
 import { doltUnavailableError, databaseLockedError } from "../errors.js";
@@ -55,7 +54,7 @@ export function createDoltPool(config: Config): Pool {
     port: config.doltPort,
     user: config.doltUser,
     password: config.doltPassword || undefined,
-    database: getDbName(config.doltDbPath),
+    database: config.doltDatabase,
     waitForConnections: true,
     connectionLimit: config.poolSize,
     queueLimit: 0,
@@ -143,6 +142,3 @@ function isConnectionError(err: unknown): boolean {
   );
 }
 
-function getDbName(dbPath: string): string {
-  return basename(dbPath) || "beads_gui";
-}
