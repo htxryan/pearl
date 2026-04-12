@@ -15,12 +15,22 @@ export interface IssueTableProps {
   highlightedIds?: Set<string>;
 }
 
-function SkeletonRow({ colCount }: { colCount: number }) {
+function SkeletonRow({ colCount, rowIndex }: { colCount: number; rowIndex: number }) {
   return (
-    <tr className="border-b border-border">
+    <tr className="border-b border-border" style={{ animationDelay: `${rowIndex * 80}ms` }}>
       {Array.from({ length: colCount }, (_, i) => (
         <td key={i} className="px-3 py-2.5">
-          <div className="h-4 rounded bg-muted animate-pulse" />
+          <div
+            className={cn(
+              "rounded skeleton-shimmer",
+              i === 0 ? "h-4 w-4 rounded-sm" :              // checkbox
+              i === 1 ? "h-3.5 w-20 rounded" :              // ID (short, mono)
+              i === 2 ? "h-4 w-full max-w-[240px] rounded" : // title (long)
+              i === 3 ? "h-5 w-16 rounded-full" :           // status badge
+              i === 4 ? "h-5 w-8 rounded" :                 // priority
+              "h-3.5 w-14 rounded",                          // other cols
+            )}
+          />
         </td>
       ))}
     </tr>
@@ -64,7 +74,7 @@ export function IssueTable({
           </thead>
           <tbody>
             {Array.from({ length: 8 }, (_, i) => (
-              <SkeletonRow key={i} colCount={visibleColCount} />
+              <SkeletonRow key={i} colCount={visibleColCount} rowIndex={i} />
             ))}
           </tbody>
         </table>

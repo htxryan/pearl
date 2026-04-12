@@ -533,8 +533,19 @@ function GraphSkeleton() {
       aria-label="Loading graph"
       aria-busy
     >
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-12 h-12 rounded-full border-4 border-muted border-t-foreground animate-spin" />
+      <div className="flex flex-col items-center gap-4">
+        {/* Placeholder network diagram */}
+        <svg width="200" height="120" viewBox="0 0 200 120" className="opacity-20">
+          <line x1="100" y1="20" x2="50" y2="60" stroke="currentColor" strokeWidth="2" />
+          <line x1="100" y1="20" x2="150" y2="60" stroke="currentColor" strokeWidth="2" />
+          <line x1="50" y1="60" x2="80" y2="100" stroke="currentColor" strokeWidth="2" />
+          <line x1="150" y1="60" x2="120" y2="100" stroke="currentColor" strokeWidth="2" />
+          <rect x="80" y="8" width="40" height="24" rx="4" className="skeleton-shimmer" />
+          <rect x="30" y="48" width="40" height="24" rx="4" className="skeleton-shimmer" />
+          <rect x="130" y="48" width="40" height="24" rx="4" className="skeleton-shimmer" />
+          <rect x="60" y="88" width="40" height="24" rx="4" className="skeleton-shimmer" />
+          <rect x="100" y="88" width="40" height="24" rx="4" className="skeleton-shimmer" />
+        </svg>
         <span className="text-sm text-muted-foreground">Loading dependency graph...</span>
       </div>
     </div>

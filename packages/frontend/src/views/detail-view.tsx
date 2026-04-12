@@ -513,19 +513,40 @@ function LabelEditor({
 
 function DetailSkeleton() {
   return (
-    <div className="flex flex-col h-full animate-pulse">
+    <div className="flex flex-col h-full">
+      {/* Header skeleton */}
       <div className="shrink-0 bg-muted/30 px-6 py-4 space-y-3">
-        <div className="h-5 bg-muted rounded w-48" />
-        <div className="h-8 bg-muted rounded w-96" />
+        <div className="h-4 skeleton-shimmer rounded w-32" />
+        <div className="h-7 skeleton-shimmer rounded w-80" />
       </div>
-      <div className="flex-1 p-6 space-y-6">
-        <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 bg-muted rounded w-72" />
-          ))}
+      {/* Content skeleton */}
+      <div className="flex-1 p-6 space-y-8 max-w-4xl">
+        {/* Fields grid skeleton */}
+        <div className="space-y-2">
+          <div className="h-3 skeleton-shimmer rounded w-16 mb-3" />
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="h-3 skeleton-shimmer rounded w-16" />
+                <div className="h-5 skeleton-shimmer rounded w-28" />
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="h-24 bg-muted rounded" />
-        <div className="h-16 bg-muted rounded" />
+        {/* Description skeleton */}
+        <div className="space-y-2">
+          <div className="h-3 skeleton-shimmer rounded w-24 mb-3" />
+          <div className="space-y-2">
+            <div className="h-4 skeleton-shimmer rounded w-full" />
+            <div className="h-4 skeleton-shimmer rounded w-5/6" />
+            <div className="h-4 skeleton-shimmer rounded w-3/4" />
+          </div>
+        </div>
+        {/* Activity skeleton */}
+        <div className="space-y-2">
+          <div className="h-3 skeleton-shimmer rounded w-20" />
+          <div className="h-12 skeleton-shimmer rounded" />
+        </div>
       </div>
     </div>
   );

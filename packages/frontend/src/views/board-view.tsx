@@ -296,20 +296,34 @@ export function BoardView() {
 function BoardSkeleton() {
   return (
     <div className="flex gap-4 h-full" role="status" aria-label="Loading board" aria-busy>
-      {COLUMN_ORDER.map((status) => (
+      {COLUMN_ORDER.map((status, colIdx) => (
         <div
           key={status}
           className="flex flex-col min-w-[280px] w-[280px] rounded-lg border border-border bg-muted/30"
         >
-          <div className="px-3 py-2.5 border-b border-border">
-            <div className="h-5 w-20 rounded bg-muted animate-pulse" />
+          {/* Column header skeleton */}
+          <div className="px-3 py-2.5">
+            <div className="h-5 w-20 rounded-full skeleton-shimmer" />
           </div>
+          {/* Card skeletons */}
           <div className="p-2 space-y-2">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-24 rounded-lg bg-muted animate-pulse"
-              />
+                className="rounded-lg border border-border/50 p-3 space-y-2"
+                style={{ animationDelay: `${(colIdx * 3 + i) * 60}ms` }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="h-3 w-20 rounded skeleton-shimmer" />
+                  <div className="h-4 w-6 rounded skeleton-shimmer" />
+                </div>
+                <div className="h-4 w-full rounded skeleton-shimmer" />
+                <div className="h-3.5 w-2/3 rounded skeleton-shimmer" />
+                <div className="flex items-center justify-between">
+                  <div className="h-3.5 w-10 rounded skeleton-shimmer" />
+                  <div className="h-6 w-6 rounded-full skeleton-shimmer" />
+                </div>
+              </div>
             ))}
           </div>
         </div>
