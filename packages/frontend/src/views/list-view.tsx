@@ -21,6 +21,7 @@ import * as api from "@/lib/api-client";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from "@/hooks/use-url-filters";
+import { useToastActions } from "@/hooks/use-toast";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export function ListView() {
   // Mutations
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
+  const toast = useToastActions();
 
   // Table state
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -52,7 +54,6 @@ export function ListView() {
   rowSelectionRef.current = rowSelection;
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
-  const [closeMessage, setCloseMessage] = useState<string | null>(null);
 
   // Clear highlight after 3 seconds
   useEffect(() => {
@@ -60,13 +61,6 @@ export function ListView() {
     const timer = setTimeout(() => setHighlightedIds(new Set()), 3000);
     return () => clearTimeout(timer);
   }, [highlightedIds]);
-
-  // Clear close message after 3 seconds
-  useEffect(() => {
-    if (!closeMessage) return;
-    const timer = setTimeout(() => setCloseMessage(null), 3000);
-    return () => clearTimeout(timer);
-  }, [closeMessage]);
 
   // Clamp activeRowIndex when issues list changes
   useEffect(() => {
@@ -130,9 +124,9 @@ export function ListView() {
       const failed = allResults.filter((r) => r.status === "rejected");
       const succeeded = ids.length - failed.length;
       if (failed.length > 0) {
-        setCloseMessage(`Closed ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed to close.`);
+        toast.warning(`Closed ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed to close.`);
       } else {
-        setCloseMessage(`Closed ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+        toast.success(`Closed ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
       }
 
       // Refetch issue list and highlight newly-unblocked dependents
@@ -294,9 +288,6 @@ export function ListView() {
           onClearSelection={handleClearSelection}
           isClosing={isClosing}
         />
-        {closeMessage && (
-          <div className="px-1 py-1 text-sm text-muted-foreground">{closeMessage}</div>
-        )}
       </div>
 
       {/* Table */}

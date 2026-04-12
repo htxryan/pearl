@@ -42,3 +42,13 @@ body {
     -apple-system,
     sans-serif;
 }
+
+/* Toast slide-in animation */
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-in.slide-in-from-right-full {
+  animation: slide-in-from-right 0.2s ease-out;
+}

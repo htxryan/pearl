@@ -21,6 +21,7 @@ import { useIssues, useUpdateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
+import { useToastActions } from "@/hooks/use-toast";
 
 /** Statuses that users can drag cards into */
 const DROPPABLE_STATUSES: Set<IssueStatus> = new Set([
@@ -50,6 +51,7 @@ export function BoardView() {
   // Mutation for status changes
   const updateMutation = useUpdateIssue();
   const { mutate: updateStatus } = updateMutation;
+  const toast = useToastActions();
 
   // Drag state
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -198,17 +200,11 @@ export function BoardView() {
 
   useCommandPaletteActions("board-view", paletteActions);
 
-  // Error message state
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Show mutation errors briefly via effect (not during render)
+  // Show mutation errors via toast
   useEffect(() => {
     if (!updateMutation.isError || !updateMutation.error) return;
-    const msg = updateMutation.error.message || "Failed to update status";
-    setErrorMessage(msg);
-    const timer = setTimeout(() => setErrorMessage(null), 3000);
-    return () => clearTimeout(timer);
-  }, [updateMutation.isError, updateMutation.error]);
+    toast.error(updateMutation.error.message || "Failed to update status");
+  }, [updateMutation.isError, updateMutation.error, toast]);
 
   return (
     <div className="flex flex-col h-full">
@@ -219,11 +215,6 @@ export function BoardView() {
           onChange={setFilters}
           searchInputRef={searchInputRef}
         />
-        {errorMessage && (
-          <div className="mt-2 px-1 py-1 text-sm text-red-600 dark:text-red-400">
-            {errorMessage}
-          </div>
-        )}
       </div>
 
       {/* Board */}

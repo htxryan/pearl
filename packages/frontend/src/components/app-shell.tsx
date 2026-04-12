@@ -5,6 +5,7 @@ import { Header } from "./header";
 import { CommandPalette } from "./command-palette";
 import { HealthBanner } from "./health-banner";
 import { CreateIssueDialog } from "./detail/create-issue-dialog";
+import { ToastContainer } from "./toast-container";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import {
   toggleCommandPalette,
@@ -98,6 +99,7 @@ export function AppShell() {
         isOpen={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
       />
+      <ToastContainer />
     </div>
   );
 }
