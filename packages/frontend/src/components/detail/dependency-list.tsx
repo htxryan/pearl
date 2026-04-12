@@ -46,7 +46,7 @@ export function DependencyList({
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+        <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
           Dependencies ({dependencies.length})
         </h2>
         <Button

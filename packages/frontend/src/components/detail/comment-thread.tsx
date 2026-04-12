@@ -30,7 +30,7 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
 
   return (
     <section>
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+      <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
         Comments ({comments.length})
       </h2>
 

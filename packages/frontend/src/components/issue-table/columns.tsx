@@ -57,7 +57,7 @@ export function buildColumns({
     col.accessor("id", {
       header: "ID",
       cell: (info) => (
-        <span className="font-mono text-xs text-muted-foreground">{info.getValue()}</span>
+        <code className="text-[11px] text-muted-foreground/70">{info.getValue()}</code>
       ),
       size: 140,
     }),
@@ -126,9 +126,12 @@ export function buildColumns({
     }),
     col.accessor("assignee", {
       header: "Assignee",
-      cell: (info) => (
-        <span className="text-sm truncate">{info.getValue() ?? "—"}</span>
-      ),
+      cell: (info) => {
+        const val = info.getValue();
+        return val
+          ? <span className="text-sm truncate">{val}</span>
+          : <span className="text-xs text-muted-foreground/50 italic">—</span>;
+      },
       size: 120,
     }),
     col.accessor("created_at", {
