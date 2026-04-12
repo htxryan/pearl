@@ -134,7 +134,7 @@ function computeLayout(
         width: 16,
         height: 16,
       },
-      label: dep.type === "relates_to" ? "relates" : dep.type === "parent-child" ? "child" : undefined,
+      label: dep.type === "relates_to" ? "relates" : undefined,
       labelStyle: { fontSize: 10, fill: "#888" },
     };
   });
