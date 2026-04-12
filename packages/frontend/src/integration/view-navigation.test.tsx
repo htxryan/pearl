@@ -320,7 +320,7 @@ describe("keyboard scope registration per view", () => {
     // Press Enter to open the active issue
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
   });
 
   it("BoardView registers board scope with / binding", () => {
@@ -401,7 +401,7 @@ describe("click-to-detail from views", () => {
     expect(row).toBeTruthy();
     fireEvent.click(row!);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
   });
 
   it("BoardView: clicking a card navigates to /issues/:id", () => {
@@ -411,7 +411,7 @@ describe("click-to-detail from views", () => {
     const card = screen.getByRole("button", { name: /test-001: Test Issue 1/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/board" } }));
   });
 
   it("GraphView: double-clicking a node navigates to /issues/:id", () => {
@@ -420,7 +420,7 @@ describe("click-to-detail from views", () => {
     const node = screen.getByTestId("node-test-001");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/graph" } }));
   });
 });
 

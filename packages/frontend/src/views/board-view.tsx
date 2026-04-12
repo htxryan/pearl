@@ -193,7 +193,7 @@ export function BoardView() {
   // Card click → Detail view
   const handleCardClick = useCallback(
     (id: string) => {
-      navigate(`/issues/${id}`);
+      navigate(`/issues/${id}`, { state: { from: "/board" } });
     },
     [navigate],
   );

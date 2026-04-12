@@ -338,7 +338,7 @@ describe("GraphView", () => {
 
     // Click Open detail
     fireEvent.click(screen.getByText("Open detail"));
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001", expect.objectContaining({ state: { from: "/graph" } }));
   });
 
   it("shows performance cap message when over 200 issues", () => {
@@ -383,7 +383,7 @@ describe("GraphView", () => {
     const node = screen.getByTestId("node-beads-002");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-002");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-002", expect.objectContaining({ state: { from: "/graph" } }));
   });
 
   it("deselects node when clicking the same node again", () => {

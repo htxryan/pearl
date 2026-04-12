@@ -661,7 +661,7 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Press Enter to open detail
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
   });
 
   it("Enter on second row opens correct issue", () => {
@@ -675,7 +675,7 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Press Enter
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-002");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-002", expect.objectContaining({ state: { from: "/list" } }));
   });
 
   it("1/2/3 keys switch between views (shell scope)", () => {
@@ -863,7 +863,7 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(issueRow).toBeTruthy();
     fireEvent.click(issueRow!);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
   });
 
   it("clicking second issue row navigates to correct detail", () => {
@@ -874,7 +874,7 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(issueRow).toBeTruthy();
     fireEvent.click(issueRow!);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-002");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-002", expect.objectContaining({ state: { from: "/list" } }));
   });
 
   it("DetailView renders back button that navigates to /list", () => {
@@ -892,9 +892,11 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(screen.getByText("test-001")).toBeInTheDocument();
     expect(screen.getByText("Open Issue")).toBeInTheDocument();
 
-    // Find and click the back button
-    const backButton = screen.getByTitle("Back to list (Esc)");
-    fireEvent.click(backButton);
+    // Find and click the breadcrumb back link
+    const breadcrumbNav = screen.getByRole("navigation", { name: "Breadcrumb" });
+    const backButton = breadcrumbNav.querySelector("button");
+    expect(backButton).toBeTruthy();
+    fireEvent.click(backButton!);
 
     expect(mockNavigate).toHaveBeenCalledWith("/list");
   });
@@ -939,7 +941,7 @@ describe("View composition: List -> Detail -> Back", () => {
     const card = screen.getByRole("button", { name: /test-001: Open Issue/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/board" } }));
   });
 
   it("GraphView node double-click navigates to detail", () => {
@@ -949,7 +951,7 @@ describe("View composition: List -> Detail -> Back", () => {
     const node = screen.getByTestId("node-test-001");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/graph" } }));
   });
 });
 

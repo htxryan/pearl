@@ -105,7 +105,7 @@ export function ListView() {
   // Handlers
   const handleRowClick = useCallback(
     (id: string) => {
-      navigate(`/issues/${id}`);
+      navigate(`/issues/${id}`, { state: { from: "/list" } });
     },
     [navigate],
   );

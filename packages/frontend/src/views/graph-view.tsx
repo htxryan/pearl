@@ -338,7 +338,7 @@ export function GraphView() {
   // Double-click → navigate to detail
   const handleNodeDoubleClick: NodeMouseHandler<GraphNodeType> = useCallback(
     (_event, node) => {
-      navigate(`/issues/${node.id}`);
+      navigate(`/issues/${node.id}`, { state: { from: "/graph" } });
     },
     [navigate],
   );
@@ -451,7 +451,7 @@ export function GraphView() {
             </button>
             <span className="text-border">|</span>
             <button
-              onClick={() => navigate(`/issues/${selectedNodeId}`)}
+              onClick={() => navigate(`/issues/${selectedNodeId}`, { state: { from: "/graph" } })}
               className="text-xs underline hover:text-foreground"
             >
               Open detail

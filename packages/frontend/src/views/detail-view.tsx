@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Navigate } from "react-router";
+import { useParams, useNavigate, useLocation, Navigate } from "react-router";
 import { useMemo, useCallback, useEffect, useState } from "react";
 import type { Issue, IssueStatus, Priority, IssueType } from "@beads-gui/shared";
 import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
@@ -35,8 +35,20 @@ export function DetailView() {
   return <DetailViewContent id={id} />;
 }
 
+const VIEW_LABELS: Record<string, string> = {
+  "/list": "List",
+  "/board": "Board",
+  "/graph": "Graph",
+};
+
 function DetailViewContent({ id }: { id: string }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine where the user came from for breadcrumbs
+  const fromPath = (location.state as { from?: string } | null)?.from;
+  const backPath = fromPath && VIEW_LABELS[fromPath] ? fromPath : "/list";
+  const backLabel = VIEW_LABELS[backPath] ?? "List";
 
   // Data fetching
   const { data: issue, isLoading, error } = useIssue(id);
@@ -110,7 +122,7 @@ function DetailViewContent({ id }: { id: string }) {
       {
         onSuccess: () => {
           undo.recordClose(id, issue?.title ?? id, prevStatus);
-          navigate("/list");
+          navigate(backPath);
         },
         onError: () => {
           toast.error("Failed to close issue. Please try again.");
@@ -142,10 +154,10 @@ function DetailViewContent({ id }: { id: string }) {
         handler: () => {
           if (isDirty) {
             if (window.confirm("You have unsaved changes. Discard them?")) {
-              navigate("/list");
+              navigate(backPath);
             }
           } else {
-            navigate("/list");
+            navigate(backPath);
           }
         },
         description: "Close detail panel",
@@ -167,10 +179,10 @@ function DetailViewContent({ id }: { id: string }) {
         handler: () => {
           if (isDirty) {
             if (window.confirm("You have unsaved changes. Discard them?")) {
-              navigate("/list");
+              navigate(backPath);
             }
           } else {
-            navigate("/list");
+            navigate(backPath);
           }
         },
       },
@@ -200,8 +212,8 @@ function DetailViewContent({ id }: { id: string }) {
         <p className="text-muted-foreground">
           {error?.message ?? `Could not load issue ${id}`}
         </p>
-        <Button variant="outline" onClick={() => navigate("/list")}>
-          Back to list
+        <Button variant="outline" onClick={() => navigate(backPath)}>
+          Back to {backLabel.toLowerCase()}
         </Button>
       </div>
     );
@@ -213,14 +225,17 @@ function DetailViewContent({ id }: { id: string }) {
       <div className="shrink-0 border-b border-border px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => navigate("/list")}
-              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-              title="Back to list (Esc)"
-            >
-              &larr;
-            </button>
-            <code className="shrink-0 text-sm text-muted-foreground">{issue.id}</code>
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
+              <button
+                onClick={() => navigate(backPath)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {backLabel}
+              </button>
+              <span className="text-muted-foreground">/</span>
+              <code className="text-muted-foreground">{issue.id}</code>
+            </nav>
             <StatusBadge status={issue.status} />
             <PriorityIndicator priority={issue.priority} />
             <TypeBadge type={issue.issue_type} />

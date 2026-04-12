@@ -267,7 +267,7 @@ describe("BoardView", () => {
     const card = screen.getByRole("button", { name: /beads-001: Fix login bug/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001");
+    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001", expect.objectContaining({ state: { from: "/board" } }));
   });
 
   it("shows labels on cards", () => {
