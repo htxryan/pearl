@@ -9,6 +9,8 @@
 		"test": "pnpm -r test",
 		"typecheck": "pnpm -r typecheck",
 		"test:e2e": "playwright test",
+		"test:e2e:read": "playwright test --project=chromium",
+		"test:e2e:write": "playwright test --project=write-tests",
 		"test:e2e:ui": "playwright test --ui"
 	},
 	"devDependencies": {
