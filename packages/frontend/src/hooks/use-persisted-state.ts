@@ -9,6 +9,7 @@ export function usePersistedState<T>(
   defaultValue: T,
 ): [T, (value: T | ((prev: T) => T)) => void] {
   const keyRef = useRef(key);
+  keyRef.current = key;
 
   const [state, setState] = useState<T>(() => {
     try {

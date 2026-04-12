@@ -25,8 +25,7 @@ function categorizeError(error: Error): ErrorCategory {
     msg.includes("network") ||
     msg.includes("failed to fetch") ||
     msg.includes("timeout") ||
-    msg.includes("econnrefused") ||
-    name === "typeerror" && msg.includes("fetch")
+    msg.includes("econnrefused")
   ) {
     return "network";
   }

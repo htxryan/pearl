@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 interface ConfirmDialogProps {
@@ -37,16 +37,6 @@ export function ConfirmDialog({
     }
   }, [isOpen]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onCancel();
-      }
-    },
-    [onCancel],
-  );
-
   if (!isOpen) return null;
 
   return (
@@ -54,7 +44,6 @@ export function ConfirmDialog({
       ref={dialogRef}
       className="fixed inset-0 z-50 m-auto w-full max-w-sm rounded-xl border border-border bg-background p-0 shadow-xl backdrop:bg-black/50"
       onClose={onCancel}
-      onKeyDown={handleKeyDown}
       onClick={(e) => {
         if (e.target === dialogRef.current) onCancel();
       }}

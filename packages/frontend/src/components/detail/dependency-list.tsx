@@ -143,7 +143,6 @@ function DependencyAutocomplete({
   const [isSearching, setIsSearching] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -153,6 +152,7 @@ function DependencyAutocomplete({
     if (!trimmed) {
       setResults([]);
       setIsOpen(false);
+      setIsSearching(false);
       return;
     }
 
@@ -177,7 +177,10 @@ function DependencyAutocomplete({
       }
     }, 200);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      setIsSearching(false);
+    };
   }, [query, excludedIds]);
 
   // Close dropdown on outside click
@@ -256,7 +259,6 @@ function DependencyAutocomplete({
             />
           </svg>
           <input
-            ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
