@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-table";
 import type { IssueListItem } from "@beads-gui/shared";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export interface IssueTableProps {
   table: Table<IssueListItem>;
@@ -74,13 +75,11 @@ export function IssueTable({
   // Empty state
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="text-4xl mb-3 opacity-30">0</div>
-        <h3 className="text-lg font-medium text-foreground">No issues found</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Try adjusting your filters or create a new issue.
-        </p>
-      </div>
+      <EmptyState
+        icon="&#8709;"
+        title="No issues found"
+        description="Try adjusting your filters or create a new issue."
+      />
     );
   }
 

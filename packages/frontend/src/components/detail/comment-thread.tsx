@@ -53,7 +53,10 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground mb-4">No comments yet.</p>
+        <div className="flex flex-col items-center py-6 text-muted-foreground mb-4">
+          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">&#9998;</span>
+          <p className="text-sm">No comments yet. Start the conversation below.</p>
+        </div>
       )}
 
       {/* Add comment form */}

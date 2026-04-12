@@ -465,8 +465,10 @@ export function GraphView() {
         {isLoading && allIssues.length === 0 ? (
           <GraphSkeleton />
         ) : allIssues.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
+            <span className="text-5xl opacity-20" aria-hidden="true">&#9737;</span>
             <p>No issues match the current filters.</p>
+            <p className="text-sm">Try adjusting filters or create issues with dependencies.</p>
           </div>
         ) : (
           <ReactFlow

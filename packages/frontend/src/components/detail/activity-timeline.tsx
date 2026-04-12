@@ -56,7 +56,10 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">No activity yet.</p>
+        <div className="flex flex-col items-center py-6 text-muted-foreground">
+          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">&#9716;</span>
+          <p className="text-sm">No activity yet. Changes will appear here.</p>
+        </div>
       )}
 
       {hasMore && (

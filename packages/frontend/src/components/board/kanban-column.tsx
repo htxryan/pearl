@@ -60,8 +60,9 @@ export const KanbanColumn = memo(function KanbanColumn({
         </SortableContext>
 
         {issues.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-xs text-muted-foreground">
-            No issues
+          <div className="flex flex-col items-center justify-center h-20 gap-1 text-muted-foreground">
+            <span className="text-lg opacity-20" aria-hidden="true">&#9744;</span>
+            <span className="text-xs">No issues</span>
           </div>
         )}
       </div>

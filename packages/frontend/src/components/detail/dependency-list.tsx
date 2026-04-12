@@ -119,7 +119,10 @@ export function DependencyList({
       )}
 
       {dependencies.length === 0 && !showAddForm && (
-        <p className="text-sm text-muted-foreground">No dependencies.</p>
+        <div className="flex flex-col items-center py-6 text-muted-foreground">
+          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">&#8644;</span>
+          <p className="text-sm">No dependencies. Add one to track blockers.</p>
+        </div>
       )}
     </section>
   );
