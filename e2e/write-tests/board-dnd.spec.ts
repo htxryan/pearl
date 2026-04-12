@@ -67,12 +67,8 @@ test.describe("Board Drag-and-Drop", () => {
     await page.mouse.move(endX, endY, { steps: 20 });
     await page.mouse.up();
 
-    // Wait for the optimistic update to settle
-    await page.waitForTimeout(1000);
-
-    // Card should have moved to In Progress column
-    const inProgressCountAfter = await inProgressCards.count();
-    expect(inProgressCountAfter).toBeGreaterThan(inProgressCountBefore);
+    // Card should have moved to In Progress column (auto-retries until timeout)
+    await expect(inProgressCards).toHaveCount(inProgressCountBefore + 1, { timeout: 5_000 });
   });
 
   test("quick-add from board column creates issue", async ({ seededPage: page }) => {

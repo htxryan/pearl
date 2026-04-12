@@ -70,7 +70,7 @@ test.describe("Comments", () => {
     await commentTextarea.fill(`Keyboard shortcut test ${Date.now()}`);
 
     // Use Cmd+Enter (Meta+Enter on macOS, Control+Enter on Linux)
-    await commentTextarea.press("Meta+Enter");
+    await commentTextarea.press("ControlOrMeta+Enter");
 
     // Textarea should clear after successful submission
     await expect(commentTextarea).toHaveValue("", { timeout: 15_000 });
