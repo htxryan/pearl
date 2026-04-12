@@ -9,13 +9,27 @@
   --color-muted: #f5f5f5;
   --color-muted-foreground: #737373;
   --color-border: #e5e5e5;
-  --color-primary: #171717;
-  --color-primary-foreground: #fafafa;
-  --color-accent: #f5f5f5;
-  --color-accent-foreground: #171717;
+  --color-primary: #4f46e5;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #eef2ff;
+  --color-accent-foreground: #3730a3;
   --color-destructive: #ef4444;
-  --color-ring: #a3a3a3;
+  --color-ring: #6366f1;
   --radius: 0.5rem;
+
+  /* Semantic colors */
+  --color-info: #3b82f6;
+  --color-info-foreground: #1e3a5f;
+  --color-success: #22c55e;
+  --color-success-foreground: #14532d;
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #78350f;
+  --color-danger: #ef4444;
+  --color-danger-foreground: #7f1d1d;
+
+  /* Surface colors for layered backgrounds */
+  --color-surface: #ffffff;
+  --color-surface-raised: #fafafa;
 
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
@@ -28,12 +42,26 @@
     --color-muted: #262626;
     --color-muted-foreground: #a3a3a3;
     --color-border: #262626;
-    --color-primary: #fafafa;
-    --color-primary-foreground: #171717;
-    --color-accent: #262626;
-    --color-accent-foreground: #fafafa;
+    --color-primary: #818cf8;
+    --color-primary-foreground: #0f0a2e;
+    --color-accent: #1e1b4b;
+    --color-accent-foreground: #c7d2fe;
     --color-destructive: #dc2626;
-    --color-ring: #525252;
+    --color-ring: #818cf8;
+
+    /* Semantic colors — dark mode */
+    --color-info: #60a5fa;
+    --color-info-foreground: #bfdbfe;
+    --color-success: #4ade80;
+    --color-success-foreground: #bbf7d0;
+    --color-warning: #fbbf24;
+    --color-warning-foreground: #fef3c7;
+    --color-danger: #f87171;
+    --color-danger-foreground: #fecaca;
+
+    /* Surface colors — dark mode */
+    --color-surface: #0a0a0a;
+    --color-surface-raised: #171717;
   }
 }
 

@@ -56,7 +56,7 @@ export function Sidebar() {
               cn(
                 "flex items-center justify-between rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-accent text-accent-foreground"
+                  ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )
             }
