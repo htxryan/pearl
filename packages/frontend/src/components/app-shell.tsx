@@ -14,6 +14,7 @@ import {
 } from "@/hooks/use-command-palette";
 import { undoLast, useCanUndo } from "@/hooks/use-undo";
 import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
+import { PageTransition } from "./page-transition";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -124,7 +125,9 @@ export function AppShell() {
         <HealthBanner />
         <Header />
         <main className="flex-1 overflow-auto">
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
       </div>
       <CommandPalette />
