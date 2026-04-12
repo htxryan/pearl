@@ -1,5 +1,5 @@
 import { resolve, dirname, basename } from "node:path";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 export type DoltMode = "embedded" | "server";
 
@@ -38,10 +38,39 @@ export interface Config {
   doltPassword: string;
   /** Dolt database name (server mode: from metadata; embedded: from path) */
   doltDatabase: string;
+  /** True when no .beads/ directory found — backend runs in setup-only mode */
+  needsSetup: boolean;
 }
 
 export function loadConfig(): Config {
   const cwd = process.cwd();
+
+  // Check if .beads/ directory exists anywhere up the tree
+  const needsSetup = !findBeadsDir(cwd);
+
+  // In setup mode, return safe defaults — no Dolt paths or host validation
+  if (needsSetup) {
+    return {
+      host: "127.0.0.1",
+      port: parseInt(process.env.PORT || "3456", 10),
+      doltMode: "embedded",
+      doltHost: "127.0.0.1",
+      doltPort: 3307,
+      doltDbPath: cwd,
+      replicaPath: "",
+      bdPath: process.env.BD_PATH || "bd",
+      doltPath: process.env.DOLT_PATH || "dolt",
+      dbLockMaxRetries: 3,
+      dbLockRetryDelayMs: 1000,
+      doltRestartThreshold: 3,
+      doltRestartDebounceMs: 5000,
+      poolSize: 5,
+      doltUser: process.env.DOLT_USER || "root",
+      doltPassword: process.env.DOLT_PASSWORD || "",
+      doltDatabase: "beads_gui",
+      needsSetup: true,
+    };
+  }
 
   // Auto-discover the .beads database path
   const doltDbPath =
@@ -107,6 +136,7 @@ export function loadConfig(): Config {
     doltUser: process.env.DOLT_USER || "root",
     doltPassword: process.env.DOLT_PASSWORD || "",
     doltDatabase,
+    needsSetup: false,
   };
 }
 
@@ -134,6 +164,21 @@ export function readBeadsMetadata(
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
       // Not found at this level, go up
+    }
+    const parent = resolve(dir, "..");
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
+}
+
+/** Returns the path to the .beads/ directory, or null if not found. */
+export function findBeadsDir(startDir: string): string | null {
+  let dir = startDir;
+  for (let i = 0; i < 10; i++) {
+    const beadsDir = resolve(dir, ".beads");
+    if (existsSync(beadsDir)) {
+      return beadsDir;
     }
     const parent = resolve(dir, "..");
     if (parent === dir) break;

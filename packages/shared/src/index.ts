@@ -209,6 +209,28 @@ export interface StatsResponse {
   recently_updated: number;
 }
 
+// ─── Setup / Onboarding Types ──────────────────────────────
+
+export interface SetupStatusResponse {
+  configured: boolean;
+  mode: "embedded" | "server" | null;
+}
+
+export interface SetupInitializeRequest {
+  mode: "embedded" | "server";
+  /** Required when mode is "server" */
+  server_host?: string;
+  /** Required when mode is "server" */
+  server_port?: number;
+  /** Database name for server mode (optional, defaults to "beads_gui") */
+  database?: string;
+}
+
+export interface SetupInitializeResponse {
+  success: boolean;
+  message: string;
+}
+
 /** Fields valid for column projection on list endpoints */
 export const ISSUE_LIST_FIELDS = [
   "id",
