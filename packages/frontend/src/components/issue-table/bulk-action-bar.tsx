@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { Priority, IssueStatus } from "@beads-gui/shared";
+import { ISSUE_STATUSES } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
@@ -9,6 +10,11 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: 3, label: "P3 — Low" },
   { value: 4, label: "P4 — Backlog" },
 ];
+
+const STATUS_OPTIONS: { value: IssueStatus; label: string }[] = ISSUE_STATUSES.map((s) => ({
+  value: s,
+  label: s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+}));
 
 interface BulkActionBarProps {
   selectedCount: number;
@@ -37,14 +43,27 @@ export function BulkActionBar({
 }: BulkActionBarProps) {
   const [showReassign, setShowReassign] = useState(false);
   const [showPriority, setShowPriority] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+  const [showAddLabel, setShowAddLabel] = useState(false);
   const [assigneeInput, setAssigneeInput] = useState("");
+  const [labelInput, setLabelInput] = useState("");
   const reassignRef = useRef<HTMLDivElement>(null);
   const priorityRef = useRef<HTMLDivElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
+  const addLabelRef = useRef<HTMLDivElement>(null);
   const assigneeInputRef = useRef<HTMLInputElement>(null);
+  const labelInputRef = useRef<HTMLInputElement>(null);
+
+  const closeAllDropdowns = useCallback(() => {
+    setShowReassign(false);
+    setShowPriority(false);
+    setShowStatus(false);
+    setShowAddLabel(false);
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    if (!showReassign && !showPriority) return;
+    if (!showReassign && !showPriority && !showStatus && !showAddLabel) return;
     function handleClickOutside(e: MouseEvent) {
       if (showReassign && reassignRef.current && !reassignRef.current.contains(e.target as Node)) {
         setShowReassign(false);
@@ -52,17 +71,25 @@ export function BulkActionBar({
       if (showPriority && priorityRef.current && !priorityRef.current.contains(e.target as Node)) {
         setShowPriority(false);
       }
+      if (showStatus && statusRef.current && !statusRef.current.contains(e.target as Node)) {
+        setShowStatus(false);
+      }
+      if (showAddLabel && addLabelRef.current && !addLabelRef.current.contains(e.target as Node)) {
+        setShowAddLabel(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showReassign, showPriority]);
+  }, [showReassign, showPriority, showStatus, showAddLabel]);
 
-  // Focus the assignee input when the dropdown opens
+  // Focus inputs when dropdowns open
   useEffect(() => {
-    if (showReassign) {
-      assigneeInputRef.current?.focus();
-    }
+    if (showReassign) assigneeInputRef.current?.focus();
   }, [showReassign]);
+
+  useEffect(() => {
+    if (showAddLabel) labelInputRef.current?.focus();
+  }, [showAddLabel]);
 
   const handleReassignSubmit = useCallback(() => {
     const value = assigneeInput.trim();
@@ -80,6 +107,22 @@ export function BulkActionBar({
     [onReprioritize],
   );
 
+  const handleStatusSelect = useCallback(
+    (status: IssueStatus) => {
+      onChangeStatus(status);
+      setShowStatus(false);
+    },
+    [onChangeStatus],
+  );
+
+  const handleAddLabelSubmit = useCallback(() => {
+    const value = labelInput.trim();
+    if (!value) return;
+    onAddLabel(value);
+    setLabelInput("");
+    setShowAddLabel(false);
+  }, [labelInput, onAddLabel]);
+
   if (selectedCount === 0) return null;
 
   const busy = isClosing || isUpdating;
@@ -96,8 +139,9 @@ export function BulkActionBar({
           variant="outline"
           size="sm"
           onClick={() => {
-            setShowReassign((prev) => !prev);
-            setShowPriority(false);
+            const next = !showReassign;
+            closeAllDropdowns();
+            setShowReassign(next);
           }}
           disabled={busy}
         >
@@ -144,8 +188,9 @@ export function BulkActionBar({
           variant="outline"
           size="sm"
           onClick={() => {
-            setShowPriority((prev) => !prev);
-            setShowReassign(false);
+            const next = !showPriority;
+            closeAllDropdowns();
+            setShowPriority(next);
           }}
           disabled={busy}
         >
@@ -162,6 +207,84 @@ export function BulkActionBar({
                 {label}
               </button>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Set status dropdown */}
+      <div className="relative" ref={statusRef}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const next = !showStatus;
+            closeAllDropdowns();
+            setShowStatus(next);
+          }}
+          disabled={busy}
+        >
+          Set status
+        </Button>
+        {showStatus && (
+          <div className="absolute top-full left-0 z-50 mt-1 w-44 rounded border border-border bg-popover py-1 shadow-md">
+            {STATUS_OPTIONS.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => handleStatusSelect(value)}
+                className="block w-full px-3 py-1.5 text-left text-sm hover:bg-accent focus:bg-accent focus:outline-none"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add label dropdown */}
+      <div className="relative" ref={addLabelRef}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const next = !showAddLabel;
+            closeAllDropdowns();
+            setShowAddLabel(next);
+          }}
+          disabled={busy}
+        >
+          Add label
+        </Button>
+        {showAddLabel && (
+          <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
+            <label className="mb-1 block text-xs font-medium text-muted-foreground" htmlFor="bulk-label-input">
+              Label
+            </label>
+            <input
+              id="bulk-label-input"
+              ref={labelInputRef}
+              type="text"
+              value={labelInput}
+              onChange={(e) => setLabelInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddLabelSubmit();
+                }
+                if (e.key === "Escape") {
+                  setShowAddLabel(false);
+                }
+              }}
+              placeholder="Enter label name..."
+              className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            <Button
+              size="sm"
+              onClick={handleAddLabelSubmit}
+              disabled={!labelInput.trim()}
+              className="w-full"
+            >
+              Add label
+            </Button>
           </div>
         )}
       </div>
