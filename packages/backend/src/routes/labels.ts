@@ -74,8 +74,13 @@ export function registerLabelRoutes(
 
   // POST /api/labels — create or update a label definition
   app.post("/api/labels", { schema: upsertLabelSchema }, async (request, reply) => {
-    const { name, color } = request.body as { name: string; color: LabelColor };
+    const body = request.body as { name: string; color: LabelColor };
+    const name = body.name.trim();
+    const color = body.color;
 
+    if (!name) {
+      throw validationError("Label name cannot be empty");
+    }
     if (!LABEL_COLOR_SET.has(color)) {
       throw validationError(`Invalid label color: ${color}`);
     }

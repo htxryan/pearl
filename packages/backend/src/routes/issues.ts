@@ -213,8 +213,12 @@ export function registerIssueRoutes(
       return rows;
     });
 
-    // Fetch labels for each issue
+    // Ensure all issues have labels and labelColors initialized
     const issueRows = issues as RowDataPacket[];
+    for (const issue of issueRows) {
+      issue.labels = [];
+      issue.labelColors = {};
+    }
     if (issueRows.length > 0 && validFields.includes("id")) {
       const ids = issueRows.map((r) => r.id);
       const labelRows = await queryWithRetry(getConfig(), async (conn) => {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { LabelColor, LabelWithCount } from "@beads-gui/shared";
 import { LABEL_COLORS } from "@beads-gui/shared";
 import { useLabels, useCreateLabel } from "@/hooks/use-labels";
@@ -93,8 +93,12 @@ export function LabelPicker({
 
   const handleCreateNew = useCallback(async (name: string, color?: LabelColor) => {
     const assignedColor = color ?? LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)];
-    await createLabel.mutateAsync({ name, color: assignedColor });
-    selectLabel(name);
+    try {
+      await createLabel.mutateAsync({ name, color: assignedColor });
+      selectLabel(name);
+    } catch {
+      // Label creation failed — don't add to selection
+    }
     setShowColorPicker(false);
     setNewLabelColor(null);
   }, [createLabel, selectLabel]);
@@ -139,11 +143,13 @@ export function LabelPicker({
     }
   }, [isOpen, showColorPicker, search, selected, totalOptions, filteredLabels, highlightIndex, canCreate, selectLabel, removeLabel]);
 
-  const getLabelColor = (name: string): LabelColor | undefined => {
-    if (selectedColors[name]) return selectedColors[name];
-    const def = allLabels.find((l) => l.name === name);
-    return def?.color as LabelColor | undefined;
-  };
+  const labelColorMap = useMemo(() => {
+    const map: Record<string, LabelColor> = { ...selectedColors };
+    for (const label of allLabels) {
+      if (!map[label.name]) map[label.name] = label.color as LabelColor;
+    }
+    return map;
+  }, [selectedColors, allLabels]);
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
@@ -156,7 +162,7 @@ export function LabelPicker({
           <LabelBadge
             key={label}
             name={label}
-            color={getLabelColor(label)}
+            color={labelColorMap[label]}
             removable
             onRemove={() => removeLabel(label)}
           />
