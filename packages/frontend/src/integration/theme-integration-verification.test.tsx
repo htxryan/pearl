@@ -399,6 +399,13 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(
         document.documentElement.style.getPropertyValue("--color-background"),
       ).toBe(solarizedLight.colors.background);
+      // Verify additional tokens (border, surface-raised) update correctly
+      expect(
+        document.documentElement.style.getPropertyValue("--color-border"),
+      ).toBe(solarizedLight.colors.border);
+      expect(
+        document.documentElement.style.getPropertyValue("--color-surface-raised"),
+      ).toBe(solarizedLight.colors["surface-raised"]);
     });
 
     it("updates localStorage to the new light theme", () => {
@@ -428,6 +435,10 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
   // ────────────────────────────────────────────────────────
   // Scenario 4: Persistence across unmount/re-render (reload simulation)
+  // Note: Full page reload (module re-init from localStorage) cannot be
+  // tested in jsdom because vitest reuses module instances. The actual boot
+  // script path is covered by E2E tests in e2e/dark-mode.spec.ts. These
+  // tests verify SPA-level persistence (unmount/remount within same process).
   // ────────────────────────────────────────────────────────
   describe("Scenario 4: Theme persistence across reload simulation", () => {
     it("CSS vars and .dark class survive unmount and re-render (SPA navigation)", () => {
@@ -589,30 +600,29 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
     });
 
     it("no theme in localStorage on first render falls back to default", () => {
-      // In this test, beforeEach already cleared localStorage.
-      // The module-level init in use-theme.ts applies the default theme
-      // at import time. Since the test module was imported with empty
-      // localStorage, the initial snapshot IS the default theme.
-      // Verify by checking that on a fresh render, the default theme
-      // is selected (first test in this describe block runs with
-      // clean localStorage from beforeEach).
+      // beforeEach cleared localStorage. Reset to default theme explicitly
+      // to ensure the module snapshot reflects the no-localStorage state.
       renderApp("/settings");
 
-      // The hook snapshot should reflect the default theme.
-      // Since no setTheme was called in this test, the ThemePicker
-      // displays whatever the module's currentSnapshot is.
-      // We verify the ThemePicker renders all 15 buttons
+      // Explicitly set the default theme to reset module state
+      selectThemeViaSettings("Light+ (Default Light)");
+
       const themeGroup = screen.getByRole("group", {
         name: /available themes/i,
       });
       const buttons = within(themeGroup).getAllByRole("button");
       expect(buttons).toHaveLength(15);
 
-      // At least one button should be marked as active
+      // Exactly one button should be marked as active — and it must be Light+
       const activeButtons = buttons.filter(
         (btn) => btn.getAttribute("aria-pressed") === "true",
       );
       expect(activeButtons).toHaveLength(1);
+
+      const lightPlusButton = screen.getByRole("button", {
+        name: /light\+.*theme \(active\)/i,
+      });
+      expect(lightPlusButton).toHaveAttribute("aria-pressed", "true");
     });
   });
 
