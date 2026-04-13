@@ -15,7 +15,7 @@ import { FilterBar } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
 import { buildColumns, type EpicProgress } from "@/components/issue-table/columns";
-import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys } from "@/hooks/use-issues";
+import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys, prefetchIssueDetail } from "@/hooks/use-issues";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useQueryClient } from "@tanstack/react-query";
 import type { IssueListItem } from "@beads-gui/shared";
@@ -222,6 +222,13 @@ export function ListView() {
     [navigate, panelMode],
   );
 
+  const handleRowHover = useCallback(
+    (id: string) => {
+      prefetchIssueDetail(queryClient, id);
+    },
+    [queryClient],
+  );
+
   const handleStatusChange = useCallback(
     (id: string, status: IssueStatus) => {
       if (!VALID_STATUSES.has(status)) return;
@@ -233,18 +240,29 @@ export function ListView() {
           onSuccess: () => {
             undo.recordStatusChange(id, issue?.title ?? id, oldStatus, status);
           },
+          onError: () => {
+            toast.error(`Failed to update status for "${issue?.title ?? id}"`);
+          },
         },
       );
     },
-    [updateMutation, issues, undo],
+    [updateMutation, issues, undo, toast],
   );
 
   const handlePriorityChange = useCallback(
     (id: string, priority: Priority) => {
       if (!VALID_PRIORITIES.has(priority)) return;
-      updateMutation.mutate({ id, data: { priority } });
+      const issue = issues.find((i) => i.id === id);
+      updateMutation.mutate(
+        { id, data: { priority } },
+        {
+          onError: () => {
+            toast.error(`Failed to update priority for "${issue?.title ?? id}"`);
+          },
+        },
+      );
     },
-    [updateMutation],
+    [updateMutation, issues, toast],
   );
 
   const handleBulkClose = useCallback(async () => {
@@ -712,6 +730,7 @@ export function ListView() {
               isLoading={isLoading}
               activeRowIndex={activeRowIndex}
               onRowClick={handleRowClick}
+              onRowHover={handleRowHover}
               highlightedIds={highlightedIds}
             />
           )}

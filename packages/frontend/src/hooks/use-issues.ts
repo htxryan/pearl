@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, useIsMutating } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useIsMutating, type QueryClient } from "@tanstack/react-query";
 import type {
   IssueListItem,
   Issue,
@@ -96,6 +96,15 @@ export function useIssue(id: string) {
     staleTime: 30000,
     refetchOnWindowFocus: true,
     enabled: !!id,
+  });
+}
+
+// ─── Prefetch Detail ───────────────────────────────────
+export function prefetchIssueDetail(queryClient: QueryClient, id: string) {
+  queryClient.prefetchQuery({
+    queryKey: issueKeys.detail(id),
+    queryFn: () => api.fetchIssue(id),
+    staleTime: 30000,
   });
 }
 
