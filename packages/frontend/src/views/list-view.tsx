@@ -29,7 +29,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { IssuePanel } from "@/components/issue-table/issue-panel";
 import { IssueCardList } from "@/components/issue-table/issue-card";
-import { useIsMobile, useIsTablet } from "@/hooks/use-media-query";
+import { useIsMobile, useIsCompact } from "@/hooks/use-media-query";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { cn } from "@/lib/utils";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -89,7 +91,7 @@ export function ListView() {
 
   // Responsive hooks
   const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
+  const isCompact = useIsCompact();
 
   // Split-pane detail panel
   const [panelIssueId, setPanelIssueId] = useState<string | null>(null);
@@ -594,16 +596,26 @@ export function ListView() {
 
   useCommandPaletteActions("list-view", paletteActions);
 
-  // On tablet/mobile, panel is a slide-over overlay instead of side-by-side
-  const panelIsOverlay = isTablet;
+  // On compact viewports (<1024px), panel is a slide-over overlay instead of side-by-side
+  const panelIsOverlay = isCompact;
+
+  // Focus trap for slide-over overlay panel
+  const slideOverRef = useRef<HTMLDivElement>(null);
+  const slideOverActive = !!(panelMode && panelIssueId && panelIsOverlay);
+  useFocusTrap(slideOverRef, slideOverActive);
+
+  // Force panelMode off on mobile — the toggle is hidden, so users can't disable it
+  useEffect(() => {
+    if (isMobile && panelMode) setPanelMode(false);
+  }, [isMobile, panelMode, setPanelMode]);
 
   return (
     <div className="flex h-full relative">
       {/* Main list area */}
-      <div className={`flex flex-col ${panelIssueId && panelMode && !panelIsOverlay ? "flex-1 min-w-0" : "w-full"}`}>
+      <div className={cn("flex flex-col", panelIssueId && panelMode && !panelIsOverlay ? "flex-1 min-w-0" : "w-full")}>
         {/* Toolbar */}
         <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
-          <div className={`flex items-start gap-4 ${isMobile ? "flex-col" : "justify-between"}`}>
+          <div className={cn("flex items-start gap-4", isMobile ? "flex-col" : "justify-between")}>
             <FilterBar
               filters={filters}
               onChange={setFilters}
@@ -719,7 +731,7 @@ export function ListView() {
 
       {/* Slide-over overlay for tablet/mobile */}
       {panelMode && panelIssueId && panelIsOverlay && (
-        <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Issue detail panel">
+        <div ref={slideOverRef} className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Issue detail panel">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setPanelIssueId(null)}

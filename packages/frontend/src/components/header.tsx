@@ -17,12 +17,6 @@ export function Header({ mobileMenuButton }: { mobileMenuButton?: ReactNode }) {
         </kbd>{" "}
         for command palette
       </span>
-      {/* On mobile, show a shorter label */}
-      <span className="text-sm text-muted-foreground sm:hidden">
-        <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
-          {isMacPlatform() ? "⌘K" : "Ctrl+K"}
-        </kbd>
-      </span>
     </header>
   );
 }

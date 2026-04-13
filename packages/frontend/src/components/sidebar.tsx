@@ -1,7 +1,8 @@
 import { NavLink, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-media-query";
-import { useEffect, useCallback, type ReactNode } from "react";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useEffect, useCallback, useRef, type ReactNode } from "react";
 
 // Inline SVG icons — consistent 16x16, stroke-based
 function ListIcon() {
@@ -142,8 +143,14 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 /** Mobile drawer overlay — slides in from left */
 export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const location = useLocation();
+  const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Close drawer on route change
+  // Focus trap — confines Tab navigation inside the drawer while open
+  useFocusTrap(drawerRef, isOpen);
+
+  // Close drawer on route change.
+  // Intentionally omits isOpen and onClose from deps: we only want to fire
+  // when the pathname changes, not on every render (onClose is often an inline arrow).
   useEffect(() => {
     if (isOpen) onClose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,7 +181,7 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div ref={drawerRef} className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Navigation menu">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40"

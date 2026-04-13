@@ -4,6 +4,7 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
@@ -108,14 +109,17 @@ export function BoardView() {
     [activeId, issues],
   );
 
-  // DnD sensors
+  // DnD sensors — TouchSensor with delay avoids conflicts with scroll on mobile
   const pointerSensor = useSensor(PointerSensor, {
     activationConstraint: { distance: 5 },
+  });
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: { delay: 200, tolerance: 5 },
   });
   const keyboardSensor = useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates,
   });
-  const sensors = useSensors(pointerSensor, keyboardSensor);
+  const sensors = useSensors(pointerSensor, touchSensor, keyboardSensor);
 
   // Extract status from a droppable/sortable ID
   const getStatusFromDroppableId = useCallback(
@@ -256,7 +260,7 @@ export function BoardView() {
       </div>
 
       {/* Board */}
-      <div className={`flex-1 ${isMobile ? "overflow-y-auto" : "overflow-x-auto overflow-y-hidden"} p-4`}>
+      <div className={cn("flex-1 p-4", isMobile ? "overflow-y-auto" : "overflow-x-auto overflow-y-hidden")}>
         {isLoading && issues.length === 0 ? (
           <BoardSkeleton isMobile={isMobile} />
         ) : (

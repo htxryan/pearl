@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useMediaQuery, useIsMobile, useIsTablet, MOBILE_BREAKPOINT, TABLET_BREAKPOINT } from "./use-media-query";
+import { useMediaQuery, useIsMobile, useIsCompact, useIsTablet, MOBILE_BREAKPOINT, TABLET_BREAKPOINT } from "./use-media-query";
 
 describe("useMediaQuery", () => {
   let listeners: Map<string, Set<() => void>>;
@@ -15,7 +15,8 @@ describe("useMediaQuery", () => {
       if (!matchState.has(query)) matchState.set(query, false);
 
       return {
-        matches: matchState.get(query)!,
+        // Getter so the cached mql instance reflects current state
+        get matches() { return matchState.get(query)!; },
         media: query,
         addEventListener: (_: string, cb: () => void) => {
           listeners.get(query)!.add(cb);
@@ -92,7 +93,7 @@ describe("useIsMobile", () => {
   });
 });
 
-describe("useIsTablet", () => {
+describe("useIsCompact", () => {
   it("uses correct breakpoint", () => {
     expect(TABLET_BREAKPOINT).toBe(1024);
 
@@ -107,7 +108,11 @@ describe("useIsTablet", () => {
       dispatchEvent: vi.fn(),
     }) as unknown as MediaQueryList);
 
-    const { result } = renderHook(() => useIsTablet());
+    const { result } = renderHook(() => useIsCompact());
     expect(result.current).toBe(true);
+  });
+
+  it("useIsTablet is a deprecated alias for useIsCompact", () => {
+    expect(useIsTablet).toBe(useIsCompact);
   });
 });
