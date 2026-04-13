@@ -377,6 +377,19 @@ export function ListView() {
     }
   }, [updateMutation, toast]);
 
+  const getIssueLabels = useCallback((id: string): string[] => {
+    // Read from QueryClient cache to avoid stale/filtered list issues.
+    // The detail cache has the freshest labels; fall back to scanning list caches.
+    const detail = queryClient.getQueryData<IssueListItem>(issueKeys.detail(id));
+    if (detail?.labels) return detail.labels;
+    const lists = queryClient.getQueriesData<IssueListItem[]>({ queryKey: issueKeys.lists() });
+    for (const [, list] of lists) {
+      const found = list?.find((iss) => iss.id === id);
+      if (found) return found.labels ?? [];
+    }
+    return [];
+  }, [queryClient]);
+
   const handleBulkAddLabel = useCallback(async (label: string) => {
     const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
     if (ids.length === 0) return;
@@ -388,8 +401,7 @@ export function ListView() {
         const batch = ids.slice(i, i + BATCH_SIZE);
         const results = await Promise.allSettled(
           batch.map((id) => {
-            const issue = issues.find((iss) => iss.id === id);
-            const existingLabels = issue?.labels ?? [];
+            const existingLabels = getIssueLabels(id);
             if (existingLabels.includes(label)) {
               return Promise.resolve(null); // Already has label
             }
@@ -412,7 +424,7 @@ export function ListView() {
     } finally {
       setIsUpdating(false);
     }
-  }, [updateMutation, toast, issues]);
+  }, [updateMutation, toast, getIssueLabels]);
 
   const handleBulkRemoveLabel = useCallback(async (label: string) => {
     const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
@@ -425,8 +437,7 @@ export function ListView() {
         const batch = ids.slice(i, i + BATCH_SIZE);
         const results = await Promise.allSettled(
           batch.map((id) => {
-            const issue = issues.find((iss) => iss.id === id);
-            const existingLabels = issue?.labels ?? [];
+            const existingLabels = getIssueLabels(id);
             if (!existingLabels.includes(label)) {
               return Promise.resolve(null); // Doesn't have label
             }
@@ -449,7 +460,7 @@ export function ListView() {
     } finally {
       setIsUpdating(false);
     }
-  }, [updateMutation, toast, issues]);
+  }, [updateMutation, toast, getIssueLabels]);
 
   const columns = useMemo(
     () => buildColumns({

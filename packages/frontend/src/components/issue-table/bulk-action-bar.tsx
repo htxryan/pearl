@@ -13,7 +13,7 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
 
 const STATUS_OPTIONS: { value: IssueStatus; label: string }[] = ISSUE_STATUSES.map((s) => ({
   value: s,
-  label: s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+  label: s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
 }));
 
 interface BulkActionBarProps {
@@ -45,25 +45,30 @@ export function BulkActionBar({
   const [showPriority, setShowPriority] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [showAddLabel, setShowAddLabel] = useState(false);
+  const [showRemoveLabel, setShowRemoveLabel] = useState(false);
   const [assigneeInput, setAssigneeInput] = useState("");
   const [labelInput, setLabelInput] = useState("");
+  const [removeLabelInput, setRemoveLabelInput] = useState("");
   const reassignRef = useRef<HTMLDivElement>(null);
   const priorityRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const addLabelRef = useRef<HTMLDivElement>(null);
+  const removeLabelRef = useRef<HTMLDivElement>(null);
   const assigneeInputRef = useRef<HTMLInputElement>(null);
   const labelInputRef = useRef<HTMLInputElement>(null);
+  const removeLabelInputRef = useRef<HTMLInputElement>(null);
 
   const closeAllDropdowns = useCallback(() => {
     setShowReassign(false);
     setShowPriority(false);
     setShowStatus(false);
     setShowAddLabel(false);
+    setShowRemoveLabel(false);
   }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    if (!showReassign && !showPriority && !showStatus && !showAddLabel) return;
+    if (!showReassign && !showPriority && !showStatus && !showAddLabel && !showRemoveLabel) return;
     function handleClickOutside(e: MouseEvent) {
       if (showReassign && reassignRef.current && !reassignRef.current.contains(e.target as Node)) {
         setShowReassign(false);
@@ -77,10 +82,13 @@ export function BulkActionBar({
       if (showAddLabel && addLabelRef.current && !addLabelRef.current.contains(e.target as Node)) {
         setShowAddLabel(false);
       }
+      if (showRemoveLabel && removeLabelRef.current && !removeLabelRef.current.contains(e.target as Node)) {
+        setShowRemoveLabel(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showReassign, showPriority, showStatus, showAddLabel]);
+  }, [showReassign, showPriority, showStatus, showAddLabel, showRemoveLabel]);
 
   // Focus inputs when dropdowns open
   useEffect(() => {
@@ -90,6 +98,10 @@ export function BulkActionBar({
   useEffect(() => {
     if (showAddLabel) labelInputRef.current?.focus();
   }, [showAddLabel]);
+
+  useEffect(() => {
+    if (showRemoveLabel) removeLabelInputRef.current?.focus();
+  }, [showRemoveLabel]);
 
   const handleReassignSubmit = useCallback(() => {
     const value = assigneeInput.trim();
@@ -122,6 +134,14 @@ export function BulkActionBar({
     setLabelInput("");
     setShowAddLabel(false);
   }, [labelInput, onAddLabel]);
+
+  const handleRemoveLabelSubmit = useCallback(() => {
+    const value = removeLabelInput.trim();
+    if (!value) return;
+    onRemoveLabel(value);
+    setRemoveLabelInput("");
+    setShowRemoveLabel(false);
+  }, [removeLabelInput, onRemoveLabel]);
 
   if (selectedCount === 0) return null;
 
@@ -284,6 +304,55 @@ export function BulkActionBar({
               className="w-full"
             >
               Add label
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Remove label dropdown */}
+      <div className="relative" ref={removeLabelRef}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const next = !showRemoveLabel;
+            closeAllDropdowns();
+            setShowRemoveLabel(next);
+          }}
+          disabled={busy}
+        >
+          Remove label
+        </Button>
+        {showRemoveLabel && (
+          <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
+            <label className="mb-1 block text-xs font-medium text-muted-foreground" htmlFor="bulk-remove-label-input">
+              Label
+            </label>
+            <input
+              id="bulk-remove-label-input"
+              ref={removeLabelInputRef}
+              type="text"
+              value={removeLabelInput}
+              onChange={(e) => setRemoveLabelInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleRemoveLabelSubmit();
+                }
+                if (e.key === "Escape") {
+                  setShowRemoveLabel(false);
+                }
+              }}
+              placeholder="Enter label to remove..."
+              className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            <Button
+              size="sm"
+              onClick={handleRemoveLabelSubmit}
+              disabled={!removeLabelInput.trim()}
+              className="w-full"
+            >
+              Remove label
             </Button>
           </div>
         )}
