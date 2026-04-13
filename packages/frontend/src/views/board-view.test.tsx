@@ -285,7 +285,9 @@ describe("BoardView", () => {
     // beads-002 has ["frontend", "dashboard"] → shows "frontend" badge + "+1"
     // beads-004 has ["cleanup"] → shows "cleanup" as a LabelBadge
     expect(within(board).getByText("cleanup")).toBeInTheDocument();
-    // "frontend" appears as LabelBadge, "+1" as separate overflow text
+    // "frontend" appears as LabelBadge text on beads-001 and beads-002
+    expect(within(board).getAllByText("frontend").length).toBeGreaterThanOrEqual(1);
+    // beads-002 has 2 labels → shows "+1" overflow count
     expect(within(board).getByText("+1")).toBeInTheDocument();
   });
 });

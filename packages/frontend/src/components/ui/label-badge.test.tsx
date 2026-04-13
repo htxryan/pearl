@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { LABEL_PALETTE } from "./label-badge";
 
@@ -67,8 +67,9 @@ describe("WCAG AA contrast verification", () => {
 // 2. LabelBadge rendering (light mode)
 // ---------------------------------------------------------------------------
 
+let mockColorScheme = "light";
 vi.mock("@/hooks/use-theme", () => ({
-  useTheme: () => ({ themeId: "light", theme: { colorScheme: "light" }, setTheme: () => {} }),
+  useTheme: () => ({ themeId: mockColorScheme, theme: { colorScheme: mockColorScheme }, setTheme: () => {} }),
 }));
 
 // Import after mock is set up
@@ -141,5 +142,33 @@ describe("LabelBadge removable", () => {
   it("does not show remove button when removable is false", () => {
     render(<LabelBadge name="Static" color="purple" />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5. LabelBadge dark mode rendering
+// ---------------------------------------------------------------------------
+
+describe("LabelBadge dark mode rendering", () => {
+  beforeEach(() => {
+    mockColorScheme = "dark";
+  });
+
+  afterEach(() => {
+    mockColorScheme = "light";
+  });
+
+  it("uses dark palette colors in dark mode", () => {
+    const { container } = render(<LabelBadge name="DarkLabel" color="blue" />);
+    const span = container.querySelector("span")!;
+    expect(span.style.backgroundColor).toBe(hexToRgbString(LABEL_PALETTE.blue.darkBg));
+    expect(span.style.color).toBe(hexToRgbString(LABEL_PALETTE.blue.darkText));
+  });
+
+  it("uses dark fallback colors when no color provided", () => {
+    const { container } = render(<LabelBadge name="NoDarkColor" />);
+    const span = container.querySelector("span")!;
+    expect(span.style.backgroundColor).toBe(hexToRgbString(LABEL_PALETTE.gray.darkBg));
+    expect(span.style.color).toBe(hexToRgbString(LABEL_PALETTE.gray.darkText));
   });
 });

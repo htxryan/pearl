@@ -144,7 +144,21 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
           {issue.title}
         </p>
         <div className="flex items-center justify-between gap-2">
-          <TypeBadge type={issue.issue_type} />
+          <div className="flex items-center gap-1.5">
+            <TypeBadge type={issue.issue_type} />
+            {issue.labels.length > 0 && (
+              <div className="flex items-center gap-1 truncate max-w-[120px]" title={issue.labels.join(", ")}>
+                <LabelBadge
+                  name={issue.labels[0]}
+                  color={(issue.labelColors ?? {})[issue.labels[0]] as LabelColor | undefined}
+                  size="sm"
+                />
+                {issue.labels.length > 1 && (
+                  <span className="text-[10px] text-muted-foreground">+{issue.labels.length - 1}</span>
+                )}
+              </div>
+            )}
+          </div>
           {issue.assignee && (
             <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gradient-to-br from-primary/80 to-primary text-[10px] font-semibold text-primary-foreground shrink-0">
               {issue.assignee.slice(0, 2).toUpperCase()}

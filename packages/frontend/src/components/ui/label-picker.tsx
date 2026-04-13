@@ -58,6 +58,16 @@ export function LabelPicker({
   // Total options: filtered + optional "create new"
   const totalOptions = filteredLabels.length + (canCreate ? 1 : 0);
 
+  // Active descendant ID for screen readers
+  const activeDescendantId = useMemo(() => {
+    if (!isOpen || totalOptions === 0) return undefined;
+    if (highlightIndex < filteredLabels.length) {
+      return `label-option-${filteredLabels[highlightIndex].name}`;
+    }
+    if (canCreate) return "label-option-create-new";
+    return undefined;
+  }, [isOpen, totalOptions, highlightIndex, filteredLabels, canCreate]);
+
   // Click outside handler
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -100,8 +110,8 @@ export function LabelPicker({
     try {
       await createLabel.mutateAsync({ name, color: assignedColor });
       selectLabel(name);
-    } catch {
-      // Label creation failed — don't add to selection
+    } catch (err) {
+      console.error("Label creation failed:", err);
     }
     setShowColorPicker(false);
     setNewLabelColor(null);
@@ -186,6 +196,7 @@ export function LabelPicker({
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-autocomplete="list"
+          aria-activedescendant={activeDescendantId}
           className="text-sm bg-transparent border-none outline-none min-w-[80px] flex-1"
         />
       </div>
@@ -206,6 +217,7 @@ export function LabelPicker({
               {filteredLabels.map((label, i) => (
                 <li
                   key={label.name}
+                  id={`label-option-${label.name}`}
                   role="option"
                   aria-selected={i === highlightIndex}
                   className={cn(
@@ -221,6 +233,7 @@ export function LabelPicker({
               ))}
               {canCreate && (
                 <li
+                  id="label-option-create-new"
                   role="option"
                   aria-selected={highlightIndex === filteredLabels.length}
                   className={cn(
