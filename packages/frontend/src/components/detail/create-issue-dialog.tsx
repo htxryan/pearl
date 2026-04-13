@@ -87,7 +87,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
         }
       }}
     >
-      <form onSubmit={handleSubmit} className="p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="p-6 space-y-4 animate-modal-enter">
         <h2 className="text-lg font-semibold">Create Issue</h2>
 
         {/* Title */}

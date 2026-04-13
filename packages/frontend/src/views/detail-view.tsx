@@ -28,6 +28,7 @@ import { RelativeTime } from "@/components/ui/relative-time";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 
 export function DetailView() {
@@ -441,14 +442,24 @@ function DetailSections({ children }: { children: React.ReactNode }) {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-8">
       {items.map((child, i) => (
-        <div
-          key={i}
-          className="animate-fade-up [animation-fill-mode:backwards]"
-          style={{ animationDelay: `${i * 80}ms` }}
-        >
+        <ScrollRevealSection key={i} index={i}>
           {child}
-        </div>
+        </ScrollRevealSection>
       ))}
+    </div>
+  );
+}
+
+/** Wraps a detail section with scroll-triggered fade-up entrance. */
+function ScrollRevealSection({ children, index }: { children: React.ReactNode; index: number }) {
+  const [ref, revealed] = useScrollReveal<HTMLDivElement>();
+  return (
+    <div
+      ref={ref}
+      className={revealed ? "animate-fade-up [animation-fill-mode:backwards]" : "opacity-0"}
+      style={revealed ? { animationDelay: `${index * 60}ms` } : undefined}
+    >
+      {children}
     </div>
   );
 }

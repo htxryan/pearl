@@ -101,7 +101,7 @@ export function KeyboardHelpOverlay() {
       <div className="fixed inset-0 bg-black/50" onClick={closeKeyboardHelp} />
 
       {/* Modal */}
-      <div className="relative z-50 w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden">
+      <div className="relative z-50 w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden animate-modal-enter">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 id="keyboard-help-title" className="text-lg font-semibold">Keyboard Shortcuts</h2>
           <button

@@ -110,9 +110,14 @@ export function CommandPalette() {
         onClick={closeCommandPalette}
       />
 
-      {/* Palette with entrance animation */}
+      {/* Palette with spring open / fade close */}
       <Command
-        className={`relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl transition-all duration-150 ${isVisible ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-[0.98] -translate-y-2"}`}
+        className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+        style={{
+          animation: isVisible
+            ? "cmd-spring-in 250ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+            : "cmd-fade-out 150ms ease-in forwards",
+        }}
         loop
         shouldFilter={false}
       >

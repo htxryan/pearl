@@ -198,17 +198,96 @@ select:focus, input[type="text"]:focus, textarea:focus {
   animation: slide-in-from-right 0.2s ease-out;
 }
 
-/* Page transitions */
-.page-transition {
-  transition: opacity 0.1s ease-out;
+/* ─── Page route transitions ─────────────────────────── */
+
+/* Exit animations (100ms — quick fade out) */
+@keyframes page-exit-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
-.page-transition-enter {
-  opacity: 1;
+@keyframes page-exit-left {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-60px); }
 }
 
-.page-transition-exit {
-  opacity: 0;
+@keyframes page-exit-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(60px); }
+}
+
+/* Enter animations (200ms — slide in with fade) */
+@keyframes page-enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes page-enter-from-right {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-enter-from-left {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Detail view uses a larger offset for "drill-down" feel */
+@keyframes page-enter-drill {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-exit-drill {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100px); }
+}
+
+.page-idle {
+  /* no animation — static */
+}
+
+/* Exit classes (100ms) */
+.page-exit-fade { animation: page-exit-fade 100ms ease-in forwards; }
+.page-exit-left { animation: page-exit-left 100ms ease-in forwards; }
+.page-exit-right { animation: page-exit-right 100ms ease-in forwards; }
+.page-exit-drill { animation: page-exit-drill 100ms ease-in forwards; }
+
+/* Enter classes (200ms) */
+.page-enter-fade { animation: page-enter-fade 200ms ease-out; }
+.page-enter-from-right { animation: page-enter-from-right 200ms ease-out; }
+.page-enter-from-left { animation: page-enter-from-left 200ms ease-out; }
+.page-enter-drill { animation: page-enter-drill 200ms ease-out; }
+
+/* ─── Command palette spring animation ──────────────── */
+@keyframes cmd-spring-in {
+  0% { opacity: 0; transform: scale(0.95) translateY(-8px); }
+  60% { opacity: 1; transform: scale(1.02) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes cmd-fade-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to { opacity: 0; transform: scale(0.98) translateY(-4px); }
+}
+
+/* ─── Modal/dialog entrance ─────────────────────────── */
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modal-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-modal-enter {
+  animation: modal-enter 200ms ease-out;
+}
+
+dialog[open]::backdrop {
+  animation: modal-backdrop-enter 200ms ease-out;
 }
 
 /* Respect reduced motion preference */

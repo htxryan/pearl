@@ -48,7 +48,7 @@ export function ConfirmDialog({
         if (e.target === dialogRef.current) onCancel();
       }}
     >
-      <div className="p-6">
+      <div className="p-6 animate-modal-enter">
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
         <div className="mt-6 flex items-center justify-end gap-2">

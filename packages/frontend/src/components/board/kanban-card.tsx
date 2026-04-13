@@ -30,6 +30,10 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
   } = useSortable({
     id: issue.id,
     data: { type: "card", issue },
+    transition: {
+      duration: 200,
+      easing: "ease-out",
+    },
   });
 
   const { onKeyDown: dndKeyDown, ...restListeners } = listeners ?? {};
