@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-media-query";
-import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useEffect, useCallback, type ReactNode } from "react";
 
 // Inline SVG icons — consistent 16x16, stroke-based
 function ListIcon() {
