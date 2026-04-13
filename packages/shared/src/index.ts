@@ -83,7 +83,8 @@ export type DependencyType =
   | "blocks"
   | "depends_on"
   | "relates_to"
-  | "discovered_from";
+  | "discovered_from"
+  | "contains";
 
 export interface Comment {
   id: string;

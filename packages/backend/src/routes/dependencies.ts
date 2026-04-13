@@ -11,7 +11,7 @@ const createDependencySchema = {
     properties: {
       issue_id: { type: "string", minLength: 1, maxLength: 200 },
       depends_on_id: { type: "string", minLength: 1, maxLength: 200 },
-      type: { type: "string", enum: ["blocks", "depends_on", "relates_to", "discovered_from"] },
+      type: { type: "string", enum: ["blocks", "depends_on", "relates_to", "discovered_from", "contains"] },
     },
     additionalProperties: false,
   },

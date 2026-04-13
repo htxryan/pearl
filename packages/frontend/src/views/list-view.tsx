@@ -55,11 +55,12 @@ export function ListView() {
     const map = new Map<string, EpicProgress>();
     const issueStatusMap = new Map(issues.map((i) => [i.id, i.status]));
 
-    // For each epic, find its children via dependencies where issue_id = epic and type is "blocks" or related
+    // Only "contains" type dependencies represent parent-child (epic hierarchy).
+    // Other dependency types (blocks, depends_on, relates_to) are prerequisites, not children.
     const epicIds = new Set(issues.filter((i) => i.issue_type === "epic").map((i) => i.id));
 
     for (const dep of allDeps) {
-      if (epicIds.has(dep.issue_id) && dep.depends_on_id !== dep.issue_id) {
+      if (dep.type === "contains" && epicIds.has(dep.issue_id) && dep.depends_on_id !== dep.issue_id) {
         const existing = map.get(dep.issue_id) ?? { done: 0, total: 0, childIds: [] };
         existing.childIds.push(dep.depends_on_id);
         existing.total += 1;
