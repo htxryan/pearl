@@ -144,7 +144,7 @@ export function AppShell() {
   const announcerRef = useRouteAnnouncer();
 
   return (
-    <div className="flex h-screen min-w-[1024px] max-w-[2560px] overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
       {/* Skip to content link */}
       <a
         href="#main-content"
