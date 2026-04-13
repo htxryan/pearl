@@ -13,6 +13,8 @@ vi.mock("react-router", async () => {
 
 // Mock API module
 vi.mock("@/lib/api-client", () => ({
+  fetchLabels: vi.fn().mockResolvedValue([]),
+  upsertLabel: vi.fn().mockResolvedValue({ success: true, invalidationHints: [] }),
   fetchIssues: vi.fn(),
   fetchAllDependencies: vi.fn(),
 }));

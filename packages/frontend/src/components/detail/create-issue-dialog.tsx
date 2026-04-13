@@ -3,6 +3,7 @@ import type { IssueType, Priority } from "@beads-gui/shared";
 import { ISSUE_TYPES, ISSUE_PRIORITIES } from "@beads-gui/shared";
 import { useCreateIssue } from "@/hooks/use-issues";
 import { Button } from "@/components/ui/button";
+import { LabelPicker } from "@/components/ui/label-picker";
 
 interface CreateIssueDialogProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   const [issueType, setIssueType] = useState<IssueType>("task");
   const [priority, setPriority] = useState<Priority>(2);
   const [assignee, setAssignee] = useState("");
-  const [labels, setLabels] = useState("");
+  const [labels, setLabels] = useState<string[]>([]);
   const [due, setDue] = useState("");
 
   const createMutation = useCreateIssue();
@@ -38,7 +39,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
     setIssueType("task");
     setPriority(2);
     setAssignee("");
-    setLabels("");
+    setLabels([]);
     setDue("");
   }, []);
 
@@ -53,10 +54,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
         issue_type: issueType,
         priority,
         assignee: assignee.trim() || undefined,
-        labels: labels
-          .split(",")
-          .map((l) => l.trim())
-          .filter(Boolean),
+        labels: labels.length > 0 ? labels : undefined,
         due: due || undefined,
       },
       {
@@ -174,15 +172,14 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
 
         {/* Labels */}
         <div>
-          <label htmlFor="create-labels" className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-1">
             Labels
           </label>
-          <input
-            id="create-labels"
-            value={labels}
-            onChange={(e) => setLabels(e.target.value)}
-            placeholder="Comma-separated labels"
-            className="w-full text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
+          <LabelPicker
+            selected={labels}
+            selectedColors={{}}
+            onChange={setLabels}
+            placeholder="Search or create labels..."
           />
         </div>
 

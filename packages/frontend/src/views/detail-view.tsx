@@ -1,7 +1,8 @@
 import { useParams, useNavigate, useLocation, Navigate } from "react-router";
 import { useMemo, useCallback, useEffect, useState, Children } from "react";
-import type { Issue, IssueStatus, Priority, IssueType } from "@beads-gui/shared";
+import type { Issue, IssueStatus, Priority, IssueType, LabelColor } from "@beads-gui/shared";
 import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
+import { LabelPicker } from "@/components/ui/label-picker";
 import {
   useIssue,
   useComments,
@@ -333,9 +334,10 @@ function DetailViewContent({ id }: { id: string }) {
                 />
               </FieldRow>
               <FieldRow label="Labels">
-                <LabelEditor
-                  labels={issue.labels}
-                  onSave={(labels) => handleFieldUpdate("labels", labels)}
+                <LabelPicker
+                  selected={issue.labels}
+                  selectedColors={(issue.labelColors ?? {}) as Record<string, LabelColor>}
+                  onChange={(labels) => handleFieldUpdate("labels", labels)}
                 />
               </FieldRow>
               <FieldRow label="Created">
@@ -500,61 +502,6 @@ function SelectField({
   );
 }
 
-function LabelEditor({
-  labels,
-  onSave,
-}: {
-  labels: string[];
-  onSave: (labels: string[]) => void;
-}) {
-  const [inputValue, setInputValue] = useState("");
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && inputValue.trim()) {
-      e.preventDefault();
-      e.stopPropagation();
-      const newLabel = inputValue.trim();
-      if (!labels.includes(newLabel)) {
-        onSave([...labels, newLabel]);
-      }
-      setInputValue("");
-    }
-    if (e.key === "Backspace" && !inputValue && labels.length > 0) {
-      onSave(labels.slice(0, -1));
-    }
-  };
-
-  const removeLabel = (label: string) => {
-    onSave(labels.filter((l) => l !== label));
-  };
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {labels.map((label) => (
-        <span
-          key={label}
-          className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs"
-        >
-          {label}
-          <button
-            onClick={() => removeLabel(label)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            x
-          </button>
-        </span>
-      ))}
-      <input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={labels.length === 0 ? "Add labels..." : ""}
-        aria-label="Add label"
-        className="text-sm bg-transparent border-none outline-none min-w-[80px] flex-1"
-      />
-    </div>
-  );
-}
 
 function DetailSkeleton() {
   return (

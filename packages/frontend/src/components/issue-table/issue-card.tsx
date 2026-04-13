@@ -1,8 +1,9 @@
 import { memo } from "react";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem, LabelColor } from "@beads-gui/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { LabelBadge } from "@/components/ui/label-badge";
 
 interface IssueCardProps {
   issue: IssueListItem;
@@ -25,6 +26,23 @@ export const IssueCard = memo(function IssueCard({ issue, onClick }: IssueCardPr
 
       {/* Title */}
       <p className="text-sm font-medium leading-snug line-clamp-2">{issue.title}</p>
+
+      {/* Labels */}
+      {issue.labels.length > 0 && (
+        <div className="flex gap-1 flex-wrap">
+          {issue.labels.slice(0, 3).map((label) => (
+            <LabelBadge
+              key={label}
+              name={label}
+              color={(issue.labelColors ?? {})[label] as LabelColor | undefined}
+              size="sm"
+            />
+          ))}
+          {issue.labels.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">+{issue.labels.length - 3}</span>
+          )}
+        </div>
+      )}
 
       {/* Bottom row: Status + Type + Assignee */}
       <div className="flex items-center justify-between gap-2">

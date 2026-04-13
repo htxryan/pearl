@@ -1,9 +1,10 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import type { IssueListItem, IssueStatus, Priority } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus, Priority, LabelColor } from "@beads-gui/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
 import { RelativeTime } from "@/components/ui/relative-time";
+import { LabelBadge } from "@/components/ui/label-badge";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -195,15 +196,16 @@ export function buildColumns({
       cell: (info) => {
         const labels = info.getValue();
         if (!labels.length) return null;
+        const colorMap = info.row.original.labelColors ?? {};
         return (
           <div className="flex gap-1 flex-wrap">
             {labels.slice(0, 3).map((label) => (
-              <span
+              <LabelBadge
                 key={label}
-                className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground"
-              >
-                {label}
-              </span>
+                name={label}
+                color={colorMap[label] as LabelColor | undefined}
+                size="sm"
+              />
             ))}
             {labels.length > 3 && (
               <span className="text-xs text-muted-foreground">+{labels.length - 3}</span>

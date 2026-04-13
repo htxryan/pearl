@@ -22,6 +22,8 @@ vi.mock("react-router", async () => {
 
 // ─── Mock API client ─────────────────────────────────────
 vi.mock("@/lib/api-client", () => ({
+  fetchLabels: vi.fn().mockResolvedValue([]),
+  upsertLabel: vi.fn().mockResolvedValue({ success: true, invalidationHints: [] }),
   fetchIssues: vi.fn(),
   fetchIssue: vi.fn(),
   createIssue: vi.fn(),
@@ -411,8 +413,31 @@ describe("SC2+SC1: Create issue via form", () => {
     const assigneeInput = screen.getByLabelText(/assignee/i);
     fireEvent.change(assigneeInput, { target: { value: "alice" } });
 
-    const labelsInput = screen.getByLabelText(/labels/i);
-    fireEvent.change(labelsInput, { target: { value: "frontend, urgent" } });
+    // Labels are now managed via LabelPicker — type and press Enter to quick-create
+    const labelsInput = screen.getByLabelText(/search labels/i);
+
+    // Create "frontend" label
+    await act(async () => {
+      fireEvent.change(labelsInput, { target: { value: "frontend" } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(labelsInput, { key: "Enter" });
+    });
+    // Wait for the label to appear
+    await waitFor(() => {
+      expect(screen.getByText("frontend")).toBeInTheDocument();
+    });
+
+    // Create "urgent" label
+    await act(async () => {
+      fireEvent.change(labelsInput, { target: { value: "urgent" } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(labelsInput, { key: "Enter" });
+    });
+    await waitFor(() => {
+      expect(screen.getByText("urgent")).toBeInTheDocument();
+    });
 
     // Submit the form
     const submitButton = screen.getByRole("button", { name: /create issue/i });

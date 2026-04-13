@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { LabelPicker } from "@/components/ui/label-picker";
 
 export interface FilterState {
   status: IssueStatus[];
@@ -140,19 +141,8 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
     [filters, onChange],
   );
 
-  // Local state for debounced labels input
-  const [localLabels, setLocalLabels] = useState(filters.labels.join(","));
-  const labelsTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => { setLocalLabels(filters.labels.join(",")); clearTimeout(labelsTimer.current); }, [filters.labels]);
-  useEffect(() => () => clearTimeout(labelsTimer.current), []);
-
-  const handleLabelsChange = useCallback((value: string) => {
-    setLocalLabels(value);
-    clearTimeout(labelsTimer.current);
-    labelsTimer.current = setTimeout(() => {
-      const parsed = value.split(",").map((s) => s.trim()).filter(Boolean);
-      onChangeRef.current({ ...filtersRef.current, labels: parsed });
-    }, 300);
+  const handleLabelsChange = useCallback((labels: string[]) => {
+    onChangeRef.current({ ...filtersRef.current, labels });
   }, []);
 
   const hasActiveFilters =
@@ -247,16 +237,13 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         />
 
         {/* Labels */}
-        <input
-          type="text"
-          value={localLabels}
-          onChange={(e) => handleLabelsChange(e.target.value)}
-          placeholder="Labels (comma-sep)"
-          className={cn(
-            "h-8 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
-            isMobile ? "w-full" : "w-40",
-          )}
-          aria-label="Filter by labels"
+        <LabelPicker
+          selected={filters.labels}
+          selectedColors={{}}
+          onChange={handleLabelsChange}
+          allowCreate={false}
+          placeholder="Filter by labels"
+          className={isMobile ? "w-full" : "w-48"}
         />
 
         {hasActiveFilters && (
@@ -376,7 +363,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
       {filters.labels.map((l) => (
         <FilterPill
           key={`label-${l}`}
-          label={`Label: ${l}`}
+          label={l}
           onRemove={() => setField("labels", filters.labels.filter((x) => x !== l))}
         />
       ))}

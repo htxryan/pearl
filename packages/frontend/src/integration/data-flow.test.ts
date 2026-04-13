@@ -19,6 +19,8 @@ import {
 
 // ─── Mock the API client ────────────────────────────────────────
 vi.mock("@/lib/api-client", () => ({
+  fetchLabels: vi.fn().mockResolvedValue([]),
+  upsertLabel: vi.fn().mockResolvedValue({ success: true, invalidationHints: [] }),
   fetchIssues: vi.fn().mockResolvedValue([]),
   fetchIssue: vi.fn().mockResolvedValue({}),
   createIssue: vi.fn().mockResolvedValue({ success: true, invalidationHints: [] }),
