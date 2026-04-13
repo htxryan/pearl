@@ -190,7 +190,7 @@ export interface UpdateIssueRequest {
   issue_type?: IssueType;
   assignee?: string;
   labels?: string[];
-  due?: string;
+  due?: string | null;
   notes?: string;
   claim?: boolean;
   pinned?: boolean;

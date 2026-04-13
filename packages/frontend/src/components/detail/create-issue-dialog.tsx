@@ -72,7 +72,8 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
       setTitleDirty(false);
       setDescTab("write");
     }
-  }, [isOpen, hasDraft, draft]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- draft excluded to prevent focus theft on every keystroke
+  }, [isOpen, hasDraft]);
 
   // Auto-save draft on field changes
   const saveDraftFromFields = useCallback(() => {
@@ -132,7 +133,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   };
 
   const handleCancel = () => {
-    clearDraft();
     resetForm();
     onClose();
   };
@@ -196,6 +196,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
             onChange={handleTitleChange}
             onBlur={handleTitleBlur}
             placeholder="Issue title"
+            maxLength={TITLE_MAX}
             className={cn(
               "w-full text-sm bg-transparent border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring",
               showTitleError ? "border-destructive" : "border-border",

@@ -42,20 +42,31 @@ function loadDraft(key: string): DraftState | null {
 export function useDraft(key: string): UseDraftReturn {
   const [draft, setDraft] = useState<DraftState | null>(() => loadDraft(key));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRef = useRef<DraftState | null>(null);
   const keyRef = useRef(key);
   keyRef.current = key;
 
-  // Cleanup debounce timer on unmount
+  // Flush pending draft on unmount instead of discarding it
   useEffect(() => {
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (pendingRef.current) {
+        try {
+          localStorage.setItem(keyRef.current, JSON.stringify(pendingRef.current));
+        } catch {
+          // localStorage full or unavailable
+        }
+        pendingRef.current = null;
       }
     };
   }, []);
 
   const saveDraft = useCallback((state: DraftState) => {
     setDraft(state);
+    pendingRef.current = state;
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -67,6 +78,7 @@ export function useDraft(key: string): UseDraftReturn {
       } catch {
         // localStorage full or unavailable
       }
+      pendingRef.current = null;
       timerRef.current = null;
     }, 500);
   }, []);
@@ -76,6 +88,7 @@ export function useDraft(key: string): UseDraftReturn {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    pendingRef.current = null;
     setDraft(null);
     try {
       localStorage.removeItem(keyRef.current);

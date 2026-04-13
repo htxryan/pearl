@@ -63,12 +63,19 @@ export function DatePicker({
     setRelativeInput("");
   }, []);
 
-  // Focus input on open
+  // Focus input on open; reposition on scroll/resize
   useEffect(() => {
-    if (isOpen) {
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+    requestAnimationFrame(() => inputRef.current?.focus());
+
+    const reposition = () => updatePopoverPosition();
+    window.addEventListener("scroll", reposition, { passive: true, capture: true });
+    window.addEventListener("resize", reposition, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [isOpen, updatePopoverPosition]);
 
   // Click outside to close
   useEffect(() => {
@@ -111,7 +118,7 @@ export function DatePicker({
 
       // Try relative parse first
       const relative = parseRelativeDate(text);
-      if (relative) {
+      if (relative && isValid(relative)) {
         onChange(toISO(relative));
         close();
         return;

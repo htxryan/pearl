@@ -14,12 +14,12 @@ const col = createColumnHelper<IssueListItem>();
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
-  const d = new Date(iso);
+  const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function isDateOverdue(iso: string): boolean {
-  const due = new Date(iso);
+  const due = new Date(iso + "T00:00:00");
   due.setHours(0, 0, 0, 0);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -156,6 +156,8 @@ function InlineLabelEditor({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
 
   // Click outside to close
   useEffect(() => {
@@ -173,10 +175,25 @@ function InlineLabelEditor({
     onLabelsChange(issueId, newLabels);
   }, [issueId, onLabelsChange]);
 
+  const handleOpen = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPopoverStyle({
+        position: "fixed",
+        top: rect.bottom + 4,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 268)),
+        zIndex: 50,
+      });
+    }
+    setIsOpen((prev) => !prev);
+  }, []);
+
   return (
     <div ref={containerRef} className="relative">
       <div
-        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+        ref={triggerRef}
+        onClick={handleOpen}
         className="flex gap-1 flex-wrap cursor-pointer min-h-[20px]"
       >
         {labels.length === 0 && (
@@ -196,7 +213,8 @@ function InlineLabelEditor({
       </div>
       {isOpen && (
         <div
-          className="absolute left-0 top-full mt-1 z-50 w-[260px]"
+          style={popoverStyle}
+          className="w-[260px]"
           onClick={(e) => e.stopPropagation()}
         >
           <LabelPicker

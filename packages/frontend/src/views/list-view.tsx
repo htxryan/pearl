@@ -315,7 +315,7 @@ export function ListView() {
     (id: string, date: string | null) => {
       const issue = issues.find((i) => i.id === id);
       updateMutation.mutate(
-        { id, data: { due: date ?? undefined } },
+        { id, data: { due: date } },
         {
           onError: () => {
             toast.error(`Failed to update due date for "${issue?.title ?? id}"`);
