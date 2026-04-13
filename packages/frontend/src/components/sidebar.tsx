@@ -44,15 +44,15 @@ function SettingsIcon() {
   );
 }
 
-const mainNavItems: { to: string; label: string; shortcut: string; icon: ReactNode }[] = [
-  { to: "/list", label: "List", shortcut: "1", icon: <ListIcon /> },
-  { to: "/board", label: "Board", shortcut: "2", icon: <BoardIcon /> },
-  { to: "/graph", label: "Graph", shortcut: "3", icon: <GraphIcon /> },
+const mainNavItems: { to: string; label: string; shortcut: string; icon: () => ReactNode }[] = [
+  { to: "/list", label: "List", shortcut: "1", icon: () => <ListIcon /> },
+  { to: "/board", label: "Board", shortcut: "2", icon: () => <BoardIcon /> },
+  { to: "/graph", label: "Graph", shortcut: "3", icon: () => <GraphIcon /> },
 ];
 
-const settingsItem = { to: "/settings", label: "Settings", shortcut: "4", icon: <SettingsIcon /> };
+const settingsItem = { to: "/settings", label: "Settings", shortcut: "4", icon: () => <SettingsIcon /> };
 
-function NavItem({ item }: { item: { to: string; label: string; shortcut: string; icon: ReactNode } }) {
+function NavItem({ item }: { item: { to: string; label: string; shortcut: string; icon: () => ReactNode } }) {
   return (
     <NavLink
       to={item.to}
@@ -66,7 +66,7 @@ function NavItem({ item }: { item: { to: string; label: string; shortcut: string
       }
     >
       <span className="flex items-center gap-2">
-        {item.icon}
+        {item.icon()}
         {item.label}
       </span>
       <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">

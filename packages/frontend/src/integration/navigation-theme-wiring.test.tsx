@@ -168,6 +168,7 @@ vi.mock("cmdk", () => {
 import { AppShell } from "@/components/app-shell";
 import { ListView } from "@/views/list-view";
 import { SettingsView } from "@/views/settings-view";
+import { monokai } from "@/themes/definitions/monokai";
 
 // ─── Helpers ─────────────────────────────────────────────
 function createQueryClient() {
@@ -299,9 +300,8 @@ describe("Command Palette Switch Theme commands", () => {
     // Click the first theme item
     fireEvent.click(themeItems[0]);
 
-    // Palette should close (cmdk should no longer be visible after animation)
-    // The theme should be applied via setTheme — verified by CSS variable on :root
-    // Since we're in a test with real useTheme, check localStorage was updated
+    // TODO: assert palette closes after selection (cmdk mock doesn't simulate dismiss)
+    // Verify theme was applied via localStorage (useTheme is real, not mocked)
     const storedTheme = localStorage.getItem("beads-gui-theme");
     expect(storedTheme).toBeTruthy();
   });
@@ -327,12 +327,12 @@ describe("E2E theme selection flow", () => {
     fireEvent.click(monokaiItem!);
 
     // Theme should be persisted in localStorage
-    expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+    expect(localStorage.getItem("beads-gui-theme")).toBe(monokai.id);
 
     // CSS custom properties should be applied
     expect(
       document.documentElement.style.getPropertyValue("--color-background"),
-    ).toBe("#272822");
+    ).toBe(monokai.colors.background);
 
     // Dark class should be applied (Monokai is a dark theme)
     expect(document.documentElement.classList.contains("dark")).toBe(true);
@@ -349,7 +349,7 @@ describe("E2E theme selection flow", () => {
     fireEvent.click(monokaiItem!);
 
     // Verify theme was applied
-    expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+    expect(localStorage.getItem("beads-gui-theme")).toBe(monokai.id);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
 
     // Unmount and re-render (simulates page navigation within SPA)
@@ -359,7 +359,7 @@ describe("E2E theme selection flow", () => {
     // CSS variables should still reflect the persisted theme
     expect(
       document.documentElement.style.getPropertyValue("--color-background"),
-    ).toBe("#272822");
+    ).toBe(monokai.colors.background);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 });
