@@ -22,9 +22,9 @@ const upsertLabelSchema = {
 
 /**
  * Ensure the label_definitions table exists.
- * Called once during route registration — idempotent CREATE IF NOT EXISTS.
+ * Called at startup and after replica sync — idempotent CREATE IF NOT EXISTS.
  */
-async function ensureLabelDefinitionsTable(getConfig: () => Config): Promise<void> {
+export async function ensureLabelDefinitionsTable(getConfig: () => Config): Promise<void> {
   try {
     await queryWithRetry(getConfig(), async (conn) => {
       await conn.query(`
@@ -114,17 +114,26 @@ export async function fetchLabelColors(
 ): Promise<Record<string, LabelColor>> {
   if (labelNames.length === 0) return {};
 
-  const rows = await queryWithRetry(getConfig(), async (conn) => {
-    const [result] = await conn.query<RowDataPacket[]>(
-      `SELECT name, color FROM label_definitions WHERE name IN (${labelNames.map(() => "?").join(",")})`,
-      labelNames
-    );
-    return result;
-  }) as RowDataPacket[];
+  try {
+    const rows = await queryWithRetry(getConfig(), async (conn) => {
+      const [result] = await conn.query<RowDataPacket[]>(
+        `SELECT name, color FROM label_definitions WHERE name IN (${labelNames.map(() => "?").join(",")})`,
+        labelNames
+      );
+      return result;
+    }) as RowDataPacket[];
 
-  const colorMap: Record<string, LabelColor> = {};
-  for (const row of rows) {
-    colorMap[row.name] = row.color as LabelColor;
+    const colorMap: Record<string, LabelColor> = {};
+    for (const row of rows) {
+      colorMap[row.name] = row.color as LabelColor;
+    }
+    return colorMap;
+  } catch (err: unknown) {
+    // The label_definitions table may not exist yet (e.g. after a replica sync
+    // overwrites the replica with a primary that hasn't had the table created).
+    // Return empty colors gracefully rather than failing the entire request.
+    const errno = (err as { errno?: number }).errno;
+    if (errno === 1146) return {}; // ER_NO_SUCH_TABLE
+    throw err;
   }
-  return colorMap;
 }

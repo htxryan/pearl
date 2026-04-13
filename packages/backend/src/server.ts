@@ -9,7 +9,7 @@ import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerStatsRoutes } from "./routes/stats.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerSetupRoutes } from "./routes/setup.js";
-import { registerLabelRoutes } from "./routes/labels.js";
+import { registerLabelRoutes, ensureLabelDefinitionsTable } from "./routes/labels.js";
 import { AppError } from "./errors.js";
 
 export async function createServer(initialConfig: Config) {
@@ -114,6 +114,13 @@ export async function createServer(initialConfig: Config) {
         } finally {
           endSync();
         }
+
+        // Re-create the label_definitions table on the replica — it was
+        // wiped when the primary (which may not have it) was copied over.
+        // Must be called AFTER endSync() to avoid deadlocking on the sync barrier.
+        await ensureLabelDefinitionsTable(() => config).catch((err) => {
+          app.log.warn({ err }, "[replica] Failed to re-create label_definitions after sync");
+        });
       }
     : undefined;
 
