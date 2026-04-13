@@ -133,8 +133,8 @@ export function loadConfig(): Config {
     doltRestartThreshold: 3,
     doltRestartDebounceMs: 5000,
     poolSize: 5,
-    doltUser: process.env.DOLT_USER || "root",
-    doltPassword: process.env.DOLT_PASSWORD || "",
+    doltUser: process.env.DOLT_USER || String(metadata?.dolt_user || "") || "root",
+    doltPassword: process.env.DOLT_PASSWORD || String(metadata?.dolt_password || ""),
     doltDatabase,
     needsSetup: false,
   };

@@ -68,7 +68,9 @@ export function registerSetupRoutes(
         const isReachable = await testServerConnection(
           body.server_host,
           port,
-          body.database || "beads_gui"
+          body.database || "beads_gui",
+          body.server_user || "root",
+          body.server_password || ""
         );
         if (!isReachable) {
           throw validationError(
@@ -95,6 +97,8 @@ export function registerSetupRoutes(
           dolt_mode: "server" as DoltMode,
           dolt_host: body.server_host,
           dolt_port: body.server_port || 3307,
+          dolt_user: body.server_user || "root",
+          dolt_password: body.server_password || "",
           dolt_database: body.database || "beads_gui",
           project_id: crypto.randomUUID(),
         };
@@ -147,15 +151,17 @@ async function runBdInit(config: Config): Promise<void> {
 async function testServerConnection(
   host: string,
   port: number,
-  database: string
+  database: string,
+  user: string,
+  password: string
 ): Promise<boolean> {
   try {
     const mysql2 = await import("mysql2/promise");
     const conn = await mysql2.createConnection({
       host,
       port,
-      user: process.env.DOLT_USER || "root",
-      password: process.env.DOLT_PASSWORD || "",
+      user,
+      password: password || undefined,
       database,
       connectTimeout: 5000,
     });

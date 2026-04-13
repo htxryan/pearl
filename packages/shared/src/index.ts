@@ -222,6 +222,10 @@ export interface SetupInitializeRequest {
   server_host?: string;
   /** Required when mode is "server" */
   server_port?: number;
+  /** MySQL user for server mode (optional, defaults to "root") */
+  server_user?: string;
+  /** MySQL password for server mode (optional) */
+  server_password?: string;
   /** Database name for server mode (optional, defaults to "beads_gui") */
   database?: string;
 }

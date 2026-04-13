@@ -15,6 +15,8 @@ export function SetupView() {
   const [mode, setMode] = useState<"embedded" | "server">("embedded");
   const [serverHost, setServerHost] = useState("");
   const [serverPort, setServerPort] = useState("3307");
+  const [serverUser, setServerUser] = useState("root");
+  const [serverPassword, setServerPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const initMutation = useMutation({
@@ -60,8 +62,10 @@ export function SetupView() {
       mode: "server",
       server_host: serverHost.trim(),
       server_port: port,
+      server_user: serverUser.trim() || "root",
+      server_password: serverPassword,
     });
-  }, [serverHost, serverPort, initMutation]);
+  }, [serverHost, serverPort, serverUser, serverPassword, initMutation]);
 
   const handleDone = useCallback(() => {
     navigate("/list", { replace: true });
@@ -92,8 +96,12 @@ export function SetupView() {
             <ServerConfig
               host={serverHost}
               port={serverPort}
+              user={serverUser}
+              password={serverPassword}
               onHostChange={setServerHost}
               onPortChange={setServerPort}
+              onUserChange={setServerUser}
+              onPasswordChange={setServerPassword}
               onSubmit={handleServerSubmit}
               onBack={() => { setStep("mode"); setError(null); }}
               error={error}
@@ -193,20 +201,29 @@ function ModeSelection({
 function ServerConfig({
   host,
   port,
+  user,
+  password,
   onHostChange,
   onPortChange,
+  onUserChange,
+  onPasswordChange,
   onSubmit,
   onBack,
   error,
 }: {
   host: string;
   port: string;
+  user: string;
+  password: string;
   onHostChange: (v: string) => void;
   onPortChange: (v: string) => void;
+  onUserChange: (v: string) => void;
+  onPasswordChange: (v: string) => void;
   onSubmit: () => void;
   onBack: () => void;
   error: string | null;
 }) {
+  const inputClass = "mt-1 w-full rounded-[var(--radius)] border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20";
   return (
     <div>
       <h2 className="text-lg font-semibold text-foreground">
@@ -223,58 +240,43 @@ function ServerConfig({
       )}
 
       <div className="mt-6 space-y-4">
-        <div>
-          <label
-            htmlFor="server-host"
-            className="block text-sm font-medium text-foreground"
-          >
-            Host
-          </label>
-          <input
-            id="server-host"
-            type="text"
-            value={host}
-            onChange={(e) => onHostChange(e.target.value)}
-            placeholder="dolt.example.com"
-            className="mt-1 w-full rounded-[var(--radius)] border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onSubmit();
-            }}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="server-host" className="block text-sm font-medium text-foreground">Host</label>
+            <input id="server-host" type="text" value={host} onChange={(e) => onHostChange(e.target.value)}
+              placeholder="dolt.example.com" className={inputClass} autoFocus
+              onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }} />
+          </div>
+          <div>
+            <label htmlFor="server-port" className="block text-sm font-medium text-foreground">Port</label>
+            <input id="server-port" type="text" inputMode="numeric" value={port}
+              onChange={(e) => onPortChange(e.target.value)} placeholder="3307" className={inputClass}
+              onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }} />
+          </div>
         </div>
-        <div>
-          <label
-            htmlFor="server-port"
-            className="block text-sm font-medium text-foreground"
-          >
-            Port
-          </label>
-          <input
-            id="server-port"
-            type="text"
-            inputMode="numeric"
-            value={port}
-            onChange={(e) => onPortChange(e.target.value)}
-            placeholder="3307"
-            className="mt-1 w-full rounded-[var(--radius)] border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onSubmit();
-            }}
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="server-user" className="block text-sm font-medium text-foreground">Username</label>
+            <input id="server-user" type="text" value={user} onChange={(e) => onUserChange(e.target.value)}
+              placeholder="root" className={inputClass}
+              onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }} />
+          </div>
+          <div>
+            <label htmlFor="server-password" className="block text-sm font-medium text-foreground">
+              Password
+              <span className="ml-1 text-xs font-normal text-muted-foreground">(optional)</span>
+            </label>
+            <input id="server-password" type="password" value={password}
+              onChange={(e) => onPasswordChange(e.target.value)} placeholder=""
+              className={inputClass}
+              onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }} />
+          </div>
         </div>
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Back
-        </button>
-        <Button onClick={onSubmit}>
-          Test &amp; Connect
-        </Button>
+        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground">Back</button>
+        <Button onClick={onSubmit}>Test &amp; Connect</Button>
       </div>
     </div>
   );
