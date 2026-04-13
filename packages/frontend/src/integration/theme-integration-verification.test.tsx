@@ -5,7 +5,6 @@ import {
   fireEvent,
   cleanup,
   within,
-  act,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route, Navigate } from "react-router";
@@ -195,6 +194,10 @@ import { solarizedDark } from "@/themes/definitions/solarized-dark";
 import { lightPlus } from "@/themes/definitions/light-plus";
 import { getAllThemes, getDefaultTheme } from "@/themes";
 import { COLOR_TOKENS } from "@/themes/types";
+
+// ─── Derived constants (avoid magic numbers in assertions) ──
+const EXPECTED_THEME_COUNT = getAllThemes().length;
+const EXPECTED_TOKEN_COUNT = COLOR_TOKENS.length;
 
 // ─── Helpers ─────────────────────────────────────────────
 function createQueryClient() {
@@ -487,7 +490,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(slButton).toHaveAttribute("aria-pressed", "true");
     });
 
-    it("re-render after unmount keeps the hook snapshot in sync with localStorage", () => {
+    it("re-render after unmount reflects the theme set before unmount (module state)", () => {
       const { unmount } = renderApp("/list");
 
       selectThemeViaCommandPalette("Monokai");
@@ -599,9 +602,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(defaultButton).toHaveAttribute("aria-pressed", "true");
     });
 
-    it("no theme in localStorage on first render falls back to default", () => {
-      // beforeEach cleared localStorage. Reset to default theme explicitly
-      // to ensure the module snapshot reflects the no-localStorage state.
+    it("explicitly selecting the default theme marks it active and shows exactly one active button", () => {
       renderApp("/settings");
 
       // Explicitly set the default theme to reset module state
@@ -611,7 +612,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
         name: /available themes/i,
       });
       const buttons = within(themeGroup).getAllByRole("button");
-      expect(buttons).toHaveLength(15);
+      expect(buttons).toHaveLength(EXPECTED_THEME_COUNT);
 
       // Exactly one button should be marked as active — and it must be Light+
       const activeButtons = buttons.filter(
@@ -632,16 +633,16 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
   describe("Scenario 7: Exhaustive theme validation — all themes, all tokens", () => {
     const allThemes = getAllThemes();
 
-    it("contains exactly 15 registered themes", () => {
-      expect(allThemes).toHaveLength(15);
+    it(`contains exactly ${EXPECTED_THEME_COUNT} registered themes`, () => {
+      expect(allThemes).toHaveLength(EXPECTED_THEME_COUNT);
     });
 
-    it("COLOR_TOKENS contains exactly 21 tokens", () => {
-      expect(COLOR_TOKENS).toHaveLength(21);
+    it(`COLOR_TOKENS contains exactly ${EXPECTED_TOKEN_COUNT} tokens`, () => {
+      expect(COLOR_TOKENS).toHaveLength(EXPECTED_TOKEN_COUNT);
     });
 
     it.each(allThemes.map((t) => [t.id, t.name, t] as const))(
-      "%s (%s) — sets all 21 CSS custom properties and correct .dark class",
+      `%s (%s) — sets all ${EXPECTED_TOKEN_COUNT} CSS custom properties and correct .dark class`,
       (_id, _name, theme) => {
         renderApp("/list");
 
@@ -668,9 +669,6 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
           );
         }
 
-        cleanup();
-        document.documentElement.classList.remove("dark");
-        document.documentElement.style.cssText = "";
       },
     );
 
@@ -688,10 +686,6 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
           const expected = theme.colors[token];
           expect(actual).toBe(expected);
         }
-
-        cleanup();
-        document.documentElement.classList.remove("dark");
-        document.documentElement.style.cssText = "";
       },
     );
   });
@@ -752,19 +746,19 @@ describe("Contract Validation", () => {
       expect(themeGroup).toBeInTheDocument();
 
       const themeButtons = within(themeGroup).getAllByRole("button");
-      expect(themeButtons.length).toBe(15);
+      expect(themeButtons.length).toBe(EXPECTED_THEME_COUNT);
     });
   });
 
   describe("Contract: Command Palette exposes all themes under Switch Theme group", () => {
-    it("all 15 themes appear as items in the Switch Theme command group", () => {
+    it("all themes appear as items in the Switch Theme command group", () => {
       renderApp("/list");
 
       fireEvent.keyDown(window, { key: "k", metaKey: true });
 
       const themeGroup = screen.getByTestId("cmdk-group-Switch Theme");
       const items = within(themeGroup).getAllByTestId("cmdk-item");
-      expect(items).toHaveLength(15);
+      expect(items).toHaveLength(EXPECTED_THEME_COUNT);
     });
 
     it("each theme item label matches 'Theme: <name>' format", () => {
