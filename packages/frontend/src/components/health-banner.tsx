@@ -19,9 +19,9 @@ export function HealthBanner() {
   // Backend reachable but Dolt is not running
   if (health && health.dolt_server !== "running") {
     return (
-      <div className="flex items-center gap-2 border-b border-yellow-500 bg-yellow-500/10 px-4 py-2 text-sm text-yellow-700 dark:text-yellow-400">
+      <div className="flex items-center gap-2 border-b border-warning bg-warning/10 px-4 py-2 text-sm text-warning-foreground">
         <span className="font-medium">Database unavailable</span>
-        <span className="text-yellow-600 dark:text-yellow-500">
+        <span className="text-warning-foreground/80">
           — Dolt server status: {health.dolt_server}. Some features may not work.
         </span>
       </div>

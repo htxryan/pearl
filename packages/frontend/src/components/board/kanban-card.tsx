@@ -68,7 +68,7 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
         "active:scale-[0.98] active:transition-none",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isDragging && "opacity-30",
-        isHighPriority && "bg-gradient-to-r from-red-50/40 to-transparent dark:from-red-950/15 dark:to-transparent",
+        isHighPriority && "bg-gradient-to-r from-danger/10 to-transparent",
       )}
     >
       {/* Left-edge status accent bar */}

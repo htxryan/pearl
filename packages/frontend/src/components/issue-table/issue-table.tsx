@@ -142,7 +142,7 @@ export function IssueTable({
                 "animate-fade-up [animation-fill-mode:backwards]",
                 index === activeRowIndex && "bg-accent",
                 highlightedIds?.has(row.original.id) &&
-                  "ring-2 ring-inset ring-green-500/50 bg-green-50 dark:bg-green-950/20",
+                  "ring-2 ring-inset ring-success/50 bg-success/10",
               )}
               style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
               data-row-index={index}

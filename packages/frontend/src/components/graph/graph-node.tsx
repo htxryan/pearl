@@ -31,11 +31,11 @@ const statusLabel: Record<IssueStatus, string> = {
 };
 
 const priorityConfig: Record<Priority, { label: string; className: string }> = {
-  0: { label: "P0", className: "text-red-600 dark:text-red-400" },
-  1: { label: "P1", className: "text-orange-500 dark:text-orange-400" },
+  0: { label: "P0", className: "text-danger" },
+  1: { label: "P1", className: "text-warning" },
   2: { label: "P2", className: "text-yellow-600 dark:text-yellow-400" },
-  3: { label: "P3", className: "text-gray-500 dark:text-gray-400" },
-  4: { label: "P4", className: "text-gray-400 dark:text-gray-500" },
+  3: { label: "P3", className: "text-muted-foreground" },
+  4: { label: "P4", className: "text-muted-foreground/70" },
 };
 
 const typeLabel: Record<IssueListItem["issue_type"], string> = {

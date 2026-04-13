@@ -272,7 +272,7 @@ function DetailViewContent({ id }: { id: string }) {
         />
 
         {isDirty && (
-          <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+          <div className="mt-2 text-xs text-warning-foreground">
             Unsaved changes in: {Array.from(dirtyFields).join(", ")}
           </div>
         )}

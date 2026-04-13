@@ -1,10 +1,10 @@
 import { useToasts, dismissToast, type Toast, type ToastVariant } from "@/hooks/use-toast";
 
 const variantStyles: Record<ToastVariant, string> = {
-  success: "border-green-500/30 bg-green-50 text-green-900 dark:bg-green-950/50 dark:text-green-100",
-  error: "border-destructive/30 bg-red-50 text-red-900 dark:bg-red-950/50 dark:text-red-100",
-  warning: "border-yellow-500/30 bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-100",
-  info: "border-blue-500/30 bg-blue-50 text-blue-900 dark:bg-blue-950/50 dark:text-blue-100",
+  success: "border-success/30 bg-success/10 text-success-foreground",
+  error: "border-danger/30 bg-danger/10 text-danger-foreground",
+  warning: "border-warning/30 bg-warning/10 text-warning-foreground",
+  info: "border-info/30 bg-info/10 text-info-foreground",
 };
 
 const iconMap: Record<ToastVariant, string> = {

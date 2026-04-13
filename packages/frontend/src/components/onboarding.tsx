@@ -81,34 +81,34 @@ export function OnboardingBanner() {
   const current = STEPS[step];
 
   return (
-    <div className="mx-4 mt-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-4 py-4">
+    <div className="mx-4 mt-4 rounded-lg border border-info/30 bg-info/10 px-4 py-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+            <span className="text-xs font-medium text-info">
               Step {step + 1} of {STEPS.length}
             </span>
           </div>
-          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+          <h3 className="text-sm font-semibold text-info-foreground">
             {current.title}
           </h3>
-          <p className="mt-1 text-sm text-blue-800 dark:text-blue-200">
+          <p className="mt-1 text-sm text-info-foreground/80">
             {current.description}
           </p>
-          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+          <p className="mt-1 text-xs text-info">
             {current.tip}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleDismiss}
-            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+            className="text-xs text-info hover:text-info-foreground transition-colors"
           >
             Skip
           </button>
           <button
             onClick={handleNext}
-            className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+            className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             {step < STEPS.length - 1 ? "Next" : "Get started"}
           </button>
@@ -119,7 +119,7 @@ export function OnboardingBanner() {
         {STEPS.map((_, i) => (
           <div
             key={i}
-            className={`h-1 rounded-full flex-1 ${i <= step ? "bg-blue-500" : "bg-blue-200 dark:bg-blue-800"}`}
+            className={`h-1 rounded-full flex-1 ${i <= step ? "bg-info" : "bg-info/20"}`}
           />
         ))}
       </div>

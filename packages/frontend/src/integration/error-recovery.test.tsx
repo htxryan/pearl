@@ -209,7 +209,7 @@ describe("HealthBanner", () => {
     expect(screen.getByText(/Dolt server status: stopped/)).toBeInTheDocument();
 
     const banner = screen.getByText("Database unavailable").closest("div");
-    expect(banner?.className).toContain("text-yellow-700");
+    expect(banner?.className).toContain("text-warning-foreground");
   });
 
   it("shows 'Database unavailable' when dolt_server is 'starting'", () => {
