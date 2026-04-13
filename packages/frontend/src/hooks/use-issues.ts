@@ -124,6 +124,47 @@ export function useCreateIssue() {
   return useMutation({
     mutationKey: ["issues", "create"],
     mutationFn: (data: CreateIssueRequest) => api.createIssue(data),
+    onMutate: async (data) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: issueKeys.lists() });
+
+      // Snapshot previous list
+      const previousLists = queryClient.getQueriesData<IssueListItem[]>({
+        queryKey: issueKeys.lists(),
+      });
+
+      // Create a temporary issue with a placeholder ID
+      const tempIssue: IssueListItem = {
+        id: `temp-${Date.now()}`,
+        title: data.title,
+        status: "open",
+        priority: data.priority ?? 2,
+        issue_type: data.issue_type ?? "task",
+        assignee: data.assignee ?? null,
+        owner: "user",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        due_at: data.due ?? null,
+        pinned: false,
+        labels: data.labels ?? [],
+      };
+
+      // Optimistic update: add issue to top of all list views
+      for (const [queryKey, list] of previousLists) {
+        if (!list) continue;
+        queryClient.setQueryData<IssueListItem[]>(queryKey, [tempIssue, ...list]);
+      }
+
+      return { previousLists };
+    },
+    onError: (_err, _data, context) => {
+      // Rollback on error
+      if (context?.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+    },
     onSuccess: (response) => {
       // STPA H2: Force immediate invalidation using hints
       invalidateFromHints(queryClient, response.invalidationHints);
@@ -200,6 +241,53 @@ export function useCloseIssue() {
     mutationKey: ["issues", "close"],
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       api.closeIssue(id, reason),
+    onMutate: async ({ id }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: issueKeys.detail(id) });
+      await queryClient.cancelQueries({ queryKey: issueKeys.lists() });
+
+      // Snapshot previous values
+      const previousDetail = queryClient.getQueryData<Issue>(issueKeys.detail(id));
+      const previousLists = queryClient.getQueriesData<IssueListItem[]>({
+        queryKey: issueKeys.lists(),
+      });
+
+      // Optimistic update on detail
+      if (previousDetail) {
+        queryClient.setQueryData<Issue>(issueKeys.detail(id), {
+          ...previousDetail,
+          status: "closed",
+          closed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      // Optimistic update on list items
+      for (const [queryKey, list] of previousLists) {
+        if (!list) continue;
+        queryClient.setQueryData<IssueListItem[]>(
+          queryKey,
+          list.map((item) =>
+            item.id === id
+              ? { ...item, status: "closed", updated_at: new Date().toISOString() }
+              : item,
+          ),
+        );
+      }
+
+      return { previousDetail, previousLists };
+    },
+    onError: (_err, { id }, context) => {
+      // Rollback on error
+      if (context?.previousDetail) {
+        queryClient.setQueryData(issueKeys.detail(id), context.previousDetail);
+      }
+      if (context?.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+    },
     onSuccess: (response) => {
       invalidateFromHints(queryClient, response.invalidationHints);
     },
@@ -214,7 +302,36 @@ export function useAddComment() {
     mutationKey: ["issues", "comment"],
     mutationFn: ({ issueId, data }: { issueId: string; data: CreateCommentRequest }) =>
       api.addComment(issueId, data),
-    onSuccess: (response) => {
+    onMutate: async ({ issueId, data }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: issueKeys.comments(issueId) });
+
+      // Snapshot previous value
+      const previousComments = queryClient.getQueryData(issueKeys.comments(issueId));
+
+      // Optimistic update: add comment to the thread
+      const tempComment = {
+        id: `temp-${Date.now()}`,
+        issue_id: issueId,
+        author: "You",
+        text: data.text,
+        created_at: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData(issueKeys.comments(issueId), (old: any) => [
+        ...(old || []),
+        tempComment,
+      ]);
+
+      return { previousComments };
+    },
+    onError: (_err, { issueId }, context) => {
+      // Rollback on error
+      if (context?.previousComments !== undefined) {
+        queryClient.setQueryData(issueKeys.comments(issueId), context.previousComments);
+      }
+    },
+    onSuccess: (response, { issueId }) => {
       invalidateFromHints(queryClient, response.invalidationHints);
     },
   });
@@ -238,6 +355,54 @@ export function useAddDependency() {
   return useMutation({
     mutationKey: ["dependencies", "add"],
     mutationFn: (data: CreateDependencyRequest) => api.addDependency(data),
+    onMutate: async (data) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: dependencyKeys.all });
+      await queryClient.cancelQueries({ queryKey: issueKeys.dependencies(data.issue_id) });
+      await queryClient.cancelQueries({ queryKey: issueKeys.dependencies(data.depends_on_id) });
+
+      // Snapshot previous values
+      const previousDeps = queryClient.getQueryData(dependencyKeys.all);
+      const previousIssueDeps = queryClient.getQueryData(issueKeys.dependencies(data.issue_id));
+      const previousDepOnDeps = queryClient.getQueryData(issueKeys.dependencies(data.depends_on_id));
+
+      // Optimistic update: add dependency
+      const tempDependency = {
+        issue_id: data.issue_id,
+        depends_on_id: data.depends_on_id,
+        type: (data.type || "depends_on") as any,
+        created_at: new Date().toISOString(),
+        created_by: "user",
+      };
+
+      queryClient.setQueryData(dependencyKeys.all, (old: any) => [...(old || []), tempDependency]);
+      queryClient.setQueryData(
+        issueKeys.dependencies(data.issue_id),
+        (old: any) => [...(old || []), tempDependency],
+      );
+      queryClient.setQueryData(
+        issueKeys.dependencies(data.depends_on_id),
+        (old: any) => [...(old || []), tempDependency],
+      );
+
+      return { previousDeps, previousIssueDeps, previousDepOnDeps };
+    },
+    onError: (
+      _err,
+      { issue_id, depends_on_id },
+      context,
+    ) => {
+      // Rollback on error
+      if (context?.previousDeps !== undefined) {
+        queryClient.setQueryData(dependencyKeys.all, context.previousDeps);
+      }
+      if (context?.previousIssueDeps !== undefined) {
+        queryClient.setQueryData(issueKeys.dependencies(issue_id), context.previousIssueDeps);
+      }
+      if (context?.previousDepOnDeps !== undefined) {
+        queryClient.setQueryData(issueKeys.dependencies(depends_on_id), context.previousDepOnDeps);
+      }
+    },
     onSuccess: (response) => {
       invalidateFromHints(queryClient, response.invalidationHints);
     },
@@ -252,6 +417,48 @@ export function useRemoveDependency() {
     mutationKey: ["dependencies", "remove"],
     mutationFn: ({ issueId, dependsOnId }: { issueId: string; dependsOnId: string }) =>
       api.removeDependency(issueId, dependsOnId),
+    onMutate: async ({ issueId, dependsOnId }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: dependencyKeys.all });
+      await queryClient.cancelQueries({ queryKey: issueKeys.dependencies(issueId) });
+      await queryClient.cancelQueries({ queryKey: issueKeys.dependencies(dependsOnId) });
+
+      // Snapshot previous values
+      const previousDeps = queryClient.getQueryData(dependencyKeys.all);
+      const previousIssueDeps = queryClient.getQueryData(issueKeys.dependencies(issueId));
+      const previousDepOnDeps = queryClient.getQueryData(issueKeys.dependencies(dependsOnId));
+
+      // Optimistic update: remove dependency
+      queryClient.setQueryData(dependencyKeys.all, (old: any) =>
+        old?.filter(
+          (d: any) => !(d.issue_id === issueId && d.depends_on_id === dependsOnId),
+        ) || [],
+      );
+      queryClient.setQueryData(issueKeys.dependencies(issueId), (old: any) =>
+        old?.filter((d: any) => d.depends_on_id !== dependsOnId) || [],
+      );
+      queryClient.setQueryData(issueKeys.dependencies(dependsOnId), (old: any) =>
+        old?.filter((d: any) => d.issue_id !== issueId) || [],
+      );
+
+      return { previousDeps, previousIssueDeps, previousDepOnDeps };
+    },
+    onError: (
+      _err,
+      { issueId, dependsOnId },
+      context,
+    ) => {
+      // Rollback on error
+      if (context?.previousDeps !== undefined) {
+        queryClient.setQueryData(dependencyKeys.all, context.previousDeps);
+      }
+      if (context?.previousIssueDeps !== undefined) {
+        queryClient.setQueryData(issueKeys.dependencies(issueId), context.previousIssueDeps);
+      }
+      if (context?.previousDepOnDeps !== undefined) {
+        queryClient.setQueryData(issueKeys.dependencies(dependsOnId), context.previousDepOnDeps);
+      }
+    },
     onSuccess: (response) => {
       invalidateFromHints(queryClient, response.invalidationHints);
     },
