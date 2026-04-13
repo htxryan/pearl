@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   flexRender,
   type Table,
@@ -87,6 +87,7 @@ function TableRow({
   index,
   activeRowIndex,
   highlightedIds,
+  animated,
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -96,6 +97,7 @@ function TableRow({
   index: number;
   activeRowIndex: number;
   highlightedIds?: Set<string>;
+  animated?: boolean;
   onClick: (id: string) => void;
   onMouseEnter: (id: string) => void;
   onMouseLeave: () => void;
@@ -109,6 +111,7 @@ function TableRow({
       className={cn(
         "border-b border-border cursor-pointer transition-colors",
         "hover:bg-accent/50",
+        animated && "animate-fade-up [animation-fill-mode:backwards]",
         index === activeRowIndex && "bg-accent",
         highlightedIds?.has(row.original.id) &&
           "ring-2 ring-inset ring-success/50 bg-success/10",
@@ -175,6 +178,13 @@ export function IssueTable({
       clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
+  }, []);
+
+  // Clean up hover timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    };
   }, []);
 
   // Loading state
@@ -277,6 +287,7 @@ export function IssueTable({
               index={index}
               activeRowIndex={activeRowIndex}
               highlightedIds={highlightedIds}
+              animated
               onClick={handleRowClick}
               onMouseEnter={handleRowMouseEnter}
               onMouseLeave={handleRowMouseLeave}
