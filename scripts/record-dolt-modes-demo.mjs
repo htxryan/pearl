@@ -255,13 +255,48 @@ async function demo() {
   // FEATURE 6: ONBOARDING WIZARD
   // ═══════════════════════════════════════════════
   cap.mark('Setup Wizard \u2014 First-run mode selection for new projects');
-  // We can't show the real wizard without removing .beads/ — just show the list with caption
+  // Intercept setup/status to show the wizard without removing .beads/
+  await page.route('**/api/setup/status', route => {
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ configured: false }) });
+  });
+  await page.goto(`${BASE_URL}/`);
+  await injectOverlays(page);
+  await page.mouse.move(720, 450);
+  await sleep(6000);
+
+  cap.mark('Embedded Mode \u2014 Zero-config, recommended for personal use');
+  const embeddedBtn = page.locator('button', { hasText: /Embedded/ }).first();
+  if (await embeddedBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await hlLocator(page, embeddedBtn, 6);
+    await moveTo(page, embeddedBtn);
+    await sleep(4000);
+    await hlOff(page);
+  }
+
+  cap.mark('Server Mode \u2014 Connect to external Dolt for teams');
+  const serverBtn = page.locator('button', { hasText: /Server/ }).last();
+  if (await serverBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await hlLocator(page, serverBtn, 6);
+    await moveTo(page, serverBtn);
+    await sleep(3000);
+    // Click to show server config
+    await page.route('**/api/setup/initialize', route => { /* don't fulfill */ });
+    await serverBtn.click();
+    await sleep(4000);
+    await hlOff(page);
+  }
+
+  cap.mark('Server Config \u2014 Host, port, Test & Connect');
+  await sleep(5000);
+
+  // Unroute and go back to normal app
+  await page.unroute('**/api/setup/status');
+  await page.unroute('**/api/setup/initialize');
+
+  cap.mark('Auto-Detect \u2014 Reads mode from .beads/metadata.json');
   await page.goto(`${BASE_URL}/list`);
   await injectOverlays(page);
   await page.mouse.move(720, 450);
-  await sleep(5000);
-
-  cap.mark('Auto-Detect \u2014 Reads mode from .beads/metadata.json');
   await sleep(5000);
 
   // ═══════════════════════════════════════════════
