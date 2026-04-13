@@ -152,6 +152,9 @@ export function DatePicker({
           if (isOpen) close();
           else open();
         }}
+        aria-label={displayValue ? `Change date, currently ${displayValue}` : "Set date"}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
         className={cn(
           "inline-flex items-center gap-1.5 text-sm rounded-lg px-3 py-2 border border-border",
           "bg-transparent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring transition-colors",
