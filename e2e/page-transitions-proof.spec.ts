@@ -9,6 +9,9 @@ import { resolve } from "node:path";
 
 const PROOF_DIR = resolve(__dirname, "../docs/proof/beads-gui-7via");
 
+/** Platform-aware shortcut for opening the command palette. */
+const CMD_K = process.platform === "darwin" ? "Meta+k" : "Control+k";
+
 // ---------- Route transitions ----------
 
 test.describe("Route transitions", () => {
@@ -101,7 +104,7 @@ test.describe("Modal animations", () => {
     await page.waitForLoadState("networkidle");
 
     // Open command palette and select "Create Issue"
-    await page.keyboard.press("Meta+k");
+    await page.keyboard.press(CMD_K);
     const cmdInput = page.getByPlaceholder("Search issues or type a command...");
     await expect(cmdInput).toBeVisible({ timeout: 5_000 });
 
@@ -132,7 +135,7 @@ test.describe("Modal animations", () => {
     await page.waitForLoadState("networkidle");
 
     // Open command palette
-    await page.keyboard.press("Meta+k");
+    await page.keyboard.press(CMD_K);
     await page.waitForTimeout(30); // Capture very early in spring animation
     await page.screenshot({ path: `${PROOF_DIR}/15-cmd-palette-spring-start.png` });
 
@@ -171,11 +174,9 @@ test.describe("Board animations", () => {
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${PROOF_DIR}/21-board-cards-settled.png` });
 
-    // Verify board columns exist
-    const columns = page.locator("[data-column-id], [data-status]");
-    const count = await columns.count();
-    // At minimum we should see board content
-    await expect(page.locator("main")).toBeVisible();
+    // Verify board columns rendered (columns use role="list" with aria-label)
+    const columns = page.locator('[role="list"][aria-label*="issues"]');
+    expect(await columns.count()).toBeGreaterThan(0);
   });
 });
 
@@ -221,7 +222,7 @@ test.describe("Reduced motion", () => {
     await page.screenshot({ path: `${PROOF_DIR}/25-reduced-motion-board-instant.png` });
 
     // Open command palette — should appear instantly
-    await page.keyboard.press("Meta+k");
+    await page.keyboard.press(CMD_K);
     await page.waitForTimeout(20); // Near-instant
     await page.screenshot({ path: `${PROOF_DIR}/26-reduced-motion-cmd-palette-instant.png` });
     const input = page.getByPlaceholder("Search issues or type a command...");
@@ -229,9 +230,8 @@ test.describe("Reduced motion", () => {
 
     // Close — should disappear instantly
     await page.keyboard.press("Escape");
-    await page.waitForTimeout(20);
-    await page.screenshot({ path: `${PROOF_DIR}/27-reduced-motion-cmd-palette-gone.png` });
     await expect(input).not.toBeVisible({ timeout: 5_000 });
+    await page.screenshot({ path: `${PROOF_DIR}/27-reduced-motion-cmd-palette-gone.png` });
   });
 
   test("no animation causes layout shift", async ({ seededPage: page }) => {
@@ -254,12 +254,15 @@ test.describe("Reduced motion", () => {
     const listBox = await page.locator("main").boundingBox();
 
     // Main content area position should not shift during transitions
-    if (boardBox && graphBox && listBox) {
-      expect(boardBox.x).toBe(graphBox.x);
-      expect(boardBox.x).toBe(listBox.x);
-      expect(boardBox.y).toBe(graphBox.y);
-      expect(boardBox.y).toBe(listBox.y);
-    }
+    expect(boardBox).not.toBeNull();
+    expect(graphBox).not.toBeNull();
+    expect(listBox).not.toBeNull();
+    // Allow ±2px tolerance for sub-pixel rendering / scrollbar differences
+    const TOLERANCE = 2;
+    expect(Math.abs(boardBox!.x - graphBox!.x)).toBeLessThanOrEqual(TOLERANCE);
+    expect(Math.abs(boardBox!.x - listBox!.x)).toBeLessThanOrEqual(TOLERANCE);
+    expect(Math.abs(boardBox!.y - graphBox!.y)).toBeLessThanOrEqual(TOLERANCE);
+    expect(Math.abs(boardBox!.y - listBox!.y)).toBeLessThanOrEqual(TOLERANCE);
 
     await page.screenshot({ path: `${PROOF_DIR}/28-no-layout-shift.png` });
   });
@@ -269,7 +272,11 @@ test.describe("Reduced motion", () => {
 
 test.describe("CLS verification", () => {
   test("CLS < 0.1 during route transitions", async ({ seededPage: page }) => {
-    // Inject CLS observer
+    // Inject CLS observer. Note: this is intentionally injected after the
+    // seededPage fixture completes initial load — we're measuring layout shifts
+    // caused by route transitions, not the initial render. The `buffered: true`
+    // option only delivers entries buffered since the PerformanceObserver
+    // infrastructure was initialized, so initial-load shifts are excluded.
     await page.evaluate(() => {
       (window as unknown as { __cls: number }).__cls = 0;
       new PerformanceObserver((list) => {

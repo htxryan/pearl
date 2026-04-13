@@ -1,5 +1,8 @@
 import { test, expect, issueTable, expectToast } from "./fixtures";
 
+/** Platform-aware shortcut for opening the command palette. */
+const CMD_K = process.platform === "darwin" ? "Meta+k" : "Control+k";
+
 test.describe("Create Issue", () => {
   test.describe("Quick-add input", () => {
     test("creates issue via quick-add and triggers mutation", async ({ seededPage: page }) => {
@@ -38,7 +41,7 @@ test.describe("Create Issue", () => {
     /** Open the create dialog via Cmd+K -> "Create Issue" */
     async function openCreateDialog(page: import("@playwright/test").Page) {
       // Open command palette
-      await page.keyboard.press("Meta+k");
+      await page.keyboard.press(CMD_K);
 
       // The command palette input has a specific placeholder
       const cmdInput = page.getByPlaceholder("Search issues or type a command...");
