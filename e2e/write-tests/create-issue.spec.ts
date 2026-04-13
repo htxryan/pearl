@@ -87,9 +87,12 @@ test.describe("Create Issue", () => {
       const assigneeInput = dialog.locator("#create-assignee");
       await assigneeInput.fill("E2E Tester");
 
-      // Fill labels
-      const labelsInput = dialog.locator("#create-labels");
-      await labelsInput.fill("e2e,test");
+      // Fill labels via LabelPicker (type + Enter to quick-create)
+      const labelsInput = dialog.getByLabel("Search labels");
+      await labelsInput.fill("e2e");
+      await labelsInput.press("Enter");
+      await labelsInput.fill("test");
+      await labelsInput.press("Enter");
 
       // Submit
       await dialog.getByRole("button", { name: "Create Issue" }).click();
