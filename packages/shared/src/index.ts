@@ -1,6 +1,41 @@
 // Beads GUI — Shared API Types
 // This package defines the contract between backend and frontend.
 
+// ─── Label Types ─────────────────────────────────────────────
+
+/** A label definition with its assigned palette color */
+export interface LabelDefinition {
+  name: string;
+  color: LabelColor;
+}
+
+/** Label with usage count — returned by GET /api/labels */
+export interface LabelWithCount extends LabelDefinition {
+  count: number;
+}
+
+/** Predefined label color palette keys */
+export type LabelColor =
+  | "red"
+  | "orange"
+  | "yellow"
+  | "green"
+  | "teal"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "gray";
+
+export const LABEL_COLORS: LabelColor[] = [
+  "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "gray",
+];
+
+/** Request to create or update a label definition */
+export interface UpsertLabelRequest {
+  name: string;
+  color: LabelColor;
+}
+
 // ─── Domain Types ────────────────────────────────────────────
 
 export interface Issue {
@@ -27,6 +62,8 @@ export interface Issue {
   pinned: boolean;
   is_template: boolean;
   labels: string[];
+  /** Map of label name → palette color key (from label_definitions) */
+  labelColors: Record<string, LabelColor>;
   metadata: Record<string, unknown>;
 }
 
@@ -44,6 +81,8 @@ export interface IssueListItem {
   due_at: string | null;
   pinned: boolean;
   labels: string[];
+  /** Map of label name → palette color key (from label_definitions) */
+  labelColors: Record<string, LabelColor>;
 }
 
 export type IssueStatus =
@@ -177,7 +216,7 @@ export interface MutationResponse<T = unknown> {
 }
 
 export interface InvalidationHint {
-  entity: "issues" | "dependencies" | "comments" | "events" | "stats";
+  entity: "issues" | "dependencies" | "comments" | "events" | "stats" | "labels";
   id?: string;
 }
 

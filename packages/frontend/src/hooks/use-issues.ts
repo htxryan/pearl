@@ -147,6 +147,7 @@ export function useCreateIssue() {
         due_at: data.due ?? null,
         pinned: false,
         labels: data.labels ?? [],
+        labelColors: {},
       };
 
       // Optimistic update: add issue to top of all list views

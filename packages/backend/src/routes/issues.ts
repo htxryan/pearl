@@ -12,6 +12,7 @@ import { notFoundError, validationError } from "../errors.js";
 import type { Config } from "../config.js";
 import type { WriteService } from "../write-service/write-service.js";
 import type { RowDataPacket } from "mysql2";
+import { fetchLabelColors } from "./labels.js";
 
 // ─── JSON Schema for request body validation ───────────
 const ISSUE_TYPES = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
@@ -229,8 +230,27 @@ export function registerIssueRoutes(
         existing.push(row.label);
         labelMap.set(row.issue_id, existing);
       }
+      // Collect all unique label names for color lookup
+      const allLabelNames = new Set<string>();
+      for (const labels of labelMap.values()) {
+        for (const label of labels) {
+          allLabelNames.add(label);
+        }
+      }
+
+      // Fetch label colors in one batch
+      const labelColors = await fetchLabelColors(getConfig, [...allLabelNames]);
+
       for (const issue of issueRows) {
         issue.labels = labelMap.get(issue.id) || [];
+        // Build per-issue color map (only labels that have definitions)
+        const issueColorMap: Record<string, string> = {};
+        for (const label of issue.labels as string[]) {
+          if (labelColors[label]) {
+            issueColorMap[label] = labelColors[label];
+          }
+        }
+        issue.labelColors = issueColorMap;
       }
     }
 
@@ -261,7 +281,12 @@ export function registerIssueRoutes(
       );
       return rows;
     }) as RowDataPacket[];
-    issue.labels = labelRows.map((r) => r.label);
+    const labelNames = labelRows.map((r) => r.label as string);
+    issue.labels = labelNames;
+
+    // Fetch label colors
+    const labelColors = await fetchLabelColors(getConfig, labelNames);
+    issue.labelColors = labelColors;
 
     return reply.send(issue);
   });

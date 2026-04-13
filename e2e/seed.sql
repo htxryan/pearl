@@ -202,7 +202,15 @@ CREATE TABLE `labels` (
   CONSTRAINT `fk_labels_issue` FOREIGN KEY (`issue_id`) REFERENCES `issues` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin;
 INSERT INTO `labels` (`issue_id`,`label`) VALUES ('sample-project-6rs','critical'), ('sample-project-6rs','frontend'), ('sample-project-7v4','frontend'), ('sample-project-7v4','ux'), ('sample-project-b8n','backend'), ('sample-project-oqb','research'), ('sample-project-vfl','frontend');
-DROP TABLE IF EXISTS `metadata`;
+DROP TABLE IF EXISTS `label_definitions`;
+CREATE TABLE `label_definitions` (
+  `name` varchar(255) NOT NULL,
+  `color` varchar(32) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin;
+INSERT INTO `label_definitions` (`name`,`color`) VALUES ('critical','red'), ('frontend','blue'), ('backend','purple'), ('ux','pink'), ('research','teal');
+Drop TABLE IF EXISTS `metadata`;
 CREATE TABLE `metadata` (
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,

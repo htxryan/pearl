@@ -203,6 +203,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
 ];
 
@@ -486,6 +487,7 @@ describe("URL routing", () => {
         pinned: false,
         is_template: false,
         labels: [],
+    labelColors: {},
         metadata: {},
       },
       isLoading: false,

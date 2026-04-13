@@ -55,6 +55,7 @@ const mockIssue: Issue = {
   pinned: false,
   is_template: false,
   labels: ["frontend", "v1"],
+    labelColors: {},
   metadata: {},
 };
 

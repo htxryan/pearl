@@ -82,6 +82,7 @@ function makeIssue(overrides: Partial<Issue> = {}): Issue {
     pinned: false,
     is_template: false,
     labels: [],
+    labelColors: {},
     metadata: {},
     ...overrides,
   };
@@ -101,6 +102,7 @@ function makeListItem(overrides: Partial<IssueListItem> = {}): IssueListItem {
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
     ...overrides,
   };
 }

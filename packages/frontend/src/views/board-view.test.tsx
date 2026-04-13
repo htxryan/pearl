@@ -55,6 +55,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: ["frontend"],
+    labelColors: {},
   },
   {
     id: "beads-002",
@@ -69,6 +70,7 @@ const mockIssues: IssueListItem[] = [
     due_at: "2026-02-01T00:00:00Z",
     pinned: true,
     labels: ["frontend", "dashboard"],
+    labelColors: {},
   },
   {
     id: "beads-003",
@@ -83,6 +85,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
   {
     id: "beads-004",
@@ -97,6 +100,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: ["cleanup"],
+    labelColors: {},
   },
   {
     id: "beads-005",
@@ -111,6 +115,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
 ];
 

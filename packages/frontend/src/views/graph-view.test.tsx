@@ -101,6 +101,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
   {
     id: "beads-002",
@@ -115,6 +116,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
   {
     id: "beads-003",
@@ -129,6 +131,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
   {
     id: "beads-004",
@@ -143,6 +146,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
 ];
 
@@ -356,6 +360,7 @@ describe("GraphView", () => {
       due_at: null,
       pinned: false,
       labels: [],
+    labelColors: {},
     }));
 
     setupMocks({ issues: manyIssues, deps: [] });

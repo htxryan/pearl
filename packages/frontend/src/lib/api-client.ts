@@ -15,6 +15,8 @@ import type {
   SetupStatusResponse,
   SetupInitializeRequest,
   SetupInitializeResponse,
+  LabelWithCount,
+  UpsertLabelRequest,
 } from "@beads-gui/shared";
 
 const API_BASE = "/api";
@@ -137,6 +139,18 @@ export function removeDependency(
     `/dependencies/${encodeURIComponent(issueId)}/${encodeURIComponent(dependsOnId)}`,
     { method: "DELETE" },
   );
+}
+
+// ─── Labels ────────────────────────────────────────────────
+export function fetchLabels(): Promise<LabelWithCount[]> {
+  return request("/labels");
+}
+
+export function upsertLabel(data: UpsertLabelRequest): Promise<MutationResponse> {
+  return request("/labels", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 // ─── Health & Stats ─────────────────────────────────────

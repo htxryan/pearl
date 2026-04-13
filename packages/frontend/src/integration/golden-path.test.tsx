@@ -234,6 +234,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
   {
     id: "test-002",
@@ -248,6 +249,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
   {
     id: "test-003",
@@ -262,6 +264,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: [],
+    labelColors: {},
   },
 ];
 
@@ -289,6 +292,7 @@ const mockIssueDetail: Issue = {
   pinned: false,
   is_template: false,
   labels: [],
+    labelColors: {},
   metadata: {},
 };
 

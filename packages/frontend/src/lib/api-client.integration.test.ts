@@ -140,6 +140,7 @@ describe("API client integration contracts", () => {
           due_at: null,
           pinned: false,
           labels: [],
+    labelColors: {},
         },
       ];
       mockFetchOk(mockItems);
@@ -228,6 +229,7 @@ describe("API client integration contracts", () => {
         pinned: false,
         is_template: false,
         labels: [],
+    labelColors: {},
         metadata: {},
       };
       mockFetchOk(fullIssue);

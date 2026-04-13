@@ -1,0 +1,122 @@
+import type { FastifyInstance } from "fastify";
+import type { LabelColor } from "@beads-gui/shared";
+import { LABEL_COLORS } from "@beads-gui/shared";
+import { queryWithRetry } from "../dolt/pool.js";
+import { validationError } from "../errors.js";
+import type { Config } from "../config.js";
+import type { RowDataPacket } from "mysql2";
+
+const LABEL_COLOR_SET = new Set<string>(LABEL_COLORS);
+
+const upsertLabelSchema = {
+  body: {
+    type: "object",
+    required: ["name", "color"],
+    properties: {
+      name: { type: "string", minLength: 1, maxLength: 100 },
+      color: { type: "string", enum: [...LABEL_COLORS] },
+    },
+    additionalProperties: false,
+  },
+} as const;
+
+/**
+ * Ensure the label_definitions table exists.
+ * Called once during route registration — idempotent CREATE IF NOT EXISTS.
+ */
+async function ensureLabelDefinitionsTable(getConfig: () => Config): Promise<void> {
+  try {
+    await queryWithRetry(getConfig(), async (conn) => {
+      await conn.query(`
+        CREATE TABLE IF NOT EXISTS label_definitions (
+          name VARCHAR(255) NOT NULL,
+          color VARCHAR(32) NOT NULL,
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
+      `);
+    });
+  } catch {
+    // Table creation may fail in setup mode (no DB yet) — that's OK,
+    // it will be created when the DB is initialized.
+  }
+}
+
+export function registerLabelRoutes(
+  app: FastifyInstance,
+  getConfig: () => Config,
+): void {
+  // Ensure table exists on startup (best-effort)
+  ensureLabelDefinitionsTable(getConfig);
+
+  // GET /api/labels — list all known labels with colors and usage counts
+  app.get("/api/labels", async (_request, reply) => {
+    const labels = await queryWithRetry(getConfig(), async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(`
+        SELECT
+          COALESCE(ld.name, l.label) AS name,
+          ld.color,
+          COUNT(l.issue_id) AS count
+        FROM labels l
+        LEFT JOIN label_definitions ld ON ld.name = l.label
+        GROUP BY COALESCE(ld.name, l.label), ld.color
+        UNION
+        SELECT ld2.name, ld2.color, 0 AS count
+        FROM label_definitions ld2
+        WHERE ld2.name NOT IN (SELECT DISTINCT label FROM labels)
+        ORDER BY count DESC, name ASC
+      `);
+      return rows;
+    });
+
+    return reply.send(labels);
+  });
+
+  // POST /api/labels — create or update a label definition
+  app.post("/api/labels", { schema: upsertLabelSchema }, async (request, reply) => {
+    const { name, color } = request.body as { name: string; color: LabelColor };
+
+    if (!LABEL_COLOR_SET.has(color)) {
+      throw validationError(`Invalid label color: ${color}`);
+    }
+
+    await queryWithRetry(getConfig(), async (conn) => {
+      await conn.query(
+        `INSERT INTO label_definitions (name, color) VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE color = VALUES(color)`,
+        [name, color]
+      );
+    });
+
+    return reply.code(200).send({
+      success: true,
+      data: { name, color },
+      invalidationHints: [{ entity: "labels" as const }],
+    });
+  });
+}
+
+/**
+ * Fetch label color map for a set of label names.
+ * Used by issue routes to enrich issue responses with label colors.
+ */
+export async function fetchLabelColors(
+  getConfig: () => Config,
+  labelNames: string[],
+): Promise<Record<string, LabelColor>> {
+  if (labelNames.length === 0) return {};
+
+  const rows = await queryWithRetry(getConfig(), async (conn) => {
+    const [result] = await conn.query<RowDataPacket[]>(
+      `SELECT name, color FROM label_definitions WHERE name IN (${labelNames.map(() => "?").join(",")})`,
+      labelNames
+    );
+    return result;
+  }) as RowDataPacket[];
+
+  const colorMap: Record<string, LabelColor> = {};
+  for (const row of rows) {
+    colorMap[row.name] = row.color as LabelColor;
+  }
+  return colorMap;
+}

@@ -27,6 +27,7 @@ const mockIssues: IssueListItem[] = [
     due_at: null,
     pinned: false,
     labels: ["frontend"],
+    labelColors: {},
   },
   {
     id: "beads-002",
@@ -41,6 +42,7 @@ const mockIssues: IssueListItem[] = [
     due_at: "2026-02-01T00:00:00Z",
     pinned: true,
     labels: ["frontend", "dashboard"],
+    labelColors: {},
   },
 ];
 
