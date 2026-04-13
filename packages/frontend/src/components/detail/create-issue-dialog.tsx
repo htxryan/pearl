@@ -133,7 +133,11 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   };
 
   const handleCancel = () => {
-    resetForm();
+    // Don't resetForm() here — draft should survive cancel.
+    // resetForm() would clear fields, and the auto-save effect could
+    // flush the empty state to localStorage, wiping the draft.
+    // Form state resets via the else-branch of the isOpen effect (line 67-73)
+    // and gets re-initialized from the draft on the next open.
     onClose();
   };
 

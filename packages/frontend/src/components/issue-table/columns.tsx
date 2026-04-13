@@ -108,14 +108,32 @@ function InlineAssigneeEditor({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPopoverStyle({
+      top: rect.bottom + 4,
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - 232)),
+    });
+  }, []);
+
+  // Reposition on scroll/resize while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const reposition = () => updatePosition();
+    window.addEventListener("scroll", reposition, { passive: true, capture: true });
+    window.addEventListener("resize", reposition, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [isOpen, updatePosition]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setPopoverPos({ top: rect.bottom + 4, left: rect.left });
-    }
+    updatePosition();
     setIsOpen(true);
   };
 
@@ -130,12 +148,12 @@ function InlineAssigneeEditor({
           ? <span className="text-sm truncate">{value}</span>
           : <span className="text-xs text-muted-foreground/50 italic">—</span>}
       </span>
-      {isOpen && popoverPos && (
+      {isOpen && (
         <AssigneePicker
           value={value ?? ""}
           onChange={(assignee) => onAssigneeChange(issueId, assignee)}
           onClose={() => setIsOpen(false)}
-          style={{ top: popoverPos.top, left: popoverPos.left }}
+          style={popoverStyle}
         />
       )}
     </>
@@ -175,19 +193,34 @@ function InlineLabelEditor({
     onLabelsChange(issueId, newLabels);
   }, [issueId, onLabelsChange]);
 
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPopoverStyle({
+      position: "fixed",
+      top: rect.bottom + 4,
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - 268)),
+      zIndex: 50,
+    });
+  }, []);
+
+  // Reposition on scroll/resize while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const reposition = () => updatePosition();
+    window.addEventListener("scroll", reposition, { passive: true, capture: true });
+    window.addEventListener("resize", reposition, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [isOpen, updatePosition]);
+
   const handleOpen = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setPopoverStyle({
-        position: "fixed",
-        top: rect.bottom + 4,
-        left: Math.max(8, Math.min(rect.left, window.innerWidth - 268)),
-        zIndex: 50,
-      });
-    }
+    updatePosition();
     setIsOpen((prev) => !prev);
-  }, []);
+  }, [updatePosition]);
 
   return (
     <div ref={containerRef} className="relative">
