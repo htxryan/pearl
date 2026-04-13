@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const quietLight: ThemeDefinition = {
+  id: "vscode-quiet-light",
+  name: "Quiet Light",
+  colorScheme: "light",
+  colors: {
+    background: "#f5f5f5",
+    foreground: "#333333",
+    muted: "#ededed",
+    "muted-foreground": "#888888",
+    border: "#e0e0e0",
+    primary: "#4b69c6",
+    "primary-foreground": "#ffffff",
+    accent: "#e6ecf5",
+    "accent-foreground": "#2c4a8c",
+    destructive: "#c74e39",
+    ring: "#4b69c6",
+    info: "#4b83cd",
+    "info-foreground": "#2a5a8e",
+    success: "#448c27",
+    "success-foreground": "#1e4010",
+    warning: "#c4a000",
+    "warning-foreground": "#6d5a00",
+    danger: "#c74e39",
+    "danger-foreground": "#7a2e21",
+    surface: "#f5f5f5",
+    "surface-raised": "#eeeeee",
+  },
+};

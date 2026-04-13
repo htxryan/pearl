@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const hcLight: ThemeDefinition = {
+  id: "vscode-hc-light",
+  name: "High Contrast Light",
+  colorScheme: "light",
+  colors: {
+    background: "#ffffff",
+    foreground: "#000000",
+    muted: "#f0f0f0",
+    "muted-foreground": "#444444",
+    border: "#000000",
+    primary: "#0f4a85",
+    "primary-foreground": "#ffffff",
+    accent: "#d6e4f0",
+    "accent-foreground": "#0f4a85",
+    destructive: "#b5200d",
+    ring: "#0f4a85",
+    info: "#0f4a85",
+    "info-foreground": "#00214b",
+    success: "#0b7500",
+    "success-foreground": "#003a00",
+    warning: "#7f6000",
+    "warning-foreground": "#3d2e00",
+    danger: "#b5200d",
+    "danger-foreground": "#5c0f05",
+    surface: "#ffffff",
+    "surface-raised": "#f0f0f0",
+  },
+};

@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const solarizedLight: ThemeDefinition = {
+  id: "vscode-solarized-light",
+  name: "Solarized Light",
+  colorScheme: "light",
+  colors: {
+    background: "#fdf6e3",
+    foreground: "#657b83",
+    muted: "#eee8d5",
+    "muted-foreground": "#93a1a1",
+    border: "#ddd6c1",
+    primary: "#268bd2",
+    "primary-foreground": "#fdf6e3",
+    accent: "#eee8d5",
+    "accent-foreground": "#2aa198",
+    destructive: "#dc322f",
+    ring: "#268bd2",
+    info: "#268bd2",
+    "info-foreground": "#073642",
+    success: "#859900",
+    "success-foreground": "#073642",
+    warning: "#b58900",
+    "warning-foreground": "#073642",
+    danger: "#dc322f",
+    "danger-foreground": "#073642",
+    surface: "#fdf6e3",
+    "surface-raised": "#eee8d5",
+  },
+};

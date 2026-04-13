@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const red: ThemeDefinition = {
+  id: "vscode-red",
+  name: "Red",
+  colorScheme: "dark",
+  colors: {
+    background: "#390000",
+    foreground: "#f8f8f8",
+    muted: "#4d0000",
+    "muted-foreground": "#c08080",
+    border: "#5a1010",
+    primary: "#ff6565",
+    "primary-foreground": "#390000",
+    accent: "#550000",
+    "accent-foreground": "#ffaaaa",
+    destructive: "#ff2020",
+    ring: "#ff6565",
+    info: "#7eb8da",
+    "info-foreground": "#a8d2e8",
+    success: "#7fb347",
+    "success-foreground": "#b3d48e",
+    warning: "#e5c07b",
+    "warning-foreground": "#f0d9a0",
+    danger: "#ff2020",
+    "danger-foreground": "#ff8080",
+    surface: "#390000",
+    "surface-raised": "#4d0000",
+  },
+};

@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const tomorrowNightBlue: ThemeDefinition = {
+  id: "vscode-tomorrow-night-blue",
+  name: "Tomorrow Night Blue",
+  colorScheme: "dark",
+  colors: {
+    background: "#002451",
+    foreground: "#ffffff",
+    muted: "#00346e",
+    "muted-foreground": "#7285b7",
+    border: "#10447a",
+    primary: "#ffc58f",
+    "primary-foreground": "#002451",
+    accent: "#003b73",
+    "accent-foreground": "#bbdaff",
+    destructive: "#ff9da4",
+    ring: "#ffc58f",
+    info: "#bbdaff",
+    "info-foreground": "#d5e8ff",
+    success: "#d1f1a9",
+    "success-foreground": "#e6f8cf",
+    warning: "#ffeead",
+    "warning-foreground": "#fff4d1",
+    danger: "#ff9da4",
+    "danger-foreground": "#ffc5c9",
+    surface: "#002451",
+    "surface-raised": "#00346e",
+  },
+};

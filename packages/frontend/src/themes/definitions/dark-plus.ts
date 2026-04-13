@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const darkPlus: ThemeDefinition = {
+  id: "vscode-dark-plus",
+  name: "Dark+ (Default Dark)",
+  colorScheme: "dark",
+  colors: {
+    background: "#111113",
+    foreground: "#ececef",
+    muted: "#1c1c1f",
+    "muted-foreground": "#9898a0",
+    border: "#2a2a2e",
+    primary: "#818cf8",
+    "primary-foreground": "#0f0a2e",
+    accent: "#1e1b4b",
+    "accent-foreground": "#c7d2fe",
+    destructive: "#f87171",
+    ring: "#818cf8",
+    info: "#60a5fa",
+    "info-foreground": "#bfdbfe",
+    success: "#4ade80",
+    "success-foreground": "#bbf7d0",
+    warning: "#fbbf24",
+    "warning-foreground": "#fef3c7",
+    danger: "#f87171",
+    "danger-foreground": "#fecaca",
+    surface: "#111113",
+    "surface-raised": "#1a1a1e",
+  },
+};

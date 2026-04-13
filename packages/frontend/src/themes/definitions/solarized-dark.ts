@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const solarizedDark: ThemeDefinition = {
+  id: "vscode-solarized-dark",
+  name: "Solarized Dark",
+  colorScheme: "dark",
+  colors: {
+    background: "#002b36",
+    foreground: "#839496",
+    muted: "#073642",
+    "muted-foreground": "#586e75",
+    border: "#0d4f5a",
+    primary: "#268bd2",
+    "primary-foreground": "#002b36",
+    accent: "#073642",
+    "accent-foreground": "#2aa198",
+    destructive: "#dc322f",
+    ring: "#268bd2",
+    info: "#268bd2",
+    "info-foreground": "#7ab8db",
+    success: "#859900",
+    "success-foreground": "#b3cc52",
+    warning: "#b58900",
+    "warning-foreground": "#d4a940",
+    danger: "#dc322f",
+    "danger-foreground": "#e87370",
+    surface: "#002b36",
+    "surface-raised": "#073642",
+  },
+};

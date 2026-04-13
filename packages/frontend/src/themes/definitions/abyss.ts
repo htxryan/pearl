@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const abyss: ThemeDefinition = {
+  id: "vscode-abyss",
+  name: "Abyss",
+  colorScheme: "dark",
+  colors: {
+    background: "#000c18",
+    foreground: "#6688cc",
+    muted: "#051336",
+    "muted-foreground": "#5566aa",
+    border: "#1b2738",
+    primary: "#6688cc",
+    "primary-foreground": "#000c18",
+    accent: "#0d2240",
+    "accent-foreground": "#82aaff",
+    destructive: "#ff5555",
+    ring: "#6688cc",
+    info: "#6688cc",
+    "info-foreground": "#99aadd",
+    success: "#22aa44",
+    "success-foreground": "#88ddaa",
+    warning: "#ee7700",
+    "warning-foreground": "#ffbb77",
+    danger: "#ff5555",
+    "danger-foreground": "#ff9999",
+    surface: "#000c18",
+    "surface-raised": "#051336",
+  },
+};
