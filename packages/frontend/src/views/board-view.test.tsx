@@ -281,10 +281,11 @@ describe("BoardView", () => {
     renderBoard();
 
     const board = screen.getByRole("region", { name: "Kanban board" });
-    // beads-001 has ["frontend"] → shows "frontend"
-    // beads-002 has ["frontend", "dashboard"] → shows "frontend +1"
-    // beads-004 has ["cleanup"] → shows "cleanup"
+    // beads-001 has ["frontend"] → shows "frontend" as a LabelBadge
+    // beads-002 has ["frontend", "dashboard"] → shows "frontend" badge + "+1"
+    // beads-004 has ["cleanup"] → shows "cleanup" as a LabelBadge
     expect(within(board).getByText("cleanup")).toBeInTheDocument();
-    expect(within(board).getByText("frontend +1")).toBeInTheDocument();
+    // "frontend" appears as LabelBadge, "+1" as separate overflow text
+    expect(within(board).getByText("+1")).toBeInTheDocument();
   });
 });

@@ -1,9 +1,10 @@
 import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus, LabelColor } from "@beads-gui/shared";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { LabelBadge } from "@/components/ui/label-badge";
 import { cn } from "@/lib/utils";
 
 interface KanbanCardProps {
@@ -97,11 +98,16 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
           <div className="flex items-center gap-1.5">
             <TypeBadge type={issue.issue_type} />
             {issue.labels.length > 0 && (
-              <span className="text-xs text-muted-foreground truncate max-w-[100px]" title={issue.labels.join(", ")}>
-                {issue.labels.length === 1
-                  ? issue.labels[0]
-                  : `${issue.labels[0]} +${issue.labels.length - 1}`}
-              </span>
+              <div className="flex items-center gap-1 truncate max-w-[120px]" title={issue.labels.join(", ")}>
+                <LabelBadge
+                  name={issue.labels[0]}
+                  color={(issue.labelColors ?? {})[issue.labels[0]] as LabelColor | undefined}
+                  size="sm"
+                />
+                {issue.labels.length > 1 && (
+                  <span className="text-[10px] text-muted-foreground">+{issue.labels.length - 1}</span>
+                )}
+              </div>
             )}
           </div>
 
