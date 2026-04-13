@@ -1,5 +1,5 @@
 ---
-name: Monitor Loop
+name: monitor-loop
 description: Actively monitor a running compound-agent infinity loop, checking progress every N minutes (default 5). Reports epic status, current activity, and flags issues.
 ---
 
@@ -20,31 +20,39 @@ Actively monitors a running `ca loop` infinity loop session, checking back at re
 On each check cycle, run ALL of these commands and synthesize a status report:
 
 ### 1. Verify the loop is running
+
 ```bash
 screen -ls 2>/dev/null | grep beads-loop || echo "NO SCREEN SESSION"
 ```
+
 If no session found, report **LOOP DOWN** and stop monitoring.
 
 ### 2. Check loop output for latest events
+
 ```bash
 tail -20 .compound-agent/agent_logs/loop-output*.log 2>/dev/null | tail -20
 ```
+
 Look for: epic completions, review phases, failures, skips, crashes.
 
 ### 3. Check current epic progress
+
 ```bash
 bd list --status=in_progress 2>/dev/null
 bd stats 2>/dev/null
 ```
+
 If `bd` is blocked (Dolt lock), note it and check process list instead.
 
 ### 4. Check agent activity
+
 ```bash
 # Find the current epic's agent log
 tail -c 500 .compound-agent/agent_logs/loop_beads-gui-*-$(date +%Y-%m-%d)*.log 2>/dev/null | tail -10
 ```
 
 ### 5. Check for stuck processes
+
 ```bash
 ps aux | grep 'playwright' | grep -v grep | wc -l
 ps aux | grep -E 'vite|dolt sql-server' | grep -v grep | wc -l
