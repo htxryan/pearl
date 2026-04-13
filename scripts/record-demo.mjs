@@ -453,29 +453,89 @@ async function demo() {
   await sleep(2000);
 
   // ════════════════════════════════════════════════
-  // DARK MODE
+  // THEMING — VS Code themes via Settings & Command Palette
   // ════════════════════════════════════════════════
-  cap.mark('Dark Mode \u2014 Refined theme with proper depth and contrast');
-  const themeBtn = page.locator('[aria-label*="theme"], [aria-label*="Theme"], [aria-label*="mode"]').first();
-  if (await themeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await moveTo(page, themeBtn); await sleep(1000);
-    await themeBtn.click(); await sleep(2500);
+  cap.mark('Settings \u2014 Navigate via sidebar gear icon (shortcut: 4)');
+  await page.goto(`${BASE_URL}/settings`);
+  await page.waitForLoadState('networkidle');
+  await injectOverlays(page);
+  // Highlight the Settings link in sidebar to show the gear icon
+  const settingsLink = page.locator('a[href="/settings"]').first();
+  if (await settingsLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await hlLocator(page, settingsLink, 6);
+    await moveTo(page, settingsLink); await sleep(2000);
+    await hlOff(page);
+  }
+  await page.mouse.move(720, 450);
+  await sleep(2000);
 
-    cap.mark('Dark Mode Board \u2014 Card shadows and accent colors');
-    await page.goto(`${BASE_URL}/board`);
+  cap.mark('Theme Picker \u2014 15 VS Code themes with color swatches');
+  await hl(page, '[role="group"][aria-label="Available themes"]', 8);
+  await sleep(5000);
+  await hlOff(page);
+
+  cap.mark('Monokai \u2014 Bold, colorful dark theme');
+  const monokaiCard = page.locator('button[aria-label*="Monokai theme"]').first();
+  if (await monokaiCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await moveTo(page, monokaiCard); await sleep(1000);
+    await monokaiCard.click(); await sleep(3000);
+  }
+
+  cap.mark('Monokai Board \u2014 Dark theme with accent colors');
+  await page.goto(`${BASE_URL}/board`);
+  await page.waitForLoadState('networkidle');
+  await injectOverlays(page); await page.mouse.move(720, 450);
+  await sleep(5000);
+
+  cap.mark('Command Palette \u2014 Switch Theme for quick access');
+  await page.keyboard.press('Meta+k');
+  await sleep(1000);
+  await page.keyboard.type('Switch Theme', { delay: 60 });
+  await sleep(3000);
+
+  cap.mark('Solarized Light \u2014 Warm, readable light palette');
+  // Select Solarized Light from the filtered command palette results
+  const solarizedOption = page.locator('li', { hasText: 'Solarized Light' }).first();
+  if (await solarizedOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await moveTo(page, solarizedOption); await sleep(800);
+    await solarizedOption.click();
+  } else {
+    // Fallback: close palette and use settings page
+    await page.keyboard.press('Escape');
+    await sleep(500);
+    await page.goto(`${BASE_URL}/settings`);
     await page.waitForLoadState('networkidle');
-    await injectOverlays(page); await page.mouse.move(720, 450);
-    await sleep(5000);
+    await injectOverlays(page);
+    const solCard = page.locator('button[aria-label*="Solarized Light"]').first();
+    if (await solCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await solCard.click();
+    }
+  }
+  await sleep(2500);
 
-    cap.mark('Dark Mode List \u2014 Subtle background layers, refined contrast');
-    await page.goto(`${BASE_URL}/list`);
-    await page.waitForLoadState('networkidle');
-    await injectOverlays(page); await page.mouse.move(720, 450);
-    await sleep(5000);
+  cap.mark('Solarized Light List \u2014 Warm tones across the interface');
+  await page.goto(`${BASE_URL}/list`);
+  await page.waitForLoadState('networkidle');
+  await injectOverlays(page); await page.mouse.move(720, 450);
+  await sleep(5000);
 
-    // Toggle back
-    const themeBtn2 = page.locator('[aria-label*="theme"], [aria-label*="Theme"], [aria-label*="mode"]').first();
-    await themeBtn2.click(); await sleep(1500);
+  cap.mark('High Contrast Dark \u2014 Maximum contrast for accessibility');
+  await page.goto(`${BASE_URL}/settings`);
+  await page.waitForLoadState('networkidle');
+  await injectOverlays(page); await page.mouse.move(720, 450);
+  await sleep(1500);
+  const hcCard = page.locator('button[aria-label*="High Contrast Dark"]').first();
+  if (await hcCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await moveTo(page, hcCard); await sleep(800);
+    await hcCard.click(); await sleep(3000);
+  }
+
+  // Reset to default light theme
+  cap.mark('Light+ Default \u2014 Reset to VS Code default light');
+  const defaultCard = page.locator('button[aria-label*="Light+"], button[aria-label*="Default Light"]').first();
+  if (await defaultCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await moveTo(page, defaultCard); await sleep(800);
+    await defaultCard.click(); await sleep(2000);
   }
 
   // ════════════════════════════════════════════════

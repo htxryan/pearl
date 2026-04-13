@@ -168,35 +168,56 @@ async function capture() {
   await sleep(3000);
   await page.screenshot({ path: 'docs/demo/13-graph-view.png', fullPage: false });
 
-  // ── 13. Dark mode ──
-  console.log('13. Dark mode...');
-  const darkToggle = page.locator('[aria-label*="theme"], [aria-label*="Theme"], [aria-label*="dark"], [aria-label*="mode"]').first();
-  if (await darkToggle.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await darkToggle.click();
-    await sleep(1500);
-    // Go to board for dark mode screenshot (more visual)
-    await page.goto(`${BASE_URL}/board`);
-    await page.waitForLoadState('networkidle');
-    await sleep(2000);
-    await page.screenshot({ path: 'docs/demo/14-dark-mode-board.png', fullPage: false });
-    // Dark mode list
-    await page.goto(`${BASE_URL}/list`);
-    await page.waitForLoadState('networkidle');
-    await sleep(2000);
-    await page.screenshot({ path: 'docs/demo/15-dark-mode-list.png', fullPage: false });
-    // Toggle back
-    await darkToggle.click();
+  // ── 13. Settings page with theme picker ──
+  console.log('13. Settings — Theme Picker...');
+  await page.goto(`${BASE_URL}/settings`);
+  await page.waitForLoadState('networkidle');
+  await sleep(2000);
+  await page.screenshot({ path: 'docs/demo/14-settings-theme-picker.png', fullPage: false });
+
+  // ── 14. Apply Monokai theme ──
+  console.log('14. Monokai theme on board...');
+  const monokaiCard = page.locator('button[aria-label*="Monokai theme"]').first();
+  if (await monokaiCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await monokaiCard.click();
     await sleep(1000);
   }
+  await page.goto(`${BASE_URL}/board`);
+  await page.waitForLoadState('networkidle');
+  await sleep(2000);
+  await page.screenshot({ path: 'docs/demo/15-monokai-board.png', fullPage: false });
 
-  // ── 14. 404 page ──
-  console.log('14. 404 Page...');
+  // ── 15. Solarized Light via command palette ──
+  console.log('15. Solarized Light via Command Palette...');
+  await page.keyboard.press('Meta+k');
+  await sleep(500);
+  await page.keyboard.type('Solarized Light', { delay: 60 });
+  await sleep(1500);
+  await page.screenshot({ path: 'docs/demo/16-cmd-palette-switch-theme.png', fullPage: false });
+  await page.keyboard.press('Enter');
+  await sleep(1500);
+  await page.goto(`${BASE_URL}/list`);
+  await page.waitForLoadState('networkidle');
+  await sleep(2000);
+  await page.screenshot({ path: 'docs/demo/17-solarized-light-list.png', fullPage: false });
+
+  // Reset to default theme
+  const defaultThemeCard = page.locator('button[aria-label*="Light+"], button[aria-label*="Default Light"]').first();
+  await page.goto(`${BASE_URL}/settings`);
+  await sleep(1500);
+  if (await defaultThemeCard.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await defaultThemeCard.click();
+    await sleep(500);
+  }
+
+  // ── 16. 404 page ──
+  console.log('16. 404 Page...');
   await page.goto(`${BASE_URL}/nonexistent-page`);
   await sleep(1500);
-  await page.screenshot({ path: 'docs/demo/16-404-page.png', fullPage: false });
+  await page.screenshot({ path: 'docs/demo/18-404-page.png', fullPage: false });
 
-  // ── 15. Create issue dialog ──
-  console.log('15. Create issue dialog...');
+  // ── 17. Create issue dialog ──
+  console.log('17. Create issue dialog...');
   await page.goto(`${BASE_URL}/list`);
   await sleep(1500);
   await page.keyboard.press('Meta+k');
@@ -205,20 +226,20 @@ async function capture() {
   await sleep(500);
   await page.keyboard.press('Enter');
   await sleep(1000);
-  await page.screenshot({ path: 'docs/demo/17-create-issue-dialog.png', fullPage: false });
+  await page.screenshot({ path: 'docs/demo/19-create-issue-dialog.png', fullPage: false });
   await page.keyboard.press('Escape');
   await sleep(500);
 
-  // ── 16. Onboarding banner (clear storage to show it) ──
-  console.log('16. Onboarding banner...');
+  // ── 18. Onboarding banner (clear storage to show it) ──
+  console.log('18. Onboarding banner...');
   await page.evaluate(() => localStorage.removeItem('beads-gui-onboarding-complete'));
   await page.reload();
   await sleep(2000);
-  await page.screenshot({ path: 'docs/demo/18-onboarding-banner.png', fullPage: false });
+  await page.screenshot({ path: 'docs/demo/20-onboarding-banner.png', fullPage: false });
   // Dismiss onboarding
   await page.evaluate(() => localStorage.setItem('beads-gui-onboarding-complete', 'true'));
 
-  console.log(`Done! ${18} screenshots in docs/demo/`);
+  console.log(`Done! ${20} screenshots in docs/demo/`);
   await browser.close();
 }
 
