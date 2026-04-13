@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import type { Priority } from "@beads-gui/shared";
+import type { Priority, IssueStatus } from "@beads-gui/shared";
 import { Button } from "@/components/ui/button";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
@@ -16,6 +16,9 @@ interface BulkActionBarProps {
   onClearSelection: () => void;
   onReassign: (assignee: string) => void;
   onReprioritize: (priority: Priority) => void;
+  onChangeStatus: (status: IssueStatus) => void;
+  onAddLabel: (label: string) => void;
+  onRemoveLabel: (label: string) => void;
   isClosing: boolean;
   isUpdating: boolean;
 }
@@ -26,6 +29,9 @@ export function BulkActionBar({
   onClearSelection,
   onReassign,
   onReprioritize,
+  onChangeStatus,
+  onAddLabel,
+  onRemoveLabel,
   isClosing,
   isUpdating,
 }: BulkActionBarProps) {

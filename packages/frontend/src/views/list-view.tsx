@@ -348,6 +348,108 @@ export function ListView() {
   }, [updateMutation, toast]);
 
   // Build columns and table instance
+
+  const handleBulkChangeStatus = useCallback(async (status: IssueStatus) => {
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
+    setIsUpdating(true);
+    try {
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => updateMutation.mutateAsync({ id, data: { status } })),
+        );
+        allResults.push(...results);
+      }
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      if (failed.length > 0) {
+        toast.warning(`Updated ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
+      } else {
+        toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${status}.`);
+      }
+      setRowSelection({});
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [updateMutation, toast]);
+
+  const handleBulkAddLabel = useCallback(async (label: string) => {
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
+    setIsUpdating(true);
+    try {
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => {
+            const issue = issues.find((iss) => iss.id === id);
+            const existingLabels = issue?.labels ?? [];
+            if (existingLabels.includes(label)) {
+              return Promise.resolve(null); // Already has label
+            }
+            return updateMutation.mutateAsync({
+              id,
+              data: { labels: [...existingLabels, label] },
+            });
+          }),
+        );
+        allResults.push(...results);
+      }
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      if (failed.length > 0) {
+        toast.warning(`Added label to ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
+      } else {
+        toast.success(`Added "${label}" to ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+      }
+      setRowSelection({});
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [updateMutation, toast, issues]);
+
+  const handleBulkRemoveLabel = useCallback(async (label: string) => {
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
+    setIsUpdating(true);
+    try {
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => {
+            const issue = issues.find((iss) => iss.id === id);
+            const existingLabels = issue?.labels ?? [];
+            if (!existingLabels.includes(label)) {
+              return Promise.resolve(null); // Doesn't have label
+            }
+            return updateMutation.mutateAsync({
+              id,
+              data: { labels: existingLabels.filter((l) => l !== label) },
+            });
+          }),
+        );
+        allResults.push(...results);
+      }
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      if (failed.length > 0) {
+        toast.warning(`Removed label from ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
+      } else {
+        toast.success(`Removed "${label}" from ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+      }
+      setRowSelection({});
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [updateMutation, toast, issues]);
+
   const columns = useMemo(
     () => buildColumns({
       onStatusChange: handleStatusChange,
@@ -522,6 +624,9 @@ export function ListView() {
             onClearSelection={handleClearSelection}
             onReassign={handleBulkReassign}
             onReprioritize={handleBulkReprioritize}
+            onChangeStatus={handleBulkChangeStatus}
+            onAddLabel={handleBulkAddLabel}
+            onRemoveLabel={handleBulkRemoveLabel}
             isClosing={isClosing}
             isUpdating={isUpdating}
           />
