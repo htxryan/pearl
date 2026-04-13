@@ -72,6 +72,13 @@ vi.mock("@xyflow/react", async () => {
     MiniMap: () => <div data-testid="rf-minimap" />,
     Panel: ({ children }: any) => <div data-testid="rf-panel">{children}</div>,
     Handle: () => null,
+    BaseEdge: () => null,
+    getBezierPath: () => ["M0,0", 0, 0],
+    useReactFlow: () => ({
+      zoomIn: vi.fn(),
+      zoomOut: vi.fn(),
+      fitView: vi.fn(),
+    }),
     useNodesState: (initial: any[]) => {
       mockNodes = initial;
       mockSetNodes = vi.fn((v: any) => { mockNodes = typeof v === "function" ? v(mockNodes) : v; });
@@ -259,7 +266,10 @@ describe("GraphView", () => {
     renderGraph();
 
     expect(screen.getByTestId("rf-background")).toBeInTheDocument();
-    expect(screen.getByTestId("rf-controls")).toBeInTheDocument();
+    // Custom GraphControls renders zoom buttons instead of built-in Controls
+    expect(screen.getByTitle("Zoom in")).toBeInTheDocument();
+    expect(screen.getByTitle("Zoom out")).toBeInTheDocument();
+    expect(screen.getByTitle("Fit view")).toBeInTheDocument();
     expect(screen.getByTestId("rf-minimap")).toBeInTheDocument();
   });
 

@@ -125,6 +125,38 @@ function HoverLabelEdge({
 
 const edgeTypes = { hoverLabel: HoverLabelEdge };
 
+// ─── Cluster Helpers ──────────────────────────────────
+
+interface ClusterInfo {
+  epicId: string;
+  epicTitle: string;
+  childIds: string[];
+}
+
+function computeClusters(
+  issues: IssueListItem[],
+  deps: Dependency[],
+): Map<string, ClusterInfo> {
+  const issueMap = new Map(issues.map(i => [i.id, i]));
+  const clusters = new Map<string, ClusterInfo>();
+
+  for (const dep of deps) {
+    if (dep.type === "contains" && issueMap.has(dep.depends_on_id) && issueMap.has(dep.issue_id)) {
+      const epic = issueMap.get(dep.depends_on_id)!;
+      if (!clusters.has(epic.id)) {
+        clusters.set(epic.id, {
+          epicId: epic.id,
+          epicTitle: epic.title,
+          childIds: [],
+        });
+      }
+      clusters.get(epic.id)!.childIds.push(dep.issue_id);
+    }
+  }
+
+  return clusters;
+}
+
 // ─── Layout ────────────────────────────────────────────
 
 function computeLayout(
@@ -132,6 +164,8 @@ function computeLayout(
   deps: Dependency[],
   highlightedIds: Set<string>,
   selectedNodeId: string | null,
+  criticalPathIds: Set<string> = new Set(),
+  collapsedEpicChildCounts: Map<string, number> = new Map(),
 ): { nodes: GraphNodeType[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph({ multigraph: true });
   g.setGraph({
@@ -183,12 +217,13 @@ function computeLayout(
         highlighted: highlightedIds.has(issue.id),
         dimmed: highlightedIds.size > 0 && !highlightedIds.has(issue.id),
         selected: issue.id === selectedNodeId,
+        clusterChildCount: collapsedEpicChildCounts.get(issue.id) ?? undefined,
       },
     };
   });
 
   const edges: Edge[] = validEdges.map((dep) => {
-    const color = edgeColorByType[dep.type] ?? DEFAULT_EDGE_COLOR;
+    const baseColor = edgeColorByType[dep.type] ?? DEFAULT_EDGE_COLOR;
     const hasSelection = highlightedIds.size > 0;
     const bothHighlighted =
       hasSelection &&
@@ -197,6 +232,34 @@ function computeLayout(
     const eitherDimmed =
       hasSelection &&
       (!highlightedIds.has(dep.depends_on_id) || !highlightedIds.has(dep.issue_id));
+
+    // Critical path: both source and target on the critical path
+    const bothOnCriticalPath =
+      criticalPathIds.size > 0 &&
+      criticalPathIds.has(dep.depends_on_id) &&
+      criticalPathIds.has(dep.issue_id);
+
+    // Priority: blocking chain highlight > critical path > default
+    let color = baseColor;
+    let strokeWidth = 2;
+    let filter: string | undefined;
+    let opacity = 1;
+
+    if (bothHighlighted) {
+      // Blocking chain takes highest priority
+      color = baseColor;
+      strokeWidth = 3;
+      filter = `drop-shadow(0 0 4px ${baseColor})`;
+    } else if (bothOnCriticalPath && !eitherDimmed) {
+      // Critical path styling (only when not dimmed by blocking chain selection)
+      color = "#818cf8"; // indigo accent
+      strokeWidth = 3;
+      filter = `drop-shadow(0 0 4px #818cf8)`;
+    }
+
+    if (eitherDimmed) {
+      opacity = 0.3;
+    }
 
     return {
       id: `${dep.depends_on_id}-${dep.type}-${dep.issue_id}`,
@@ -207,9 +270,9 @@ function computeLayout(
       style: {
         stroke: color,
         strokeDasharray: edgeDashByType[dep.type],
-        strokeWidth: bothHighlighted ? 3 : 2,
-        filter: bothHighlighted ? `drop-shadow(0 0 4px ${color})` : undefined,
-        opacity: eitherDimmed ? 0.3 : 1,
+        strokeWidth,
+        filter,
+        opacity,
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
@@ -277,6 +340,82 @@ function findBlockingChain(
   }
 
   return result;
+}
+
+// ─── Critical Path ────────────────────────────────────
+
+function findCriticalPath(
+  issues: IssueListItem[],
+  deps: Dependency[],
+): Set<string> {
+  // Build adjacency list: depends_on_id → issue_id (upstream to downstream)
+  const issueIds = new Set(issues.map(i => i.id));
+  const children = new Map<string, string[]>();
+  const inDegree = new Map<string, number>();
+
+  for (const id of issueIds) {
+    children.set(id, []);
+    inDegree.set(id, 0);
+  }
+
+  for (const dep of deps) {
+    if ((dep.type === "blocks" || dep.type === "depends_on") &&
+        issueIds.has(dep.issue_id) && issueIds.has(dep.depends_on_id)) {
+      children.get(dep.depends_on_id)!.push(dep.issue_id);
+      inDegree.set(dep.issue_id, (inDegree.get(dep.issue_id) ?? 0) + 1);
+    }
+  }
+
+  // Topological sort with longest path tracking
+  const dist = new Map<string, number>();
+  const parent = new Map<string, string | null>();
+  const queue: string[] = [];
+
+  for (const [id, deg] of inDegree) {
+    if (deg === 0) {
+      queue.push(id);
+      dist.set(id, 1);
+      parent.set(id, null);
+    }
+  }
+
+  // Process in topological order
+  let i = 0;
+  while (i < queue.length) {
+    const current = queue[i++];
+    const currentDist = dist.get(current) ?? 1;
+    for (const child of children.get(current) ?? []) {
+      const newDist = currentDist + 1;
+      if (newDist > (dist.get(child) ?? 0)) {
+        dist.set(child, newDist);
+        parent.set(child, current);
+      }
+      inDegree.set(child, (inDegree.get(child) ?? 0) - 1);
+      if (inDegree.get(child) === 0) {
+        queue.push(child);
+      }
+    }
+  }
+
+  // Find the node with maximum distance (end of critical path)
+  let maxDist = 0;
+  let endNode: string | null = null;
+  for (const [id, d] of dist) {
+    if (d > maxDist) {
+      maxDist = d;
+      endNode = id;
+    }
+  }
+
+  // Trace back to build the critical path
+  const path = new Set<string>();
+  let current = endNode;
+  while (current != null) {
+    path.add(current);
+    current = parent.get(current) ?? null;
+  }
+
+  return path;
 }
 
 // ─── Performance Subgraph ──────────────────────────────
@@ -394,6 +533,8 @@ export function GraphView() {
 
   // Selected node for highlighting
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [showCriticalPath, setShowCriticalPath] = useState(false);
+  const [collapsedClusters, setCollapsedClusters] = useState<Set<string>>(new Set());
 
   // Clear selection when the selected node is no longer in the filtered set
   const allIssueIds = useMemo(() => new Set(allIssues.map((i) => i.id)), [allIssues]);
@@ -410,16 +551,70 @@ export function GraphView() {
     [allIssues, allDeps, selectedNodeId],
   );
 
+  // Compute clusters from contains relationships
+  const clusters = useMemo(
+    () => computeClusters(displayIssues, allDeps),
+    [displayIssues, allDeps],
+  );
+
+  // Filter out collapsed cluster children
+  const visibleIssues = useMemo(() => {
+    if (collapsedClusters.size === 0) return displayIssues;
+    const hiddenIds = new Set<string>();
+    for (const epicId of collapsedClusters) {
+      const cluster = clusters.get(epicId);
+      if (cluster) {
+        for (const childId of cluster.childIds) {
+          hiddenIds.add(childId);
+        }
+      }
+    }
+    return displayIssues.filter(i => !hiddenIds.has(i.id));
+  }, [displayIssues, collapsedClusters, clusters]);
+
+  // Filter deps to exclude edges involving hidden children
+  const visibleDeps = useMemo(() => {
+    if (collapsedClusters.size === 0) return allDeps;
+    const hiddenIds = new Set<string>();
+    for (const epicId of collapsedClusters) {
+      const cluster = clusters.get(epicId);
+      if (cluster) {
+        for (const childId of cluster.childIds) {
+          hiddenIds.add(childId);
+        }
+      }
+    }
+    return allDeps.filter(d => !hiddenIds.has(d.issue_id) && !hiddenIds.has(d.depends_on_id));
+  }, [allDeps, collapsedClusters, clusters]);
+
+  // Build collapsed epic child counts for badge display
+  const collapsedEpicChildCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const epicId of collapsedClusters) {
+      const cluster = clusters.get(epicId);
+      if (cluster) {
+        counts.set(epicId, cluster.childIds.length);
+      }
+    }
+    return counts;
+  }, [collapsedClusters, clusters]);
+
   // Blocking chain highlight
   const highlightedIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
     return findBlockingChain(selectedNodeId, allDeps);
   }, [selectedNodeId, allDeps]);
 
+  // Critical path highlight
+  const criticalPathIds = useMemo(() => {
+    if (!showCriticalPath) return new Set<string>();
+    return findCriticalPath(visibleIssues, visibleDeps);
+  }, [showCriticalPath, visibleIssues, visibleDeps]);
+
   // Compute layout
   const layoutResult = useMemo(
-    () => computeLayout(displayIssues, allDeps, highlightedIds, selectedNodeId),
-    [displayIssues, allDeps, highlightedIds, selectedNodeId],
+    () => computeLayout(visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathIds, collapsedEpicChildCounts),
+    [visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathIds, collapsedEpicChildCounts],
   );
 
   // React Flow state
@@ -443,10 +638,10 @@ export function GraphView() {
   setEdgesRef.current = setEdges;
 
   const handleAutoLayout = useCallback(() => {
-    const result = computeLayout(displayIssues, allDeps, highlightedIds, selectedNodeId);
+    const result = computeLayout(visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathIds, collapsedEpicChildCounts);
     setNodesRef.current(result.nodes);
     setEdgesRef.current(result.edges);
-  }, [displayIssues, allDeps, highlightedIds, selectedNodeId]);
+  }, [visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathIds, collapsedEpicChildCounts]);
 
   // Node click → select for highlight
   const handleNodeClick: NodeMouseHandler<GraphNodeType> = useCallback(
@@ -456,12 +651,25 @@ export function GraphView() {
     [],
   );
 
-  // Double-click → navigate to detail
+  // Double-click → toggle cluster for epics, navigate for others
   const handleNodeDoubleClick: NodeMouseHandler<GraphNodeType> = useCallback(
     (_event, node) => {
-      navigate(`/issues/${node.id}`, { state: { from: "/graph" } });
+      const cluster = clusters.get(node.id);
+      if (cluster) {
+        setCollapsedClusters(prev => {
+          const next = new Set(prev);
+          if (next.has(node.id)) {
+            next.delete(node.id);
+          } else {
+            next.add(node.id);
+          }
+          return next;
+        });
+      } else {
+        navigate(`/issues/${node.id}`, { state: { from: "/graph" } });
+      }
     },
-    [navigate],
+    [navigate, clusters],
   );
 
   // MiniMap styling
@@ -498,6 +706,11 @@ export function GraphView() {
         handler: handleAutoLayout,
         description: "Re-run auto layout",
       },
+      {
+        key: "c",
+        handler: () => setShowCriticalPath(prev => !prev),
+        description: "Toggle critical path",
+      },
     ],
     [handleAutoLayout],
   );
@@ -509,6 +722,8 @@ export function GraphView() {
   handleAutoLayoutRef.current = handleAutoLayout;
   const setFiltersRef = useRef(setFilters);
   setFiltersRef.current = setFilters;
+  const setShowCriticalPathRef = useRef(setShowCriticalPath);
+  setShowCriticalPathRef.current = setShowCriticalPath;
 
   const paletteActions: CommandAction[] = useMemo(
     () => [
@@ -531,6 +746,13 @@ export function GraphView() {
         shortcut: "l",
         group: "Graph",
         handler: () => handleAutoLayoutRef.current(),
+      },
+      {
+        id: "graph-toggle-critical-path",
+        label: "Toggle critical path",
+        shortcut: "c",
+        group: "Graph",
+        handler: () => setShowCriticalPathRef.current(prev => !prev),
       },
       {
         id: "graph-clear-selection",
@@ -566,6 +788,37 @@ export function GraphView() {
                 Showing {displayIssues.length} of {allIssues.length} issues
               </span>
             )}
+            {clusters.size > 0 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCollapsedClusters(new Set(clusters.keys()))}
+                  className="min-h-[44px] md:min-h-0"
+                  title="Collapse all clusters"
+                >
+                  Collapse
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCollapsedClusters(new Set())}
+                  className="min-h-[44px] md:min-h-0"
+                  title="Expand all clusters"
+                >
+                  Expand
+                </Button>
+              </div>
+            )}
+            <Button
+              variant={showCriticalPath ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowCriticalPath(prev => !prev)}
+              className="min-h-[44px] md:min-h-0"
+              title="Show critical path (C)"
+            >
+              Critical Path
+            </Button>
             <Button
               variant="outline"
               size="sm"

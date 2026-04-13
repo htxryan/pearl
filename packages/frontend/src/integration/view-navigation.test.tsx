@@ -140,6 +140,9 @@ vi.mock("@xyflow/react", async () => {
     MiniMap: () => <div data-testid="rf-minimap" />,
     Panel: ({ children }: any) => <div data-testid="rf-panel">{children}</div>,
     Handle: () => null,
+    BaseEdge: () => null,
+    getBezierPath: () => ["M0,0", 0, 0],
+    useReactFlow: () => ({ zoomIn: vi.fn(), zoomOut: vi.fn(), fitView: vi.fn() }),
     useNodesState: (initial: any[]) => [initial, vi.fn(), vi.fn()],
     useEdgesState: (initial: any[]) => [initial, vi.fn(), vi.fn()],
   };

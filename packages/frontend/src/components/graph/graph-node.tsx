@@ -96,6 +96,15 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
           {issue.title}
         </p>
 
+        {/* Collapsed cluster badge */}
+        {data.clusterChildCount != null && (
+          <div className="flex items-center gap-1 text-[9px] text-muted-foreground mb-1">
+            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
+              {String(data.clusterChildCount)} collapsed
+            </span>
+          </div>
+        )}
+
         {/* Row 3: Type + Labels + Assignee */}
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
