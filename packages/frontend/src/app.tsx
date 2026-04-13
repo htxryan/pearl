@@ -10,6 +10,7 @@ import { GraphView } from "@/views/graph-view";
 import { DetailView } from "@/views/detail-view";
 import { SetupView } from "@/views/setup-view";
 import { NotFoundView } from "@/views/not-found-view";
+import { SettingsView } from "@/views/settings-view";
 
 export function App() {
   return (
@@ -25,6 +26,7 @@ export function App() {
                 <Route path="board" element={<BoardView />} />
                 <Route path="graph" element={<GraphView />} />
                 <Route path="issues/:id" element={<DetailView />} />
+                <Route path="settings" element={<SettingsView />} />
                 <Route path="*" element={<NotFoundView />} />
               </Route>
             </Routes>

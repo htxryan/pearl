@@ -63,6 +63,11 @@ export function AppShell() {
         handler: () => navigate("/graph"),
         description: "Go to Graph view",
       },
+      {
+        key: "4",
+        handler: () => navigate("/settings"),
+        description: "Go to Settings",
+      },
     ],
     [navigate],
   );
@@ -92,6 +97,13 @@ export function AppShell() {
         shortcut: "3",
         group: "Navigation",
         handler: () => navigate("/graph"),
+      },
+      {
+        id: "nav-settings",
+        label: "Go to Settings",
+        shortcut: "4",
+        group: "Navigation",
+        handler: () => navigate("/settings"),
       },
       {
         id: "create-issue",

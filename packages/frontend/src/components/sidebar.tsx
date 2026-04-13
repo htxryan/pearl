@@ -35,10 +35,20 @@ function GraphIcon() {
   );
 }
 
+function SettingsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="2" />
+      <path d="M13.5 8a5.5 5.5 0 00-.4-1.6l1.3-1-.8-1.4-1.5.6a5.5 5.5 0 00-1.3-1.1l.2-1.6-1.5-.4-.7 1.4A5.5 5.5 0 008 2.5a5.5 5.5 0 00-.8.1L6.5 1.2 5 1.6l.2 1.6a5.5 5.5 0 00-1.3 1.1l-1.5-.6-.8 1.4 1.3 1A5.5 5.5 0 002.5 8c0 .6.1 1.1.4 1.6l-1.3 1 .8 1.4 1.5-.6c.4.4.8.8 1.3 1.1l-.2 1.6 1.5.4.7-1.4c.3 0 .5.1.8.1s.5 0 .8-.1l.7 1.4 1.5-.4-.2-1.6c.5-.3.9-.7 1.3-1.1l1.5.6.8-1.4-1.3-1c.3-.5.4-1 .4-1.6z" />
+    </svg>
+  );
+}
+
 const navItems: { to: string; label: string; shortcut: string; icon: ReactNode }[] = [
   { to: "/list", label: "List", shortcut: "1", icon: <ListIcon /> },
   { to: "/board", label: "Board", shortcut: "2", icon: <BoardIcon /> },
   { to: "/graph", label: "Graph", shortcut: "3", icon: <GraphIcon /> },
+  { to: "/settings", label: "Settings", shortcut: "4", icon: <SettingsIcon /> },
 ];
 
 export function Sidebar() {
