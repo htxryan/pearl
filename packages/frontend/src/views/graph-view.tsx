@@ -3,12 +3,15 @@ import { useNavigate } from "react-router";
 import {
   ReactFlow,
   Background,
-  Controls,
   MiniMap,
   Panel,
   useNodesState,
   useEdgesState,
+  useReactFlow,
+  BaseEdge,
+  getBezierPath,
   type Edge,
+  type EdgeProps,
   type NodeMouseHandler,
   type ColorMode,
   MarkerType,
@@ -29,6 +32,7 @@ import {
   NODE_HEIGHT,
   type GraphNodeType,
 } from "@/components/graph/graph-node";
+import { Button } from "@/components/ui/button";
 
 import "@xyflow/react/dist/style.css";
 
@@ -56,12 +60,78 @@ const DEFAULT_EDGE_COLOR = "#6b7280";
 
 const nodeTypes = { graphNode: GraphNode };
 
+// ─── Dependency type labels ──────────────────────────
+
+function depTypeLabel(type: DependencyType): string {
+  switch (type) {
+    case "blocks": return "blocks";
+    case "depends_on": return "depends on";
+    case "relates_to": return "relates to";
+    case "discovered_from": return "discovered";
+    default: return type;
+  }
+}
+
+// ─── Custom Edge with hover label ────────────────────
+
+function HoverLabelEdge({
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  style,
+  markerEnd,
+  data,
+}: EdgeProps) {
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+  });
+
+  return (
+    <>
+      {/* Visible edge */}
+      <BaseEdge path={edgePath} style={style} markerEnd={markerEnd} />
+      {/* Invisible wider path for hover detection + label */}
+      <g className="group">
+        <path
+          d={edgePath}
+          fill="none"
+          stroke="transparent"
+          strokeWidth={20}
+          className="pointer-events-auto"
+        />
+        {data?.label != null && (
+          <foreignObject
+            x={labelX - 50}
+            y={labelY - 14}
+            width={100}
+            height={28}
+            className="pointer-events-none overflow-visible"
+          >
+            <div className="flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-[10px] font-medium text-muted-foreground bg-background/90 backdrop-blur-sm border border-border rounded px-1.5 py-0.5 whitespace-nowrap w-fit mx-auto">
+              {String(data.label)}
+            </div>
+          </foreignObject>
+        )}
+      </g>
+    </>
+  );
+}
+
+// ─── Edge Types (stable ref) ─────────────────────────
+
+const edgeTypes = { hoverLabel: HoverLabelEdge };
+
 // ─── Layout ────────────────────────────────────────────
 
 function computeLayout(
   issues: IssueListItem[],
   deps: Dependency[],
   highlightedIds: Set<string>,
+  selectedNodeId: string | null,
 ): { nodes: GraphNodeType[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph({ multigraph: true });
   g.setGraph({
@@ -111,21 +181,35 @@ function computeLayout(
       data: {
         issue,
         highlighted: highlightedIds.has(issue.id),
+        dimmed: highlightedIds.size > 0 && !highlightedIds.has(issue.id),
+        selected: issue.id === selectedNodeId,
       },
     };
   });
 
   const edges: Edge[] = validEdges.map((dep) => {
     const color = edgeColorByType[dep.type] ?? DEFAULT_EDGE_COLOR;
+    const hasSelection = highlightedIds.size > 0;
+    const bothHighlighted =
+      hasSelection &&
+      highlightedIds.has(dep.depends_on_id) &&
+      highlightedIds.has(dep.issue_id);
+    const eitherDimmed =
+      hasSelection &&
+      (!highlightedIds.has(dep.depends_on_id) || !highlightedIds.has(dep.issue_id));
+
     return {
       id: `${dep.depends_on_id}-${dep.type}-${dep.issue_id}`,
       source: dep.depends_on_id,
       target: dep.issue_id,
-      type: "default",
+      type: "hoverLabel",
+      data: { label: depTypeLabel(dep.type) },
       style: {
         stroke: color,
         strokeDasharray: edgeDashByType[dep.type],
-        strokeWidth: 2,
+        strokeWidth: bothHighlighted ? 3 : 2,
+        filter: bothHighlighted ? `drop-shadow(0 0 4px ${color})` : undefined,
+        opacity: eitherDimmed ? 0.3 : 1,
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
@@ -133,8 +217,6 @@ function computeLayout(
         width: 16,
         height: 16,
       },
-      label: dep.type === "relates_to" ? "relates" : undefined,
-      labelStyle: { fontSize: 10, fill: "#888" },
     };
   });
 
@@ -251,6 +333,46 @@ function getSubgraph(
   return [...selected].map((id) => issueMap.get(id)!).filter(Boolean);
 }
 
+// ─── Graph Controls ───────────────────────────────────
+
+function GraphControls() {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+
+  return (
+    <Panel position="bottom-right">
+      <div className="flex flex-col gap-1 bg-background/80 backdrop-blur-sm rounded-lg border border-border p-1 shadow-sm">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => zoomIn()}
+          title="Zoom in"
+        >
+          +
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => zoomOut()}
+          title="Zoom out"
+        >
+          {"\u2212"}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => fitView({ padding: 0.2, maxZoom: 1.5 })}
+          title="Fit view"
+        >
+          {"\u2299"}
+        </Button>
+      </div>
+    </Panel>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────
 
 export function GraphView() {
@@ -296,8 +418,8 @@ export function GraphView() {
 
   // Compute layout
   const layoutResult = useMemo(
-    () => computeLayout(displayIssues, allDeps, highlightedIds),
-    [displayIssues, allDeps, highlightedIds],
+    () => computeLayout(displayIssues, allDeps, highlightedIds, selectedNodeId),
+    [displayIssues, allDeps, highlightedIds, selectedNodeId],
   );
 
   // React Flow state
@@ -321,10 +443,10 @@ export function GraphView() {
   setEdgesRef.current = setEdges;
 
   const handleAutoLayout = useCallback(() => {
-    const result = computeLayout(displayIssues, allDeps, highlightedIds);
+    const result = computeLayout(displayIssues, allDeps, highlightedIds, selectedNodeId);
     setNodesRef.current(result.nodes);
     setEdgesRef.current(result.edges);
-  }, [displayIssues, allDeps, highlightedIds]);
+  }, [displayIssues, allDeps, highlightedIds, selectedNodeId]);
 
   // Node click → select for highlight
   const handleNodeClick: NodeMouseHandler<GraphNodeType> = useCallback(
@@ -341,6 +463,22 @@ export function GraphView() {
     },
     [navigate],
   );
+
+  // MiniMap styling
+  const minimapNodeColor = useCallback((node: GraphNodeType) => {
+    const status = node.data?.issue?.status;
+    const statusColors: Record<string, string> = {
+      open: "#3b82f6",
+      in_progress: "#f59e0b",
+      closed: "#22c55e",
+      blocked: "#ef4444",
+      deferred: "#9ca3af",
+    };
+    return statusColors[status] ?? "#6b7280";
+  }, []);
+
+  const minimapMaskColor =
+    theme.colorScheme === "dark" ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.1)";
 
   // Keyboard shortcuts
   const keyBindings = useMemo(
@@ -428,13 +566,15 @@ export function GraphView() {
                 Showing {displayIssues.length} of {allIssues.length} issues
               </span>
             )}
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleAutoLayout}
-              className="px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-muted transition-colors min-h-[44px] md:min-h-0"
+              className="min-h-[44px] md:min-h-0"
               title="Re-run Dagre layout (L)"
             >
               Auto Layout
-            </button>
+            </Button>
           </div>
         </div>
         {selectedNodeId && (
@@ -479,19 +619,26 @@ export function GraphView() {
             onNodeClick={handleNodeClick}
             onNodeDoubleClick={handleNodeDoubleClick}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             colorMode={colorMode}
             fitView
             fitViewOptions={{ padding: 0.2, maxZoom: 1.5 }}
             minZoom={0.1}
             maxZoom={3}
-
           >
             <Background />
-            <Controls />
+            <GraphControls />
             <MiniMap
               nodeStrokeWidth={3}
               pannable
               zoomable
+              nodeColor={minimapNodeColor}
+              maskColor={minimapMaskColor}
+              style={{
+                backgroundColor: 'var(--color-surface, var(--color-muted))',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--color-border)',
+              }}
             />
             <Panel position="bottom-left">
               <Legend />
