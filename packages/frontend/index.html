@@ -4,6 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Beads GUI</title>
+    <script>
+      // Boot script: apply theme before first paint to prevent FOTC.
+      // Reads cached theme data from localStorage (written by useTheme hook).
+      // Must run synchronously before any rendering occurs.
+      (function () {
+        try {
+          var cache = localStorage.getItem("beads-gui-theme-cache");
+          if (cache) {
+            var data = JSON.parse(cache);
+            var root = document.documentElement;
+            if (data.colorScheme === "dark") {
+              root.classList.add("dark");
+            }
+            if (data.colors) {
+              var tokens = Object.keys(data.colors);
+              for (var i = 0; i < tokens.length; i++) {
+                root.style.setProperty("--color-" + tokens[i], data.colors[tokens[i]]);
+              }
+            }
+          } else {
+            // No cache — check system preference for .dark class only.
+            // CSS @theme defaults handle colors until React loads.
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+              document.documentElement.classList.add("dark");
+            }
+          }
+        } catch (e) {
+          // localStorage unavailable or corrupt — CSS defaults will apply.
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
