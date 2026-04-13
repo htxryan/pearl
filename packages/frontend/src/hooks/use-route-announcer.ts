@@ -5,6 +5,7 @@ const routeLabels: Record<string, string> = {
   "/list": "List View",
   "/board": "Board View",
   "/graph": "Graph View",
+  "/settings": "Settings",
 };
 
 /**

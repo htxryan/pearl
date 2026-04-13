@@ -69,15 +69,14 @@ export function Header() {
         {pickerOpen && (
           <div
             ref={pickerRef}
-            role="listbox"
+            role="group"
             aria-label="Select theme"
             className="absolute right-0 top-full mt-1 z-50 w-56 max-h-80 overflow-auto rounded-lg border border-border bg-background shadow-lg"
           >
             {themes.map((t) => (
               <button
                 key={t.id}
-                role="option"
-                aria-selected={t.id === themeId}
+                aria-pressed={t.id === themeId}
                 className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground ${t.id === themeId ? "bg-accent text-accent-foreground" : ""}`}
                 onClick={() => {
                   setTheme(t.id);

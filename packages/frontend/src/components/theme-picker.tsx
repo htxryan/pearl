@@ -18,8 +18,7 @@ function ThemeCard({
   return (
     <button
       type="button"
-      role="option"
-      aria-selected={isActive}
+      aria-pressed={isActive}
       aria-label={`${theme.name} theme${isActive ? " (active)" : ""}`}
       className={cn(
         "group relative flex flex-col gap-3 rounded-lg border p-4 text-left transition-all duration-150",
@@ -29,12 +28,6 @@ function ThemeCard({
           : "border-border hover:border-primary/40 hover:bg-accent/30",
       )}
       onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
     >
       {/* Active indicator */}
       {isActive && (
@@ -80,7 +73,7 @@ export function ThemePicker() {
 
   return (
     <div
-      role="listbox"
+      role="group"
       aria-label="Available themes"
       className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3"
     >

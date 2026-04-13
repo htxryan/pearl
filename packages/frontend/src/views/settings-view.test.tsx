@@ -92,15 +92,15 @@ describe("SettingsView", () => {
 
   it("renders the theme picker with all themes", () => {
     renderSettings();
-    const listbox = screen.getByRole("listbox", { name: "Available themes" });
-    const options = within(listbox).getAllByRole("option");
-    expect(options).toHaveLength(3);
+    const group = screen.getByRole("group", { name: "Available themes" });
+    const buttons = within(group).getAllByRole("button");
+    expect(buttons).toHaveLength(3);
   });
 
   it("shows active indicator on the current theme", () => {
     renderSettings();
-    const activeOption = screen.getByRole("option", { name: /Dark\+.*active/i });
-    expect(activeOption).toHaveAttribute("aria-selected", "true");
+    const activeButton = screen.getByRole("button", { name: /Dark\+.*active/i });
+    expect(activeButton).toHaveAttribute("aria-pressed", "true");
   });
 
   it("shows theme names and color scheme labels", () => {
@@ -116,38 +116,25 @@ describe("SettingsView", () => {
 
   it("calls setTheme when a theme card is clicked", () => {
     renderSettings();
-    const lightOption = screen.getByRole("option", { name: /Light\+/i });
-    fireEvent.click(lightOption);
+    const lightButton = screen.getByRole("button", { name: /Light\+/i });
+    fireEvent.click(lightButton);
     expect(mockSetTheme).toHaveBeenCalledWith("vscode-light-plus");
   });
 
-  it("calls setTheme when Enter is pressed on a theme card", () => {
+  it("theme cards are focusable buttons", () => {
     renderSettings();
-    const monokaiOption = screen.getByRole("option", { name: /Monokai/i });
-    fireEvent.keyDown(monokaiOption, { key: "Enter" });
-    expect(mockSetTheme).toHaveBeenCalledWith("vscode-monokai");
-  });
-
-  it("calls setTheme when Space is pressed on a theme card", () => {
-    renderSettings();
-    const monokaiOption = screen.getByRole("option", { name: /Monokai/i });
-    fireEvent.keyDown(monokaiOption, { key: " " });
-    expect(mockSetTheme).toHaveBeenCalledWith("vscode-monokai");
-  });
-
-  it("theme cards are focusable", () => {
-    renderSettings();
-    const options = screen.getAllByRole("option");
-    for (const option of options) {
-      expect(option.tagName).toBe("BUTTON");
+    const group = screen.getByRole("group", { name: "Available themes" });
+    const buttons = within(group).getAllByRole("button");
+    for (const button of buttons) {
+      expect(button.tagName).toBe("BUTTON");
     }
   });
 
   it("renders color swatches on each theme card", () => {
     renderSettings();
     // Each card has 5 swatch spans (background, foreground, primary, accent, muted)
-    const listbox = screen.getByRole("listbox", { name: "Available themes" });
-    const swatches = listbox.querySelectorAll("[aria-hidden='true']");
+    const group = screen.getByRole("group", { name: "Available themes" });
+    const swatches = group.querySelectorAll("[aria-hidden='true']");
     expect(swatches).toHaveLength(15); // 3 themes × 5 swatches
   });
 });
