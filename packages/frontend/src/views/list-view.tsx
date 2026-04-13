@@ -296,6 +296,36 @@ export function ListView() {
     [updateMutation, issues, toast],
   );
 
+  const handleLabelsChange = useCallback(
+    (id: string, labels: string[]) => {
+      const issue = issues.find((i) => i.id === id);
+      updateMutation.mutate(
+        { id, data: { labels } },
+        {
+          onError: () => {
+            toast.error(`Failed to update labels for "${issue?.title ?? id}"`);
+          },
+        },
+      );
+    },
+    [updateMutation, issues, toast],
+  );
+
+  const handleDueDateChange = useCallback(
+    (id: string, date: string | null) => {
+      const issue = issues.find((i) => i.id === id);
+      updateMutation.mutate(
+        { id, data: { due: date ?? undefined } },
+        {
+          onError: () => {
+            toast.error(`Failed to update due date for "${issue?.title ?? id}"`);
+          },
+        },
+      );
+    },
+    [updateMutation, issues, toast],
+  );
+
   const handleBulkClose = useCallback(async () => {
     const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
     if (ids.length === 0) return;
@@ -525,11 +555,13 @@ export function ListView() {
       onPriorityChange: handlePriorityChange,
       onTitleChange: handleTitleChange,
       onAssigneeChange: handleAssigneeChange,
+      onLabelsChange: handleLabelsChange,
+      onDueDateChange: handleDueDateChange,
       epicProgress,
       expandedEpics,
       onToggleExpand: handleToggleExpand,
     }),
-    [handleStatusChange, handlePriorityChange, handleTitleChange, handleAssigneeChange, epicProgress, expandedEpics, handleToggleExpand],
+    [handleStatusChange, handlePriorityChange, handleTitleChange, handleAssigneeChange, handleLabelsChange, handleDueDateChange, epicProgress, expandedEpics, handleToggleExpand],
   );
 
   const table = useReactTable({

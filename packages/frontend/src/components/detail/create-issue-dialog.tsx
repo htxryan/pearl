@@ -5,6 +5,7 @@ import { useCreateIssue } from "@/hooks/use-issues";
 import { useDraft } from "@/hooks/use-draft";
 import { Button } from "@/components/ui/button";
 import { LabelPicker } from "@/components/ui/label-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
@@ -341,15 +342,13 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
 
         {/* Due date */}
         <div>
-          <label htmlFor="create-due" className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-1">
             Due Date
           </label>
-          <input
-            id="create-due"
-            type="date"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            className="w-full text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
+          <DatePicker
+            value={due || null}
+            onChange={(date) => setDue(date ?? "")}
+            placeholder="Set due date"
           />
         </div>
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { IssueListItem, IssueStatus, Priority, LabelColor } from "@beads-gui/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -7,6 +7,8 @@ import { TypeBadge } from "@/components/ui/type-badge";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { AssigneePicker } from "@/components/ui/assignee-picker";
+import { LabelPicker } from "@/components/ui/label-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -140,6 +142,103 @@ function InlineAssigneeEditor({
   );
 }
 
+// ─── Inline Label Editor ────────────────────────────────
+function InlineLabelEditor({
+  labels,
+  labelColors,
+  issueId,
+  onLabelsChange,
+}: {
+  labels: string[];
+  labelColors: Record<string, LabelColor>;
+  issueId: string;
+  onLabelsChange: (id: string, labels: string[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [isOpen]);
+
+  const handleChange = useCallback((newLabels: string[]) => {
+    onLabelsChange(issueId, newLabels);
+  }, [issueId, onLabelsChange]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div
+        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+        className="flex gap-1 flex-wrap cursor-pointer min-h-[20px]"
+      >
+        {labels.length === 0 && (
+          <span className="text-xs text-muted-foreground/50 italic">—</span>
+        )}
+        {labels.slice(0, 3).map((label) => (
+          <LabelBadge
+            key={label}
+            name={label}
+            color={labelColors[label] as LabelColor | undefined}
+            size="sm"
+          />
+        ))}
+        {labels.length > 3 && (
+          <span className="text-xs text-muted-foreground">+{labels.length - 3}</span>
+        )}
+      </div>
+      {isOpen && (
+        <div
+          className="absolute left-0 top-full mt-1 z-50 w-[260px]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <LabelPicker
+            selected={labels}
+            selectedColors={labelColors}
+            onChange={handleChange}
+            placeholder="Search labels..."
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Inline Date Editor ─────────────────────────────────
+function InlineDateEditor({
+  value,
+  issueId,
+  onDueDateChange,
+}: {
+  value: string | null;
+  issueId: string;
+  onDueDateChange: (id: string, date: string | null) => void;
+}) {
+  const handleChange = useCallback((date: string | null) => {
+    onDueDateChange(issueId, date);
+  }, [issueId, onDueDateChange]);
+
+  const isOverdue = value ? isDateOverdue(value) : false;
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <DatePicker
+        value={value}
+        onChange={handleChange}
+        placeholder="—"
+        className={isOverdue ? "[&_button]:text-destructive [&_button]:font-medium" : "[&_button]:text-muted-foreground"}
+      />
+    </div>
+  );
+}
+
 export interface EpicProgress {
   done: number;
   total: number;
@@ -151,6 +250,8 @@ export function buildColumns({
   onPriorityChange,
   onTitleChange,
   onAssigneeChange,
+  onLabelsChange,
+  onDueDateChange,
   epicProgress,
   expandedEpics,
   onToggleExpand,
@@ -159,6 +260,8 @@ export function buildColumns({
   onPriorityChange?: (id: string, priority: Priority) => void;
   onTitleChange?: (id: string, title: string) => void;
   onAssigneeChange?: (id: string, assignee: string) => void;
+  onLabelsChange?: (id: string, labels: string[]) => void;
+  onDueDateChange?: (id: string, date: string | null) => void;
   epicProgress?: Map<string, EpicProgress>;
   expandedEpics?: Set<string>;
   onToggleExpand?: (id: string) => void;
@@ -321,6 +424,15 @@ export function buildColumns({
       header: "Due",
       cell: (info) => {
         const val = info.getValue();
+        if (onDueDateChange) {
+          return (
+            <InlineDateEditor
+              value={val}
+              issueId={info.row.original.id}
+              onDueDateChange={onDueDateChange}
+            />
+          );
+        }
         const isOverdue = val && isDateOverdue(val);
         return (
           <span className={`text-xs ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
@@ -334,8 +446,18 @@ export function buildColumns({
       header: "Labels",
       cell: (info) => {
         const labels = info.getValue();
-        if (!labels.length) return null;
         const colorMap = info.row.original.labelColors ?? {};
+        if (onLabelsChange) {
+          return (
+            <InlineLabelEditor
+              labels={labels}
+              labelColors={colorMap}
+              issueId={info.row.original.id}
+              onLabelsChange={onLabelsChange}
+            />
+          );
+        }
+        if (!labels.length) return null;
         return (
           <div className="flex gap-1 flex-wrap">
             {labels.slice(0, 3).map((label) => (

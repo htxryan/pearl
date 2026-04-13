@@ -3,6 +3,7 @@ import { useMemo, useCallback, useEffect, useState, Children } from "react";
 import type { Issue, IssueStatus, Priority, IssueType, LabelColor } from "@beads-gui/shared";
 import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
 import { LabelPicker } from "@/components/ui/label-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   useIssue,
   useComments,
@@ -325,12 +326,9 @@ function DetailViewContent({ id }: { id: string }) {
                 <span className="text-sm">{issue.owner}</span>
               </FieldRow>
               <FieldRow label="Due Date">
-                <input
-                  type="date"
-                  value={issue.due_at ? issue.due_at.slice(0, 10) : ""}
-                  onChange={(e) => handleFieldUpdate("due", e.target.value || null)}
-                  aria-label="Due date"
-                  className="text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
+                <DatePicker
+                  value={issue.due_at ? issue.due_at.slice(0, 10) : null}
+                  onChange={(date) => handleFieldUpdate("due", date)}
                 />
               </FieldRow>
               <FieldRow label="Labels">
