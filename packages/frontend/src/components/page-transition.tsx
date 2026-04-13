@@ -12,9 +12,9 @@ const ROUTE_INDEX: Record<string, number> = {
   "/graph": 2,
 };
 
-type Direction = "left" | "right" | "drill-in" | "drill-out" | "fade";
+export type Direction = "left" | "right" | "drill-in" | "drill-out" | "fade";
 
-function getDirection(from: string, to: string): Direction {
+export function getDirection(from: string, to: string): Direction {
   // Settings always fades
   if (to === "/settings" || from === "/settings") return "fade";
 

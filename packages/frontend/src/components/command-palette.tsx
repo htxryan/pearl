@@ -10,6 +10,7 @@ import type { IssueListItem } from "@beads-gui/shared";
 import * as api from "@/lib/api-client";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export function CommandPalette() {
   const open = useCommandPaletteOpen();
@@ -19,10 +20,9 @@ export function CommandPalette() {
   const [search, setSearch] = useState("");
   const [issues, setIssues] = useState<IssueListItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const prefersReducedMotion = typeof window !== "undefined"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   useEffect(() => {
     if (open) {
@@ -35,7 +35,8 @@ export function CommandPalette() {
         inputRef.current?.focus();
       });
     } else {
-      setIsVisible(false);
+      // Only animate exit if we were previously visible (not on initial mount)
+      if (isVisible !== null) setIsVisible(false);
       // Delay unmount until exit transition completes
       const timer = setTimeout(() => setIsMounted(false), 150);
       return () => clearTimeout(timer);
@@ -116,7 +117,7 @@ export function CommandPalette() {
       <Command
         className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
         style={{
-          animation: prefersReducedMotion
+          animation: prefersReducedMotion || isVisible === null
             ? "none"
             : isVisible
               ? "cmd-spring-in 250ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards"

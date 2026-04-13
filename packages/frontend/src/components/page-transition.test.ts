@@ -1,35 +1,5 @@
 import { describe, it, expect } from "vitest";
-
-// Extract the direction logic for testing.
-// The real getDirection is not exported, so we replicate its logic here
-// to validate route-index-based direction detection.
-
-const ROUTE_INDEX: Record<string, number> = {
-  "/list": 0,
-  "/board": 1,
-  "/graph": 2,
-};
-
-type Direction = "left" | "right" | "drill-in" | "drill-out" | "fade";
-
-function getDirection(from: string, to: string): Direction {
-  if (to === "/settings" || from === "/settings") return "fade";
-
-  const toIsDetail = to.startsWith("/issues/");
-  const fromIsDetail = from.startsWith("/issues/");
-
-  if (toIsDetail && !fromIsDetail) return "drill-in";
-  if (fromIsDetail && !toIsDetail) return "drill-out";
-
-  const fromIdx = ROUTE_INDEX[from];
-  const toIdx = ROUTE_INDEX[to];
-
-  if (fromIdx !== undefined && toIdx !== undefined) {
-    return toIdx > fromIdx ? "left" : "right";
-  }
-
-  return "fade";
-}
+import { getDirection } from "./page-transition";
 
 describe("getDirection (page transition direction logic)", () => {
   describe("sibling navigation (left/right based on nav order)", () => {
