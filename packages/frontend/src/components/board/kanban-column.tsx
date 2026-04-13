@@ -12,6 +12,7 @@ interface KanbanColumnProps {
   onCardClick: (id: string) => void;
   isDropTarget?: boolean;
   onQuickAdd?: (title: string, status: IssueStatus) => void;
+  mobile?: boolean;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -20,6 +21,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   onCardClick,
   isDropTarget,
   onQuickAdd,
+  mobile,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -31,8 +33,9 @@ export const KanbanColumn = memo(function KanbanColumn({
   return (
     <div
       className={cn(
-        "flex flex-col min-w-[280px] w-[280px] rounded-lg border border-border bg-muted/30",
+        "flex flex-col rounded-lg border border-border bg-muted/30",
         "transition-colors duration-150",
+        mobile ? "w-full" : "min-w-[280px] w-[280px]",
         (isOver || isDropTarget) && "border-ring bg-ring/5",
       )}
     >

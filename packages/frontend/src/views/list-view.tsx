@@ -28,6 +28,8 @@ import { useUndoActions } from "@/hooks/use-undo";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { IssuePanel } from "@/components/issue-table/issue-panel";
+import { IssueCardList } from "@/components/issue-table/issue-card";
+import { useIsMobile, useIsTablet } from "@/hooks/use-media-query";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -84,6 +86,10 @@ export function ListView() {
 
   // Top-level only filter
   const [topLevelOnly, setTopLevelOnly] = useState(false);
+
+  // Responsive hooks
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
 
   // Split-pane detail panel
   const [panelIssueId, setPanelIssueId] = useState<string | null>(null);
@@ -588,60 +594,67 @@ export function ListView() {
 
   useCommandPaletteActions("list-view", paletteActions);
 
+  // On tablet/mobile, panel is a slide-over overlay instead of side-by-side
+  const panelIsOverlay = isTablet;
+
   return (
-    <div className="flex h-full">
+    <div className="flex h-full relative">
       {/* Main list area */}
-      <div className={`flex flex-col ${panelIssueId && panelMode ? "flex-1 min-w-0" : "w-full"}`}>
+      <div className={`flex flex-col ${panelIssueId && panelMode && !panelIsOverlay ? "flex-1 min-w-0" : "w-full"}`}>
         {/* Toolbar */}
         <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
-          <div className="flex items-start justify-between gap-4">
+          <div className={`flex items-start gap-4 ${isMobile ? "flex-col" : "justify-between"}`}>
             <FilterBar
               filters={filters}
               onChange={setFilters}
               searchInputRef={searchInputRef}
             />
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setTopLevelOnly((prev) => !prev)}
-                className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
-                  topLevelOnly
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:text-foreground"
-                }`}
-                aria-pressed={topLevelOnly}
-              >
-                Top-level only
-              </button>
-              <button
-                onClick={() => {
-                  setPanelMode((prev) => !prev);
-                  if (!panelMode) setPanelIssueId(null);
-                }}
-                className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
-                  panelMode
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:text-foreground"
-                }`}
-                aria-pressed={panelMode}
-                title="Toggle split-pane detail panel"
-              >
-                Panel
-              </button>
-              <ColumnVisibilityMenu table={table} />
-            </div>
+            {!isMobile && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTopLevelOnly((prev) => !prev)}
+                  className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
+                    topLevelOnly
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={topLevelOnly}
+                >
+                  Top-level only
+                </button>
+                <button
+                  onClick={() => {
+                    setPanelMode((prev) => !prev);
+                    if (!panelMode) setPanelIssueId(null);
+                  }}
+                  className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
+                    panelMode
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={panelMode}
+                  title="Toggle split-pane detail panel"
+                >
+                  Panel
+                </button>
+                <ColumnVisibilityMenu table={table} />
+              </div>
+            )}
           </div>
-          <BulkActionBar
-            selectedCount={selectedIds.length}
-            onClose={() => setShowBulkCloseConfirm(true)}
-            onClearSelection={handleClearSelection}
-            onReassign={handleBulkReassign}
-            onReprioritize={handleBulkReprioritize}
-            onChangeStatus={handleBulkChangeStatus}
-            onAddLabel={handleBulkAddLabel}
-            onRemoveLabel={handleBulkRemoveLabel}
-            isClosing={isClosing}
-            isUpdating={isUpdating}
-          />
+          {!isMobile && (
+            <BulkActionBar
+              selectedCount={selectedIds.length}
+              onClose={() => setShowBulkCloseConfirm(true)}
+              onClearSelection={handleClearSelection}
+              onReassign={handleBulkReassign}
+              onReprioritize={handleBulkReprioritize}
+              onChangeStatus={handleBulkChangeStatus}
+              onAddLabel={handleBulkAddLabel}
+              onRemoveLabel={handleBulkRemoveLabel}
+              isClosing={isClosing}
+              isUpdating={isUpdating}
+            />
+          )}
         </div>
 
         {/* Quick-add */}
@@ -673,26 +686,52 @@ export function ListView() {
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table (desktop) or Card List (mobile) */}
         <div className="flex-1 overflow-auto">
-          <IssueTable
-            table={table}
-            isLoading={isLoading}
-            activeRowIndex={activeRowIndex}
-            onRowClick={handleRowClick}
-            highlightedIds={highlightedIds}
-          />
+          {isMobile ? (
+            <IssueCardList
+              issues={tableIssues}
+              isLoading={isLoading}
+              onCardClick={handleRowClick}
+            />
+          ) : (
+            <IssueTable
+              table={table}
+              isLoading={isLoading}
+              activeRowIndex={activeRowIndex}
+              onRowClick={handleRowClick}
+              highlightedIds={highlightedIds}
+            />
+          )}
         </div>
       </div>
 
-      {/* Split-pane detail panel */}
-      {panelMode && panelIssueId && (
+      {/* Split-pane detail panel — desktop: side panel; tablet/mobile: slide-over overlay */}
+      {panelMode && panelIssueId && !panelIsOverlay && (
         <div className="w-[420px] shrink-0 border-l border-border bg-background overflow-hidden">
           <IssuePanel
             key={panelIssueId}
             issueId={panelIssueId}
             onClose={() => setPanelIssueId(null)}
           />
+        </div>
+      )}
+
+      {/* Slide-over overlay for tablet/mobile */}
+      {panelMode && panelIssueId && panelIsOverlay && (
+        <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Issue detail panel">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setPanelIssueId(null)}
+            aria-hidden="true"
+          />
+          <div className="absolute inset-y-0 right-0 w-full max-w-md bg-background shadow-lg overflow-hidden animate-slide-in-right">
+            <IssuePanel
+              key={panelIssueId}
+              issueId={panelIssueId}
+              onClose={() => setPanelIssueId(null)}
+            />
+          </div>
         </div>
       )}
 

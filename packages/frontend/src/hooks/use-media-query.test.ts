@@ -27,7 +27,7 @@ describe("useMediaQuery", () => {
         addListener: vi.fn(),
         removeListener: vi.fn(),
         dispatchEvent: vi.fn(),
-      } as MediaQueryList;
+      } as unknown as MediaQueryList;
     });
   });
 
@@ -85,7 +85,7 @@ describe("useIsMobile", () => {
       addListener: vi.fn(),
       removeListener: vi.fn(),
       dispatchEvent: vi.fn(),
-    }) as MediaQueryList);
+    }) as unknown as MediaQueryList);
 
     const { result } = renderHook(() => useIsMobile());
     expect(result.current).toBe(true);
@@ -105,7 +105,7 @@ describe("useIsTablet", () => {
       addListener: vi.fn(),
       removeListener: vi.fn(),
       dispatchEvent: vi.fn(),
-    }) as MediaQueryList);
+    }) as unknown as MediaQueryList);
 
     const { result } = renderHook(() => useIsTablet());
     expect(result.current).toBe(true);

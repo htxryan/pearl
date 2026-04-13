@@ -1,6 +1,7 @@
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 
 // Inline SVG icons — consistent 16x16, stroke-based
 function ListIcon() {
@@ -44,6 +45,25 @@ function SettingsIcon() {
   );
 }
 
+function HamburgerIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="3" y1="5" x2="17" y2="5" />
+      <line x1="3" y1="10" x2="17" y2="10" />
+      <line x1="3" y1="15" x2="17" y2="15" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="5" y1="5" x2="15" y2="15" />
+      <line x1="15" y1="5" x2="5" y2="15" />
+    </svg>
+  );
+}
+
 const mainNavItems: { to: string; label: string; shortcut: string; icon: () => ReactNode }[] = [
   { to: "/list", label: "List", shortcut: "1", icon: () => <ListIcon /> },
   { to: "/board", label: "Board", shortcut: "2", icon: () => <BoardIcon /> },
@@ -52,13 +72,14 @@ const mainNavItems: { to: string; label: string; shortcut: string; icon: () => R
 
 const settingsItem = { to: "/settings", label: "Settings", shortcut: "4", icon: () => <SettingsIcon /> };
 
-function NavItem({ item }: { item: { to: string; label: string; shortcut: string; icon: () => ReactNode } }) {
+function NavItem({ item, mobile }: { item: { to: string; label: string; shortcut: string; icon: () => ReactNode }; mobile?: boolean }) {
   return (
     <NavLink
       to={item.to}
       className={({ isActive }) =>
         cn(
-          "flex items-center justify-between rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
+          "flex items-center justify-between rounded-[var(--radius)] px-3 text-sm font-medium transition-colors",
+          mobile ? "py-3 min-h-[44px]" : "py-2",
           isActive
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -76,7 +97,12 @@ function NavItem({ item }: { item: { to: string; label: string; shortcut: string
   );
 }
 
+/** Desktop sidebar — always visible at >= 768px */
 export function Sidebar() {
+  const isMobile = useIsMobile();
+
+  if (isMobile) return null;
+
   return (
     <aside className="flex w-56 shrink-0 flex-col bg-muted/50">
       <div className="flex h-14 items-center px-4">
@@ -93,5 +119,91 @@ export function Sidebar() {
         </div>
       </nav>
     </aside>
+  );
+}
+
+/** Mobile hamburger button — visible at < 768px */
+export function MobileMenuButton({ onClick }: { onClick: () => void }) {
+  const isMobile = useIsMobile();
+
+  if (!isMobile) return null;
+
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-foreground hover:bg-accent transition-colors"
+      aria-label="Open navigation menu"
+    >
+      <HamburgerIcon />
+    </button>
+  );
+}
+
+/** Mobile drawer overlay — slides in from left */
+export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const location = useLocation();
+
+  // Close drawer on route change
+  useEffect(() => {
+    if (isOpen) onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Close on Escape
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, handleKeyDown]);
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Navigation menu">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      {/* Drawer panel */}
+      <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-background shadow-lg flex flex-col animate-slide-in-left">
+        <div className="flex h-14 items-center justify-between px-4">
+          <span className="text-lg font-semibold tracking-tight">Beads</span>
+          <button
+            onClick={onClose}
+            className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label="Close navigation menu"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+        <nav className="flex flex-1 flex-col p-2">
+          <div className="flex flex-col gap-1">
+            {mainNavItems.map((item) => (
+              <NavItem key={item.to} item={item} mobile />
+            ))}
+          </div>
+          <div className="mt-auto border-t border-border pt-2">
+            <NavItem item={settingsItem} mobile />
+          </div>
+        </nav>
+      </aside>
+    </div>
   );
 }

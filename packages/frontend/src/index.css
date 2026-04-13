@@ -168,6 +168,26 @@ select:focus, input[type="text"]:focus, textarea:focus {
   border-color: var(--color-ring);
 }
 
+/* Mobile drawer slide-in animation */
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-from-left 0.2s ease-out;
+}
+
+/* Slide-over panel animation (right) */
+.animate-slide-in-right {
+  animation: slide-in-from-right-panel 0.2s ease-out;
+}
+
+@keyframes slide-in-from-right-panel {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 /* Toast slide-in animation */
 @keyframes slide-in-from-right {
   from { transform: translateX(100%); opacity: 0; }

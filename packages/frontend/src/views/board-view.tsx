@@ -14,6 +14,7 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@beads-gui/shared";
+import { cn } from "@/lib/utils";
 import { KanbanColumn } from "@/components/board/kanban-column";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
 import { FilterBar, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
@@ -23,6 +24,7 @@ import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-comman
 import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 /** Statuses that users can drag cards into */
 const DROPPABLE_STATUSES: Set<IssueStatus> = new Set([
@@ -234,6 +236,8 @@ export function BoardView() {
 
   useCommandPaletteActions("board-view", paletteActions);
 
+  const isMobile = useIsMobile();
+
   // Show mutation errors via toast
   useEffect(() => {
     if (!updateMutation.isError || !updateMutation.error) return;
@@ -252,9 +256,9 @@ export function BoardView() {
       </div>
 
       {/* Board */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
+      <div className={`flex-1 ${isMobile ? "overflow-y-auto" : "overflow-x-auto overflow-y-hidden"} p-4`}>
         {isLoading && issues.length === 0 ? (
-          <BoardSkeleton />
+          <BoardSkeleton isMobile={isMobile} />
         ) : (
           <DndContext
             sensors={sensors}
@@ -265,7 +269,7 @@ export function BoardView() {
             onDragCancel={handleDragCancel}
           >
             <div
-              className="flex gap-4 h-full"
+              className={isMobile ? "flex flex-col gap-4" : "flex gap-4 h-full"}
               role="region"
               aria-label="Kanban board"
             >
@@ -277,6 +281,7 @@ export function BoardView() {
                   onCardClick={handleCardClick}
                   isDropTarget={isDragging && overColumnStatus === status}
                   onQuickAdd={handleColumnQuickAdd}
+                  mobile={isMobile}
                 />
               ))}
             </div>
@@ -293,13 +298,16 @@ export function BoardView() {
   );
 }
 
-function BoardSkeleton() {
+function BoardSkeleton({ isMobile }: { isMobile?: boolean }) {
   return (
-    <div className="flex gap-4 h-full" role="status" aria-label="Loading board" aria-busy>
+    <div className={isMobile ? "flex flex-col gap-4" : "flex gap-4 h-full"} role="status" aria-label="Loading board" aria-busy>
       {COLUMN_ORDER.map((status, colIdx) => (
         <div
           key={status}
-          className="flex flex-col min-w-[280px] w-[280px] rounded-lg border border-border bg-muted/30"
+          className={cn(
+            "flex flex-col rounded-lg border border-border bg-muted/30",
+            isMobile ? "w-full" : "min-w-[280px] w-[280px]",
+          )}
         >
           {/* Column header skeleton */}
           <div className="px-3 py-2.5">

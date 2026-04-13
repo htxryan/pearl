@@ -21,6 +21,7 @@ import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
 import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
 import { useTheme } from "@/hooks/use-theme";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { FilterBar, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
 import {
   GraphNode,
@@ -409,12 +410,13 @@ export function GraphView() {
 
   // Color mode for React Flow
   const colorMode: ColorMode = theme.colorScheme === "dark" ? "dark" : "light";
+  const isMobile = useIsMobile();
 
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
       <div className="shrink-0 bg-muted/30 px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
+        <div className={`flex gap-4 ${isMobile ? "flex-col" : "items-center justify-between"}`}>
           <FilterBar
             filters={filters}
             onChange={setFilters}
@@ -428,7 +430,7 @@ export function GraphView() {
             )}
             <button
               onClick={handleAutoLayout}
-              className="px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-muted transition-colors"
+              className="px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-background hover:bg-muted transition-colors min-h-[44px] md:min-h-0"
               title="Re-run Dagre layout (L)"
             >
               Auto Layout
@@ -505,7 +507,7 @@ export function GraphView() {
 
 function Legend() {
   return (
-    <div className="flex items-center gap-4 px-3 py-2 text-[10px] text-muted-foreground bg-background/80 backdrop-blur-sm rounded-md border border-border">
+    <div className="flex items-center gap-4 flex-wrap px-3 py-2 text-[10px] text-muted-foreground bg-background/80 backdrop-blur-sm rounded-md border border-border max-w-[calc(100vw-2rem)]">
       <span className="font-medium">Edges:</span>
       <span className="flex items-center gap-1">
         <span className="inline-block w-4 h-0.5 bg-red-500" /> blocks

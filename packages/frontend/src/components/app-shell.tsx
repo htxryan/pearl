@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router";
 import { useMemo, useState, useCallback } from "react";
-import { Sidebar } from "./sidebar";
+import { Sidebar, MobileMenuButton, MobileDrawer } from "./sidebar";
 import { Header } from "./header";
 import { CommandPalette } from "./command-palette";
 import { HealthBanner } from "./health-banner";
@@ -24,6 +24,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const openCreateDialog = useCallback(() => setCreateDialogOpen(true), []);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const canUndo = useCanUndo();
   const { setTheme } = useTheme();
 
@@ -165,9 +166,10 @@ export function AppShell() {
         className="sr-only"
       />
       <Sidebar />
+      <MobileDrawer isOpen={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <HealthBanner />
-        <Header />
+        <Header mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />} />
         <OnboardingBanner />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
           <PageTransition>

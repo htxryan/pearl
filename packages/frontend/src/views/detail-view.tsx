@@ -226,7 +226,7 @@ function DetailViewContent({ id }: { id: string }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header bar */}
-      <div className="shrink-0 bg-muted/30 px-6 py-4">
+      <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {/* Breadcrumb */}
@@ -439,7 +439,7 @@ function DetailViewContent({ id }: { id: string }) {
 function DetailSections({ children }: { children: React.ReactNode }) {
   const items = Children.toArray(children).filter(Boolean);
   return (
-    <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-8">
       {items.map((child, i) => (
         <div
           key={i}
@@ -549,12 +549,12 @@ function DetailSkeleton() {
   return (
     <div className="flex flex-col h-full">
       {/* Header skeleton */}
-      <div className="shrink-0 bg-muted/30 px-6 py-4 space-y-3">
+      <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4 space-y-3">
         <div className="h-4 skeleton-shimmer rounded w-32" />
         <div className="h-7 skeleton-shimmer rounded w-80" />
       </div>
       {/* Content skeleton */}
-      <div className="flex-1 p-6 space-y-8 max-w-4xl">
+      <div className="flex-1 p-4 sm:p-6 space-y-8 max-w-4xl">
         {/* Fields grid skeleton */}
         <div className="space-y-2">
           <div className="h-3 skeleton-shimmer rounded w-16 mb-3" />
