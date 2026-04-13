@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 
 /**
  * Returns a ref and a boolean indicating whether the element has scrolled into view.

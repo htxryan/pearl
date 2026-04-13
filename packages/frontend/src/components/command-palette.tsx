@@ -21,6 +21,8 @@ export function CommandPalette() {
   const [isSearching, setIsSearching] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const prefersReducedMotion = typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
     if (open) {
@@ -114,9 +116,11 @@ export function CommandPalette() {
       <Command
         className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
         style={{
-          animation: isVisible
-            ? "cmd-spring-in 250ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
-            : "cmd-fade-out 150ms ease-in forwards",
+          animation: prefersReducedMotion
+            ? "none"
+            : isVisible
+              ? "cmd-spring-in 250ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+              : "cmd-fade-out 150ms ease-in forwards",
         }}
         loop
         shouldFilter={false}
