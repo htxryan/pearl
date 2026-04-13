@@ -265,6 +265,37 @@ export function ListView() {
     [updateMutation, issues, toast],
   );
 
+  const handleTitleChange = useCallback(
+    (id: string, title: string) => {
+      if (!title.trim()) return;
+      const issue = issues.find((i) => i.id === id);
+      updateMutation.mutate(
+        { id, data: { title: title.trim() } },
+        {
+          onError: () => {
+            toast.error(`Failed to update title for "${issue?.title ?? id}"`);
+          },
+        },
+      );
+    },
+    [updateMutation, issues, toast],
+  );
+
+  const handleAssigneeChange = useCallback(
+    (id: string, assignee: string) => {
+      const issue = issues.find((i) => i.id === id);
+      updateMutation.mutate(
+        { id, data: { assignee: assignee.trim() || undefined } },
+        {
+          onError: () => {
+            toast.error(`Failed to update assignee for "${issue?.title ?? id}"`);
+          },
+        },
+      );
+    },
+    [updateMutation, issues, toast],
+  );
+
   const handleBulkClose = useCallback(async () => {
     const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
     if (ids.length === 0) return;
@@ -492,11 +523,13 @@ export function ListView() {
     () => buildColumns({
       onStatusChange: handleStatusChange,
       onPriorityChange: handlePriorityChange,
+      onTitleChange: handleTitleChange,
+      onAssigneeChange: handleAssigneeChange,
       epicProgress,
       expandedEpics,
       onToggleExpand: handleToggleExpand,
     }),
-    [handleStatusChange, handlePriorityChange, epicProgress, expandedEpics, handleToggleExpand],
+    [handleStatusChange, handlePriorityChange, handleTitleChange, handleAssigneeChange, epicProgress, expandedEpics, handleToggleExpand],
   );
 
   const table = useReactTable({

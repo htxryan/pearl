@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { IssueListItem, IssueStatus, Priority, LabelColor } from "@beads-gui/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -5,6 +6,7 @@ import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { LabelBadge } from "@/components/ui/label-badge";
+import { AssigneePicker } from "@/components/ui/assignee-picker";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -22,6 +24,122 @@ function isDateOverdue(iso: string): boolean {
   return due < today;
 }
 
+// ─── Inline Title Editor ─────────────────────────────────
+function InlineTitleEditor({
+  value,
+  issueId,
+  onTitleChange,
+}: {
+  value: string;
+  issueId: string;
+  onTitleChange: (id: string, title: string) => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync with external value changes
+  useEffect(() => {
+    if (!isEditing) setEditValue(value);
+  }, [value, isEditing]);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== value) {
+      onTitleChange(issueId, trimmed);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(value);
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <input
+        ref={inputRef}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); handleSave(); }
+          if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); handleCancel(); }
+          e.stopPropagation();
+        }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full bg-transparent border border-border rounded px-2 py-0.5 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+    );
+  }
+
+  return (
+    <span
+      className="font-medium truncate max-w-[400px] block"
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        setIsEditing(true);
+      }}
+    >
+      {value}
+    </span>
+  );
+}
+
+// ─── Inline Assignee Editor ──────────────────────────────
+function InlineAssigneeEditor({
+  value,
+  issueId,
+  onAssigneeChange,
+}: {
+  value: string | null;
+  issueId: string;
+  onAssigneeChange: (id: string, assignee: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPopoverPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setIsOpen(true);
+  };
+
+  return (
+    <>
+      <span
+        ref={triggerRef}
+        onClick={handleClick}
+        className="cursor-pointer"
+      >
+        {value
+          ? <span className="text-sm truncate">{value}</span>
+          : <span className="text-xs text-muted-foreground/50 italic">—</span>}
+      </span>
+      {isOpen && popoverPos && (
+        <AssigneePicker
+          value={value ?? ""}
+          onChange={(assignee) => onAssigneeChange(issueId, assignee)}
+          onClose={() => setIsOpen(false)}
+          style={{ top: popoverPos.top, left: popoverPos.left }}
+        />
+      )}
+    </>
+  );
+}
+
 export interface EpicProgress {
   done: number;
   total: number;
@@ -31,12 +149,16 @@ export interface EpicProgress {
 export function buildColumns({
   onStatusChange,
   onPriorityChange,
+  onTitleChange,
+  onAssigneeChange,
   epicProgress,
   expandedEpics,
   onToggleExpand,
 }: {
   onStatusChange?: (id: string, status: IssueStatus) => void;
   onPriorityChange?: (id: string, priority: Priority) => void;
+  onTitleChange?: (id: string, title: string) => void;
+  onAssigneeChange?: (id: string, assignee: string) => void;
   epicProgress?: Map<string, EpicProgress>;
   expandedEpics?: Set<string>;
   onToggleExpand?: (id: string) => void;
@@ -91,7 +213,15 @@ export function buildColumns({
                 {isExpanded ? "\u25BC" : "\u25B6"}
               </button>
             )}
-            <span className="font-medium truncate max-w-[400px] block">{info.getValue()}</span>
+            {onTitleChange ? (
+              <InlineTitleEditor
+                value={info.getValue()}
+                issueId={issue.id}
+                onTitleChange={onTitleChange}
+              />
+            ) : (
+              <span className="font-medium truncate max-w-[400px] block">{info.getValue()}</span>
+            )}
             {progress && (
               <span
                 className="shrink-0 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground"
@@ -165,6 +295,15 @@ export function buildColumns({
       header: "Assignee",
       cell: (info) => {
         const val = info.getValue();
+        if (onAssigneeChange) {
+          return (
+            <InlineAssigneeEditor
+              value={val}
+              issueId={info.row.original.id}
+              onAssigneeChange={onAssigneeChange}
+            />
+          );
+        }
         return val
           ? <span className="text-sm truncate">{val}</span>
           : <span className="text-xs text-muted-foreground/50 italic">—</span>;
