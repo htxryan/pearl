@@ -17,12 +17,15 @@ import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 import { PageTransition } from "./page-transition";
 import { OnboardingBanner } from "./onboarding";
 import { useRouteAnnouncer } from "@/hooks/use-route-announcer";
+import { useTheme } from "@/hooks/use-theme";
+import { getAllThemes } from "@/themes";
 
 export function AppShell() {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const openCreateDialog = useCallback(() => setCreateDialogOpen(true), []);
   const canUndo = useCanUndo();
+  const { setTheme } = useTheme();
 
   // Global keyboard shortcuts
   const bindings = useMemo(
@@ -114,8 +117,14 @@ export function AppShell() {
             },
           ]
         : []),
+      ...getAllThemes().map((t) => ({
+        id: `theme-${t.id}`,
+        label: `Theme: ${t.name}`,
+        group: "Themes",
+        handler: () => setTheme(t.id),
+      })),
     ],
-    [navigate, openCreateDialog, canUndo],
+    [navigate, openCreateDialog, canUndo, setTheme],
   );
 
   useCommandPaletteActions("shell", commands);

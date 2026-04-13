@@ -18,9 +18,11 @@
               root.classList.add("dark");
             }
             if (data.colors) {
-              var tokens = Object.keys(data.colors);
-              for (var i = 0; i < tokens.length; i++) {
-                root.style.setProperty("--color-" + tokens[i], data.colors[tokens[i]]);
+              var validTokens = ["background","foreground","muted","muted-foreground","border","primary","primary-foreground","accent","accent-foreground","destructive","ring","info","info-foreground","success","success-foreground","warning","warning-foreground","danger","danger-foreground","surface","surface-raised"];
+              for (var i = 0; i < validTokens.length; i++) {
+                if (data.colors[validTokens[i]]) {
+                  root.style.setProperty("--color-" + validTokens[i], data.colors[validTokens[i]]);
+                }
               }
             }
           } else {

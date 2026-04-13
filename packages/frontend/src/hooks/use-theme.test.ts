@@ -79,12 +79,16 @@ describe("useTheme", () => {
   });
 
   it("stale theme ID falls back to system default", () => {
-    localStorage.setItem("beads-gui-theme", "nonexistent-theme");
     vi.spyOn(window, "matchMedia").mockReturnValue({
       matches: false,
     } as unknown as MediaQueryList);
 
     const { result } = renderHook(() => useTheme());
+
+    // Setting a nonexistent theme exercises the fallback path in setTheme
+    act(() => {
+      result.current.setTheme("nonexistent-theme");
+    });
 
     expect(result.current.themeId).not.toBe("nonexistent-theme");
     expect(typeof result.current.themeId).toBe("string");

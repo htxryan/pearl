@@ -36,7 +36,7 @@ export const themes: ThemeDefinition[] = [
 ];
 
 export function getAllThemes(): ThemeDefinition[] {
-  return themes;
+  return [...themes];
 }
 
 export function getTheme(id: string): ThemeDefinition | undefined {
@@ -44,7 +44,7 @@ export function getTheme(id: string): ThemeDefinition | undefined {
 }
 
 export function getDefaultTheme(): ThemeDefinition {
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
     return darkPlus;
   }
   return lightPlus;

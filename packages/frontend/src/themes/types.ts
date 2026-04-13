@@ -28,7 +28,7 @@ export interface ThemeDefinition {
   colors: Record<ColorToken, string>;
 }
 
-export const COLOR_TOKENS: readonly ColorToken[] = [
+export const COLOR_TOKENS = [
   'background',
   'foreground',
   'muted',
@@ -50,4 +50,4 @@ export const COLOR_TOKENS: readonly ColorToken[] = [
   'danger-foreground',
   'surface',
   'surface-raised',
-] as const;
+] as const satisfies readonly ColorToken[];
