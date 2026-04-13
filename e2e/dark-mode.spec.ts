@@ -1,49 +1,42 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Dark Mode", () => {
-  test("toggle theme button switches between light and dark", async ({ seededPage: page }) => {
-    const toggleBtn = page.getByLabel("Toggle theme");
-    await expect(toggleBtn).toBeVisible();
+  test("selecting a dark theme via settings applies .dark class", async ({ seededPage: page }) => {
+    await page.goto("/settings");
+    const themePicker = page.getByRole("group", { name: "Available themes" });
+    await expect(themePicker).toBeVisible({ timeout: 15_000 });
 
-    // Get the initial state of the html element
+    // Select a known dark theme (Monokai)
+    const monokaiBtn = page.getByRole("button", { name: /monokai theme/i }).first();
+    await monokaiBtn.click();
+
     const htmlElement = page.locator("html");
-    const initialClass = await htmlElement.getAttribute("class") ?? "";
-    const startsAsDark = initialClass.includes("dark");
+    await expect(htmlElement).toHaveClass(/dark/, { timeout: 3_000 });
 
-    // Click toggle
-    await toggleBtn.click();
+    // Switch to a light theme (Light+ Default Light)
+    const lightBtn = page.getByRole("button", { name: /Light\+.*theme/i });
+    await lightBtn.click();
 
-    // Class should change
-    if (startsAsDark) {
-      await expect(htmlElement).not.toHaveClass(/dark/, { timeout: 3_000 });
-    } else {
-      await expect(htmlElement).toHaveClass(/dark/, { timeout: 3_000 });
-    }
-
-    // Click again to revert
-    await toggleBtn.click();
-    if (startsAsDark) {
-      await expect(htmlElement).toHaveClass(/dark/, { timeout: 3_000 });
-    } else {
-      await expect(htmlElement).not.toHaveClass(/dark/, { timeout: 3_000 });
-    }
+    await expect(htmlElement).not.toHaveClass(/dark/, { timeout: 3_000 });
   });
 
   test("theme persists after reload", async ({ seededPage: page }) => {
-    const toggleBtn = page.getByLabel("Toggle theme");
+    // Switch to Monokai (dark) via settings
+    await page.goto("/settings");
+    const themePicker = page.getByRole("group", { name: "Available themes" });
+    await expect(themePicker).toBeVisible({ timeout: 15_000 });
 
-    // Toggle to dark mode
-    await toggleBtn.click();
-    const htmlClass = await page.locator("html").getAttribute("class") ?? "";
-    const isDarkAfterToggle = htmlClass.includes("dark");
+    const monokaiBtn = page.getByRole("button", { name: /monokai theme/i }).first();
+    await monokaiBtn.click();
+    await expect(page.locator("html")).toHaveClass(/dark/, { timeout: 3_000 });
 
     // Reload the page
     await page.reload();
-    await expect(page.getByLabel("Issue list")).toBeVisible({ timeout: 15_000 });
+    await expect(themePicker).toBeVisible({ timeout: 15_000 });
 
-    // Check that the class persisted
-    const htmlClassAfter = await page.locator("html").getAttribute("class") ?? "";
-    const isDarkAfterReload = htmlClassAfter.includes("dark");
-    expect(isDarkAfterReload).toBe(isDarkAfterToggle);
+    // Verify Monokai is still active (aria-pressed)
+    const monokaiAfter = page.getByRole("button", { name: /monokai theme \(active\)/i }).first();
+    await expect(monokaiAfter).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("html")).toHaveClass(/dark/);
   });
 });

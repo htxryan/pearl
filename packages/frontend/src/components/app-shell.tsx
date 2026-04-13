@@ -131,7 +131,7 @@ export function AppShell() {
         : []),
       ...getAllThemes().map((t) => ({
         id: `theme-${t.id}`,
-        label: t.name,
+        label: `Theme: ${t.name}`,
         group: "Switch Theme",
         handler: () => setTheme(t.id),
       })),

@@ -51,9 +51,15 @@ test.describe("Accessibility", () => {
     await expect(breadcrumb).toBeVisible();
   });
 
-  test("theme toggle button has accessible label", async ({ seededPage: page }) => {
-    const toggleBtn = page.getByLabel("Toggle theme");
-    await expect(toggleBtn).toBeVisible();
+  test("theme picker has accessible labels", async ({ seededPage: page }) => {
+    await page.goto("/settings");
+    const themePicker = page.getByRole("group", { name: "Available themes" });
+    await expect(themePicker).toBeVisible({ timeout: 15_000 });
+
+    // Each theme card should have an aria-label and aria-pressed
+    const firstThemeBtn = themePicker.getByRole("button").first();
+    await expect(firstThemeBtn).toHaveAttribute("aria-label", /.+theme/);
+    await expect(firstThemeBtn).toHaveAttribute("aria-pressed", /(true|false)/);
   });
 
   test("search input has placeholder text", async ({ seededPage: page }) => {
