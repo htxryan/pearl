@@ -105,6 +105,7 @@ export function prefetchIssueDetail(queryClient: QueryClient, id: string) {
     queryKey: issueKeys.detail(id),
     queryFn: () => api.fetchIssue(id),
     staleTime: 30000,
+    gcTime: 60000,
   });
 }
 

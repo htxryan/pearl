@@ -180,6 +180,13 @@ export function IssueTable({
     }
   }, []);
 
+  // Scroll virtualizer to keep active row visible during keyboard navigation
+  useEffect(() => {
+    if (useVirtual && activeRowIndex >= 0) {
+      virtualizer.scrollToIndex(activeRowIndex, { align: "auto" });
+    }
+  }, [activeRowIndex, useVirtual, virtualizer]);
+
   // Clean up hover timer on unmount
   useEffect(() => {
     return () => {
@@ -257,17 +264,17 @@ export function IssueTable({
                 />
               );
             })}
-            {virtualRows.length > 0 && (
-              <tr>
-                <td
-                  colSpan={table.getVisibleFlatColumns().length}
-                  style={{
-                    height: virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end,
-                    padding: 0,
-                  }}
-                />
-              </tr>
-            )}
+            {virtualRows.length > 0 && (() => {
+              const remaining = Math.max(0, virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end);
+              return remaining > 0 ? (
+                <tr>
+                  <td
+                    colSpan={table.getVisibleFlatColumns().length}
+                    style={{ height: remaining, padding: 0 }}
+                  />
+                </tr>
+              ) : null;
+            })()}
           </tbody>
         </table>
       </div>
