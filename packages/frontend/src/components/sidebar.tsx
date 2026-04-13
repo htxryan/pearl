@@ -44,12 +44,37 @@ function SettingsIcon() {
   );
 }
 
-const navItems: { to: string; label: string; shortcut: string; icon: ReactNode }[] = [
+const mainNavItems: { to: string; label: string; shortcut: string; icon: ReactNode }[] = [
   { to: "/list", label: "List", shortcut: "1", icon: <ListIcon /> },
   { to: "/board", label: "Board", shortcut: "2", icon: <BoardIcon /> },
   { to: "/graph", label: "Graph", shortcut: "3", icon: <GraphIcon /> },
-  { to: "/settings", label: "Settings", shortcut: "4", icon: <SettingsIcon /> },
 ];
+
+const settingsItem = { to: "/settings", label: "Settings", shortcut: "4", icon: <SettingsIcon /> };
+
+function NavItem({ item }: { item: { to: string; label: string; shortcut: string; icon: ReactNode } }) {
+  return (
+    <NavLink
+      to={item.to}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center justify-between rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
+          isActive
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+        )
+      }
+    >
+      <span className="flex items-center gap-2">
+        {item.icon}
+        {item.label}
+      </span>
+      <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+        {item.shortcut}
+      </kbd>
+    </NavLink>
+  );
+}
 
 export function Sidebar() {
   return (
@@ -57,29 +82,15 @@ export function Sidebar() {
       <div className="flex h-14 items-center px-4">
         <span className="text-lg font-semibold tracking-tight">Beads</span>
       </div>
-      <nav className="flex flex-1 flex-col gap-1 p-2">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center justify-between rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-              )
-            }
-          >
-            <span className="flex items-center gap-2">
-              {item.icon}
-              {item.label}
-            </span>
-            <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-              {item.shortcut}
-            </kbd>
-          </NavLink>
-        ))}
+      <nav className="flex flex-1 flex-col p-2">
+        <div className="flex flex-col gap-1">
+          {mainNavItems.map((item) => (
+            <NavItem key={item.to} item={item} />
+          ))}
+        </div>
+        <div className="mt-auto border-t border-border pt-2">
+          <NavItem item={settingsItem} />
+        </div>
       </nav>
     </aside>
   );
