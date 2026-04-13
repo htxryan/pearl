@@ -1,28 +1,13 @@
-import { useCallback, useEffect, useSyncExternalStore } from "react";
-
-type Theme = "light" | "dark";
+import { useCallback, useSyncExternalStore } from "react";
+import { getTheme, getDefaultTheme } from "@/themes";
+import type { ThemeDefinition } from "@/themes";
 
 const STORAGE_KEY = "beads-gui-theme";
+const CACHE_KEY = "beads-gui-theme-cache";
 
-function getSystemTheme(): Theme {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
-function getStoredTheme(): Theme | null {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
-  } catch {
-    // localStorage unavailable
-  }
-  return null;
-}
-
-function getEffectiveTheme(): Theme {
-  return getStoredTheme() ?? getSystemTheme();
-}
+// ---------------------------------------------------------------------------
+// Internal state
+// ---------------------------------------------------------------------------
 
 let listeners: Array<() => void> = [];
 
@@ -33,35 +18,101 @@ function subscribe(listener: () => void) {
   };
 }
 
-function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
+function emitChange() {
+  listeners.forEach((l) => l());
 }
 
-// Apply on load
+// ---------------------------------------------------------------------------
+// Resolve the effective theme from storage or system default
+// ---------------------------------------------------------------------------
+
+function getStoredThemeId(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    // localStorage unavailable
+    return null;
+  }
+}
+
+function getEffectiveTheme(): ThemeDefinition {
+  const storedId = getStoredThemeId();
+  if (storedId) {
+    const theme = getTheme(storedId);
+    if (theme) return theme;
+  }
+  return getDefaultTheme();
+}
+
+// ---------------------------------------------------------------------------
+// Apply a theme to the document
+// ---------------------------------------------------------------------------
+
+function applyTheme(theme: ThemeDefinition) {
+  const root = document.documentElement;
+
+  // Toggle .dark class based on colorScheme
+  root.classList.toggle("dark", theme.colorScheme === "dark");
+
+  // Apply CSS custom properties
+  for (const [token, value] of Object.entries(theme.colors)) {
+    root.style.setProperty(`--color-${token}`, value);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Persist theme choice
+// ---------------------------------------------------------------------------
+
+function persistTheme(theme: ThemeDefinition) {
+  try {
+    localStorage.setItem(STORAGE_KEY, theme.id);
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ colorScheme: theme.colorScheme, colors: theme.colors }),
+    );
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module-level initialization — runs at import time to prevent FOTC
+// ---------------------------------------------------------------------------
+
 if (typeof document !== "undefined") {
   applyTheme(getEffectiveTheme());
 }
 
-export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, getEffectiveTheme);
+// ---------------------------------------------------------------------------
+// Snapshot for useSyncExternalStore — must return a referentially-stable value
+// when nothing has changed.
+// ---------------------------------------------------------------------------
 
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+let currentSnapshot = getEffectiveTheme();
 
-  const setTheme = useCallback((newTheme: Theme) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, newTheme);
-    } catch {
-      // localStorage unavailable
-    }
-    applyTheme(newTheme);
-    listeners.forEach((l) => l());
+function getSnapshot(): ThemeDefinition {
+  return currentSnapshot;
+}
+
+// ---------------------------------------------------------------------------
+// Public hook
+// ---------------------------------------------------------------------------
+
+export function useTheme(): {
+  themeId: string;
+  theme: ThemeDefinition;
+  setTheme: (id: string) => void;
+} {
+  const theme = useSyncExternalStore(subscribe, getSnapshot);
+
+  const setTheme = useCallback((id: string) => {
+    const resolved = getTheme(id) ?? getDefaultTheme();
+    currentSnapshot = resolved;
+    applyTheme(resolved);
+    persistTheme(resolved);
+    emitChange();
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setTheme(getEffectiveTheme() === "dark" ? "light" : "dark");
-  }, [setTheme]);
-
-  return { theme, setTheme, toggleTheme };
+  return { themeId: theme.id, theme, setTheme };
 }

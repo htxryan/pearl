@@ -408,7 +408,7 @@ export function GraphView() {
   useCommandPaletteActions("graph-view", paletteActions);
 
   // Color mode for React Flow
-  const colorMode: ColorMode = theme === "dark" ? "dark" : "light";
+  const colorMode: ColorMode = theme.colorScheme === "dark" ? "dark" : "light";
 
   return (
     <div className="flex flex-col h-full">

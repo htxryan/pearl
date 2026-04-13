@@ -58,7 +58,7 @@ vi.mock("@/hooks/use-command-palette", () => ({
 }));
 
 vi.mock("@/hooks/use-theme", () => ({
-  useTheme: vi.fn(() => ({ theme: "light", setTheme: vi.fn() })),
+  useTheme: vi.fn(() => ({ themeId: "vscode-light-plus", theme: { id: "vscode-light-plus", name: "Light+", colorScheme: "light", colors: {} }, setTheme: vi.fn() })),
 }));
 
 // Mock React Flow for GraphView
