@@ -14,6 +14,7 @@ export type GraphNodeData = {
   highlighted: boolean;
   dimmed: boolean;
   selected: boolean;
+  clusterChildCount?: number;
   [key: string]: unknown;
 };
 
@@ -37,10 +38,13 @@ const statusLabel: Record<IssueStatus, string> = {
 
 function formatDueDate(due: string | null): string | null {
   if (!due) return null;
-  const d = new Date(due);
+  // Parse date-only strings (YYYY-MM-DD) in local time to avoid UTC offset issues
+  const d = new Date(due.length === 10 ? due + "T00:00:00" : due);
   const now = new Date();
-  const diff = d.getTime() - now.getTime();
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  // Compare at start of day for integer day difference (avoids -0 from Math.ceil)
+  const dueDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((dueDay.getTime() - nowDay.getTime()) / (1000 * 60 * 60 * 24));
   if (days < 0) return `${Math.abs(days)}d overdue`;
   if (days === 0) return "Due today";
   if (days === 1) return "Due tomorrow";
@@ -60,7 +64,7 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-lg border border-border bg-background shadow-sm",
+        "group relative rounded-lg border border-border bg-background shadow-sm",
         "transition-all duration-200 ease-out",
         // Highlighted = part of dependency chain
         highlighted && "ring-2 ring-primary shadow-md",
