@@ -700,6 +700,11 @@ export function GraphView() {
     setEdgesRef.current(result.edges);
   }, [visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathEdges, collapsedEpicChildCounts]);
 
+  // Pane click → clear selection
+  const handlePaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+  }, []);
+
   // Node click → select for highlight
   const handleNodeClick: NodeMouseHandler<GraphNodeType> = useCallback(
     (_event, node) => {
@@ -919,6 +924,7 @@ export function GraphView() {
             onEdgesChange={onEdgesChange}
             onNodeClick={handleNodeClick}
             onNodeDoubleClick={handleNodeDoubleClick}
+            onPaneClick={handlePaneClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             colorMode={colorMode}

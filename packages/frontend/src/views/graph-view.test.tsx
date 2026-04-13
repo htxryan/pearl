@@ -51,14 +51,26 @@ vi.mock("@xyflow/react", async () => {
 
   return {
     ...actual,
-    ReactFlow: ({ nodes, edges, onNodeClick, onNodeDoubleClick, children }: any) => (
-      <div data-testid="react-flow" data-node-count={nodes?.length ?? 0} data-edge-count={edges?.length ?? 0}>
+    ReactFlow: ({ nodes, edges, onNodeClick, onNodeDoubleClick, onPaneClick, children }: any) => (
+      <div
+        data-testid="react-flow"
+        data-node-count={nodes?.length ?? 0}
+        data-edge-count={edges?.length ?? 0}
+        onClick={(e) => {
+          // Only fire pane click if the click target is the react-flow div itself (not a child node)
+          if ((e.target as HTMLElement).getAttribute("data-testid") === "react-flow") {
+            onPaneClick?.();
+          }
+        }}
+      >
         {nodes?.map((node: any) => (
           <div
             key={node.id}
             data-testid={`node-${node.id}`}
             data-highlighted={String(node.data.highlighted)}
-            onClick={(e) => onNodeClick?.(e, node)}
+            data-dimmed={String(node.data.dimmed)}
+            data-selected={String(node.data.selected)}
+            onClick={(e) => { e.stopPropagation(); onNodeClick?.(e, node); }}
             onDoubleClick={(e) => onNodeDoubleClick?.(e, node)}
           >
             <span>{node.data.issue.title}</span>
@@ -416,5 +428,32 @@ describe("GraphView", () => {
     // Second click deselects
     fireEvent.click(node);
     expect(screen.queryByText(/Highlighting blocking chain/)).not.toBeInTheDocument();
+  });
+
+  it("clears selection when clicking the background pane", () => {
+    setupMocks();
+    renderGraph();
+
+    // Select a node first
+    fireEvent.click(screen.getByTestId("node-beads-001"));
+    expect(screen.getByText(/Highlighting blocking chain/)).toBeInTheDocument();
+
+    // Click the pane background to clear
+    const flow = screen.getByTestId("react-flow");
+    fireEvent.click(flow);
+    expect(screen.queryByText(/Highlighting blocking chain/)).not.toBeInTheDocument();
+  });
+
+  it("renders critical path toggle button", () => {
+    setupMocks();
+    renderGraph();
+
+    const cpButton = screen.getByRole("button", { name: /Critical Path/i });
+    expect(cpButton).toBeInTheDocument();
+
+    // Clicking toggles the active state
+    fireEvent.click(cpButton);
+    // Button should still exist after click
+    expect(screen.getByRole("button", { name: /Critical Path/i })).toBeInTheDocument();
   });
 });
