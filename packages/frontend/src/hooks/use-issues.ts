@@ -10,6 +10,7 @@ import type {
   InvalidationHint,
 } from "@beads-gui/shared";
 import * as api from "@/lib/api-client";
+import { labelKeys } from "./use-labels";
 
 // ─── Query Keys ─────────────────────────────────────────
 export const issueKeys = {
@@ -66,6 +67,9 @@ function invalidateFromHints(
         break;
       case "stats":
         queryClient.invalidateQueries({ queryKey: statsKeys.all });
+        break;
+      case "labels":
+        queryClient.invalidateQueries({ queryKey: labelKeys.all });
         break;
     }
   }

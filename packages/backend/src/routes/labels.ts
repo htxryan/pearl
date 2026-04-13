@@ -29,7 +29,7 @@ async function ensureLabelDefinitionsTable(getConfig: () => Config): Promise<voi
     await queryWithRetry(getConfig(), async (conn) => {
       await conn.query(`
         CREATE TABLE IF NOT EXISTS label_definitions (
-          name VARCHAR(255) NOT NULL,
+          name VARCHAR(100) NOT NULL,
           color VARCHAR(32) NOT NULL,
           created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           PRIMARY KEY (name)
@@ -46,8 +46,10 @@ export function registerLabelRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
 ): void {
-  // Ensure table exists on startup (best-effort)
-  ensureLabelDefinitionsTable(getConfig);
+  // Ensure table exists before routes handle requests
+  app.addHook("onReady", async () => {
+    await ensureLabelDefinitionsTable(getConfig);
+  });
 
   // GET /api/labels — list all known labels with colors and usage counts
   app.get("/api/labels", async (_request, reply) => {
@@ -60,10 +62,11 @@ export function registerLabelRoutes(
         FROM labels l
         LEFT JOIN label_definitions ld ON ld.name = l.label
         GROUP BY COALESCE(ld.name, l.label), ld.color
-        UNION
+        UNION ALL
         SELECT ld2.name, ld2.color, 0 AS count
         FROM label_definitions ld2
-        WHERE ld2.name NOT IN (SELECT DISTINCT label FROM labels)
+        LEFT JOIN labels l3 ON l3.label = ld2.name
+        WHERE l3.label IS NULL
         ORDER BY count DESC, name ASC
       `);
       return rows;

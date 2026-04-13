@@ -363,7 +363,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
       {filters.labels.map((l) => (
         <FilterPill
           key={`label-${l}`}
-          label={l}
+          label={`Label: ${l}`}
           onRemove={() => setField("labels", filters.labels.filter((x) => x !== l))}
         />
       ))}

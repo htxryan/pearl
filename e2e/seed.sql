@@ -210,7 +210,7 @@ CREATE TABLE `label_definitions` (
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin;
 INSERT INTO `label_definitions` (`name`,`color`) VALUES ('critical','red'), ('frontend','blue'), ('backend','purple'), ('ux','pink'), ('research','teal');
-Drop TABLE IF EXISTS `metadata`;
+DROP TABLE IF EXISTS `metadata`;
 CREATE TABLE `metadata` (
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,

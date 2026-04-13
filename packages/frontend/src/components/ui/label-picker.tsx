@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { LabelColor, LabelWithCount } from "@beads-gui/shared";
 import { LABEL_COLORS } from "@beads-gui/shared";
 import { useLabels, useCreateLabel } from "@/hooks/use-labels";
+import { useTheme } from "@/hooks/use-theme";
 import { LabelBadge, LABEL_PALETTE } from "./label-badge";
 import { cn } from "@/lib/utils";
 
@@ -41,10 +42,13 @@ export function LabelPicker({
   const { data: allLabels = [] } = useLabels();
   const createLabel = useCreateLabel();
 
-  // Filter labels by search
-  const selectedSet = new Set(selected);
-  const filteredLabels = allLabels.filter(
-    (l) => !selectedSet.has(l.name) && l.name.toLowerCase().includes(search.toLowerCase()),
+  // Filter labels by search (memoized to avoid recomputing on every render)
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+  const filteredLabels = useMemo(
+    () => allLabels.filter(
+      (l) => !selectedSet.has(l.name) && l.name.toLowerCase().includes(search.toLowerCase()),
+    ),
+    [allLabels, selectedSet, search],
   );
 
   const searchTrimmed = search.trim();
@@ -141,7 +145,7 @@ export function LabelPicker({
         handleCreateNew(searchTrimmed);
       }
     }
-  }, [isOpen, showColorPicker, search, selected, totalOptions, filteredLabels, highlightIndex, canCreate, selectLabel, removeLabel]);
+  }, [isOpen, showColorPicker, search, selected, totalOptions, filteredLabels, highlightIndex, canCreate, selectLabel, removeLabel, handleCreateNew, searchTrimmed]);
 
   const labelColorMap = useMemo(() => {
     const map: Record<string, LabelColor> = { ...selectedColors };
@@ -255,7 +259,8 @@ function ColorPickerPanel({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const { theme } = useTheme();
+  const isDark = theme.colorScheme === "dark";
 
   return (
     <div className="p-3 space-y-3">

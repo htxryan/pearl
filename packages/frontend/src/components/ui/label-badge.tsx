@@ -1,4 +1,5 @@
 import type { LabelColor } from "@beads-gui/shared";
+import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 
 /**
@@ -36,7 +37,8 @@ interface LabelBadgeProps {
 
 export function LabelBadge({ name, color, size = "default", removable, onRemove, className }: LabelBadgeProps) {
   const colors = getColors(color);
-  const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+  const { theme } = useTheme();
+  const isDark = theme.colorScheme === "dark";
   const bg = isDark ? colors.darkBg : colors.bg;
   const text = isDark ? colors.darkText : colors.text;
 
