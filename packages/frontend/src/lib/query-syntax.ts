@@ -73,6 +73,7 @@ export interface ParsedQuery {
  * Detects if the input contains structured query syntax (key:value pairs).
  */
 export function hasQuerySyntax(input: string): boolean {
+  TOKEN_RE.lastIndex = 0;
   return TOKEN_RE.test(input);
 }
 

@@ -193,36 +193,41 @@ export function registerIssueRoutes(
       }
     }
 
-    // Filter: date ranges
+    // Filter: date ranges (OR'd within the group so e.g. "overdue" + "due_today" works)
     if (query.date_ranges) {
       const ranges = query.date_ranges.split(",").filter((r) => DATE_RANGE_VALUES.includes(r));
+      const dateConditions: string[] = [];
       for (const range of ranges) {
         switch (range) {
           case "overdue":
-            sql += ` AND i.due_at IS NOT NULL AND i.due_at < CURDATE() AND i.status != 'closed'`;
+            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at < CURDATE() AND i.status != 'closed')`);
             break;
           case "due_today":
-            sql += ` AND DATE(i.due_at) = CURDATE()`;
+            dateConditions.push(`(DATE(i.due_at) = CURDATE())`);
             break;
           case "due_this_week":
-            sql += ` AND i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at < DATE_ADD(CURDATE(), INTERVAL (7 - WEEKDAY(CURDATE())) DAY)`;
+            // Full calendar week (Monday–Sunday) using WEEKDAY (Monday=0)
+            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND i.due_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY))`);
             break;
           case "due_next_7_days":
-            sql += ` AND i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)`;
+            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))`);
             break;
           case "no_due_date":
-            sql += ` AND (i.due_at IS NULL)`;
+            dateConditions.push(`(i.due_at IS NULL)`);
             break;
           case "created_today":
-            sql += ` AND DATE(i.created_at) = CURDATE()`;
+            dateConditions.push(`(DATE(i.created_at) = CURDATE())`);
             break;
           case "created_this_week":
-            sql += ` AND i.created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)`;
+            dateConditions.push(`(i.created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))`);
             break;
           case "created_last_week":
-            sql += ` AND i.created_at >= DATE_SUB(CURDATE(), INTERVAL (WEEKDAY(CURDATE()) + 7) DAY) AND i.created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)`;
+            dateConditions.push(`(i.created_at >= DATE_SUB(CURDATE(), INTERVAL (WEEKDAY(CURDATE()) + 7) DAY) AND i.created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))`);
             break;
         }
+      }
+      if (dateConditions.length > 0) {
+        sql += ` AND (${dateConditions.join(" OR ")})`;
       }
     }
 

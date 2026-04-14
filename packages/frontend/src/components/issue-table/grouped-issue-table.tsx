@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import {
   flexRender,
+  type Row,
   type Table,
 } from "@tanstack/react-table";
 import type { IssueListItem, IssueStatus, Priority, IssueType } from "@beads-gui/shared";
@@ -164,13 +165,16 @@ export function GroupedIssueTable({
         ))}
       </thead>
       <tbody>
-        {groups.map((group) => {
-          const isCollapsed = collapsedGroups.has(group.key);
-          // Get rows from the table that match this group
-          const allRows = table.getRowModel().rows;
-          const groupRows = allRows.filter((row) =>
-            group.issues.some((issue) => issue.id === row.original.id),
+        {(() => {
+          // Build O(1) lookup map once instead of O(n²) filter per group
+          const rowById = new Map(
+            table.getRowModel().rows.map((row) => [row.original.id, row]),
           );
+          return groups.map((group) => {
+          const isCollapsed = collapsedGroups.has(group.key);
+          const groupRows = group.issues
+            .map((issue) => rowById.get(issue.id))
+            .filter((row): row is Row<IssueListItem> => row != null);
 
           return (
             <GroupSection
@@ -185,7 +189,8 @@ export function GroupedIssueTable({
               highlightedIds={highlightedIds}
             />
           );
-        })}
+        });
+        })()}
       </tbody>
     </table>
   );
@@ -245,7 +250,7 @@ function GroupSection({
       </tr>
       {/* Group rows */}
       {!isCollapsed && rows.map((row) => {
-        const isHighlighted = highlightedIds?.has(row.id);
+        const isHighlighted = highlightedIds?.has(row.original.id);
         return (
           <tr
             key={row.id}
@@ -253,8 +258,8 @@ function GroupSection({
               "border-b border-border cursor-pointer hover:bg-muted/50 transition-colors",
               isHighlighted && "ring-2 ring-primary/30 bg-primary/5",
             )}
-            onClick={() => onRowClick(row.id)}
-            onMouseEnter={() => onRowHover?.(row.id)}
+            onClick={() => onRowClick(row.original.id)}
+            onMouseEnter={() => onRowHover?.(row.original.id)}
           >
             {row.getVisibleCells().map((cell) => (
               <td

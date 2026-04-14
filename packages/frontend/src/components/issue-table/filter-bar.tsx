@@ -153,7 +153,8 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
       if (hasQuerySyntax(value)) {
         const parsed = parseQuerySyntax(value);
         const merged: FilterState = {
-          ...filtersRef.current,
+          ...EMPTY_FILTERS,
+          groupBy: filtersRef.current.groupBy, // preserve groupBy across queries
           search: parsed.freeText,
           ...(parsed.filters.status?.length ? { status: parsed.filters.status } : {}),
           ...(parsed.filters.priority?.length ? { priority: parsed.filters.priority } : {}),
