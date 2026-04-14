@@ -124,7 +124,11 @@ export function LabelPicker({
     }
 
     if (e.key === "Escape") {
+      // stopPropagation prevents other React keydown handlers from seeing
+      // this event, and preventDefault stops the browser from firing a
+      // native cancel event on an ancestor <dialog>.
       e.stopPropagation();
+      e.preventDefault();
       if (showColorPicker) {
         setShowColorPicker(false);
       } else {

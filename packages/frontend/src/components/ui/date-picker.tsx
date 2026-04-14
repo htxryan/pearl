@@ -95,6 +95,9 @@ export function DatePicker({
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.stopPropagation();
+        // preventDefault stops the browser from firing a cancel event on
+        // an ancestor <dialog>, which would close it alongside this picker.
+        e.preventDefault();
         close();
         triggerRef.current?.focus();
       }

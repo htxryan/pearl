@@ -94,8 +94,9 @@ test.describe("Create Issue", () => {
       await labelsInput.fill("test");
       await labelsInput.press("Enter");
 
-      // Close the label picker dropdown by clicking the title field
-      await titleInput.click();
+      // Close the label picker dropdown with Escape — the dialog must stay open
+      await labelsInput.press("Escape");
+      await expect(dialog).toBeVisible();
 
       // Submit
       await dialog.getByRole("button", { name: "Create Issue" }).click();
