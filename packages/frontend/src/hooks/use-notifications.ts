@@ -1,6 +1,7 @@
 import { useSyncExternalStore, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchIssues } from "@/lib/api-client";
+import { issueKeys } from "./use-issues";
 import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
 
 // ─── Types ────────────────────────────────────────────
@@ -99,6 +100,32 @@ function initStore() {
 
 initStore();
 
+// ─── Cross-tab Sync ─────────────────────────────────
+// Listen for localStorage changes from other tabs so all tabs
+// share a consistent notification + preference state.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e: StorageEvent) => {
+    if (e.key === NOTIFICATIONS_KEY) {
+      try {
+        notifications = e.newValue ? JSON.parse(e.newValue) : [];
+      } catch {
+        notifications = [];
+      }
+      notify();
+    }
+    if (e.key === PREFS_KEY) {
+      try {
+        preferences = e.newValue
+          ? { ...DEFAULT_PREFERENCES, ...JSON.parse(e.newValue) }
+          : DEFAULT_PREFERENCES;
+      } catch {
+        preferences = DEFAULT_PREFERENCES;
+      }
+      notifyPrefs();
+    }
+  });
+}
+
 function persistNotifications() {
   try {
     // Keep only the most recent 50 notifications
@@ -111,9 +138,26 @@ function persistNotifications() {
 
 let idCounter = Date.now();
 
+/** Check if a near-duplicate notification was already added within the dedup window. */
+const DEDUP_WINDOW_MS = 30_000; // 30 seconds
+
+function isDuplicate(input: Omit<AppNotification, "id" | "read" | "createdAt">): boolean {
+  const cutoff = Date.now() - DEDUP_WINDOW_MS;
+  return notifications.some(
+    (n) =>
+      n.type === input.type &&
+      n.issueId === input.issueId &&
+      new Date(n.createdAt).getTime() > cutoff,
+  );
+}
+
 export function addNotification(
   input: Omit<AppNotification, "id" | "read" | "createdAt">,
-): string {
+): string | null {
+  // Re-read localStorage to pick up writes from other tabs before dedup check
+  initStore();
+  if (isDuplicate(input)) return null;
+
   const id = `notif-${++idCounter}`;
   const notification: AppNotification = {
     ...input,
@@ -308,7 +352,7 @@ export function useNotificationPoller() {
   const initializedRef = useRef(Object.keys(snapshotRef.current).length > 0);
 
   const { data: issues } = useQuery<IssueListItem[]>({
-    queryKey: ["issues", "list", "notification-poller"],
+    queryKey: issueKeys.lists(),
     queryFn: async () => {
       const result = await fetchIssues();
       return result ?? [];
@@ -333,8 +377,8 @@ export function useNotificationPoller() {
       const currentPrefs = prefsRef.current;
       const changes = detectChanges(snapshotRef.current, issues, currentPrefs);
       for (const change of changes) {
-        addNotification(change);
-        if (currentPrefs.browser_push) {
+        const added = addNotification(change);
+        if (added && currentPrefs.browser_push) {
           sendBrowserNotification(
             "Beads GUI",
             change.message,
