@@ -1,0 +1,375 @@
+import { useSyncExternalStore, useCallback, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchIssues } from "@/lib/api-client";
+import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
+
+// ─── Types ────────────────────────────────────────────
+export type NotificationType =
+  | "issue_assigned"
+  | "status_changed"
+  | "blocker_resolved"
+  | "comment_added";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  issueId: string;
+  issueTitle: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationPreferences {
+  issue_assigned: boolean;
+  status_changed: boolean;
+  blocker_resolved: boolean;
+  comment_added: boolean;
+  browser_push: boolean;
+}
+
+const DEFAULT_PREFERENCES: NotificationPreferences = {
+  issue_assigned: true,
+  status_changed: true,
+  blocker_resolved: true,
+  comment_added: true,
+  browser_push: false,
+};
+
+// ─── Storage Keys ─────────────────────────────────────
+const NOTIFICATIONS_KEY = "beads-gui-notifications";
+const PREFS_KEY = "beads-gui-notification-prefs";
+const SNAPSHOT_KEY = "beads-gui-notification-snapshot";
+
+// ─── Issue Snapshot (for change detection) ────────────
+interface IssueSnapshot {
+  status: IssueStatus;
+  assignee: string | null;
+}
+
+type SnapshotMap = Record<string, IssueSnapshot>;
+
+function loadSnapshot(): SnapshotMap {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveSnapshot(snapshot: SnapshotMap) {
+  try {
+    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+// ─── External Store (notifications) ──────────────────
+let notifications: AppNotification[] = [];
+let version = 0;
+const listeners = new Set<() => void>();
+
+function notify() {
+  version++;
+  for (const l of [...listeners]) l();
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot(): AppNotification[] {
+  return notifications;
+}
+
+// Initialize from localStorage
+function initStore() {
+  try {
+    const raw = localStorage.getItem(NOTIFICATIONS_KEY);
+    if (raw) {
+      notifications = JSON.parse(raw);
+    }
+  } catch {
+    notifications = [];
+  }
+}
+
+initStore();
+
+function persistNotifications() {
+  try {
+    // Keep only the most recent 50 notifications
+    const trimmed = notifications.slice(0, 50);
+    localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(trimmed));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+let idCounter = Date.now();
+
+export function addNotification(
+  input: Omit<AppNotification, "id" | "read" | "createdAt">,
+): string {
+  const id = `notif-${++idCounter}`;
+  const notification: AppNotification = {
+    ...input,
+    id,
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+  notifications = [notification, ...notifications].slice(0, 50);
+  notify();
+  persistNotifications();
+  return id;
+}
+
+export function markAsRead(id: string) {
+  notifications = notifications.map((n) =>
+    n.id === id ? { ...n, read: true } : n,
+  );
+  notify();
+  persistNotifications();
+}
+
+export function markAllAsRead() {
+  notifications = notifications.map((n) => ({ ...n, read: true }));
+  notify();
+  persistNotifications();
+}
+
+export function dismissNotification(id: string) {
+  notifications = notifications.filter((n) => n.id !== id);
+  notify();
+  persistNotifications();
+}
+
+export function clearAllNotifications() {
+  notifications = [];
+  notify();
+  persistNotifications();
+}
+
+// ─── Preferences Store ───────────────────────────────
+let preferences: NotificationPreferences = DEFAULT_PREFERENCES;
+let prefsVersion = 0;
+const prefsListeners = new Set<() => void>();
+
+function notifyPrefs() {
+  prefsVersion++;
+  for (const l of [...prefsListeners]) l();
+}
+
+function subscribePrefs(listener: () => void) {
+  prefsListeners.add(listener);
+  return () => {
+    prefsListeners.delete(listener);
+  };
+}
+
+function getPrefsSnapshot(): NotificationPreferences {
+  return preferences;
+}
+
+function initPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (raw) {
+      preferences = { ...DEFAULT_PREFERENCES, ...JSON.parse(raw) };
+    }
+  } catch {
+    preferences = DEFAULT_PREFERENCES;
+  }
+}
+
+initPrefs();
+
+export function setPreference<K extends keyof NotificationPreferences>(
+  key: K,
+  value: NotificationPreferences[K],
+) {
+  preferences = { ...preferences, [key]: value };
+  notifyPrefs();
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(preferences));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+// ─── Change Detection ────────────────────────────────
+function detectChanges(
+  prev: SnapshotMap,
+  current: IssueListItem[],
+  prefs: NotificationPreferences,
+): AppNotification[] {
+  const newNotifs: Omit<AppNotification, "id" | "read" | "createdAt">[] = [];
+
+  for (const issue of current) {
+    const old = prev[issue.id];
+    if (!old) continue; // New issue — skip (no notification on first appearance)
+
+    // Status changed
+    if (old.status !== issue.status && prefs.status_changed) {
+      // Special case: blocker resolved
+      if (old.status === "blocked" && issue.status !== "blocked" && prefs.blocker_resolved) {
+        newNotifs.push({
+          type: "blocker_resolved",
+          issueId: issue.id,
+          issueTitle: issue.title,
+          message: `Blocker resolved: "${issue.title}" is now ${issue.status.replace("_", " ")}`,
+        });
+      } else {
+        newNotifs.push({
+          type: "status_changed",
+          issueId: issue.id,
+          issueTitle: issue.title,
+          message: `"${issue.title}" changed from ${old.status.replace("_", " ")} to ${issue.status.replace("_", " ")}`,
+        });
+      }
+    }
+
+    // Assignee changed
+    if (old.assignee !== issue.assignee && issue.assignee && prefs.issue_assigned) {
+      newNotifs.push({
+        type: "issue_assigned",
+        issueId: issue.id,
+        issueTitle: issue.title,
+        message: `"${issue.title}" assigned to ${issue.assignee}`,
+      });
+    }
+  }
+
+  return newNotifs as any; // Will get id/read/createdAt from addNotification
+}
+
+// ─── Browser Push Notifications ──────────────────────
+function sendBrowserNotification(title: string, body: string, issueId: string) {
+  if (
+    typeof Notification === "undefined" ||
+    Notification.permission !== "granted"
+  ) {
+    return;
+  }
+  try {
+    const n = new Notification(title, {
+      body,
+      icon: "/favicon.ico",
+      tag: issueId,
+    });
+    n.onclick = () => {
+      window.focus();
+      window.location.hash = "";
+      window.location.pathname = `/issues/${issueId}`;
+      n.close();
+    };
+  } catch {
+    // Notification API not available
+  }
+}
+
+export async function requestBrowserPermission(): Promise<boolean> {
+  if (typeof Notification === "undefined") return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+  const result = await Notification.requestPermission();
+  return result === "granted";
+}
+
+export function getBrowserPermissionState(): NotificationPermission | "unsupported" {
+  if (typeof Notification === "undefined") return "unsupported";
+  return Notification.permission;
+}
+
+// ─── Hooks ───────────────────────────────────────────
+export function useNotifications(): AppNotification[] {
+  return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+export function useUnreadCount(): number {
+  const notifs = useNotifications();
+  return notifs.filter((n) => !n.read).length;
+}
+
+export function useNotificationPreferences(): NotificationPreferences {
+  return useSyncExternalStore(subscribePrefs, getPrefsSnapshot);
+}
+
+/**
+ * Hook that polls issues and generates notifications from detected changes.
+ * Should be mounted once at the app shell level.
+ */
+export function useNotificationPoller() {
+  const prefs = useNotificationPreferences();
+  const snapshotRef = useRef<SnapshotMap>(loadSnapshot());
+  const initializedRef = useRef(Object.keys(snapshotRef.current).length > 0);
+
+  const { data: issues } = useQuery<IssueListItem[]>({
+    queryKey: ["issues", "list", "notification-poller"],
+    queryFn: async () => {
+      const result = await fetchIssues();
+      return result ?? [];
+    },
+    refetchInterval: 10_000, // Poll every 10 seconds
+    staleTime: 5_000,
+  });
+
+  useEffect(() => {
+    if (!issues) return;
+
+    const currentSnapshot: SnapshotMap = {};
+    for (const issue of issues) {
+      currentSnapshot[issue.id] = {
+        status: issue.status,
+        assignee: issue.assignee,
+      };
+    }
+
+    if (initializedRef.current) {
+      // Detect changes and generate notifications
+      const changes = detectChanges(snapshotRef.current, issues, prefs);
+      for (const change of changes) {
+        addNotification(change);
+        if (prefs.browser_push) {
+          sendBrowserNotification(
+            "Beads GUI",
+            change.message,
+            change.issueId,
+          );
+        }
+      }
+    } else {
+      // First time — just save snapshot, don't generate notifications
+      initializedRef.current = true;
+    }
+
+    snapshotRef.current = currentSnapshot;
+    saveSnapshot(currentSnapshot);
+  }, [issues, prefs]);
+}
+
+/**
+ * Generate a comment notification manually (called from comment mutation).
+ */
+export function notifyCommentAdded(issueId: string, issueTitle: string, author: string) {
+  const prefs = getPrefsSnapshot();
+  if (!prefs.comment_added) return;
+  addNotification({
+    type: "comment_added",
+    issueId,
+    issueTitle,
+    message: `${author} commented on "${issueTitle}"`,
+  });
+  if (prefs.browser_push) {
+    sendBrowserNotification(
+      "New Comment",
+      `${author} commented on "${issueTitle}"`,
+      issueId,
+    );
+  }
+}

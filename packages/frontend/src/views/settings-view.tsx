@@ -1,5 +1,6 @@
 import { SettingsSection } from "@/components/settings-section";
 import { ThemePicker } from "@/components/theme-picker";
+import { NotificationPreferences } from "@/components/notification-preferences";
 
 export function SettingsView() {
   return (
@@ -11,6 +12,13 @@ export function SettingsView() {
         description="Choose a theme for the interface. Changes apply immediately."
       >
         <ThemePicker />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Notifications"
+        description="Choose which notifications you'd like to receive."
+      >
+        <NotificationPreferences />
       </SettingsSection>
     </div>
   );

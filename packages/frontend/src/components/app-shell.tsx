@@ -19,6 +19,7 @@ import { OnboardingBanner } from "./onboarding";
 import { useRouteAnnouncer } from "@/hooks/use-route-announcer";
 import { useTheme } from "@/hooks/use-theme";
 import { getAllThemes } from "@/themes";
+import { useNotificationPoller } from "@/hooks/use-notifications";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ export function AppShell() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const canUndo = useCanUndo();
   const { setTheme } = useTheme();
+
+  // Start polling for notification changes
+  useNotificationPoller();
 
   // Global keyboard shortcuts
   const bindings = useMemo(

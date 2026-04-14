@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NotificationBell } from "./notification-bell";
 
 function isMacPlatform(): boolean {
   // navigator.userAgentData is the modern API; fall back to userAgent
@@ -17,6 +18,9 @@ export function Header({ mobileMenuButton }: { mobileMenuButton?: ReactNode }) {
         </kbd>{" "}
         for command palette
       </span>
+      <div className="ml-auto">
+        <NotificationBell />
+      </div>
     </header>
   );
 }
