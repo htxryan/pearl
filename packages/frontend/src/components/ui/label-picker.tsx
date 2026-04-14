@@ -124,6 +124,7 @@ export function LabelPicker({
     }
 
     if (e.key === "Escape") {
+      e.stopPropagation();
       if (showColorPicker) {
         setShowColorPicker(false);
       } else {

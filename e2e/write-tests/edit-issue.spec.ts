@@ -137,18 +137,21 @@ test.describe("Edit Issue", () => {
 
     await expect(page.getByRole("heading", { name: "Fields" })).toBeVisible({ timeout: 15_000 });
 
-    const dueDateInput = page.getByLabel("Due date");
-    await expect(dueDateInput).toBeVisible();
+    // The DatePicker renders a button with aria-label "Set date" (no date)
+    // or "Change date, currently ..." (when a date is set)
+    const dateButton = page.getByLabel(/set date|change date/i);
+    await expect(dateButton).toBeVisible();
 
-    // Verify the date input can be focused and interacted with
-    await dueDateInput.focus();
-    await expect(dueDateInput).toBeFocused();
+    // Click to open the date picker popover
+    await dateButton.click();
 
-    // The date input is a controlled React component — fill triggers onChange
-    // which calls handleFieldUpdate("due", value) which is a write operation
-    // Just verify the input accepts interaction
-    await dueDateInput.click();
-    await expect(dueDateInput).toBeFocused();
+    // The popover should show a relative date input and calendar
+    const relativeInput = page.getByPlaceholder(/tomorrow|next friday/i);
+    await expect(relativeInput).toBeVisible({ timeout: 3_000 });
+
+    // Close the popover with Escape
+    await page.keyboard.press("Escape");
+    await expect(relativeInput).not.toBeVisible({ timeout: 3_000 });
   });
 
   test("edit description markdown section", async ({ seededPage: page }) => {

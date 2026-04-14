@@ -163,6 +163,14 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
       ref={dialogRef}
       className="fixed inset-0 z-50 m-auto w-full max-w-lg rounded-xl border border-border bg-background p-0 shadow-xl backdrop:bg-black/50"
       onClose={handleCancel}
+      onCancel={(e) => {
+        // Prevent native Escape from closing the dialog when a child picker
+        // (label picker, date picker, etc.) is handling the Escape key.
+        const active = document.activeElement;
+        if (active?.getAttribute("role") === "combobox" && active?.getAttribute("aria-expanded") === "true") {
+          e.preventDefault();
+        }
+      }}
       onClick={(e) => {
         // Close on backdrop click
         if (e.target === dialogRef.current) {
