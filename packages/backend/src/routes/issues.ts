@@ -203,11 +203,11 @@ export function registerIssueRoutes(
             dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at < CURDATE() AND i.status != 'closed')`);
             break;
           case "due_today":
-            dateConditions.push(`(DATE(i.due_at) = CURDATE())`);
+            dateConditions.push(`(i.due_at IS NOT NULL AND DATE(i.due_at) = CURDATE())`);
             break;
           case "due_this_week":
-            // Full calendar week (Monday–Sunday) using WEEKDAY (Monday=0)
-            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND i.due_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY))`);
+            // Forward-looking: today through end of calendar week (Sunday)
+            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY))`);
             break;
           case "due_next_7_days":
             dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))`);

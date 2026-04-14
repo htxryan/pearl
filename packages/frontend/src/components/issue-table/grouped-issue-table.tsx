@@ -171,25 +171,25 @@ export function GroupedIssueTable({
             table.getRowModel().rows.map((row) => [row.original.id, row]),
           );
           return groups.map((group) => {
-          const isCollapsed = collapsedGroups.has(group.key);
-          const groupRows = group.issues
-            .map((issue) => rowById.get(issue.id))
-            .filter((row): row is Row<IssueListItem> => row != null);
+            const isCollapsed = collapsedGroups.has(group.key);
+            const groupRows = group.issues
+              .map((issue) => rowById.get(issue.id))
+              .filter((row): row is Row<IssueListItem> => row != null);
 
-          return (
-            <GroupSection
-              key={group.key}
-              group={group}
-              rows={groupRows}
-              isCollapsed={isCollapsed}
-              onToggle={() => toggleGroup(group.key)}
-              colCount={colCount}
-              onRowClick={onRowClick}
-              onRowHover={onRowHover}
-              highlightedIds={highlightedIds}
-            />
-          );
-        });
+            return (
+              <GroupSection
+                key={group.key}
+                group={group}
+                rows={groupRows}
+                isCollapsed={isCollapsed}
+                onToggle={() => toggleGroup(group.key)}
+                colCount={colCount}
+                onRowClick={onRowClick}
+                onRowHover={onRowHover}
+                highlightedIds={highlightedIds}
+              />
+            );
+          });
         })()}
       </tbody>
     </table>
