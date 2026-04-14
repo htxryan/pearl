@@ -7,6 +7,8 @@ import {
   clearAllNotifications,
   setPreference,
   notifyCommentAdded,
+  detectChanges,
+  type NotificationPreferences,
 } from "./use-notifications";
 
 // We need to re-import the store getters after clearing
@@ -137,6 +139,12 @@ describe("notification store", () => {
 describe("notification preferences", () => {
   beforeEach(() => {
     localStorage.clear();
+    // Reset all preferences to defaults
+    setPreference("issue_assigned", true);
+    setPreference("status_changed", true);
+    setPreference("blocker_resolved", true);
+    setPreference("comment_added", true);
+    setPreference("browser_push", false);
   });
 
   it("setPreference persists to localStorage", () => {
@@ -160,8 +168,12 @@ describe("notifyCommentAdded", () => {
   beforeEach(() => {
     localStorage.clear();
     clearAllNotifications();
-    // Reset preferences to defaults
+    // Reset all preferences to defaults
+    setPreference("issue_assigned", true);
+    setPreference("status_changed", true);
+    setPreference("blocker_resolved", true);
     setPreference("comment_added", true);
+    setPreference("browser_push", false);
   });
 
   it("creates a comment notification", () => {
@@ -182,5 +194,89 @@ describe("notifyCommentAdded", () => {
 
     const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
     expect(stored).toHaveLength(0);
+  });
+});
+
+describe("detectChanges", () => {
+  const allEnabled: NotificationPreferences = {
+    issue_assigned: true,
+    status_changed: true,
+    blocker_resolved: true,
+    comment_added: true,
+    browser_push: false,
+  };
+
+  it("detects status change", () => {
+    const prev = { "i-1": { status: "open" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "in_progress" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, allEnabled);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("status_changed");
+  });
+
+  it("detects blocker resolved", () => {
+    const prev = { "i-1": { status: "blocked" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, allEnabled);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("blocker_resolved");
+  });
+
+  it("blocker_resolved fires even when status_changed is disabled", () => {
+    const prefs = { ...allEnabled, status_changed: false };
+    const prev = { "i-1": { status: "blocked" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, prefs);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("blocker_resolved");
+  });
+
+  it("status_changed fires for non-blocker transitions when blocker_resolved is disabled", () => {
+    const prefs = { ...allEnabled, blocker_resolved: false };
+    const prev = { "i-1": { status: "open" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "closed" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, prefs);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("status_changed");
+  });
+
+  it("emits status_changed (not blocker_resolved) when blocker_resolved pref is off", () => {
+    const prefs = { ...allEnabled, blocker_resolved: false };
+    const prev = { "i-1": { status: "blocked" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, prefs);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("status_changed");
+  });
+
+  it("no notification when both status_changed and blocker_resolved are disabled", () => {
+    const prefs = { ...allEnabled, status_changed: false, blocker_resolved: false };
+    const prev = { "i-1": { status: "blocked" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, prefs);
+    expect(result).toHaveLength(0);
+  });
+
+  it("detects assignee change", () => {
+    const prev = { "i-1": { status: "open" as const, assignee: null } };
+    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: "alice" }] as any;
+
+    const result = detectChanges(prev, current, allEnabled);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("issue_assigned");
+  });
+
+  it("skips new issues not in previous snapshot", () => {
+    const prev = {};
+    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: null }] as any;
+
+    const result = detectChanges(prev, current, allEnabled);
+    expect(result).toHaveLength(0);
   });
 });

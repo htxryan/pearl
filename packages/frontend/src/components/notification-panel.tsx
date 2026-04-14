@@ -72,17 +72,17 @@ function NotificationItem({
   onNavigate,
 }: {
   notification: AppNotification;
-  onNavigate: (issueId: string) => void;
+  onNavigate: (notificationId: string, issueId: string) => void;
 }) {
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={() => onNavigate(notification.issueId)}
+      onClick={() => onNavigate(notification.id, notification.issueId)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onNavigate(notification.issueId);
+          onNavigate(notification.id, notification.issueId);
         }
       }}
       className={`group flex items-start gap-3 rounded-md px-3 py-2.5 text-left transition-colors cursor-pointer hover:bg-muted/50 ${
@@ -135,12 +135,8 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const handleNavigate = (issueId: string) => {
-    // Find the notification and mark as read
-    const notif = notifications.find((n) => n.issueId === issueId);
-    if (notif && !notif.read) {
-      markAsRead(notif.id);
-    }
+  const handleNavigate = (notificationId: string, issueId: string) => {
+    markAsRead(notificationId);
     navigate(`/issues/${issueId}`);
     onClose();
   };

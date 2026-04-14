@@ -68,11 +68,9 @@ function saveSnapshot(snapshot: SnapshotMap) {
 
 // ─── External Store (notifications) ──────────────────
 let notifications: AppNotification[] = [];
-let version = 0;
 const listeners = new Set<() => void>();
 
 function notify() {
-  version++;
   for (const l of [...listeners]) l();
 }
 
@@ -157,11 +155,9 @@ export function clearAllNotifications() {
 
 // ─── Preferences Store ───────────────────────────────
 let preferences: NotificationPreferences = DEFAULT_PREFERENCES;
-let prefsVersion = 0;
 const prefsListeners = new Set<() => void>();
 
 function notifyPrefs() {
-  prefsVersion++;
   for (const l of [...prefsListeners]) l();
 }
 
@@ -203,20 +199,21 @@ export function setPreference<K extends keyof NotificationPreferences>(
 }
 
 // ─── Change Detection ────────────────────────────────
-function detectChanges(
+export type NewNotification = Omit<AppNotification, "id" | "read" | "createdAt">;
+
+export function detectChanges(
   prev: SnapshotMap,
   current: IssueListItem[],
   prefs: NotificationPreferences,
-): AppNotification[] {
-  const newNotifs: Omit<AppNotification, "id" | "read" | "createdAt">[] = [];
+): NewNotification[] {
+  const newNotifs: NewNotification[] = [];
 
   for (const issue of current) {
     const old = prev[issue.id];
     if (!old) continue; // New issue — skip (no notification on first appearance)
 
-    // Status changed
-    if (old.status !== issue.status && prefs.status_changed) {
-      // Special case: blocker resolved
+    // Status changed — blocker_resolved and status_changed are independent prefs
+    if (old.status !== issue.status) {
       if (old.status === "blocked" && issue.status !== "blocked" && prefs.blocker_resolved) {
         newNotifs.push({
           type: "blocker_resolved",
@@ -224,7 +221,7 @@ function detectChanges(
           issueTitle: issue.title,
           message: `Blocker resolved: "${issue.title}" is now ${issue.status.replace("_", " ")}`,
         });
-      } else {
+      } else if (prefs.status_changed) {
         newNotifs.push({
           type: "status_changed",
           issueId: issue.id,
@@ -245,7 +242,7 @@ function detectChanges(
     }
   }
 
-  return newNotifs as any; // Will get id/read/createdAt from addNotification
+  return newNotifs;
 }
 
 // ─── Browser Push Notifications ──────────────────────
@@ -264,8 +261,7 @@ function sendBrowserNotification(title: string, body: string, issueId: string) {
     });
     n.onclick = () => {
       window.focus();
-      window.location.hash = "";
-      window.location.pathname = `/issues/${issueId}`;
+      window.location.href = `/issues/${issueId}`;
       n.close();
     };
   } catch {
@@ -306,6 +302,8 @@ export function useNotificationPreferences(): NotificationPreferences {
  */
 export function useNotificationPoller() {
   const prefs = useNotificationPreferences();
+  const prefsRef = useRef(prefs);
+  prefsRef.current = prefs;
   const snapshotRef = useRef<SnapshotMap>(loadSnapshot());
   const initializedRef = useRef(Object.keys(snapshotRef.current).length > 0);
 
@@ -332,10 +330,11 @@ export function useNotificationPoller() {
 
     if (initializedRef.current) {
       // Detect changes and generate notifications
-      const changes = detectChanges(snapshotRef.current, issues, prefs);
+      const currentPrefs = prefsRef.current;
+      const changes = detectChanges(snapshotRef.current, issues, currentPrefs);
       for (const change of changes) {
         addNotification(change);
-        if (prefs.browser_push) {
+        if (currentPrefs.browser_push) {
           sendBrowserNotification(
             "Beads GUI",
             change.message,
@@ -348,9 +347,12 @@ export function useNotificationPoller() {
       initializedRef.current = true;
     }
 
+    // Only persist snapshot if it actually changed
+    if (JSON.stringify(snapshotRef.current) !== JSON.stringify(currentSnapshot)) {
+      saveSnapshot(currentSnapshot);
+    }
     snapshotRef.current = currentSnapshot;
-    saveSnapshot(currentSnapshot);
-  }, [issues, prefs]);
+  }, [issues]); // prefs read via ref — no dependency needed
 }
 
 /**
