@@ -70,6 +70,12 @@ const deleteIssueSchema = {
   },
 } as const;
 
+const DATE_RANGE_VALUES = [
+  "overdue", "due_today", "due_this_week", "due_next_7_days", "no_due_date",
+  "created_today", "created_this_week", "created_last_week",
+];
+const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "is_epic", "no_assignee"];
+
 const listIssuesQuerySchema = {
   querystring: {
     type: "object",
@@ -81,6 +87,8 @@ const listIssuesQuerySchema = {
       search: { type: "string", maxLength: 500 },
       labels: { type: "string", maxLength: 500 },
       pinned: { type: "string", maxLength: 5 },
+      date_ranges: { type: "string", maxLength: 500 },
+      structural: { type: "string", maxLength: 200 },
       sort: { type: "string", maxLength: 50 },
       direction: { type: "string", maxLength: 4 },
       fields: { type: "string", maxLength: 500 },
@@ -182,6 +190,60 @@ export function registerIssueRoutes(
       for (const label of labels) {
         sql += ` AND EXISTS (SELECT 1 FROM labels l WHERE l.issue_id = i.id AND l.label = ?)`;
         params.push(label);
+      }
+    }
+
+    // Filter: date ranges
+    if (query.date_ranges) {
+      const ranges = query.date_ranges.split(",").filter((r) => DATE_RANGE_VALUES.includes(r));
+      for (const range of ranges) {
+        switch (range) {
+          case "overdue":
+            sql += ` AND i.due_at IS NOT NULL AND i.due_at < CURDATE() AND i.status != 'closed'`;
+            break;
+          case "due_today":
+            sql += ` AND DATE(i.due_at) = CURDATE()`;
+            break;
+          case "due_this_week":
+            sql += ` AND i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at < DATE_ADD(CURDATE(), INTERVAL (7 - WEEKDAY(CURDATE())) DAY)`;
+            break;
+          case "due_next_7_days":
+            sql += ` AND i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)`;
+            break;
+          case "no_due_date":
+            sql += ` AND (i.due_at IS NULL)`;
+            break;
+          case "created_today":
+            sql += ` AND DATE(i.created_at) = CURDATE()`;
+            break;
+          case "created_this_week":
+            sql += ` AND i.created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)`;
+            break;
+          case "created_last_week":
+            sql += ` AND i.created_at >= DATE_SUB(CURDATE(), INTERVAL (WEEKDAY(CURDATE()) + 7) DAY) AND i.created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)`;
+            break;
+        }
+      }
+    }
+
+    // Filter: structural properties
+    if (query.structural) {
+      const props = query.structural.split(",").filter((s) => STRUCTURAL_VALUES.includes(s));
+      for (const prop of props) {
+        switch (prop) {
+          case "has_dependency":
+            sql += ` AND EXISTS (SELECT 1 FROM dependencies d WHERE d.issue_id = i.id OR d.depends_on_id = i.id)`;
+            break;
+          case "is_blocked":
+            sql += ` AND i.status = 'blocked'`;
+            break;
+          case "is_epic":
+            sql += ` AND i.issue_type = 'epic'`;
+            break;
+          case "no_assignee":
+            sql += ` AND (i.assignee IS NULL OR i.assignee = '')`;
+            break;
+        }
       }
     }
 

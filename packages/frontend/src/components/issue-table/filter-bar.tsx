@@ -5,6 +5,16 @@ import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { LabelPicker } from "@/components/ui/label-picker";
+import {
+  parseQuerySyntax,
+  hasQuerySyntax,
+  DATE_RANGE_OPTIONS,
+  DATE_RANGE_LABELS,
+  STRUCTURAL_FILTER_OPTIONS,
+  STRUCTURAL_FILTER_LABELS,
+  type DateRange,
+  type StructuralFilter,
+} from "@/lib/query-syntax";
 
 export interface FilterState {
   status: IssueStatus[];
@@ -13,7 +23,19 @@ export interface FilterState {
   assignee: string;
   search: string;
   labels: string[];
+  dateRanges: DateRange[];
+  structural: StructuralFilter[];
+  groupBy: GroupByField | null;
 }
+
+export type GroupByField = "status" | "priority" | "assignee" | "issue_type";
+
+export const GROUP_BY_LABELS: Record<GroupByField, string> = {
+  status: "Status",
+  priority: "Priority",
+  assignee: "Assignee",
+  issue_type: "Type",
+};
 
 export const EMPTY_FILTERS: FilterState = {
   status: [],
@@ -22,6 +44,9 @@ export const EMPTY_FILTERS: FilterState = {
   assignee: "",
   search: "",
   labels: [],
+  dateRanges: [],
+  structural: [],
+  groupBy: null,
 };
 
 const ALL_STATUSES = ISSUE_STATUSES;
@@ -89,6 +114,8 @@ function countActiveFilters(filters: FilterState): number {
   if (filters.assignee) count += 1;
   if (filters.search) count += 1;
   if (filters.labels.length > 0) count += filters.labels.length;
+  if (filters.dateRanges.length > 0) count += filters.dateRanges.length;
+  if (filters.structural.length > 0) count += filters.structural.length;
   return count;
 }
 
@@ -122,7 +149,26 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
     setLocalSearch(value);
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
-      onChangeRef.current({ ...filtersRef.current, search: value });
+      // Check if input contains structured query syntax
+      if (hasQuerySyntax(value)) {
+        const parsed = parseQuerySyntax(value);
+        const merged: FilterState = {
+          ...filtersRef.current,
+          search: parsed.freeText,
+          ...(parsed.filters.status?.length ? { status: parsed.filters.status } : {}),
+          ...(parsed.filters.priority?.length ? { priority: parsed.filters.priority } : {}),
+          ...(parsed.filters.issue_type?.length ? { issue_type: parsed.filters.issue_type } : {}),
+          ...(parsed.filters.assignee ? { assignee: parsed.filters.assignee } : {}),
+          ...(parsed.filters.labels?.length ? { labels: parsed.filters.labels } : {}),
+          ...(parsed.dateRanges.length ? { dateRanges: parsed.dateRanges } : {}),
+          ...(parsed.structural.length ? { structural: parsed.structural } : {}),
+        };
+        // Update local search to show only the free text portion
+        setLocalSearch(parsed.freeText);
+        onChangeRef.current(merged);
+      } else {
+        onChangeRef.current({ ...filtersRef.current, search: value });
+      }
     }, 300);
   }, []);
 
@@ -151,7 +197,9 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
     filters.issue_type.length > 0 ||
     filters.assignee !== "" ||
     filters.search !== "" ||
-    filters.labels.length > 0;
+    filters.labels.length > 0 ||
+    filters.dateRanges.length > 0 ||
+    filters.structural.length > 0;
 
   const activeCount = countActiveFilters(filters);
 
@@ -245,6 +293,64 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           placeholder="Filter by labels"
           className={isMobile ? "w-full" : "w-48"}
         />
+
+        {/* Date range */}
+        <select
+          value=""
+          onChange={(e) => {
+            const value = e.target.value as DateRange;
+            if (value && !filters.dateRanges.includes(value)) {
+              onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
+            }
+            e.target.value = "";
+          }}
+          className="h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="Filter by date range"
+        >
+          <option value="">Date filter...</option>
+          {DATE_RANGE_OPTIONS.map((opt) => (
+            <option key={opt} value={opt} disabled={filters.dateRanges.includes(opt)}>
+              {DATE_RANGE_LABELS[opt]}
+            </option>
+          ))}
+        </select>
+
+        {/* Structural filters */}
+        <select
+          value=""
+          onChange={(e) => {
+            const value = e.target.value as StructuralFilter;
+            if (value && !filters.structural.includes(value)) {
+              onChange({ ...filters, structural: [...filters.structural, value] });
+            }
+            e.target.value = "";
+          }}
+          className="h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="Filter by properties"
+        >
+          <option value="">Properties...</option>
+          {STRUCTURAL_FILTER_OPTIONS.map((opt) => (
+            <option key={opt} value={opt} disabled={filters.structural.includes(opt)}>
+              {STRUCTURAL_FILTER_LABELS[opt]}
+            </option>
+          ))}
+        </select>
+
+        {/* Group by */}
+        <select
+          value={filters.groupBy ?? ""}
+          onChange={(e) => {
+            const value = e.target.value as GroupByField | "";
+            onChange({ ...filters, groupBy: value || null });
+          }}
+          className="h-8 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="Group by"
+        >
+          <option value="">Group by...</option>
+          {(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => (
+            <option key={key} value={key}>{GROUP_BY_LABELS[key]}</option>
+          ))}
+        </select>
 
         {hasActiveFilters && (
           <button
@@ -367,6 +473,26 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           onRemove={() => setField("labels", filters.labels.filter((x) => x !== l))}
         />
       ))}
+      {filters.dateRanges.map((d) => (
+        <FilterPill
+          key={`date-${d}`}
+          label={`Date: ${DATE_RANGE_LABELS[d]}`}
+          onRemove={() => setField("dateRanges", filters.dateRanges.filter((x) => x !== d))}
+        />
+      ))}
+      {filters.structural.map((s) => (
+        <FilterPill
+          key={`struct-${s}`}
+          label={STRUCTURAL_FILTER_LABELS[s]}
+          onRemove={() => setField("structural", filters.structural.filter((x) => x !== s))}
+        />
+      ))}
+      {filters.groupBy && (
+        <FilterPill
+          label={`Group: ${GROUP_BY_LABELS[filters.groupBy]}`}
+          onRemove={() => setField("groupBy", null)}
+        />
+      )}
       {filters.search && (
         <FilterPill
           label={`Search: "${filters.search}"`}

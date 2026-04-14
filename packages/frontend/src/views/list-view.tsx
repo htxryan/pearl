@@ -11,8 +11,9 @@ import {
 } from "@tanstack/react-table";
 import type { IssueStatus, Priority } from "@beads-gui/shared";
 import { IssueTable } from "@/components/issue-table/issue-table";
-import { FilterBar } from "@/components/issue-table/filter-bar";
+import { FilterBar, GROUP_BY_LABELS, type GroupByField } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
+import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
 import { buildColumns, type EpicProgress } from "@/components/issue-table/columns";
 import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys, prefetchIssueDetail } from "@/hooks/use-issues";
@@ -661,7 +662,7 @@ export function ListView() {
         id: "list-clear-filters",
         label: "Clear all filters",
         group: "List",
-        handler: () => setFilters({ status: [], priority: [], issue_type: [], assignee: "", search: "", labels: [] }),
+        handler: () => setFilters({ status: [], priority: [], issue_type: [], assignee: "", search: "", labels: [], dateRanges: [], structural: [], groupBy: null }),
       },
       {
         id: "list-select-all",
@@ -788,6 +789,16 @@ export function ListView() {
               issues={tableIssues}
               isLoading={isLoading}
               onCardClick={handleRowClick}
+            />
+          ) : filters.groupBy ? (
+            <GroupedIssueTable
+              issues={tableIssues}
+              groupBy={filters.groupBy}
+              table={table}
+              isLoading={isLoading}
+              onRowClick={handleRowClick}
+              onRowHover={handleRowHover}
+              highlightedIds={highlightedIds}
             />
           ) : (
             <IssueTable

@@ -3,29 +3,28 @@ import { buildApiParams } from "./use-url-filters";
 import type { FilterState } from "@/components/issue-table/filter-bar";
 import type { SortingState } from "@tanstack/react-table";
 
+const baseFilters: FilterState = {
+  status: [],
+  priority: [],
+  issue_type: [],
+  assignee: "",
+  search: "",
+  labels: [],
+  dateRanges: [],
+  structural: [],
+  groupBy: null,
+};
+
 describe("buildApiParams", () => {
   it("returns empty params for default filters", () => {
-    const filters: FilterState = {
-      status: [],
-      priority: [],
-      issue_type: [],
-      assignee: "",
-      search: "",
-      labels: [],
-    };
-    const sorting: SortingState = [];
-    const params = buildApiParams(filters, sorting);
+    const params = buildApiParams(baseFilters, []);
     expect(params.toString()).toBe("");
   });
 
   it("encodes status filter", () => {
     const filters: FilterState = {
+      ...baseFilters,
       status: ["open", "in_progress"],
-      priority: [],
-      issue_type: [],
-      assignee: "",
-      search: "",
-      labels: [],
     };
     const params = buildApiParams(filters, []);
     expect(params.get("status")).toBe("open,in_progress");
@@ -33,40 +32,24 @@ describe("buildApiParams", () => {
 
   it("encodes priority filter", () => {
     const filters: FilterState = {
-      status: [],
+      ...baseFilters,
       priority: [0, 1],
-      issue_type: [],
-      assignee: "",
-      search: "",
-      labels: [],
     };
     const params = buildApiParams(filters, []);
     expect(params.get("priority")).toBe("0,1");
   });
 
   it("encodes sorting", () => {
-    const filters: FilterState = {
-      status: [],
-      priority: [],
-      issue_type: [],
-      assignee: "",
-      search: "",
-      labels: [],
-    };
     const sorting: SortingState = [{ id: "created_at", desc: true }];
-    const params = buildApiParams(filters, sorting);
+    const params = buildApiParams(baseFilters, sorting);
     expect(params.get("sort")).toBe("created_at");
     expect(params.get("direction")).toBe("desc");
   });
 
   it("encodes search", () => {
     const filters: FilterState = {
-      status: [],
-      priority: [],
-      issue_type: [],
-      assignee: "",
+      ...baseFilters,
       search: "login bug",
-      labels: [],
     };
     const params = buildApiParams(filters, []);
     expect(params.get("search")).toBe("login bug");
@@ -74,11 +57,7 @@ describe("buildApiParams", () => {
 
   it("encodes labels filter", () => {
     const filters: FilterState = {
-      status: [],
-      priority: [],
-      issue_type: [],
-      assignee: "",
-      search: "",
+      ...baseFilters,
       labels: ["urgent", "frontend"],
     };
     const params = buildApiParams(filters, []);
@@ -87,12 +66,12 @@ describe("buildApiParams", () => {
 
   it("encodes all filters together", () => {
     const filters: FilterState = {
+      ...baseFilters,
       status: ["open"],
       priority: [1],
       issue_type: ["bug"],
       assignee: "alice",
       search: "fix",
-      labels: [],
     };
     const sorting: SortingState = [{ id: "priority", desc: false }];
     const params = buildApiParams(filters, sorting);
@@ -103,5 +82,23 @@ describe("buildApiParams", () => {
     expect(params.get("search")).toBe("fix");
     expect(params.get("sort")).toBe("priority");
     expect(params.get("direction")).toBe("asc");
+  });
+
+  it("encodes date range filters", () => {
+    const filters: FilterState = {
+      ...baseFilters,
+      dateRanges: ["overdue", "due_today"],
+    };
+    const params = buildApiParams(filters, []);
+    expect(params.get("date_ranges")).toBe("overdue,due_today");
+  });
+
+  it("encodes structural filters", () => {
+    const filters: FilterState = {
+      ...baseFilters,
+      structural: ["has_dependency", "no_assignee"],
+    };
+    const params = buildApiParams(filters, []);
+    expect(params.get("structural")).toBe("has_dependency,no_assignee");
   });
 });
