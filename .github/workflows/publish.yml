@@ -7,9 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: 'Version bump type'
-        required: true
+        description: 'Version bump (default: patch)'
+        required: false
         type: choice
+        default: patch
         options:
           - patch
           - minor
