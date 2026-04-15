@@ -43,8 +43,9 @@ test.describe("Accessibility", () => {
   });
 
   test("breadcrumb navigation has aria-label", async ({ seededPage: page }) => {
-    const table = issueTable(page);
-    await table.locator("tbody tr").first().locator("td").nth(2).click();
+    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    await expect(dataRow).toBeVisible({ timeout: 15_000 });
+    await dataRow.locator("td").nth(2).click();
     await page.waitForURL("**/issues/**");
 
     const breadcrumb = page.getByLabel("Breadcrumb");

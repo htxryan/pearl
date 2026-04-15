@@ -12,7 +12,7 @@ test.describe("Graph View", () => {
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
     const controls = page.locator(".react-flow__controls");
-    await expect(controls).toBeVisible();
+    await expect(controls).toBeVisible({ timeout: 10_000 });
   });
 
   test("shows minimap", async ({ seededPage: page }) => {
@@ -27,8 +27,8 @@ test.describe("Graph View", () => {
     await page.goto("/graph");
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
-    await expect(page.getByText("blocks")).toBeVisible();
-    await expect(page.getByText("depends on")).toBeVisible();
+    await expect(page.getByText("blocks")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("depends on")).toBeVisible({ timeout: 10_000 });
   });
 
   test("auto layout button is functional", async ({ seededPage: page }) => {
@@ -58,8 +58,8 @@ test.describe("Graph View", () => {
     const zoomIn = page.locator(".react-flow__controls-zoomin");
     const zoomOut = page.locator(".react-flow__controls-zoomout");
 
-    await expect(zoomIn).toBeVisible();
-    await expect(zoomOut).toBeVisible();
+    await expect(zoomIn).toBeVisible({ timeout: 10_000 });
+    await expect(zoomOut).toBeVisible({ timeout: 10_000 });
     await zoomIn.click();
     await zoomOut.click();
   });

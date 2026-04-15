@@ -83,10 +83,10 @@ test.describe("Route transitions", () => {
   });
 
   test("Any view → Detail: slide-in from right (drill-in)", async ({ seededPage: page }) => {
-    // Click on first issue in the list to navigate to detail
-    const table = page.getByRole("table", { name: "Issue list" });
-    const firstRow = table.locator("tbody tr").first();
-    await firstRow.click();
+    // Wait for data rows then click title cell to navigate to detail
+    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    await expect(dataRow).toBeVisible({ timeout: 15_000 });
+    await dataRow.locator("td").nth(2).click();
 
     await page.waitForTimeout(50);
     await page.screenshot({ path: `${PROOF_DIR}/10-list-to-detail-mid-drill.png` });
@@ -184,10 +184,10 @@ test.describe("Board animations", () => {
 
 test.describe("Scroll animations", () => {
   test("Detail view sections: fade-up on scroll into view", async ({ seededPage: page }) => {
-    // Navigate to a detail view
-    const table = page.getByRole("table", { name: "Issue list" });
-    const firstRow = table.locator("tbody tr").first();
-    await firstRow.click();
+    // Navigate to a detail view — wait for data rows
+    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    await expect(dataRow).toBeVisible({ timeout: 15_000 });
+    await dataRow.locator("td").nth(2).click();
     await page.waitForURL("**/issues/**");
     await page.waitForTimeout(400);
 
@@ -304,11 +304,10 @@ test.describe("CLS verification", () => {
     await page.waitForURL("**/list");
     await page.waitForTimeout(500);
 
-    // Navigate to detail and back
-    const table = page.getByRole("table", { name: "Issue list" });
-    await expect(table).toBeVisible({ timeout: 15_000 });
-    const firstRow = table.locator("tbody tr").first();
-    await firstRow.click();
+    // Navigate to detail and back — wait for data rows
+    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    await expect(dataRow).toBeVisible({ timeout: 15_000 });
+    await dataRow.locator("td").nth(2).click();
     await page.waitForURL("**/issues/**");
     await page.waitForTimeout(500);
 
