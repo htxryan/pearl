@@ -29,8 +29,14 @@ function isInputElement(target: EventTarget | null): boolean {
 function matchesBinding(e: KeyboardEvent, binding: KeyBinding): boolean {
   if (e.key.toLowerCase() !== binding.key.toLowerCase()) return false;
   const mods = binding.modifiers ?? [];
-  if (mods.includes("meta") !== e.metaKey) return false;
-  if (mods.includes("ctrl") !== e.ctrlKey) return false;
+  // "meta" means the platform command key: Cmd (metaKey) on Mac, Ctrl on Linux/Windows.
+  // Accept either metaKey or ctrlKey for "meta" bindings so shortcuts work cross-platform.
+  if (mods.includes("meta")) {
+    if (!e.metaKey && !e.ctrlKey) return false;
+  } else {
+    // If "meta" is not in the binding, neither modifier should be pressed
+    if (e.metaKey || e.ctrlKey) return false;
+  }
   if (mods.includes("shift") !== e.shiftKey) return false;
   if (mods.includes("alt") !== e.altKey) return false;
   return true;
