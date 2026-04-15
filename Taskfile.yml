@@ -100,7 +100,7 @@ tasks:
   publish:
     desc: Build and publish pearl-bdui to npm
     dir: packages/pearl-bdui
-    dotenv: ['../../.env']
+    dotenv: ['.env']
     cmds:
       - test -n "{{.NPM_TOKEN}}" || { echo "NPM_TOKEN not set — add it to .env or export it"; exit 1; }
       - npm publish
