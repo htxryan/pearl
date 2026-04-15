@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "pearl-bdui": "./bin/pearl.js"
+    "pearl-bdui": "bin/pearl.js"
   },
   "files": [
     "dist/**/*.js",
@@ -32,7 +32,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ryanandrewhenderson/pearl.git"
+    "url": "git+https://github.com/ryanandrewhenderson/pearl.git"
   },
   "engines": {
     "node": ">=22"
