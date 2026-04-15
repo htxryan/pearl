@@ -105,8 +105,8 @@ tasks:
     preconditions:
       - sh: command -v npm
         msg: "npm is required"
-      - sh: test -f packages/pearl-bdui/package.json
-        msg: "Run from project root"
+      - sh: test -f package.json
+        msg: "package.json not found — is packages/pearl-bdui missing?"
 
   publish:dry:
     desc: Dry-run publish (build + pack, no upload)
