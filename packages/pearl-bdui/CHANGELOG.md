@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.2.0...pearl-bdui-v0.3.0) (2026-04-15)
+
+
+### Features
+
+* verify release-please publish pipeline ([#4](https://github.com/htxryan/pearl/issues/4)) ([b3ef04b](https://github.com/htxryan/pearl/commit/b3ef04b91d1dcaf6848b3d6442b6cebda044a4c4))
+
 ## [0.2.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.1.0...pearl-bdui-v0.2.0) (2026-04-15)
 
 
