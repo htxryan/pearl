@@ -1,9 +1,5 @@
 import { test, expect } from "./fixtures";
 
-// React Flow controls/minimap require WebGL which headless Chrome in CI
-// doesn't always provide. Skip control-dependent tests in CI.
-const skipInCI = !!process.env.CI;
-
 test.describe("Graph View", () => {
   test("renders the dependency graph canvas", async ({ seededPage: page }) => {
     await page.goto("/graph");
@@ -12,30 +8,31 @@ test.describe("Graph View", () => {
   });
 
   test("shows graph controls (zoom/pan)", async ({ seededPage: page }) => {
-    test.skip(skipInCI, "React Flow controls need WebGL unavailable in headless CI");
     await page.goto("/graph");
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
-    const controls = page.locator(".react-flow__controls");
-    await expect(controls).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTitle("Zoom in")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTitle("Zoom out")).toBeVisible();
+    await expect(page.getByTitle("Fit view")).toBeVisible();
   });
 
   test("shows minimap", async ({ seededPage: page }) => {
-    test.skip(skipInCI, "React Flow minimap needs WebGL unavailable in headless CI");
     await page.goto("/graph");
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
     const minimap = page.locator(".react-flow__minimap");
-    await expect(minimap).toBeVisible();
+    await expect(minimap).toBeVisible({ timeout: 10_000 });
   });
 
   test("shows legend panel", async ({ seededPage: page }) => {
-    test.skip(skipInCI, "React Flow legend depends on controls rendering");
     await page.goto("/graph");
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
-    await expect(page.getByText("blocks")).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText("depends on")).toBeVisible({ timeout: 10_000 });
+    // Legend contains "Edges:" label followed by edge type descriptions
+    const legend = page.getByText("Edges:").locator("..");
+    await expect(legend).toBeVisible({ timeout: 10_000 });
+    await expect(legend.getByText("blocks")).toBeVisible();
+    await expect(legend.getByText("depends on")).toBeVisible();
   });
 
   test("auto layout button is functional", async ({ seededPage: page }) => {
@@ -43,10 +40,9 @@ test.describe("Graph View", () => {
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
     const autoLayoutBtn = page.getByRole("button", { name: /auto layout/i });
-    await expect(autoLayoutBtn).toBeVisible();
+    await expect(autoLayoutBtn).toBeVisible({ timeout: 10_000 });
     await autoLayoutBtn.click();
 
-    // Graph remains visible after layout
     await expect(page.locator(".react-flow")).toBeVisible();
   });
 
@@ -59,24 +55,25 @@ test.describe("Graph View", () => {
   });
 
   test("zoom in/out controls work", async ({ seededPage: page }) => {
-    test.skip(skipInCI, "React Flow controls need WebGL unavailable in headless CI");
     await page.goto("/graph");
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
+    // Wait for graph to settle (nodes rendered and layout complete)
+    await expect(page.locator(".react-flow__node").first()).toBeVisible({ timeout: 10_000 });
+    await page.waitForTimeout(500);
 
-    const zoomIn = page.locator(".react-flow__controls-zoomin");
-    const zoomOut = page.locator(".react-flow__controls-zoomout");
+    const zoomIn = page.getByTitle("Zoom in");
+    const zoomOut = page.getByTitle("Zoom out");
 
-    await expect(zoomIn).toBeVisible({ timeout: 10_000 });
-    await expect(zoomOut).toBeVisible({ timeout: 10_000 });
-    await zoomIn.click();
-    await zoomOut.click();
+    await expect(zoomIn).toBeVisible();
+    await expect(zoomOut).toBeVisible();
+    await zoomIn.click({ force: true });
+    await zoomOut.click({ force: true });
   });
 
   test("graph renders nodes for issues", async ({ seededPage: page }) => {
     await page.goto("/graph");
     await expect(page.locator(".react-flow")).toBeVisible({ timeout: 15_000 });
 
-    // ReactFlow renders nodes
     const nodes = page.locator(".react-flow__node");
     await expect(nodes.first()).toBeVisible({ timeout: 10_000 });
   });
