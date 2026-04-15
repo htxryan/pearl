@@ -57,6 +57,7 @@ export default defineConfig({
       name: "write-tests",
       testDir: "./e2e/write-tests",
       testIgnore: ["**/*-proof.spec.ts"],
+      dependencies: ["chromium"], // run after read tests
       use: { ...devices["Desktop Chrome"] },
       workers: 1, // writes are serial (Dolt lock)
     },
