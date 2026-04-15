@@ -99,17 +99,17 @@ tasks:
 
   publish:
     desc: Build and publish pearl-bdui to npm
-    dir: packages/backend
+    dir: packages/pearl-bdui
     cmds:
       - npm publish
     preconditions:
       - sh: command -v npm
         msg: "npm is required"
-      - sh: test -f packages/backend/package.json
+      - sh: test -f packages/pearl-bdui/package.json
         msg: "Run from project root"
 
   publish:dry:
     desc: Dry-run publish (build + pack, no upload)
-    dir: packages/backend
+    dir: packages/pearl-bdui
     cmds:
       - npm publish --dry-run

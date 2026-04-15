@@ -12,7 +12,7 @@
 
 # Build outputs
 packages/*/dist/
-packages/backend/frontend-dist/
+packages/pearl-bdui/frontend-dist/
 *.tsbuildinfo
 
 # Dependencies

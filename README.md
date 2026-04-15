@@ -70,7 +70,7 @@ This starts the backend (Fastify on port 3456) and frontend (Vite on port 5173) 
 
 ```
 packages/
-  backend/    # Fastify server, Dolt integration, API routes
+  pearl-bdui/ # Publishable package: Fastify server + bundled frontend
   frontend/   # React 19 SPA with Vite, TailwindCSS, React Flow
   shared/     # Shared TypeScript types (API contract)
 ```
@@ -84,12 +84,13 @@ packages/
 | `pnpm test` | Run all tests |
 | `pnpm typecheck` | TypeScript type checking |
 | `pnpm test:e2e` | Run Playwright end-to-end tests |
+| `task publish` | Build and publish to npm |
+| `task publish:dry` | Dry-run publish |
 
 ### Publishing
 
 ```bash
-cd packages/backend
-npm publish
+task publish
 ```
 
 The `prepublishOnly` hook automatically runs `build:dist` which builds all packages, copies frontend assets, inlines shared types, and verifies the artifact.

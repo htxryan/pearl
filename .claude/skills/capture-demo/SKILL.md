@@ -39,7 +39,7 @@ curl -s -o /dev/null -w '%{http_code}' http://localhost:5173 2>/dev/null
 If not 200, start them:
 
 ```bash
-(cd packages/backend && pnpm dev &) 2>/dev/null
+(cd packages/pearl-bdui && pnpm dev &) 2>/dev/null
 (cd packages/frontend && pnpm dev &) 2>/dev/null
 # Poll until ready
 for i in 1 2 3 4 5 6 7 8 9 10; do
