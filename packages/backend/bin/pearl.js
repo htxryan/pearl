@@ -3,6 +3,7 @@
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import pc from "picocolors";
 import { loadConfig } from "../dist/config.js";
 import { createServer } from "../dist/server.js";
 
@@ -53,9 +54,9 @@ async function main() {
   const url = `http://${config.host}:${config.port}`;
 
   console.log(`
-  \x1b[1m\x1b[36m Pearl \x1b[0m\x1b[2mv${VERSION}\x1b[0m
+  ${pc.bold(pc.cyan(" Pearl "))}${pc.dim(`v${VERSION}`)}
 
-  \x1b[32m>\x1b[0m Running at \x1b[4m${url}\x1b[0m
+  ${pc.green(">")} Running at ${pc.underline(url)}
 `);
 
   if (config.needsSetup) {
@@ -84,6 +85,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("\n  \x1b[31mFatal error:\x1b[0m", err.message || err);
+  console.error(`\n  ${pc.red("Fatal error:")}`, err.message || "Unknown error");
   process.exit(1);
 });

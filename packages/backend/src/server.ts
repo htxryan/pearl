@@ -24,22 +24,37 @@ const __dirname = dirname(__filename);
  * Only returns a path when running from an installed package (not in dev mode).
  * In dev mode (workspace detected), Vite dev server handles the frontend.
  */
-function findFrontendDist(): string | null {
+export function findFrontendDist(startDir: string = __dirname): string | null {
   // Skip static serving in dev mode — Vite handles it.
-  // Detect the Pearl development workspace specifically by checking for
-  // pnpm-workspace.yaml AND the Pearl frontend package at the expected path.
-  // This avoids false positives when pearl-bdui is installed inside any pnpm monorepo.
-  const workspaceRoot = resolve(__dirname, "..", "..", "..");
-  if (
-    existsSync(resolve(workspaceRoot, "pnpm-workspace.yaml")) &&
-    existsSync(resolve(workspaceRoot, "packages", "frontend", "package.json"))
-  ) return null;
+  // Walk upward from startDir looking for pnpm-workspace.yaml with Pearl's
+  // frontend package, which indicates we're in the dev workspace.
+  if (isPearlWorkspace(startDir)) return null;
 
   // Published package layout: pearl-bdui/frontend-dist/
-  const publishedPath = resolve(__dirname, "..", "frontend-dist");
+  const publishedPath = resolve(startDir, "..", "frontend-dist");
   if (existsSync(resolve(publishedPath, "index.html"))) return publishedPath;
 
   return null;
+}
+
+/**
+ * Detect the Pearl development workspace by walking upward to find
+ * pnpm-workspace.yaml AND the Pearl frontend package at the expected path.
+ * The two-condition check avoids false positives when pearl-bdui is installed
+ * inside any other pnpm monorepo.
+ */
+function isPearlWorkspace(startDir: string): boolean {
+  let dir = resolve(startDir);
+  for (let i = 0; i < 10; i++) {
+    if (
+      existsSync(resolve(dir, "pnpm-workspace.yaml")) &&
+      existsSync(resolve(dir, "packages", "frontend", "package.json"))
+    ) return true;
+    const parent = resolve(dir, "..");
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return false;
 }
 
 export async function createServer(initialConfig: Config) {
