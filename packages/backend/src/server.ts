@@ -1,4 +1,8 @@
+import { resolve, dirname } from "node:path";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import Fastify, { type FastifyError } from "fastify";
+import fastifyStatic from "@fastify/static";
 import type { Config } from "./config.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { createDoltPool, destroyPool, beginSync, endSync } from "./dolt/pool.js";
@@ -11,6 +15,25 @@ import { registerHealthRoutes } from "./routes/health.js";
 import { registerSetupRoutes } from "./routes/setup.js";
 import { registerLabelRoutes, ensureLabelDefinitionsTable } from "./routes/labels.js";
 import { AppError } from "./errors.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * Find the frontend dist directory.
+ * Works in both monorepo (../frontend/dist) and published package (../frontend-dist) layouts.
+ */
+function findFrontendDist(): string | null {
+  // Published package layout: pearl-bdui/frontend-dist/
+  const publishedPath = resolve(__dirname, "..", "frontend-dist");
+  if (existsSync(resolve(publishedPath, "index.html"))) return publishedPath;
+
+  // Monorepo layout: packages/backend/dist → packages/frontend/dist
+  const monorepoPath = resolve(__dirname, "..", "..", "frontend", "dist");
+  if (existsSync(resolve(monorepoPath, "index.html"))) return monorepoPath;
+
+  return null;
+}
 
 export async function createServer(initialConfig: Config) {
   // Mutable config — updated after setup completes
@@ -260,6 +283,30 @@ export async function createServer(initialConfig: Config) {
   registerStatsRoutes(app, getConfig);
   registerHealthRoutes(app, getDoltManager, getConfig);
   registerLabelRoutes(app, getConfig);
+
+  // ─── Static File Serving (Production) ─────────────────
+  // Serve the built frontend when running from an installed package.
+  // In dev mode (Vite dev server handles frontend), this is skipped.
+  const frontendDist = findFrontendDist();
+  if (frontendDist) {
+    app.log.info(`[static] Serving frontend from ${frontendDist}`);
+    await app.register(fastifyStatic, {
+      root: frontendDist,
+      prefix: "/",
+    });
+
+    // SPA fallback: serve index.html for non-API routes that don't match a file
+    app.setNotFoundHandler(async (request, reply) => {
+      if (request.url.startsWith("/api/")) {
+        return reply.code(404).send({
+          code: "NOT_FOUND",
+          message: `Route ${request.method} ${request.url} not found`,
+          retryable: false,
+        });
+      }
+      return reply.sendFile("index.html");
+    });
+  }
 
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {

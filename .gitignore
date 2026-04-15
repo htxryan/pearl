@@ -12,6 +12,7 @@
 
 # Build outputs
 packages/*/dist/
+packages/backend/frontend-dist/
 *.tsbuildinfo
 
 # Dependencies

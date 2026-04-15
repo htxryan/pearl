@@ -1,0 +1,82 @@
+#!/usr/bin/env node
+
+import { loadConfig } from "../dist/config.js";
+import { createServer } from "../dist/server.js";
+
+const VERSION = process.env.npm_package_version || "0.1.0";
+
+async function main() {
+  // Handle --version / --help before anything else
+  const arg = process.argv[2];
+  if (arg === "--version" || arg === "-v") {
+    console.log(`pearl-bdui v${VERSION}`);
+    process.exit(0);
+  }
+  if (arg === "--help" || arg === "-h") {
+    console.log(`
+  pearl-bdui v${VERSION}
+
+  Usage: pearl-bdui [options]
+
+  Starts the Pearl (Beads Web UI) server in the current directory.
+  Looks for a .beads/ directory in the current or parent directories.
+
+  Options:
+    -h, --help     Show this help message
+    -v, --version  Show version number
+    --no-open      Don't open browser automatically
+
+  Environment variables:
+    PORT           Server port (default: 3456)
+    DOLT_HOST      Dolt SQL server host (server mode)
+    DOLT_PORT      Dolt SQL server port (default: 3307)
+`);
+    process.exit(0);
+  }
+
+  const config = loadConfig();
+  const { app, startup, shutdown } = await createServer(config);
+
+  // Start Dolt server and connection pool
+  await startup();
+
+  // Start Fastify
+  await app.listen({ host: config.host, port: config.port });
+
+  const url = `http://${config.host}:${config.port}`;
+
+  console.log(`
+  \x1b[1m\x1b[36m Pearl \x1b[0m\x1b[2mv${VERSION}\x1b[0m
+
+  \x1b[32m>\x1b[0m Running at \x1b[4m${url}\x1b[0m
+`);
+
+  if (config.needsSetup) {
+    console.log("  Setup required \u2014 configure your project in the browser\n");
+  }
+
+  // Auto-open browser (unless --no-open flag)
+  if (!process.argv.includes("--no-open")) {
+    const { default: open } = await import("open");
+    open(url).catch(() => {
+      // Silently ignore if browser can't be opened (e.g. headless server)
+    });
+  }
+
+  // Graceful shutdown
+  const onSignal = async (signal) => {
+    console.log(`\n  Received ${signal}, shutting down...`);
+    await app.close();
+    await shutdown();
+    console.log("  Goodbye!\n");
+    process.exit(0);
+  };
+
+  process.on("SIGINT", () => void onSignal("SIGINT"));
+  process.on("SIGTERM", () => void onSignal("SIGTERM"));
+}
+
+main().catch((err) => {
+  console.error("\n  \x1b[31mFatal error:\x1b[0m", err.message || err);
+  process.exit(1);
+});
