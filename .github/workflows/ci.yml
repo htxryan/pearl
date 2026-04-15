@@ -169,11 +169,8 @@ jobs:
       - name: Seed E2E database
         run: bash e2e/setup-db.sh
 
-      - name: Install Playwright browsers
-        run: npx playwright install chromium
-
-      - name: Install system dependencies
-        run: npx playwright install-deps chromium
+      - name: Install Playwright (browsers + system deps)
+        run: npx playwright install --with-deps chromium
 
       - name: Run E2E read tests
         run: pnpm test:e2e:read
