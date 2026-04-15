@@ -94,3 +94,22 @@ tasks:
     desc: Show dependency graph for all open epics
     cmds:
       - bd list --status=open
+
+  # --- Publishing ---
+
+  publish:
+    desc: Build and publish pearl-bdui to npm
+    dir: packages/backend
+    cmds:
+      - npm publish
+    preconditions:
+      - sh: command -v npm
+        msg: "npm is required"
+      - sh: test -f packages/backend/package.json
+        msg: "Run from project root"
+
+  publish:dry:
+    desc: Dry-run publish (build + pack, no upload)
+    dir: packages/backend
+    cmds:
+      - npm publish --dry-run
