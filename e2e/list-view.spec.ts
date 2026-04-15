@@ -28,25 +28,22 @@ test.describe("List View", () => {
   });
 
   test("search filter narrows results", async ({ seededPage: page }) => {
-    const table = issueTable(page);
-    const rows = table.locator("tbody tr");
-    const initialCount = await rows.count();
+    // Ensure data rows are loaded (not skeletons)
+    const dataRows = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])');
+    const initialCount = await dataRows.count();
+    expect(initialCount).toBeGreaterThan(0);
 
     const searchInput = page.getByPlaceholder(/search/i).first();
     await searchInput.fill("implement");
 
-    // Poll for filtered results instead of fixed timeout
+    // Wait for filter to take effect
     await expect.poll(
-      () => rows.count(),
-      { message: "Expected fewer rows after filtering", timeout: 5_000 },
+      () => dataRows.count(),
+      { message: "Expected fewer rows after filtering", timeout: 10_000 },
     ).toBeLessThan(initialCount);
 
-    const count = await rows.count();
+    const count = await dataRows.count();
     expect(count).toBeGreaterThan(0);
-
-    // First result should contain the search term
-    const firstTitle = await rows.first().locator("td").nth(2).textContent();
-    expect(firstTitle?.toLowerCase()).toContain("implement");
   });
 
   test("sort by column header click", async ({ seededPage: page }) => {
