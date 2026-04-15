@@ -69,7 +69,7 @@ jobs:
 
   test:
     name: Test
-    needs: install
+    needs: [install, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,14 +82,16 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Restore workspace
+      - name: Restore build
         uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
+            packages/pearl-bdui/dist
+            packages/frontend/dist
+          key: build-${{ github.sha }}
           fail-on-cache-miss: true
 
       - run: pnpm test
@@ -121,6 +123,17 @@ jobs:
 
       - run: pnpm build
 
+      - name: Cache build output
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+            packages/pearl-bdui/dist
+            packages/frontend/dist
+          key: build-${{ github.sha }}
+
   e2e:
     name: E2E Tests
     needs: [test, build]
@@ -136,14 +149,16 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Restore workspace
+      - name: Restore build
         uses: actions/cache/restore@v4
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
+            packages/pearl-bdui/dist
+            packages/frontend/dist
+          key: build-${{ github.sha }}
           fail-on-cache-miss: true
 
       - name: Install Dolt

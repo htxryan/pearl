@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { resolve, dirname } from "node:path";
-import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
 
@@ -116,11 +115,8 @@ describe("import rewriting", () => {
 });
 
 // ─── CLI smoke tests ────────────────────────────────────
-// These require `pnpm build` to have run first (dist/ must exist).
 
-const distExists = existsSync(resolve(backendRoot, "dist", "config.js"));
-
-describe.skipIf(!distExists)("CLI entrypoint", () => {
+describe("CLI entrypoint", () => {
   it("--version prints version and exits 0", () => {
     const result = execSync("node bin/pearl.js --version", {
       cwd: backendRoot,
@@ -157,9 +153,8 @@ describe.skipIf(!distExists)("CLI entrypoint", () => {
 });
 
 // ─── npm pack verification ──────────────────────────────
-// Requires build:dist to have run (dist/ + frontend-dist/ must exist).
 
-describe.skipIf(!distExists)("npm pack contents", () => {
+describe("npm pack contents", () => {
   it("tarball includes required files and excludes dev files", () => {
     const output = execSync("npm pack --dry-run 2>&1", {
       cwd: backendRoot,
