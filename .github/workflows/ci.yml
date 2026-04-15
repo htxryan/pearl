@@ -166,6 +166,11 @@ jobs:
           DOLT_VERSION="1.85.0"
           curl -L "https://github.com/dolthub/dolt/releases/download/v${DOLT_VERSION}/install.sh" | sudo bash
 
+      - name: Install beads (bd CLI)
+        run: |
+          BD_VERSION="1.0.0"
+          curl -sL "https://github.com/gastownhall/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" | tar xz --strip-components=1 -C /usr/local/bin "beads_${BD_VERSION}_linux_amd64/bd"
+
       - name: Seed E2E database
         run: bash e2e/setup-db.sh
 
