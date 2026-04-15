@@ -103,9 +103,10 @@ tasks:
     cmds:
       - |
         set -a && source {{.ROOT_DIR}}/.env && set +a
-        echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-        npm publish
-        rm -f .npmrc
+        TMPDIR=$(mktemp -d)
+        echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > "$TMPDIR/.npmrc"
+        HOME="$TMPDIR" npm publish
+        rm -rf "$TMPDIR"
 
   publish:dry:
     desc: Dry-run publish (build + pack, no upload)
