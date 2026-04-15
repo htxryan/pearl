@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vite
 import { renderHook, waitFor, act, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider, useIsMutating } from "@tanstack/react-query";
 import React from "react";
-import type { Issue, IssueListItem, MutationResponse, InvalidationHint } from "@beads-gui/shared";
+import type { Issue, IssueListItem, MutationResponse, InvalidationHint } from "@pearl/shared";
 import {
   issueKeys,
   statsKeys,

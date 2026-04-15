@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const STORAGE_KEY = "beads-gui-onboarding-complete";
+const STORAGE_KEY = "pearl-onboarding-complete";
 
 interface OnboardingStep {
   id: string;

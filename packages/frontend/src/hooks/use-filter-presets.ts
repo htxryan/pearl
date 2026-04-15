@@ -7,7 +7,7 @@ export interface FilterPreset {
   filters: FilterState;
 }
 
-const STORAGE_KEY = "beads-gui-filter-presets";
+const STORAGE_KEY = "pearl-filter-presets";
 
 // ─── External store ────────────────────────────────────
 let presets: FilterPreset[] = loadFromStorage();

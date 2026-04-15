@@ -59,7 +59,7 @@ describe("useTheme", () => {
       result.current.setTheme("vscode-monokai");
     });
 
-    expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+    expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
   });
 
   it("setTheme caches theme data to localStorage", () => {
@@ -69,7 +69,7 @@ describe("useTheme", () => {
       result.current.setTheme("vscode-monokai");
     });
 
-    const raw = localStorage.getItem("beads-gui-theme-cache");
+    const raw = localStorage.getItem("pearl-theme-cache");
     expect(raw).not.toBeNull();
 
     const cached = JSON.parse(raw!);

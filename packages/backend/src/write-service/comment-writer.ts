@@ -1,4 +1,4 @@
-import type { CreateCommentRequest, InvalidationHint } from "@beads-gui/shared";
+import type { CreateCommentRequest, InvalidationHint } from "@pearl/shared";
 import type { Config } from "../config.js";
 import { runBd } from "./bd-runner.js";
 import { validationError } from "../errors.js";

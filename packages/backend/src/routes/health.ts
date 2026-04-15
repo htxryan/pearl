@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { HealthResponse } from "@beads-gui/shared";
+import type { HealthResponse } from "@pearl/shared";
 import type { DoltServerManager } from "../dolt/server-manager.js";
 import type { Config } from "../config.js";
 import { getPool } from "../dolt/pool.js";

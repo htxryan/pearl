@@ -4,7 +4,7 @@
 		"packages/*"
 	],
 	"scripts": {
-		"dev": "pnpm --filter @beads-gui/backend dev",
+		"dev": "pnpm --filter @pearl/backend dev",
 		"build": "pnpm -r build",
 		"test": "pnpm -r test",
 		"typecheck": "pnpm -r typecheck",

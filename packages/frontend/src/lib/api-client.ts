@@ -17,7 +17,7 @@ import type {
   SetupInitializeResponse,
   LabelWithCount,
   UpsertLabelRequest,
-} from "@beads-gui/shared";
+} from "@pearl/shared";
 
 const API_BASE = "/api";
 

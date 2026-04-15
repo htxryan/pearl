@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
-import type { IssueListItem, IssueStatus, Priority, LabelColor } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus, Priority, LabelColor } from "@pearl/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";

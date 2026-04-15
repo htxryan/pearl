@@ -2,7 +2,7 @@ import type {
   CreateIssueRequest,
   UpdateIssueRequest,
   InvalidationHint,
-} from "@beads-gui/shared";
+} from "@pearl/shared";
 import type { Config } from "../config.js";
 import { runBd } from "./bd-runner.js";
 import { validationError } from "../errors.js";

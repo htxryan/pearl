@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import type { FastifyInstance } from "fastify";
-import type { SetupStatusResponse, SetupInitializeRequest, SetupInitializeResponse } from "@beads-gui/shared";
+import type { SetupStatusResponse, SetupInitializeRequest, SetupInitializeResponse } from "@pearl/shared";
 import type { Config } from "../config.js";
 import { findBeadsDir, readBeadsMetadata, loadConfig, type DoltMode } from "../config.js";
 import { validationError } from "../errors.js";

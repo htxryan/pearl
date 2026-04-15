@@ -307,7 +307,7 @@ describe("Command Palette Switch Theme commands", () => {
 
     // TODO: assert palette closes after selection (cmdk mock doesn't simulate dismiss)
     // Verify theme was applied via localStorage (useTheme is real, not mocked)
-    const storedTheme = localStorage.getItem("beads-gui-theme");
+    const storedTheme = localStorage.getItem("pearl-theme");
     expect(storedTheme).toBeTruthy();
   });
 });
@@ -332,7 +332,7 @@ describe("E2E theme selection flow", () => {
     fireEvent.click(monokaiItem!);
 
     // Theme should be persisted in localStorage
-    expect(localStorage.getItem("beads-gui-theme")).toBe(monokai.id);
+    expect(localStorage.getItem("pearl-theme")).toBe(monokai.id);
 
     // CSS custom properties should be applied
     expect(
@@ -354,7 +354,7 @@ describe("E2E theme selection flow", () => {
     fireEvent.click(monokaiItem!);
 
     // Verify theme was applied
-    expect(localStorage.getItem("beads-gui-theme")).toBe(monokai.id);
+    expect(localStorage.getItem("pearl-theme")).toBe(monokai.id);
     expect(document.documentElement.classList.contains("dark")).toBe(true);
 
     // Unmount and re-render (simulates page navigation within SPA)

@@ -11,7 +11,7 @@ async function main() {
   // Start Fastify — bound to 127.0.0.1 ONLY (security: no LAN access)
   await app.listen({ host: config.host, port: config.port });
 
-  console.log(`\n  Beads GUI Backend running at http://${config.host}:${config.port}`);
+  console.log(`\n  Pearl backend running at http://${config.host}:${config.port}`);
   if (config.needsSetup) {
     console.log("  Setup required — open the frontend to configure your project\n");
   } else {

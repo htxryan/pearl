@@ -2,8 +2,8 @@ import { useCallback, useSyncExternalStore } from "react";
 import { getTheme, getDefaultTheme } from "@/themes";
 import type { ThemeDefinition } from "@/themes";
 
-const STORAGE_KEY = "beads-gui-theme";
-const CACHE_KEY = "beads-gui-theme-cache";
+const STORAGE_KEY = "pearl-theme";
+const CACHE_KEY = "pearl-theme-cache";
 
 // ---------------------------------------------------------------------------
 // Internal state

@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useLocation, Navigate } from "react-router";
 import { useMemo, useCallback, useEffect, useState, Children } from "react";
-import type { Issue, IssueStatus, Priority, IssueType, LabelColor } from "@beads-gui/shared";
-import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
+import type { Issue, IssueStatus, Priority, IssueType, LabelColor } from "@pearl/shared";
+import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@pearl/shared";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { DatePicker } from "@/components/ui/date-picker";
 import {

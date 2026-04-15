@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { SetupInitializeRequest } from "@beads-gui/shared";
+import type { SetupInitializeRequest } from "@pearl/shared";
 import { Button } from "@/components/ui/button";
 import { initializeSetup } from "@/lib/api-client";
 import { setupKeys } from "@/hooks/use-issues";

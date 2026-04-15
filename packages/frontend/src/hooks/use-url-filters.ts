@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import type { SortingState } from "@tanstack/react-table";
-import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type Priority, type IssueType } from "@beads-gui/shared";
+import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type Priority, type IssueType } from "@pearl/shared";
 import { type FilterState, type GroupByField } from "@/components/issue-table/filter-bar";
 import { DATE_RANGE_OPTIONS, STRUCTURAL_FILTER_OPTIONS, type DateRange, type StructuralFilter } from "@/lib/query-syntax";
 

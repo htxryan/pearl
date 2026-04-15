@@ -109,7 +109,7 @@ import { useAllDependencies } from "@/hooks/use-dependencies";
 import { HealthBanner } from "@/components/health-banner";
 import { ApiClientError, fetchHealth } from "@/lib/api-client";
 import type { UseQueryResult } from "@tanstack/react-query";
-import type { HealthResponse, IssueListItem } from "@beads-gui/shared";
+import type { HealthResponse, IssueListItem } from "@pearl/shared";
 
 // ─── Helpers ───────────────────────────────────────────
 

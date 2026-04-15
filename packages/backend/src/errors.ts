@@ -1,4 +1,4 @@
-import type { ApiError, ApiErrorCode } from "@beads-gui/shared";
+import type { ApiError, ApiErrorCode } from "@pearl/shared";
 
 export class AppError extends Error {
   readonly code: ApiErrorCode;

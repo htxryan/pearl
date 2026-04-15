@@ -1,7 +1,7 @@
 import { memo, useState, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { KanbanCard } from "./kanban-card";
 import { cn } from "@/lib/utils";

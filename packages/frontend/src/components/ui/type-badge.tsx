@@ -1,4 +1,4 @@
-import type { IssueType } from "@beads-gui/shared";
+import type { IssueType } from "@pearl/shared";
 import { cn } from "@/lib/utils";
 
 const typeConfig: Record<IssueType, { label: string; className: string }> = {

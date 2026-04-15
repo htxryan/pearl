@@ -8,7 +8,7 @@ import type {
   CreateDependencyRequest,
   Dependency,
   InvalidationHint,
-} from "@beads-gui/shared";
+} from "@pearl/shared";
 import * as api from "@/lib/api-client";
 import { labelKeys } from "./use-labels";
 

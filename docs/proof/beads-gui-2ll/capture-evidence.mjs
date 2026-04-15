@@ -15,7 +15,7 @@ async function main() {
 
   // Dismiss onboarding
   await ctx.addInitScript(() => {
-    localStorage.setItem("beads-gui-onboarding-complete", "true");
+    localStorage.setItem("pearl-onboarding-complete", "true");
   });
 
   const page = await ctx.newPage();

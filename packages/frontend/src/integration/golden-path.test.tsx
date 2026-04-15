@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route, Navigate } from "react-router";
-import type { IssueListItem, Issue, MutationResponse, InvalidationHint } from "@beads-gui/shared";
+import type { IssueListItem, Issue, MutationResponse, InvalidationHint } from "@pearl/shared";
 
 // ─── Mock HTMLDialogElement for jsdom ────────────────────
 // jsdom does not implement showModal/close on <dialog>

@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 // Writes go to the primary DB via bd CLI; reads come from a replica that syncs after each write.
 const sharedWebServer = [
   {
-    command: "pnpm --filter @beads-gui/backend dev",
+    command: "pnpm --filter @pearl/backend dev",
     url: "http://127.0.0.1:3456/api/health",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
@@ -19,7 +19,7 @@ const sharedWebServer = [
     stderr: "pipe" as const,
   },
   {
-    command: "pnpm --filter @beads-gui/frontend dev",
+    command: "pnpm --filter @pearl/frontend dev",
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

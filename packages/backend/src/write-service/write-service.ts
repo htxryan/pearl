@@ -4,7 +4,7 @@ import type {
   CreateCommentRequest,
   CreateDependencyRequest,
   MutationResponse,
-} from "@beads-gui/shared";
+} from "@pearl/shared";
 import type { Config } from "../config.js";
 import { WriteQueue } from "./queue.js";
 import { IssueWriter } from "./issue-writer.js";

@@ -43,7 +43,7 @@ describe("notification store", () => {
     markAsRead(id!);
 
     // Verify via localStorage
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     const notif = stored.find((n: any) => n.id === id);
     expect(notif?.read).toBe(true);
   });
@@ -64,7 +64,7 @@ describe("notification store", () => {
 
     markAllAsRead();
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored.every((n: any) => n.read === true)).toBe(true);
   });
 
@@ -78,7 +78,7 @@ describe("notification store", () => {
 
     dismissNotification(id!);
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored.find((n: any) => n.id === id)).toBeUndefined();
   });
 
@@ -98,7 +98,7 @@ describe("notification store", () => {
 
     clearAllNotifications();
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored).toHaveLength(0);
   });
 
@@ -112,7 +112,7 @@ describe("notification store", () => {
       });
     }
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored.length).toBeLessThanOrEqual(50);
   });
 
@@ -130,7 +130,7 @@ describe("notification store", () => {
       message: "Second",
     });
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored[0].issueId).toBe("second");
     expect(stored[1].issueId).toBe("first");
   });
@@ -150,7 +150,7 @@ describe("notification preferences", () => {
   it("setPreference persists to localStorage", () => {
     setPreference("issue_assigned", false);
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notification-prefs") ?? "{}");
+    const stored = JSON.parse(localStorage.getItem("pearl-notification-prefs") ?? "{}");
     expect(stored.issue_assigned).toBe(false);
   });
 
@@ -158,7 +158,7 @@ describe("notification preferences", () => {
     setPreference("status_changed", false);
     setPreference("browser_push", true);
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notification-prefs") ?? "{}");
+    const stored = JSON.parse(localStorage.getItem("pearl-notification-prefs") ?? "{}");
     expect(stored.status_changed).toBe(false);
     expect(stored.browser_push).toBe(true);
   });
@@ -179,7 +179,7 @@ describe("notifyCommentAdded", () => {
   it("creates a comment notification", () => {
     notifyCommentAdded("issue-1", "My Issue", "alice");
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored).toHaveLength(1);
     expect(stored[0].type).toBe("comment_added");
     expect(stored[0].issueId).toBe("issue-1");
@@ -192,7 +192,7 @@ describe("notifyCommentAdded", () => {
 
     notifyCommentAdded("issue-1", "My Issue", "alice");
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored).toHaveLength(0);
   });
 });
@@ -217,7 +217,7 @@ describe("cross-tab deduplication", () => {
     expect(first).toBeTruthy();
     expect(second).toBeNull();
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored).toHaveLength(1);
   });
 
@@ -237,7 +237,7 @@ describe("cross-tab deduplication", () => {
 
     expect(second).toBeTruthy();
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored).toHaveLength(2);
   });
 
@@ -257,7 +257,7 @@ describe("cross-tab deduplication", () => {
 
     expect(second).toBeTruthy();
 
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     expect(stored).toHaveLength(2);
   });
 
@@ -277,7 +277,7 @@ describe("cross-tab deduplication", () => {
 
     // Fire a storage event (simulating another tab's write)
     const event = new StorageEvent("storage", {
-      key: "beads-gui-notifications",
+      key: "pearl-notifications",
       newValue: JSON.stringify(externalNotifs),
     });
     window.dispatchEvent(event);
@@ -285,11 +285,11 @@ describe("cross-tab deduplication", () => {
     // The in-memory store should now reflect the external write.
     // We verify by trying to add a duplicate — the dedup check re-reads localStorage,
     // but the storage event updates the in-memory array directly.
-    const stored = JSON.parse(localStorage.getItem("beads-gui-notifications") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("pearl-notifications") ?? "[]");
     // localStorage itself wasn't changed by the event (browser does that),
     // but the in-memory notifications array was updated
     // We can verify by adding a non-duplicate and checking the total count
-    localStorage.setItem("beads-gui-notifications", JSON.stringify(externalNotifs));
+    localStorage.setItem("pearl-notifications", JSON.stringify(externalNotifs));
     const id = addNotification({
       type: "issue_assigned",
       issueId: "ext-1",

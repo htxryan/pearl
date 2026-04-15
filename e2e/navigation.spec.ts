@@ -3,7 +3,7 @@ import { test, expect } from "./fixtures";
 test.describe("Navigation", () => {
   test("root redirects to /list", async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
     });
     await page.goto("/");
     await page.waitForURL("**/list");

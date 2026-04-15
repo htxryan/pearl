@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { LabelWithCount, UpsertLabelRequest } from "@beads-gui/shared";
+import type { LabelWithCount, UpsertLabelRequest } from "@pearl/shared";
 import * as api from "@/lib/api-client";
 
 export const labelKeys = {

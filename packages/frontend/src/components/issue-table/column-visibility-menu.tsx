@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem } from "@pearl/shared";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 

@@ -1,4 +1,4 @@
-import type { LabelColor } from "@beads-gui/shared";
+import type { LabelColor } from "@pearl/shared";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 

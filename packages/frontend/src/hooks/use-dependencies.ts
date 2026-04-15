@@ -1,5 +1,5 @@
 import { useQuery, useIsMutating } from "@tanstack/react-query";
-import type { Dependency } from "@beads-gui/shared";
+import type { Dependency } from "@pearl/shared";
 import * as api from "@/lib/api-client";
 import { dependencyKeys } from "./use-issues";
 

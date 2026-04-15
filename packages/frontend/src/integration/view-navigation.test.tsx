@@ -191,7 +191,7 @@ import { ListView } from "@/views/list-view";
 import { BoardView } from "@/views/board-view";
 import { GraphView } from "@/views/graph-view";
 import { DetailView } from "@/views/detail-view";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem } from "@pearl/shared";
 
 // ─── Test Data ───────────────────────────────────────────
 const mockIssues: IssueListItem[] = [

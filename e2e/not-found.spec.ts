@@ -4,7 +4,7 @@ test.describe("404 Page", () => {
   test("shows 404 page for invalid route", async ({ page }) => {
     // Dismiss onboarding
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
     });
 
     await page.goto("/some-invalid-route");
@@ -16,7 +16,7 @@ test.describe("404 Page", () => {
 
   test("404 page has navigation buttons", async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
     });
 
     await page.goto("/does-not-exist");
@@ -30,7 +30,7 @@ test.describe("404 Page", () => {
 
   test("404 navigation button goes to list view", async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
     });
 
     await page.goto("/nope");

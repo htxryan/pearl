@@ -1,6 +1,6 @@
 import { memo, useState, useCallback } from "react";
 import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
-import type { IssueListItem, IssueStatus, LabelColor } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus, LabelColor } from "@pearl/shared";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
 import { LabelBadge } from "@/components/ui/label-badge";

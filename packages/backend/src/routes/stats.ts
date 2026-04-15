@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { StatsResponse } from "@beads-gui/shared";
+import type { StatsResponse } from "@pearl/shared";
 import { queryWithRetry } from "../dolt/pool.js";
 import type { Config } from "../config.js";
 import type { RowDataPacket } from "mysql2";

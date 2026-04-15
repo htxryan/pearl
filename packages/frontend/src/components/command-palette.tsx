@@ -6,7 +6,7 @@ import {
 } from "@/hooks/use-command-palette";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem } from "@pearl/shared";
 import * as api from "@/lib/api-client";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";

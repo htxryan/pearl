@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem } from "@pearl/shared";
 
 // Mock @xyflow/react — only Handle is used directly in GraphNode
 vi.mock("@xyflow/react", () => ({

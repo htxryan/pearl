@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
-import type { LabelColor } from "@beads-gui/shared";
-import { LABEL_COLORS } from "@beads-gui/shared";
+import type { LabelColor } from "@pearl/shared";
+import { LABEL_COLORS } from "@pearl/shared";
 import { queryWithRetry } from "../dolt/pool.js";
 import { validationError } from "../errors.js";
 import type { Config } from "../config.js";

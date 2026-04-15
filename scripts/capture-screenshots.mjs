@@ -15,7 +15,7 @@ async function capture() {
 
   // Clear onboarding so it doesn't cover the UI
   await page.goto(`${BASE_URL}/list`);
-  await page.evaluate(() => localStorage.setItem('beads-gui-onboarding-complete', 'true'));
+  await page.evaluate(() => localStorage.setItem('pearl-onboarding-complete', 'true'));
   await page.reload();
   await page.waitForSelector('table', { timeout: 10000 });
   await sleep(2000);
@@ -232,12 +232,12 @@ async function capture() {
 
   // ── 18. Onboarding banner (clear storage to show it) ──
   console.log('18. Onboarding banner...');
-  await page.evaluate(() => localStorage.removeItem('beads-gui-onboarding-complete'));
+  await page.evaluate(() => localStorage.removeItem('pearl-onboarding-complete'));
   await page.reload();
   await sleep(2000);
   await page.screenshot({ path: 'docs/demo/20-onboarding-banner.png', fullPage: false });
   // Dismiss onboarding
-  await page.evaluate(() => localStorage.setItem('beads-gui-onboarding-complete', 'true'));
+  await page.evaluate(() => localStorage.setItem('pearl-onboarding-complete', 'true'));
 
   console.log(`Done! ${20} screenshots in docs/demo/`);
   await browser.close();

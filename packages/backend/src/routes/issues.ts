@@ -5,8 +5,8 @@ import type {
   IssueType,
   CreateIssueRequest,
   UpdateIssueRequest,
-} from "@beads-gui/shared";
-import { ISSUE_LIST_FIELDS } from "@beads-gui/shared";
+} from "@pearl/shared";
+import { ISSUE_LIST_FIELDS } from "@pearl/shared";
 import { queryWithRetry } from "../dolt/pool.js";
 import { notFoundError, validationError } from "../errors.js";
 import type { Config } from "../config.js";

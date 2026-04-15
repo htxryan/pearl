@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import type { Priority, IssueStatus } from "@beads-gui/shared";
-import { ISSUE_STATUSES } from "@beads-gui/shared";
+import type { Priority, IssueStatus } from "@pearl/shared";
+import { ISSUE_STATUSES } from "@pearl/shared";
 import { Button } from "@/components/ui/button";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import type { LabelColor, LabelWithCount } from "@beads-gui/shared";
-import { LABEL_COLORS } from "@beads-gui/shared";
+import type { LabelColor, LabelWithCount } from "@pearl/shared";
+import { LABEL_COLORS } from "@pearl/shared";
 import { useLabels, useCreateLabel } from "@/hooks/use-labels";
 import { useTheme } from "@/hooks/use-theme";
 import { LabelBadge, LABEL_PALETTE } from "./label-badge";

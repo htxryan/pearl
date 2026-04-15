@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router";
-import type { IssueListItem, Dependency } from "@beads-gui/shared";
+import type { IssueListItem, Dependency } from "@pearl/shared";
 
 // Mock navigation
 const mockNavigate = vi.fn();

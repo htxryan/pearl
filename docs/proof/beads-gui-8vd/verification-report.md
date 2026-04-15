@@ -156,7 +156,7 @@ Fixed `graph-view.tsx:137` — removed comparison with `"parent-child"` which is
 | Sidebar shows icons next to labels | PASS | `sidebar.tsx:6-36` defines 3 inline SVG icons (ListIcon, BoardIcon, GraphIcon), each 16x16 stroke-based. `sidebar.tsx:64` renders `{item.icon}` alongside `{item.label}` in NavLinks |
 | Detail view shows breadcrumbs | PASS | `detail-view.tsx:38-51` computes backPath/backLabel from location state. Renders `aria-label="Breadcrumb"` nav with clickable back button (view name) + separator "/" + issue ID |
 | Timestamps show relative, hover shows absolute | PASS | `ui/relative-time.tsx:19-28` renders `<time dateTime={iso} title={formatAbsoluteTime(iso)}>` with `formatRelativeTime(iso)` as text content. Used in detail-view, comment-thread, activity-timeline, and list columns |
-| First-time users see onboarding hints | PASS | `onboarding.tsx:61-128` renders banner with 5 steps, localStorage persistence (`beads-gui-onboarding-complete`). Skip/Next/Get Started buttons. Progress bar. Rendered in `app-shell.tsx:128` |
+| First-time users see onboarding hints | PASS | `onboarding.tsx:61-128` renders banner with 5 steps, localStorage persistence (`pearl-onboarding-complete`). Skip/Next/Get Started buttons. Progress bar. Rendered in `app-shell.tsx:128` |
 
 ## Test Coverage Summary
 

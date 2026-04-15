@@ -303,7 +303,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
       selectThemeViaSettings("Monokai");
 
-      expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
     });
 
     it("persists theme cache JSON to localStorage", () => {
@@ -311,7 +311,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
       selectThemeViaSettings("Monokai");
 
-      const cache = localStorage.getItem("beads-gui-theme-cache");
+      const cache = localStorage.getItem("pearl-theme-cache");
       expect(cache).toBeTruthy();
       const parsed = JSON.parse(cache!);
       expect(parsed.colorScheme).toBe("dark");
@@ -346,7 +346,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
       selectThemeViaCommandPalette("Monokai");
 
-      expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
     });
 
     it("produces identical outcomes whether theme is set via Settings or Command Palette", () => {
@@ -357,7 +357,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const cpBackground =
         document.documentElement.style.getPropertyValue("--color-background");
       const cpDark = document.documentElement.classList.contains("dark");
-      const cpStored = localStorage.getItem("beads-gui-theme");
+      const cpStored = localStorage.getItem("pearl-theme");
 
       unmount1();
       localStorage.clear();
@@ -371,7 +371,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const settBackground =
         document.documentElement.style.getPropertyValue("--color-background");
       const settDark = document.documentElement.classList.contains("dark");
-      const settStored = localStorage.getItem("beads-gui-theme");
+      const settStored = localStorage.getItem("pearl-theme");
 
       expect(cpBackground).toBe(settBackground);
       expect(cpDark).toBe(settDark);
@@ -420,10 +420,10 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       renderApp("/settings");
 
       selectThemeViaSettings("Monokai");
-      expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
 
       selectThemeViaSettings("Solarized Light");
-      expect(localStorage.getItem("beads-gui-theme")).toBe(
+      expect(localStorage.getItem("pearl-theme")).toBe(
         "vscode-solarized-light",
       );
     });
@@ -455,7 +455,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const { unmount } = renderApp("/settings");
 
       selectThemeViaSettings("Monokai");
-      expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
       expect(document.documentElement.classList.contains("dark")).toBe(true);
 
       // Unmount React tree (simulates SPA navigation / route change)
@@ -474,14 +474,14 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const { unmount } = renderApp("/settings");
 
       selectThemeViaSettings("Solarized Light");
-      expect(localStorage.getItem("beads-gui-theme")).toBe(
+      expect(localStorage.getItem("pearl-theme")).toBe(
         "vscode-solarized-light",
       );
 
       unmount();
 
       // After unmount, localStorage still holds the theme for next load
-      expect(localStorage.getItem("beads-gui-theme")).toBe(
+      expect(localStorage.getItem("pearl-theme")).toBe(
         "vscode-solarized-light",
       );
 
@@ -499,7 +499,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const { unmount } = renderApp("/list");
 
       selectThemeViaCommandPalette("Monokai");
-      expect(localStorage.getItem("beads-gui-theme")).toBe("vscode-monokai");
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
 
       unmount();
       renderApp("/settings");
@@ -587,7 +587,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
         document.documentElement.style.getPropertyValue("--color-background"),
       ).toBe(lightPlus.colors.background);
       expect(document.documentElement.classList.contains("dark")).toBe(false);
-      expect(localStorage.getItem("beads-gui-theme")).toBe(
+      expect(localStorage.getItem("pearl-theme")).toBe(
         "vscode-light-plus",
       );
     });

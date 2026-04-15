@@ -9,7 +9,7 @@ import {
   type ColumnOrderState,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem } from "@pearl/shared";
 import { IssueTable } from "./issue-table";
 import { buildColumns } from "./columns";
 

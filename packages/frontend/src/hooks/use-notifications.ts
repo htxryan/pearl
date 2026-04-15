@@ -2,7 +2,7 @@ import { useSyncExternalStore, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchIssues } from "@/lib/api-client";
 import { issueKeys } from "./use-issues";
-import type { IssueListItem, IssueStatus } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus } from "@pearl/shared";
 
 // ─── Types ────────────────────────────────────────────
 export type NotificationType =
@@ -38,9 +38,9 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
 };
 
 // ─── Storage Keys ─────────────────────────────────────
-const NOTIFICATIONS_KEY = "beads-gui-notifications";
-const PREFS_KEY = "beads-gui-notification-prefs";
-const SNAPSHOT_KEY = "beads-gui-notification-snapshot";
+const NOTIFICATIONS_KEY = "pearl-notifications";
+const PREFS_KEY = "pearl-notification-prefs";
+const SNAPSHOT_KEY = "pearl-notification-snapshot";
 
 // ─── Issue Snapshot (for change detection) ────────────
 interface IssueSnapshot {
@@ -380,7 +380,7 @@ export function useNotificationPoller() {
         const added = addNotification(change);
         if (added && currentPrefs.browser_push) {
           sendBrowserNotification(
-            "Beads GUI",
+            "Pearl",
             change.message,
             change.issueId,
           );

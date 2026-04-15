@@ -111,7 +111,7 @@ test.describe("List View", () => {
 
   test("shows data after loading", async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
     });
     await page.goto("/list");
 

@@ -17,7 +17,7 @@ import {
   MarkerType,
 } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
-import type { IssueListItem, Dependency, DependencyType } from "@beads-gui/shared";
+import type { IssueListItem, Dependency, DependencyType } from "@pearl/shared";
 import { useIssues } from "@/hooks/use-issues";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";

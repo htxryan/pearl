@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import type { Event } from "@beads-gui/shared";
+import type { Event } from "@pearl/shared";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 

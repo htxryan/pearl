@@ -15,7 +15,7 @@ export const test = base.extend<{
   seededPage: async ({ page }, use) => {
     // Dismiss onboarding banner so it doesn't interfere with tests
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
     });
 
     // Navigate to app root (redirects to /list)

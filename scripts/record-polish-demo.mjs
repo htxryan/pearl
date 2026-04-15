@@ -116,7 +116,7 @@ async function demo() {
   // Setup
   await page.goto(`${BASE_URL}/list`);
   await page.evaluate(() => {
-    localStorage.setItem('beads-gui-onboarding-complete', 'true');
+    localStorage.setItem('pearl-onboarding-complete', 'true');
   });
   await page.reload();
   await page.waitForSelector('table', { timeout: 10000 });

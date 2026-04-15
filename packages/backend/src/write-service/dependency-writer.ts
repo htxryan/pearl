@@ -1,4 +1,4 @@
-import type { CreateDependencyRequest, InvalidationHint } from "@beads-gui/shared";
+import type { CreateDependencyRequest, InvalidationHint } from "@pearl/shared";
 import type { Config } from "../config.js";
 import { runBd } from "./bd-runner.js";
 import { validationError } from "../errors.js";

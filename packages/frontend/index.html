@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Beads GUI</title>
+    <title>Pearl</title>
     <script>
       // Boot script: apply theme before first paint to prevent FOTC.
       // Reads cached theme data from localStorage (written by useTheme hook).
       // Must run synchronously before any rendering occurs.
       (function () {
         try {
-          var cache = localStorage.getItem("beads-gui-theme-cache");
+          var cache = localStorage.getItem("pearl-theme-cache");
           if (cache) {
             var data = JSON.parse(cache);
             var root = document.documentElement;

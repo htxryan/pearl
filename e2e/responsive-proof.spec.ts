@@ -21,7 +21,7 @@ const VIEWPORTS = {
 /** Seed localStorage and navigate; call AFTER setViewportSize. */
 async function seedAndNavigate(page: Page, path: string) {
   await page.addInitScript(() => {
-    localStorage.setItem("beads-gui-onboarding-complete", "true");
+    localStorage.setItem("pearl-onboarding-complete", "true");
   });
   await page.goto(path);
 }
@@ -166,7 +166,7 @@ test.describe("Detail view responsive", () => {
   test("desktop: detail view with fields visible", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.desktop_lg);
     await page.addInitScript(() => {
-      localStorage.setItem("beads-gui-onboarding-complete", "true");
+      localStorage.setItem("pearl-onboarding-complete", "true");
       // Ensure panel mode is off so clicks navigate
       localStorage.removeItem("beads:panel-mode");
     });

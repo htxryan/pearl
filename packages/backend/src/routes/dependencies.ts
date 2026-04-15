@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { CreateDependencyRequest } from "@beads-gui/shared";
+import type { CreateDependencyRequest } from "@pearl/shared";
 import { queryWithRetry } from "../dolt/pool.js";
 import type { Config } from "../config.js";
 import type { WriteService } from "../write-service/write-service.js";

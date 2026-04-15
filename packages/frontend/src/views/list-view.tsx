@@ -9,7 +9,7 @@ import {
   type ColumnSizingState,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import type { IssueStatus, Priority } from "@beads-gui/shared";
+import type { IssueStatus, Priority } from "@pearl/shared";
 import { IssueTable } from "@/components/issue-table/issue-table";
 import { FilterBar, GROUP_BY_LABELS, type GroupByField } from "@/components/issue-table/filter-bar";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
@@ -19,7 +19,7 @@ import { buildColumns, type EpicProgress } from "@/components/issue-table/column
 import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys, prefetchIssueDetail } from "@/hooks/use-issues";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useQueryClient } from "@tanstack/react-query";
-import type { IssueListItem } from "@beads-gui/shared";
+import type { IssueListItem } from "@pearl/shared";
 import * as api from "@/lib/api-client";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";

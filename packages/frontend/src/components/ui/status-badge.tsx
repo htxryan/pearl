@@ -1,4 +1,4 @@
-import type { IssueStatus } from "@beads-gui/shared";
+import type { IssueStatus } from "@pearl/shared";
 import { cn } from "@/lib/utils";
 
 const statusConfig: Record<IssueStatus, { label: string; className: string }> = {

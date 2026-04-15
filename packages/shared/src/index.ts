@@ -1,4 +1,4 @@
-// Beads GUI — Shared API Types
+// Pearl — Shared API Types
 // This package defines the contract between backend and frontend.
 
 // ─── Label Types ─────────────────────────────────────────────

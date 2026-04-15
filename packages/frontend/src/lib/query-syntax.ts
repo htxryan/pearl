@@ -7,8 +7,8 @@
  * Recognized keys: status, priority, type, assignee, label, due, has, is, no
  */
 
-import type { IssueStatus, IssueType, Priority } from "@beads-gui/shared";
-import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@beads-gui/shared";
+import type { IssueStatus, IssueType, Priority } from "@pearl/shared";
+import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@pearl/shared";
 import type { FilterState } from "@/components/issue-table/filter-bar";
 
 const VALID_STATUSES = new Set<string>(ISSUE_STATUSES);

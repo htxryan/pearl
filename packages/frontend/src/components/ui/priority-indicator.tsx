@@ -1,4 +1,4 @@
-import type { Priority } from "@beads-gui/shared";
+import type { Priority } from "@pearl/shared";
 import { cn } from "@/lib/utils";
 
 const priorityConfig: Record<Priority, { label: string; className: string }> = {

@@ -1,5 +1,5 @@
-# beads-gui
+# Pearl: A Beads Web UI
 
-[![CI](https://github.com/htxryan/beads-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/htxryan/beads-gui/actions/workflows/ci.yml)
+[![CI](https://github.com/htxryan/pearl/actions/workflows/ci.yml/badge.svg)](https://github.com/htxryan/pearl/actions/workflows/ci.yml)
 
-Rich web GUI for the Beads AI work management system
+Rich web UI for the Beads AI work management system

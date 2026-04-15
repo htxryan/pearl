@@ -1,11 +1,11 @@
 ---
 name: Capture Demo
-description: Capture comprehensive screenshots and an annotated walkthrough video of the beads-gui app showcasing EVERY feature, with cursor tracking, keystroke display, region highlights, and ffmpeg captions. Validates output before delivering.
+description: Capture comprehensive screenshots and an annotated walkthrough video of the pearl app showcasing EVERY feature, with cursor tracking, keystroke display, region highlights, and ffmpeg captions. Validates output before delivering.
 ---
 
 # Capture Demo
 
-Captures screenshots and a fully-annotated walkthrough video of the beads-gui app, validates the output, commits to git, pushes, and returns GitHub links.
+Captures screenshots and a fully-annotated walkthrough video of the pearl app, validates the output, commits to git, pushes, and returns GitHub links.
 
 ## Key Principles
 
@@ -85,10 +85,10 @@ The recording script:
 ```bash
 mkdir -p docs/demo/_validate
 # Extract frames at ~10 evenly-spaced points through the video
-DURATION=$(ffprobe -v error -show_entries format=duration -of csv=p=0 docs/demo/beads-gui-demo.webm | cut -d. -f1)
+DURATION=$(ffprobe -v error -show_entries format=duration -of csv=p=0 docs/demo/pearl-demo.webm | cut -d. -f1)
 for pct in 10 20 30 40 50 60 70 80 90; do
   ts=$((DURATION * pct / 100))
-  ffmpeg -y -ss "$ts" -i docs/demo/beads-gui-demo.webm -frames:v 1 "docs/demo/_validate/frame-${ts}s.png" 2>/dev/null
+  ffmpeg -y -ss "$ts" -i docs/demo/pearl-demo.webm -frames:v 1 "docs/demo/_validate/frame-${ts}s.png" 2>/dev/null
 done
 ```
 
@@ -216,4 +216,4 @@ When new features are added to the app:
 - Video is WebM format with VP9 encoding
 - ffmpeg captions use drawtext filter — requires libfreetype
 - Screenshots overwrite previous versions in docs/demo/
-- Dismiss the onboarding banner at start: `localStorage.setItem('beads-gui-onboarding-complete', 'true')`
+- Dismiss the onboarding banner at start: `localStorage.setItem('pearl-onboarding-complete', 'true')`

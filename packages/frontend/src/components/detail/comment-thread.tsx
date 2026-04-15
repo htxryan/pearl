@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Comment } from "@beads-gui/shared";
+import type { Comment } from "@pearl/shared";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 

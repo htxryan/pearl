@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { IssueListItem, LabelColor } from "@beads-gui/shared";
+import type { IssueListItem, LabelColor } from "@pearl/shared";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";

@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test';
 import { execSync } from 'child_process';
 
 const BASE_URL = 'http://localhost:5173';
-const FINAL_VIDEO = './docs/demo/beads-gui-demo.webm';
+const FINAL_VIDEO = './docs/demo/pearl-demo.webm';
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -183,7 +183,7 @@ async function demo() {
   // Setup
   await page.goto(`${BASE_URL}/list`);
   await page.evaluate(() => {
-    localStorage.setItem('beads-gui-onboarding-complete', 'true');
+    localStorage.setItem('pearl-onboarding-complete', 'true');
     localStorage.removeItem('beads:col-visibility');
     localStorage.removeItem('beads:col-order');
     localStorage.removeItem('beads:col-sizing');
@@ -547,7 +547,7 @@ async function demo() {
   await sleep(5000);
 
   cap.mark('Onboarding Tour \u2014 Progressive 5-step welcome for new users');
-  await page.evaluate(() => localStorage.removeItem('beads-gui-onboarding-complete'));
+  await page.evaluate(() => localStorage.removeItem('pearl-onboarding-complete'));
   await page.goto(`${BASE_URL}/list`);
   await injectOverlays(page); await page.mouse.move(720, 300);
   await sleep(4000);
@@ -563,10 +563,10 @@ async function demo() {
   if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
     await skipBtn.click(); await sleep(800);
   }
-  await page.evaluate(() => localStorage.setItem('beads-gui-onboarding-complete', 'true'));
+  await page.evaluate(() => localStorage.setItem('pearl-onboarding-complete', 'true'));
 
   // Final
-  cap.mark('Beads GUI \u2014 Built with React, Fastify, Dolt, and love');
+  cap.mark('Pearl \u2014 Built with React, Fastify, Dolt, and love');
   await page.goto(`${BASE_URL}/list`);
   await injectOverlays(page); await page.mouse.move(720, 450);
   await sleep(5000);

@@ -4,7 +4,7 @@ import {
   type Row,
   type Table,
 } from "@tanstack/react-table";
-import type { IssueListItem, IssueStatus, Priority, IssueType } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus, Priority, IssueType } from "@pearl/shared";
 import { cn } from "@/lib/utils";
 import type { GroupByField } from "./filter-bar";
 

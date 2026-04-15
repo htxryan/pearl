@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { IssueListItem, IssueStatus, LabelColor } from "@beads-gui/shared";
+import type { IssueListItem, IssueStatus, LabelColor } from "@pearl/shared";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
 import { LabelBadge } from "@/components/ui/label-badge";

@@ -14,7 +14,7 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@beads-gui/shared";
+import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@pearl/shared";
 import { cn } from "@/lib/utils";
 import { KanbanColumn } from "@/components/board/kanban-column";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";

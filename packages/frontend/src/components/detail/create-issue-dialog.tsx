@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { IssueType, Priority } from "@beads-gui/shared";
-import { ISSUE_TYPES, ISSUE_PRIORITIES } from "@beads-gui/shared";
+import type { IssueType, Priority } from "@pearl/shared";
+import { ISSUE_TYPES, ISSUE_PRIORITIES } from "@pearl/shared";
 import { useCreateIssue } from "@/hooks/use-issues";
 import { useDraft } from "@/hooks/use-draft";
 import { Button } from "@/components/ui/button";
