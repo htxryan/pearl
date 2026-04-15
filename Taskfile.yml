@@ -100,13 +100,18 @@ tasks:
   publish:
     desc: Build and publish pearl-bdui to npm
     dir: packages/pearl-bdui
+    dotenv: ['../../.env']
     cmds:
       - npm publish
+    env:
+      NPM_CONFIG_//registry.npmjs.org/:_authToken: '{{.NPM_TOKEN}}'
     preconditions:
       - sh: command -v npm
         msg: "npm is required"
       - sh: test -f package.json
         msg: "package.json not found — is packages/pearl-bdui missing?"
+      - sh: test -n "$NPM_TOKEN"
+        msg: "NPM_TOKEN not set — add it to .env or export it"
 
   publish:dry:
     desc: Dry-run publish (build + pack, no upload)

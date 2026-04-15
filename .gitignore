@@ -15,6 +15,10 @@ packages/*/dist/
 packages/pearl-bdui/frontend-dist/
 *.tsbuildinfo
 
+# Environment (secrets)
+.env
+.env.local
+
 # Dependencies
 node_modules/
 
