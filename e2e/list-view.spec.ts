@@ -33,7 +33,7 @@ test.describe("List View", () => {
     const initialCount = await dataRows.count();
     expect(initialCount).toBeGreaterThan(0);
 
-    const searchInput = page.getByPlaceholder(/search/i).first();
+    const searchInput = page.getByLabel("Search issues");
     await searchInput.fill("implement");
 
     // Wait for filter to take effect
