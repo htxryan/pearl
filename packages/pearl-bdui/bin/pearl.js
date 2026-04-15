@@ -17,12 +17,12 @@ async function main() {
   // Handle --version / --help before anything else
   const arg = process.argv[2];
   if (arg === "--version" || arg === "-v") {
-    console.log(`pearl-bdui v${VERSION}`);
+    console.log(`pearl-bdui v${VERSION} — Beads Web UI`);
     process.exit(0);
   }
   if (arg === "--help" || arg === "-h") {
     console.log(`
-  pearl-bdui v${VERSION}
+  pearl-bdui v${VERSION} — Beads Web UI
 
   Usage: pearl-bdui [options]
 
