@@ -33,7 +33,7 @@ test.describe("List View", () => {
     const initialCount = await rows.count();
 
     const searchInput = page.getByPlaceholder(/search/i).first();
-    await searchInput.fill("dashboard");
+    await searchInput.fill("Epic");
 
     // Poll for filtered results instead of fixed timeout
     await expect.poll(
@@ -46,7 +46,7 @@ test.describe("List View", () => {
 
     // First result should contain the search term
     const firstTitle = await rows.first().locator("td").nth(2).textContent();
-    expect(firstTitle?.toLowerCase()).toContain("dashboard");
+    expect(firstTitle?.toLowerCase()).toContain("epic");
   });
 
   test("sort by column header click", async ({ seededPage: page }) => {

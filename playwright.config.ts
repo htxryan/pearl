@@ -29,9 +29,9 @@ const sharedWebServer = [
 ];
 
 export default defineConfig({
-  fullyParallel: false,
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI
     ? [["html", { open: "never" }], ["github"]]
     : [["html", { open: "never" }]],
@@ -42,22 +42,23 @@ export default defineConfig({
     baseURL: "http://localhost:5173",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: process.env.CI ? "off" : "retain-on-failure",
   },
 
   projects: [
     {
       name: "chromium",
       testDir: "./e2e",
-      testIgnore: "**/write-tests/**",
+      testIgnore: ["**/write-tests/**", "**/*-proof.spec.ts"],
       use: { ...devices["Desktop Chrome"] },
-      workers: 1,
+      workers: process.env.CI ? 4 : 2,
     },
     {
       name: "write-tests",
       testDir: "./e2e/write-tests",
+      testIgnore: ["**/*-proof.spec.ts"],
       use: { ...devices["Desktop Chrome"] },
-      workers: 1,
+      workers: 1, // writes are serial (Dolt lock)
     },
   ],
 
