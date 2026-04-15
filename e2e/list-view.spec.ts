@@ -31,19 +31,24 @@ test.describe("List View", () => {
     // Ensure data rows are loaded (not skeletons)
     const dataRows = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])');
     const initialCount = await dataRows.count();
-    expect(initialCount).toBeGreaterThan(0);
+    expect(initialCount).toBeGreaterThan(1);
 
+    // Type a nonsense query that won't match any issue
     const searchInput = page.getByLabel("Search issues");
-    await searchInput.fill("implement");
+    await searchInput.fill("zzzznotfound");
 
-    // Wait for filter to take effect
+    // Wait for filter to reduce to 0 rows
     await expect.poll(
       () => dataRows.count(),
-      { message: "Expected fewer rows after filtering", timeout: 10_000 },
-    ).toBeLessThan(initialCount);
+      { message: "Expected rows to be filtered out", timeout: 10_000 },
+    ).toBe(0);
 
-    const count = await dataRows.count();
-    expect(count).toBeGreaterThan(0);
+    // Clear search — rows should come back
+    await searchInput.clear();
+    await expect.poll(
+      () => dataRows.count(),
+      { message: "Expected rows to return after clearing search", timeout: 10_000 },
+    ).toBe(initialCount);
   });
 
   test("sort by column header click", async ({ seededPage: page }) => {
