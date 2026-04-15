@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 // Writes go to the primary DB via bd CLI; reads come from a replica that syncs after each write.
 const sharedWebServer = [
   {
-    command: "pnpm --filter @pearl/backend dev",
+    command: "pnpm --filter pearl-bdui dev",
     url: "http://127.0.0.1:3456/api/health",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

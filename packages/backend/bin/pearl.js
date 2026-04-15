@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadConfig } from "../dist/config.js";
 import { createServer } from "../dist/server.js";
 
-const VERSION = process.env.npm_package_version || "0.1.0";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const VERSION = JSON.parse(
+  readFileSync(resolve(__dirname, "..", "package.json"), "utf-8")
+).version;
 
 async function main() {
   // Handle --version / --help before anything else

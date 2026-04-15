@@ -26,9 +26,14 @@ const __dirname = dirname(__filename);
  */
 function findFrontendDist(): string | null {
   // Skip static serving in dev mode — Vite handles it.
-  // Detect workspace by checking for pnpm-workspace.yaml at project root.
+  // Detect the Pearl development workspace specifically by checking for
+  // pnpm-workspace.yaml AND the Pearl frontend package at the expected path.
+  // This avoids false positives when pearl-bdui is installed inside any pnpm monorepo.
   const workspaceRoot = resolve(__dirname, "..", "..", "..");
-  if (existsSync(resolve(workspaceRoot, "pnpm-workspace.yaml"))) return null;
+  if (
+    existsSync(resolve(workspaceRoot, "pnpm-workspace.yaml")) &&
+    existsSync(resolve(workspaceRoot, "packages", "frontend", "package.json"))
+  ) return null;
 
   // Published package layout: pearl-bdui/frontend-dist/
   const publishedPath = resolve(__dirname, "..", "frontend-dist");

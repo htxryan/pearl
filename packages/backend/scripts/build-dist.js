@@ -10,17 +10,16 @@
 
 import { execSync } from "node:child_process";
 import {
-  cpSync, rmSync, existsSync, lstatSync, mkdirSync,
+  cpSync, rmSync, existsSync, mkdirSync,
   readFileSync, writeFileSync, readdirSync,
 } from "node:fs";
-import { resolve, dirname, relative, posix } from "node:path";
+import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const backendRoot = resolve(__dirname, "..");
 const packagesRoot = resolve(backendRoot, "..");
-const projectRoot = resolve(packagesRoot, "..");
 const sharedRoot = resolve(packagesRoot, "shared");
 const frontendRoot = resolve(packagesRoot, "frontend");
 
@@ -98,7 +97,7 @@ function rewriteImports(dir, distRoot) {
       rewriteImports(fullPath, distRoot);
     } else if (entry.name.endsWith(".js")) {
       let content = readFileSync(fullPath, "utf-8");
-      if (content.includes('"@pearl/shared"')) {
+      if (content.includes("@pearl/shared")) {
         // Calculate relative path from this file to dist/_shared/index.js
         const fileDir = dirname(fullPath);
         let relPath = relative(fileDir, resolve(distRoot, "_shared", "index.js"));
@@ -107,7 +106,7 @@ function rewriteImports(dir, distRoot) {
         if (!relPath.startsWith(".")) relPath = "./" + relPath;
 
         content = content.replace(
-          /from\s+"@pearl\/shared"/g,
+          /from\s+["']@pearl\/shared["']/g,
           `from "${relPath}"`
         );
         writeFileSync(fullPath, content);
