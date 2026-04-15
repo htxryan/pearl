@@ -20,17 +20,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * Find the frontend dist directory.
- * Works in both monorepo (../frontend/dist) and published package (../frontend-dist) layouts.
+ * Find the frontend dist directory for static file serving.
+ * Only returns a path when running from an installed package (not in dev mode).
+ * In dev mode (workspace detected), Vite dev server handles the frontend.
  */
 function findFrontendDist(): string | null {
+  // Skip static serving in dev mode — Vite handles it.
+  // Detect workspace by checking for pnpm-workspace.yaml at project root.
+  const workspaceRoot = resolve(__dirname, "..", "..", "..");
+  if (existsSync(resolve(workspaceRoot, "pnpm-workspace.yaml"))) return null;
+
   // Published package layout: pearl-bdui/frontend-dist/
   const publishedPath = resolve(__dirname, "..", "frontend-dist");
   if (existsSync(resolve(publishedPath, "index.html"))) return publishedPath;
-
-  // Monorepo layout: packages/backend/dist → packages/frontend/dist
-  const monorepoPath = resolve(__dirname, "..", "..", "frontend", "dist");
-  if (existsSync(resolve(monorepoPath, "index.html"))) return monorepoPath;
 
   return null;
 }
