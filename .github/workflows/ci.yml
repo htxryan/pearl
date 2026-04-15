@@ -169,7 +169,7 @@ jobs:
       - name: Install beads (bd CLI)
         run: |
           BD_VERSION="1.0.0"
-          curl -sL "https://github.com/gastownhall/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" | tar xz --strip-components=1 -C /usr/local/bin "beads_${BD_VERSION}_linux_amd64/bd"
+          curl -sL "https://github.com/gastownhall/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" | tar xz -C /usr/local/bin bd
 
       - name: Seed E2E database
         run: bash e2e/setup-db.sh
