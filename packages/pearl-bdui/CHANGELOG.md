@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.3.0...pearl-bdui-v0.4.0) (2026-04-15)
+
+
+### Features
+
+* add tagline to CLI version output ([#6](https://github.com/htxryan/pearl/issues/6)) ([bf4fc52](https://github.com/htxryan/pearl/commit/bf4fc52169e0eeed56ca2064f10dd9495c6208e5))
+
 ## [0.3.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.2.0...pearl-bdui-v0.3.0) (2026-04-15)
 
 
