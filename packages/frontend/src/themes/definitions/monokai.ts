@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const monokai: ThemeDefinition = {
+  id: "vscode-monokai",
+  name: "Monokai",
+  colorScheme: "dark",
+  colors: {
+    background: "#272822",
+    foreground: "#f8f8f2",
+    muted: "#2d2e27",
+    "muted-foreground": "#88846f",
+    border: "#3b3a32",
+    primary: "#66d9ef",
+    "primary-foreground": "#272822",
+    accent: "#3e3d32",
+    "accent-foreground": "#a6e22e",
+    destructive: "#f92672",
+    ring: "#66d9ef",
+    info: "#66d9ef",
+    "info-foreground": "#a0ecff",
+    success: "#a6e22e",
+    "success-foreground": "#c8f77e",
+    warning: "#e6db74",
+    "warning-foreground": "#f3edaa",
+    danger: "#f92672",
+    "danger-foreground": "#fc7eab",
+    surface: "#272822",
+    "surface-raised": "#2d2e27",
+  },
+};

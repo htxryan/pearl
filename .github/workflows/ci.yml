@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Install dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm --filter @pearl/shared run build
+
+      - name: Cache workspace
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ github.sha }}
+
+  typecheck:
+    name: Typecheck
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - run: pnpm typecheck
+
+  test:
+    name: Test
+    needs: [install, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore build
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+            packages/pearl-bdui/dist
+            packages/frontend/dist
+          key: build-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - run: pnpm test
+
+  build:
+    name: Build
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - run: pnpm build
+
+      - name: Cache build output
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+            packages/pearl-bdui/dist
+            packages/frontend/dist
+          key: build-${{ github.sha }}
+
+  e2e:
+    name: E2E Tests
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore build
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+            packages/pearl-bdui/dist
+            packages/frontend/dist
+          key: build-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Install Dolt
+        run: |
+          DOLT_VERSION="1.85.0"
+          curl -L "https://github.com/dolthub/dolt/releases/download/v${DOLT_VERSION}/install.sh" | sudo bash
+
+      - name: Install beads (bd CLI)
+        run: |
+          BD_VERSION="1.0.0"
+          curl -sL "https://github.com/gastownhall/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" | tar xz -C /usr/local/bin bd
+
+      - name: Seed E2E database
+        run: bash e2e/setup-db.sh
+
+      - name: Install Playwright (browsers + system deps)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload failure screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-failure-artifacts
+          path: test-results/
+          retention-days: 7

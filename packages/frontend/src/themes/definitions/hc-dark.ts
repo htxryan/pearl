@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const hcDark: ThemeDefinition = {
+  id: "vscode-hc-dark",
+  name: "High Contrast Dark",
+  colorScheme: "dark",
+  colors: {
+    background: "#000000",
+    foreground: "#ffffff",
+    muted: "#0a0a0a",
+    "muted-foreground": "#c0c0c0",
+    border: "#6fc3df",
+    primary: "#6fc3df",
+    "primary-foreground": "#000000",
+    accent: "#0c141f",
+    "accent-foreground": "#6fc3df",
+    destructive: "#f48771",
+    ring: "#6fc3df",
+    info: "#6fc3df",
+    "info-foreground": "#a0ddef",
+    success: "#89d185",
+    "success-foreground": "#b4e4b0",
+    warning: "#cca700",
+    "warning-foreground": "#e0c94d",
+    danger: "#f48771",
+    "danger-foreground": "#f8b0a0",
+    surface: "#000000",
+    "surface-raised": "#0a0a0a",
+  },
+};

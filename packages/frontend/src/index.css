@@ -1,0 +1,300 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #737373;
+  --color-border: #e5e5e5;
+  --color-primary: #4f46e5;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #eef2ff;
+  --color-accent-foreground: #3730a3;
+  --color-destructive: #ef4444;
+  --color-ring: #6366f1;
+  --radius: 0.5rem;
+
+  /* Semantic colors */
+  --color-info: #3b82f6;
+  --color-info-foreground: #1e3a5f;
+  --color-success: #22c55e;
+  --color-success-foreground: #14532d;
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #78350f;
+  --color-danger: #ef4444;
+  --color-danger-foreground: #7f1d1d;
+
+  /* Surface colors for layered backgrounds */
+  --color-surface: #ffffff;
+  --color-surface-raised: #fafafa;
+
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
+
+  /* Elevation shadow system (5 levels) */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-3: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-4: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+
+  /* Semantic spacing scale (geometric: each step ~1.5x previous) */
+  --spacing-compact: 0.5rem;   /* 8px — tight lists, inline elements */
+  --spacing-default: 1rem;     /* 16px — standard element spacing */
+  --spacing-spacious: 1.5rem;  /* 24px — section gaps */
+  --spacing-section: 2rem;     /* 32px — major section separation */
+
+  /* Entrance animation */
+  --animate-fade-up: fade-up 0.3s ease-out;
+}
+
+@layer base {
+  .dark {
+    --color-background: #111113;
+    --color-foreground: #ececef;
+    --color-muted: #1c1c1f;
+    --color-muted-foreground: #9898a0;
+    --color-border: #2a2a2e;
+    --color-primary: #818cf8;
+    --color-primary-foreground: #0f0a2e;
+    --color-accent: #1e1b4b;
+    --color-accent-foreground: #c7d2fe;
+    --color-destructive: #f87171;
+    --color-ring: #818cf8;
+
+    /* Semantic colors — dark mode (softer, less harsh) */
+    --color-info: #60a5fa;
+    --color-info-foreground: #bfdbfe;
+    --color-success: #4ade80;
+    --color-success-foreground: #bbf7d0;
+    --color-warning: #fbbf24;
+    --color-warning-foreground: #fef3c7;
+    --color-danger: #f87171;
+    --color-danger-foreground: #fecaca;
+
+    /* Surface colors — dark mode (distinct from background) */
+    --color-surface: #111113;
+    --color-surface-raised: #1a1a1e;
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, kbd, pre, .font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Skeleton shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-muted) 25%,
+    color-mix(in srgb, var(--color-muted-foreground) 30%, var(--color-muted)) 37%,
+    var(--color-muted) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Staggered entrance animation */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode shadow refinement — use border glow instead of invisible shadows */
+.dark .shadow-sm, .dark [style*="--shadow-1"] {
+  box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.dark .shadow-md, .dark [style*="--shadow-2"] {
+  box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.dark .shadow-lg, .dark [style*="--shadow-3"] {
+  box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+.dark .shadow-2xl, .dark [style*="--shadow-4"] {
+  box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7);
+}
+
+/* Elevation utility classes */
+.elevation-0 { box-shadow: var(--shadow-0); }
+.elevation-1 { box-shadow: var(--shadow-1); }
+.elevation-2 { box-shadow: var(--shadow-2); }
+.elevation-3 { box-shadow: var(--shadow-3); }
+.elevation-4 { box-shadow: var(--shadow-4); }
+
+.dark .elevation-1 { box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4); }
+.dark .elevation-2 { box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5); }
+.dark .elevation-3 { box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6); }
+.dark .elevation-4 { box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7); }
+
+/* Checkbox toggle animation — only on user interaction, not initial render */
+@keyframes check-pop {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+input[type="checkbox"]:focus-visible:checked {
+  animation: check-pop 0.2s ease-out;
+}
+
+/* Interactive element base transitions */
+select, input[type="text"], textarea {
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+select:focus, input[type="text"]:focus, textarea:focus {
+  border-color: var(--color-ring);
+}
+
+/* Mobile drawer slide-in animation */
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-from-left 0.2s ease-out;
+}
+
+/* Slide-over panel animation (right) */
+.animate-slide-in-right {
+  animation: slide-in-from-right-panel 0.2s ease-out;
+}
+
+@keyframes slide-in-from-right-panel {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-in.slide-in-from-right-full {
+  animation: slide-in-from-right 0.2s ease-out;
+}
+
+/* ─── Page route transitions ─────────────────────────── */
+
+/* Exit animations (100ms — quick fade out) */
+@keyframes page-exit-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes page-exit-left {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-60px); }
+}
+
+@keyframes page-exit-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(60px); }
+}
+
+/* Enter animations (200ms — slide in with fade) */
+@keyframes page-enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes page-enter-from-right {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-enter-from-left {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Detail view uses a larger offset for "drill-down" feel */
+@keyframes page-enter-drill {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-exit-drill {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100px); }
+}
+
+.page-idle {
+  /* no animation — static */
+}
+
+/* Exit classes (100ms) */
+.page-exit-fade { animation: page-exit-fade 100ms ease-in forwards; }
+.page-exit-left { animation: page-exit-left 100ms ease-in forwards; }
+.page-exit-right { animation: page-exit-right 100ms ease-in forwards; }
+.page-exit-drill { animation: page-exit-drill 100ms ease-in forwards; }
+
+/* Enter classes (200ms) */
+.page-enter-fade { animation: page-enter-fade 200ms ease-out; }
+.page-enter-from-right { animation: page-enter-from-right 200ms ease-out; }
+.page-enter-from-left { animation: page-enter-from-left 200ms ease-out; }
+.page-enter-drill { animation: page-enter-drill 200ms ease-out; }
+
+/* ─── Command palette spring animation ──────────────── */
+@keyframes cmd-spring-in {
+  0% { opacity: 0; transform: scale(0.95) translateY(-8px); }
+  60% { opacity: 1; transform: scale(1.02) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes cmd-fade-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to { opacity: 0; transform: scale(0.98) translateY(-4px); }
+}
+
+/* ─── Modal/dialog entrance ─────────────────────────── */
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modal-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-modal-enter {
+  animation: modal-enter 200ms ease-out;
+}
+
+dialog[open]::backdrop {
+  animation: modal-backdrop-enter 200ms ease-out;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const vsDark: ThemeDefinition = {
+  id: "vscode-vs-dark",
+  name: "Visual Studio Dark",
+  colorScheme: "dark",
+  colors: {
+    background: "#1e1e1e",
+    foreground: "#d4d4d4",
+    muted: "#252526",
+    "muted-foreground": "#858585",
+    border: "#3c3c3c",
+    primary: "#569cd6",
+    "primary-foreground": "#1e1e1e",
+    accent: "#264f78",
+    "accent-foreground": "#9cdcfe",
+    destructive: "#f44747",
+    ring: "#569cd6",
+    info: "#569cd6",
+    "info-foreground": "#9cdcfe",
+    success: "#6a9955",
+    "success-foreground": "#b5cea8",
+    warning: "#dcdcaa",
+    "warning-foreground": "#f5e6b8",
+    danger: "#f44747",
+    "danger-foreground": "#f8a8a8",
+    surface: "#1e1e1e",
+    "surface-raised": "#252526",
+  },
+};

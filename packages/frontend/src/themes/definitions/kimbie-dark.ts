@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const kimbieDark: ThemeDefinition = {
+  id: "vscode-kimbie-dark",
+  name: "Kimbie Dark",
+  colorScheme: "dark",
+  colors: {
+    background: "#221a0f",
+    foreground: "#d3af86",
+    muted: "#2b1f14",
+    "muted-foreground": "#a68b68",
+    border: "#3b2f1e",
+    primary: "#dc3958",
+    "primary-foreground": "#221a0f",
+    accent: "#362718",
+    "accent-foreground": "#d8a657",
+    destructive: "#dc3958",
+    ring: "#dc3958",
+    info: "#7eb2dd",
+    "info-foreground": "#a8cce6",
+    success: "#889b4a",
+    "success-foreground": "#b3c27e",
+    warning: "#d8a657",
+    "warning-foreground": "#e8c888",
+    danger: "#dc3958",
+    "danger-foreground": "#e87c93",
+    surface: "#221a0f",
+    "surface-raised": "#2b1f14",
+  },
+};

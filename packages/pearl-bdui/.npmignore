@@ -1,0 +1,18 @@
+# Source files (not needed in published package)
+src/
+scripts/
+tsconfig.json
+vitest.config.*
+
+# Test files
+*.test.ts
+*.test.js
+__tests__/
+
+# Dev config
+.eslintrc*
+.prettierrc*
+
+# Build artifacts we don't ship
+*.tsbuildinfo
+*.tgz

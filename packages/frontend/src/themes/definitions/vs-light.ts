@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const vsLight: ThemeDefinition = {
+  id: "vscode-vs-light",
+  name: "Visual Studio Light",
+  colorScheme: "light",
+  colors: {
+    background: "#ffffff",
+    foreground: "#1e1e1e",
+    muted: "#f3f3f3",
+    "muted-foreground": "#6e7681",
+    border: "#d4d4d4",
+    primary: "#0066b8",
+    "primary-foreground": "#ffffff",
+    accent: "#e8f0fe",
+    "accent-foreground": "#004578",
+    destructive: "#d32f2f",
+    ring: "#0078d4",
+    info: "#0078d4",
+    "info-foreground": "#003b6e",
+    success: "#16825d",
+    "success-foreground": "#0d4f38",
+    warning: "#bf8803",
+    "warning-foreground": "#6b4c00",
+    danger: "#d32f2f",
+    "danger-foreground": "#7f1818",
+    surface: "#ffffff",
+    "surface-raised": "#f8f8f8",
+  },
+};

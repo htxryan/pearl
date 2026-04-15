@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const lightPlus: ThemeDefinition = {
+  id: "vscode-light-plus",
+  name: "Light+ (Default Light)",
+  colorScheme: "light",
+  colors: {
+    background: "#ffffff",
+    foreground: "#0a0a0a",
+    muted: "#f5f5f5",
+    "muted-foreground": "#737373",
+    border: "#e5e5e5",
+    primary: "#4f46e5",
+    "primary-foreground": "#ffffff",
+    accent: "#eef2ff",
+    "accent-foreground": "#3730a3",
+    destructive: "#ef4444",
+    ring: "#6366f1",
+    info: "#3b82f6",
+    "info-foreground": "#1e3a5f",
+    success: "#22c55e",
+    "success-foreground": "#14532d",
+    warning: "#f59e0b",
+    "warning-foreground": "#78350f",
+    danger: "#ef4444",
+    "danger-foreground": "#7f1d1d",
+    surface: "#ffffff",
+    "surface-raised": "#fafafa",
+  },
+};

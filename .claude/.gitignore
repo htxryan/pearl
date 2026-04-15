@@ -1,0 +1,7 @@
+# compound-agent managed
+.cache/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.ca-hints-shown
+skills/compound/skills_index.json

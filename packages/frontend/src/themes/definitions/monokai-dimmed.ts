@@ -1,0 +1,30 @@
+import type { ThemeDefinition } from "../types";
+
+export const monokaiDimmed: ThemeDefinition = {
+  id: "vscode-monokai-dimmed",
+  name: "Monokai Dimmed",
+  colorScheme: "dark",
+  colors: {
+    background: "#1e1e1e",
+    foreground: "#c5c8c6",
+    muted: "#252526",
+    "muted-foreground": "#8a8a8a",
+    border: "#3a3a3a",
+    primary: "#6796e6",
+    "primary-foreground": "#1e1e1e",
+    accent: "#2d3748",
+    "accent-foreground": "#9cdcfe",
+    destructive: "#c74e39",
+    ring: "#6796e6",
+    info: "#6796e6",
+    "info-foreground": "#a0c4f5",
+    success: "#b5cea8",
+    "success-foreground": "#d0e8c4",
+    warning: "#d7ba7d",
+    "warning-foreground": "#e8d5a5",
+    danger: "#c74e39",
+    "danger-foreground": "#e0a090",
+    surface: "#1e1e1e",
+    "surface-raised": "#252526",
+  },
+};
