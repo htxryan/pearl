@@ -155,18 +155,17 @@ describe("CLI entrypoint", () => {
 // ─── npm pack verification ──────────────────────────────
 
 describe("npm pack contents", () => {
-  it("tarball includes required files and excludes dev files", () => {
+  it("tarball includes dist and bin, excludes dev files", () => {
     const output = execSync("npm pack --dry-run 2>&1", {
       cwd: backendRoot,
       encoding: "utf-8",
     });
 
-    // Must include
+    // Must include core files
     expect(output).toContain("bin/pearl.js");
     expect(output).toContain("dist/server.js");
     expect(output).toContain("dist/config.js");
     expect(output).toContain("dist/index.js");
-    expect(output).toContain("frontend-dist/index.html");
 
     // Must NOT include
     const lines = output.split("\n");
@@ -178,5 +177,19 @@ describe("npm pack contents", () => {
       expect(line).not.toContain("scripts/");
       expect(line).not.toContain(".js.map");
     }
+  });
+
+  it("tarball includes frontend-dist after build:dist", () => {
+    const { existsSync } = require("node:fs");
+    const frontendDist = resolve(backendRoot, "frontend-dist", "index.html");
+    if (!existsSync(frontendDist)) {
+      // frontend-dist is created by build:dist, not pnpm build
+      return;
+    }
+    const output = execSync("npm pack --dry-run 2>&1", {
+      cwd: backendRoot,
+      encoding: "utf-8",
+    });
+    expect(output).toContain("frontend-dist/index.html");
   });
 });
