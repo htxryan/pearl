@@ -156,7 +156,7 @@ describe("CLI entrypoint", () => {
 
 describe("npm pack contents", () => {
   it("tarball includes dist and bin, excludes dev files", () => {
-    const output = execSync("npm pack --dry-run 2>&1", {
+    const output = execSync("npm pack --dry-run --ignore-scripts 2>&1", {
       cwd: backendRoot,
       encoding: "utf-8",
     });
