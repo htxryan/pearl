@@ -1,5 +1,8 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
+/** Selector for a data-loaded row (skeleton rows don't have aria-label on checkboxes). */
+const DATA_ROW = 'table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])';
+
 /**
  * Shared fixtures for read-only E2E tests.
  *
@@ -21,8 +24,8 @@ export const test = base.extend<{
     await page.goto("/");
     await page.waitForURL("**/list");
 
-    // Wait for the issue table to be visible (data loaded)
-    await expect(page.getByRole("table", { name: "Issue list" })).toBeVisible({ timeout: 15_000 });
+    // Wait for data to actually load (not just skeleton rows)
+    await page.waitForSelector(DATA_ROW, { timeout: 15_000 });
 
     await use(page);
   },
@@ -40,11 +43,12 @@ export function issueTable(page: Page) {
  * Returns the issue ID extracted from the URL.
  */
 export async function navigateToFirstIssue(page: Page): Promise<string> {
-  const table = page.getByRole("table", { name: "Issue list" });
-  await expect(table).toBeVisible({ timeout: 15_000 });
-  const firstRow = table.locator("tbody tr").first();
-  await firstRow.click();
-  await page.waitForURL("**/issues/**");
+  // Ensure data rows are present
+  await page.waitForSelector(DATA_ROW, { timeout: 15_000 });
+  // Click the title cell (nth(2)) — avoid checkbox (nth(0)) which has stopPropagation
+  const firstDataRow = page.locator(DATA_ROW).first();
+  await firstDataRow.locator("td").nth(2).click();
+  await page.waitForURL("**/issues/**", { timeout: 10_000 });
   const url = page.url();
   return url.split("/issues/")[1];
 }

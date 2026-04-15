@@ -13,7 +13,7 @@ test.describe("Detail View", () => {
   test("breadcrumb shows issue ID", async ({ seededPage: page }) => {
     const issueId = await navigateToFirstIssue(page);
     await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText(issueId)).toBeVisible();
+    await expect(page.getByLabel("Breadcrumb").getByText(issueId)).toBeVisible();
   });
 
   test("breadcrumb navigates back to list", async ({ seededPage: page }) => {
