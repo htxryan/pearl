@@ -269,7 +269,7 @@ export function registerIssueRoutes(
             sql += ` AND EXISTS (SELECT 1 FROM dependencies d WHERE d.issue_id = i.id OR d.depends_on_id = i.id)`;
             break;
           case "is_blocked":
-            sql += ` AND i.status = 'blocked'`;
+            sql += ` AND EXISTS (SELECT 1 FROM dependencies d JOIN issues dep ON dep.id = d.depends_on_id WHERE d.issue_id = i.id AND d.type = 'blocks' AND dep.status != 'closed')`;
             break;
           case "is_epic":
             sql += ` AND i.issue_type = 'epic'`;
