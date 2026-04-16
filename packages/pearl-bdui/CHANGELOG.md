@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.4.0...pearl-bdui-v0.5.0) (2026-04-16)
+
+
+### Features
+
+* trigger v0.5.0 release ([#8](https://github.com/htxryan/pearl/issues/8)) ([cdffda1](https://github.com/htxryan/pearl/commit/cdffda1b8df7ab3390e60252419249b54a10c4de))
+
 ## [0.4.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.3.0...pearl-bdui-v0.4.0) (2026-04-15)
 
 
