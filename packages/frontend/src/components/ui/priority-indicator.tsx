@@ -9,8 +9,17 @@ const priorityConfig: Record<Priority, { label: string; className: string }> = {
   4: { label: "P4", className: "bg-muted text-muted-foreground" },
 };
 
-export function PriorityIndicator({ priority, className }: { priority: Priority; className?: string }) {
-  const config = priorityConfig[priority] ?? { label: `P${priority}`, className: "bg-gray-300 text-gray-700" };
+export function PriorityIndicator({
+  priority,
+  className,
+}: {
+  priority: Priority;
+  className?: string;
+}) {
+  const config = priorityConfig[priority] ?? {
+    label: `P${priority}`,
+    className: "bg-gray-300 text-gray-700",
+  };
   return (
     <span
       className={cn(

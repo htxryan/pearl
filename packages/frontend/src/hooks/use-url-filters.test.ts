@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { buildApiParams } from "./use-url-filters";
-import type { FilterState } from "@/components/issue-table/filter-bar";
 import type { SortingState } from "@tanstack/react-table";
+import { describe, expect, it } from "vitest";
+import type { FilterState } from "@/components/issue-table/filter-bar";
+import { buildApiParams } from "./use-url-filters";
 
 const baseFilters: FilterState = {
   status: [],

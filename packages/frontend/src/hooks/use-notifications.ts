@@ -1,8 +1,8 @@
-import { useSyncExternalStore, useCallback, useEffect, useRef } from "react";
+import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { fetchIssues } from "@/lib/api-client";
 import { issueKeys } from "./use-issues";
-import type { IssueListItem, IssueStatus } from "@pearl/shared";
 
 // ─── Types ────────────────────────────────────────────
 export type NotificationType =
@@ -172,9 +172,7 @@ export function addNotification(
 }
 
 export function markAsRead(id: string) {
-  notifications = notifications.map((n) =>
-    n.id === id ? { ...n, read: true } : n,
-  );
+  notifications = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
   notify();
   persistNotifications();
 }
@@ -291,10 +289,7 @@ export function detectChanges(
 
 // ─── Browser Push Notifications ──────────────────────
 function sendBrowserNotification(title: string, body: string, issueId: string) {
-  if (
-    typeof Notification === "undefined" ||
-    Notification.permission !== "granted"
-  ) {
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") {
     return;
   }
   try {
@@ -379,11 +374,7 @@ export function useNotificationPoller() {
       for (const change of changes) {
         const added = addNotification(change);
         if (added && currentPrefs.browser_push) {
-          sendBrowserNotification(
-            "Pearl",
-            change.message,
-            change.issueId,
-          );
+          sendBrowserNotification("Pearl", change.message, change.issueId);
         }
       }
     } else {
@@ -412,10 +403,6 @@ export function notifyCommentAdded(issueId: string, issueTitle: string, author: 
     message: `${author} commented on "${issueTitle}"`,
   });
   if (prefs.browser_push) {
-    sendBrowserNotification(
-      "New Comment",
-      `${author} commented on "${issueTitle}"`,
-      issueId,
-    );
+    sendBrowserNotification("New Comment", `${author} commented on "${issueTitle}"`, issueId);
   }
 }

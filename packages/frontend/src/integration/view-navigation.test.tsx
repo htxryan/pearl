@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act, cleanup } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Routes, Route, Navigate } from "react-router";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter, Navigate, Route, Routes } from "react-router";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock navigation ─────────────────────────────────────
 const mockNavigate = vi.fn();
@@ -120,7 +120,11 @@ vi.mock("@xyflow/react", async () => {
     MarkerType: { ArrowClosed: "arrowclosed" },
     Position: { Top: "top", Bottom: "bottom" },
     ReactFlow: ({ nodes, edges, onNodeClick, onNodeDoubleClick, children }: any) => (
-      <div data-testid="react-flow" data-node-count={nodes?.length ?? 0} data-edge-count={edges?.length ?? 0}>
+      <div
+        data-testid="react-flow"
+        data-node-count={nodes?.length ?? 0}
+        data-edge-count={edges?.length ?? 0}
+      >
         {nodes?.map((node: any) => (
           <div
             key={node.id}
@@ -172,26 +176,34 @@ vi.mock("@dagrejs/dagre", () => {
 
 // ─── Mock cmdk (used by CommandPalette) ──────────────────
 vi.mock("cmdk", () => {
-  const Command = ({ children, ...props }: any) => <div data-testid="cmdk" {...props}>{children}</div>;
+  const Command = ({ children, ...props }: any) => (
+    <div data-testid="cmdk" {...props}>
+      {children}
+    </div>
+  );
   Command.Input = (props: any) => <input data-testid="cmdk-input" {...props} />;
   Command.List = ({ children }: any) => <div data-testid="cmdk-list">{children}</div>;
   Command.Empty = ({ children }: any) => <div>{children}</div>;
-  Command.Group = ({ children, heading }: any) => <div data-testid={`cmdk-group-${heading}`}>{children}</div>;
+  Command.Group = ({ children, heading }: any) => (
+    <div data-testid={`cmdk-group-${heading}`}>{children}</div>
+  );
   Command.Item = ({ children, onSelect, ...props }: any) => (
-    <div data-testid={`cmdk-item`} onClick={onSelect} {...props}>{children}</div>
+    <div data-testid={`cmdk-item`} onClick={onSelect} {...props}>
+      {children}
+    </div>
   );
   return { Command };
 });
 
-// ─── Imports (after mocks) ───────────────────────────────
-import { useIssues, useIssue } from "@/hooks/use-issues";
-import { useAllDependencies } from "@/hooks/use-dependencies";
-import { AppShell } from "@/components/app-shell";
-import { ListView } from "@/views/list-view";
-import { BoardView } from "@/views/board-view";
-import { GraphView } from "@/views/graph-view";
-import { DetailView } from "@/views/detail-view";
 import type { IssueListItem } from "@pearl/shared";
+import { AppShell } from "@/components/app-shell";
+import { useAllDependencies } from "@/hooks/use-dependencies";
+// ─── Imports (after mocks) ───────────────────────────────
+import { useIssue, useIssues } from "@/hooks/use-issues";
+import { BoardView } from "@/views/board-view";
+import { DetailView } from "@/views/detail-view";
+import { GraphView } from "@/views/graph-view";
+import { ListView } from "@/views/list-view";
 
 // ─── Test Data ───────────────────────────────────────────
 const mockIssues: IssueListItem[] = [
@@ -326,7 +338,10 @@ describe("keyboard scope registration per view", () => {
     // Press Enter to open the active issue
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/list" } }),
+    );
   });
 
   it("BoardView registers board scope with / binding", () => {
@@ -407,7 +422,10 @@ describe("click-to-detail from views", () => {
     expect(row).toBeTruthy();
     fireEvent.click(row!);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/list" } }),
+    );
   });
 
   it("BoardView: clicking a card navigates to /issues/:id", () => {
@@ -417,7 +435,10 @@ describe("click-to-detail from views", () => {
     const card = screen.getByRole("button", { name: /test-001: Test Issue 1/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/board" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/board" } }),
+    );
   });
 
   it("GraphView: double-clicking a node navigates to /issues/:id", () => {
@@ -426,7 +447,10 @@ describe("click-to-detail from views", () => {
     const node = screen.getByTestId("node-test-001");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/graph" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/graph" } }),
+    );
   });
 });
 
@@ -492,7 +516,7 @@ describe("URL routing", () => {
         pinned: false,
         is_template: false,
         labels: [],
-    labelColors: {},
+        labelColors: {},
         metadata: {},
       },
       isLoading: false,

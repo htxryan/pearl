@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router";
 import {
-  useNotifications,
-  markAsRead,
-  markAllAsRead,
-  dismissNotification,
   type AppNotification,
+  dismissNotification,
+  markAllAsRead,
+  markAsRead,
   type NotificationType,
+  useNotifications,
 } from "@/hooks/use-notifications";
 
 const TYPE_COLORS: Record<NotificationType, string> = {
@@ -21,7 +21,15 @@ function NotificationIcon({ type }: { type: NotificationType }) {
   switch (type) {
     case "issue_assigned":
       return (
-        <svg className={`h-4 w-4 ${colorClass}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={`h-4 w-4 ${colorClass}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <line x1="19" y1="8" x2="19" y2="14" />
@@ -30,21 +38,45 @@ function NotificationIcon({ type }: { type: NotificationType }) {
       );
     case "status_changed":
       return (
-        <svg className={`h-4 w-4 ${colorClass}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={`h-4 w-4 ${colorClass}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <polyline points="23 4 23 10 17 10" />
           <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
         </svg>
       );
     case "blocker_resolved":
       return (
-        <svg className={`h-4 w-4 ${colorClass}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={`h-4 w-4 ${colorClass}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
           <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       );
     case "comment_added":
       return (
-        <svg className={`h-4 w-4 ${colorClass}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={`h-4 w-4 ${colorClass}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       );
@@ -121,7 +153,15 @@ function NotificationItem({
         className="mt-0.5 flex-shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
         aria-label="Dismiss notification"
       >
-        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
@@ -175,23 +215,25 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
       <div className="max-h-96 overflow-y-auto">
         {visible.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <svg className="mb-3 h-8 w-8 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="mb-3 h-8 w-8 opacity-40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
               <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
             </svg>
             <p className="text-sm">No notifications yet</p>
-            <p className="mt-1 text-xs">
-              You&apos;ll see updates about your issues here
-            </p>
+            <p className="mt-1 text-xs">You&apos;ll see updates about your issues here</p>
           </div>
         ) : (
           <div className="py-1">
             {visible.map((notif) => (
-              <NotificationItem
-                key={notif.id}
-                notification={notif}
-                onNavigate={handleNavigate}
-              />
+              <NotificationItem key={notif.id} notification={notif} onNavigate={handleNavigate} />
             ))}
           </div>
         )}

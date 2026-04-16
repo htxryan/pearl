@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -122,7 +122,7 @@ describe("CLI entrypoint", () => {
       cwd: backendRoot,
       encoding: "utf-8",
     });
-    expect(result.trim()).toMatch(/^pearl-bdui v\d+\.\d+\.\d+$/);
+    expect(result.trim()).toMatch(/^pearl-bdui v\d+\.\d+\.\d+/);
   });
 
   it("--help prints usage and exits 0", () => {
@@ -140,7 +140,7 @@ describe("CLI entrypoint", () => {
       cwd: backendRoot,
       encoding: "utf-8",
     });
-    expect(result.trim()).toMatch(/^pearl-bdui v\d+\.\d+\.\d+$/);
+    expect(result.trim()).toMatch(/^pearl-bdui v\d+\.\d+\.\d+/);
   });
 
   it("-h is an alias for --help", () => {
@@ -169,7 +169,9 @@ describe("npm pack contents", () => {
 
     // Must NOT include
     const lines = output.split("\n");
-    const fileLines = lines.filter((l) => l.startsWith("npm notice") && /\d+[.]\d+[kKmM]?B/.test(l));
+    const fileLines = lines.filter(
+      (l) => l.startsWith("npm notice") && /\d+[.]\d+[kKmM]?B/.test(l),
+    );
     for (const line of fileLines) {
       expect(line).not.toMatch(/\.ts\s/); // no .ts source files (but .d.ts is ok)
       expect(line).not.toContain(".test.");

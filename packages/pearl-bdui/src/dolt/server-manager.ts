@@ -18,7 +18,10 @@ export class DoltServerManager {
   private stateChangeListeners: StateChangeListener[] = [];
   private readonly dbPath: string;
 
-  constructor(private config: Config, dbPath?: string) {
+  constructor(
+    private config: Config,
+    dbPath?: string,
+  ) {
     this.dbPath = dbPath || config.doltDbPath;
   }
 
@@ -57,16 +60,22 @@ export class DoltServerManager {
 
     try {
       const { execa } = await import("execa");
-      this.process = execa(this.config.doltPath, [
-        "sql-server",
-        "--host", "127.0.0.1",
-        "--port", String(this.config.doltPort),
-        "--no-auto-commit",
-      ], {
-        cwd: this.dbPath,
-        reject: false,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+      this.process = execa(
+        this.config.doltPath,
+        [
+          "sql-server",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          String(this.config.doltPort),
+          "--no-auto-commit",
+        ],
+        {
+          cwd: this.dbPath,
+          reject: false,
+          stdio: ["ignore", "pipe", "pipe"],
+        },
+      );
 
       // Wait for the server to be ready by polling
       const ready = await this.waitForReady();
@@ -82,9 +91,7 @@ export class DoltServerManager {
       // Monitor the process for unexpected exit
       this.process.then((result) => {
         if (this.state === "running") {
-          console.error(
-            `[dolt-manager] Dolt server exited unexpectedly (code=${result.exitCode})`
-          );
+          console.error(`[dolt-manager] Dolt server exited unexpectedly (code=${result.exitCode})`);
           this.setState("error");
           this.scheduleRestart();
         }
@@ -151,10 +158,7 @@ export class DoltServerManager {
     }
   }
 
-  private async waitForReady(
-    maxWaitMs = 15000,
-    intervalMs = 500
-  ): Promise<boolean> {
+  private async waitForReady(maxWaitMs = 15000, intervalMs = 500): Promise<boolean> {
     const start = Date.now();
     while (Date.now() - start < maxWaitMs) {
       if (await this.healthCheck()) {
@@ -177,7 +181,7 @@ export class DoltServerManager {
 
     if (this.consecutiveFailures >= DoltServerManager.MAX_RESTART_ATTEMPTS) {
       console.error(
-        `[dolt-manager] Giving up after ${this.consecutiveFailures} consecutive failures`
+        `[dolt-manager] Giving up after ${this.consecutiveFailures} consecutive failures`,
       );
       return;
     }
@@ -187,7 +191,7 @@ export class DoltServerManager {
     if (this.consecutiveFailures < this.config.doltRestartThreshold) {
       console.log(
         `[dolt-manager] Failure ${this.consecutiveFailures}/${this.config.doltRestartThreshold}, ` +
-        `will restart after threshold`
+          `will restart after threshold`,
       );
       // Kill any lingering process before quick retry
       if (this.process) {
@@ -203,7 +207,7 @@ export class DoltServerManager {
 
     console.log(
       `[dolt-manager] ${this.consecutiveFailures} consecutive failures, ` +
-      `restarting after ${this.config.doltRestartDebounceMs}ms debounce`
+        `restarting after ${this.config.doltRestartDebounceMs}ms debounce`,
     );
 
     this.restartTimer = setTimeout(() => {

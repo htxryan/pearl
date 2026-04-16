@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 export type ToastVariant = "success" | "error" | "warning" | "info";
 
@@ -24,7 +24,9 @@ function notify() {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 function getSnapshot(): Toast[] {
@@ -92,8 +94,7 @@ export function useToastActions() {
     [],
   );
   const info = useCallback(
-    (message: string, action?: Toast["action"]) =>
-      addToast({ message, variant: "info", action }),
+    (message: string, action?: Toast["action"]) => addToast({ message, variant: "info", action }),
     [],
   );
 

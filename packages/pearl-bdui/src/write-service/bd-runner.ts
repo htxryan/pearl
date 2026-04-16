@@ -11,10 +11,7 @@ export interface BdResult {
  * Runs a bd CLI command with array-form arguments.
  * SECURITY: Only array-form args — never string interpolation.
  */
-export async function runBd(
-  config: Config,
-  args: string[]
-): Promise<BdResult> {
+export async function runBd(config: Config, args: string[]): Promise<BdResult> {
   const { execa } = await import("execa");
 
   const result = await execa(config.bdPath, [...args, "--json"], {
@@ -43,10 +40,7 @@ export async function runBd(
  * Run bd and parse JSON output.
  * bd --json outputs structured data we can return to the client.
  */
-export async function runBdJson<T = unknown>(
-  config: Config,
-  args: string[]
-): Promise<T> {
+export async function runBdJson<T = unknown>(config: Config, args: string[]): Promise<T> {
   const result = await runBd(config, args);
   try {
     return JSON.parse(result.stdout) as T;

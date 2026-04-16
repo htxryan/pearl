@@ -1,38 +1,38 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
+import dagre from "@dagrejs/dagre";
+import type { Dependency, DependencyType, IssueListItem } from "@pearl/shared";
 import {
-  ReactFlow,
   Background,
-  MiniMap,
-  Panel,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
   BaseEdge,
-  getBezierPath,
+  type ColorMode,
   type Edge,
   type EdgeProps,
-  type NodeMouseHandler,
-  type ColorMode,
+  getBezierPath,
   MarkerType,
+  MiniMap,
+  type NodeMouseHandler,
+  Panel,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
 } from "@xyflow/react";
-import dagre from "@dagrejs/dagre";
-import type { IssueListItem, Dependency, DependencyType } from "@pearl/shared";
-import { useIssues } from "@/hooks/use-issues";
-import { useAllDependencies } from "@/hooks/use-dependencies";
-import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
-import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
-import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
-import { useTheme } from "@/hooks/use-theme";
-import { useIsMobile } from "@/hooks/use-media-query";
-import { FilterBar, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import {
   GraphNode,
-  NODE_WIDTH,
-  NODE_HEIGHT,
   type GraphNodeType,
+  NODE_HEIGHT,
+  NODE_WIDTH,
 } from "@/components/graph/graph-node";
+import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
 import { Button } from "@/components/ui/button";
+import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
+import { useAllDependencies } from "@/hooks/use-dependencies";
+import { useIssues } from "@/hooks/use-issues";
+import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { useTheme } from "@/hooks/use-theme";
+import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 
 import "@xyflow/react/dist/style.css";
 
@@ -41,9 +41,9 @@ import "@xyflow/react/dist/style.css";
 const PERFORMANCE_CAP = 200;
 
 const edgeColorByType: Partial<Record<DependencyType, string>> = {
-  blocks: "#ef4444",       // red
-  depends_on: "#3b82f6",   // blue
-  relates_to: "#a855f7",   // purple
+  blocks: "#ef4444", // red
+  depends_on: "#3b82f6", // blue
+  relates_to: "#a855f7", // purple
   discovered_from: "#6b7280", // gray
 };
 
@@ -72,25 +72,22 @@ const nodeTypes = { graphNode: GraphNode };
 
 function depTypeLabel(type: DependencyType): string {
   switch (type) {
-    case "blocks": return "blocks";
-    case "depends_on": return "depends on";
-    case "relates_to": return "relates to";
-    case "discovered_from": return "discovered";
-    default: return type;
+    case "blocks":
+      return "blocks";
+    case "depends_on":
+      return "depends on";
+    case "relates_to":
+      return "relates to";
+    case "discovered_from":
+      return "discovered";
+    default:
+      return type;
   }
 }
 
 // ─── Custom Edge with hover label ────────────────────
 
-function HoverLabelEdge({
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  style,
-  markerEnd,
-  data,
-}: EdgeProps) {
+function HoverLabelEdge({ sourceX, sourceY, targetX, targetY, style, markerEnd, data }: EdgeProps) {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -141,11 +138,8 @@ interface ClusterInfo {
   childIds: string[];
 }
 
-function computeClusters(
-  issues: IssueListItem[],
-  deps: Dependency[],
-): Map<string, ClusterInfo> {
-  const issueMap = new Map(issues.map(i => [i.id, i]));
+function computeClusters(issues: IssueListItem[], deps: Dependency[]): Map<string, ClusterInfo> {
+  const issueMap = new Map(issues.map((i) => [i.id, i]));
   const clusters = new Map<string, ClusterInfo>();
 
   for (const dep of deps) {
@@ -235,17 +229,13 @@ function computeLayout(
     const baseColor = edgeColorByType[dep.type] ?? DEFAULT_EDGE_COLOR;
     const hasSelection = highlightedIds.size > 0;
     const bothHighlighted =
-      hasSelection &&
-      highlightedIds.has(dep.depends_on_id) &&
-      highlightedIds.has(dep.issue_id);
+      hasSelection && highlightedIds.has(dep.depends_on_id) && highlightedIds.has(dep.issue_id);
     const eitherDimmed =
-      hasSelection &&
-      (!highlightedIds.has(dep.depends_on_id) || !highlightedIds.has(dep.issue_id));
+      hasSelection && (!highlightedIds.has(dep.depends_on_id) || !highlightedIds.has(dep.issue_id));
 
     // Critical path: this specific edge is on the critical path
     const onCriticalPath =
-      criticalPathEdges.size > 0 &&
-      criticalPathEdges.has(`${dep.depends_on_id}->${dep.issue_id}`);
+      criticalPathEdges.size > 0 && criticalPathEdges.has(`${dep.depends_on_id}->${dep.issue_id}`);
 
     // Priority: blocking chain highlight > critical path > default
     let color = baseColor;
@@ -296,10 +286,7 @@ function computeLayout(
 
 // ─── Blocking Chain ────────────────────────────────────
 
-function findBlockingChain(
-  issueId: string,
-  deps: Dependency[],
-): Set<string> {
+function findBlockingChain(issueId: string, deps: Dependency[]): Set<string> {
   const result = new Set<string>();
   result.add(issueId);
 
@@ -352,12 +339,9 @@ function findBlockingChain(
 
 // ─── Critical Path ────────────────────────────────────
 
-function findCriticalPath(
-  issues: IssueListItem[],
-  deps: Dependency[],
-): Set<string> {
+function findCriticalPath(issues: IssueListItem[], deps: Dependency[]): Set<string> {
   // Build adjacency list: depends_on_id → issue_id (upstream to downstream)
-  const issueIds = new Set(issues.map(i => i.id));
+  const issueIds = new Set(issues.map((i) => i.id));
   const children = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
 
@@ -367,8 +351,11 @@ function findCriticalPath(
   }
 
   for (const dep of deps) {
-    if ((dep.type === "blocks" || dep.type === "depends_on") &&
-        issueIds.has(dep.issue_id) && issueIds.has(dep.depends_on_id)) {
+    if (
+      (dep.type === "blocks" || dep.type === "depends_on") &&
+      issueIds.has(dep.issue_id) &&
+      issueIds.has(dep.depends_on_id)
+    ) {
       children.get(dep.depends_on_id)!.push(dep.issue_id);
       inDegree.set(dep.issue_id, (inDegree.get(dep.issue_id) ?? 0) + 1);
     }
@@ -568,10 +555,7 @@ export function GraphView() {
   );
 
   // Compute clusters from contains relationships
-  const clusters = useMemo(
-    () => computeClusters(displayIssues, allDeps),
-    [displayIssues, allDeps],
-  );
+  const clusters = useMemo(() => computeClusters(displayIssues, allDeps), [displayIssues, allDeps]);
 
   // Filter out collapsed cluster children
   const visibleIssues = useMemo(() => {
@@ -585,7 +569,7 @@ export function GraphView() {
         }
       }
     }
-    return displayIssues.filter(i => !hiddenIds.has(i.id));
+    return displayIssues.filter((i) => !hiddenIds.has(i.id));
   }, [displayIssues, collapsedClusters, clusters]);
 
   // Clear selection when the selected node is hidden by cluster collapse
@@ -670,8 +654,23 @@ export function GraphView() {
 
   // Compute layout
   const layoutResult = useMemo(
-    () => computeLayout(visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathEdges, collapsedEpicChildCounts),
-    [visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathEdges, collapsedEpicChildCounts],
+    () =>
+      computeLayout(
+        visibleIssues,
+        visibleDeps,
+        highlightedIds,
+        selectedNodeId,
+        criticalPathEdges,
+        collapsedEpicChildCounts,
+      ),
+    [
+      visibleIssues,
+      visibleDeps,
+      highlightedIds,
+      selectedNodeId,
+      criticalPathEdges,
+      collapsedEpicChildCounts,
+    ],
   );
 
   // React Flow state
@@ -695,10 +694,24 @@ export function GraphView() {
   setEdgesRef.current = setEdges;
 
   const handleAutoLayout = useCallback(() => {
-    const result = computeLayout(visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathEdges, collapsedEpicChildCounts);
+    const result = computeLayout(
+      visibleIssues,
+      visibleDeps,
+      highlightedIds,
+      selectedNodeId,
+      criticalPathEdges,
+      collapsedEpicChildCounts,
+    );
     setNodesRef.current(result.nodes);
     setEdgesRef.current(result.edges);
-  }, [visibleIssues, visibleDeps, highlightedIds, selectedNodeId, criticalPathEdges, collapsedEpicChildCounts]);
+  }, [
+    visibleIssues,
+    visibleDeps,
+    highlightedIds,
+    selectedNodeId,
+    criticalPathEdges,
+    collapsedEpicChildCounts,
+  ]);
 
   // Pane click → clear selection
   const handlePaneClick = useCallback(() => {
@@ -706,19 +719,16 @@ export function GraphView() {
   }, []);
 
   // Node click → select for highlight
-  const handleNodeClick: NodeMouseHandler<GraphNodeType> = useCallback(
-    (_event, node) => {
-      setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
-    },
-    [],
-  );
+  const handleNodeClick: NodeMouseHandler<GraphNodeType> = useCallback((_event, node) => {
+    setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
+  }, []);
 
   // Double-click → toggle cluster for epics, navigate for others
   const handleNodeDoubleClick: NodeMouseHandler<GraphNodeType> = useCallback(
     (_event, node) => {
       const cluster = clusters.get(node.id);
       if (cluster) {
-        setCollapsedClusters(prev => {
+        setCollapsedClusters((prev) => {
           const next = new Set(prev);
           if (next.has(node.id)) {
             next.delete(node.id);
@@ -763,7 +773,7 @@ export function GraphView() {
       },
       {
         key: "c",
-        handler: () => setShowCriticalPath(prev => !prev),
+        handler: () => setShowCriticalPath((prev) => !prev),
         description: "Toggle critical path",
       },
     ],
@@ -805,7 +815,7 @@ export function GraphView() {
         label: "Toggle critical path",
         shortcut: "c",
         group: "Graph",
-        handler: () => setShowCriticalPath(prev => !prev),
+        handler: () => setShowCriticalPath((prev) => !prev),
       },
       {
         id: "graph-clear-selection",
@@ -830,11 +840,7 @@ export function GraphView() {
       {/* Toolbar */}
       <div className="shrink-0 bg-muted/30 px-4 py-3">
         <div className={`flex gap-4 ${isMobile ? "flex-col" : "items-center justify-between"}`}>
-          <FilterBar
-            filters={filters}
-            onChange={setFilters}
-            searchInputRef={searchInputRef}
-          />
+          <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
           <div className="flex items-center gap-2 shrink-0">
             {isOverCap && (
               <span className="text-xs text-muted-foreground">
@@ -866,7 +872,7 @@ export function GraphView() {
             <Button
               variant={showCriticalPath ? "default" : "outline"}
               size="sm"
-              onClick={() => setShowCriticalPath(prev => !prev)}
+              onClick={() => setShowCriticalPath((prev) => !prev)}
               className="min-h-[44px] md:min-h-0"
               title="Show critical path (C)"
             >
@@ -912,7 +918,9 @@ export function GraphView() {
           <GraphSkeleton />
         ) : allIssues.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
-            <span className="text-5xl opacity-20" aria-hidden="true">&#9737;</span>
+            <span className="text-5xl opacity-20" aria-hidden="true">
+              &#9737;
+            </span>
             <p>No issues match the current filters.</p>
             <p className="text-sm">Try adjusting filters or create issues with dependencies.</p>
           </div>
@@ -942,9 +950,9 @@ export function GraphView() {
               nodeColor={minimapNodeColor}
               maskColor={minimapMaskColor}
               style={{
-                backgroundColor: 'var(--color-surface, var(--color-muted))',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--color-border)',
+                backgroundColor: "var(--color-surface, var(--color-muted))",
+                borderRadius: "var(--radius)",
+                border: "1px solid var(--color-border)",
               }}
             />
             <Panel position="bottom-left">
@@ -970,10 +978,12 @@ function Legend() {
         <span className="inline-block w-4 h-0.5 bg-blue-500" /> depends on
       </span>
       <span className="flex items-center gap-1">
-        <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-purple-500" /> relates
+        <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-purple-500" />{" "}
+        relates
       </span>
       <span className="flex items-center gap-1">
-        <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-gray-500" /> discovered
+        <span className="inline-block w-4 h-0.5 border-t-2 border-dashed border-gray-500" />{" "}
+        discovered
       </span>
     </div>
   );
@@ -998,11 +1008,26 @@ function GraphSkeleton() {
             <line x1="50" y1="60" x2="80" y2="100" stroke="currentColor" strokeWidth="2" />
             <line x1="150" y1="60" x2="120" y2="100" stroke="currentColor" strokeWidth="2" />
           </svg>
-          <div className="absolute skeleton-shimmer rounded" style={{ left: 80, top: 8, width: 40, height: 24 }} />
-          <div className="absolute skeleton-shimmer rounded" style={{ left: 30, top: 48, width: 40, height: 24 }} />
-          <div className="absolute skeleton-shimmer rounded" style={{ left: 130, top: 48, width: 40, height: 24 }} />
-          <div className="absolute skeleton-shimmer rounded" style={{ left: 60, top: 88, width: 40, height: 24 }} />
-          <div className="absolute skeleton-shimmer rounded" style={{ left: 100, top: 88, width: 40, height: 24 }} />
+          <div
+            className="absolute skeleton-shimmer rounded"
+            style={{ left: 80, top: 8, width: 40, height: 24 }}
+          />
+          <div
+            className="absolute skeleton-shimmer rounded"
+            style={{ left: 30, top: 48, width: 40, height: 24 }}
+          />
+          <div
+            className="absolute skeleton-shimmer rounded"
+            style={{ left: 130, top: 48, width: 40, height: 24 }}
+          />
+          <div
+            className="absolute skeleton-shimmer rounded"
+            style={{ left: 60, top: 88, width: 40, height: 24 }}
+          />
+          <div
+            className="absolute skeleton-shimmer rounded"
+            style={{ left: 100, top: 88, width: 40, height: 24 }}
+          />
         </div>
         <span className="text-sm text-muted-foreground">Loading dependency graph...</span>
       </div>

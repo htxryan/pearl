@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import type { Priority, IssueStatus } from "@pearl/shared";
+import type { IssueStatus, Priority } from "@pearl/shared";
 import { ISSUE_STATUSES } from "@pearl/shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
@@ -82,7 +82,11 @@ export function BulkActionBar({
       if (showAddLabel && addLabelRef.current && !addLabelRef.current.contains(e.target as Node)) {
         setShowAddLabel(false);
       }
-      if (showRemoveLabel && removeLabelRef.current && !removeLabelRef.current.contains(e.target as Node)) {
+      if (
+        showRemoveLabel &&
+        removeLabelRef.current &&
+        !removeLabelRef.current.contains(e.target as Node)
+      ) {
         setShowRemoveLabel(false);
       }
     }
@@ -169,7 +173,10 @@ export function BulkActionBar({
         </Button>
         {showReassign && (
           <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground" htmlFor="bulk-assignee-input">
+            <label
+              className="mb-1 block text-xs font-medium text-muted-foreground"
+              htmlFor="bulk-assignee-input"
+            >
               Assignee
             </label>
             <input
@@ -276,7 +283,10 @@ export function BulkActionBar({
         </Button>
         {showAddLabel && (
           <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground" htmlFor="bulk-label-input">
+            <label
+              className="mb-1 block text-xs font-medium text-muted-foreground"
+              htmlFor="bulk-label-input"
+            >
               Label
             </label>
             <input
@@ -325,7 +335,10 @@ export function BulkActionBar({
         </Button>
         {showRemoveLabel && (
           <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground" htmlFor="bulk-remove-label-input">
+            <label
+              className="mb-1 block text-xs font-medium text-muted-foreground"
+              htmlFor="bulk-remove-label-input"
+            >
               Label
             </label>
             <input
@@ -358,20 +371,10 @@ export function BulkActionBar({
         )}
       </div>
 
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={onClose}
-        disabled={busy}
-      >
+      <Button variant="destructive" size="sm" onClick={onClose} disabled={busy}>
         {isClosing ? "Closing..." : "Close selected"}
       </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onClearSelection}
-        disabled={busy}
-      >
+      <Button variant="ghost" size="sm" onClick={onClearSelection} disabled={busy}>
         Clear selection
       </Button>
     </div>

@@ -1,9 +1,13 @@
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
+import type {
+  SetupInitializeRequest,
+  SetupInitializeResponse,
+  SetupStatusResponse,
+} from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
-import type { SetupStatusResponse, SetupInitializeRequest, SetupInitializeResponse } from "@pearl/shared";
 import type { Config } from "../config.js";
-import { findBeadsDir, readBeadsMetadata, loadConfig, type DoltMode } from "../config.js";
+import { type DoltMode, findBeadsDir, loadConfig, readBeadsMetadata } from "../config.js";
 import { validationError } from "../errors.js";
 
 export interface SetupContext {
@@ -11,10 +15,7 @@ export interface SetupContext {
   onSetupComplete: (newConfig: Config) => Promise<void>;
 }
 
-export function registerSetupRoutes(
-  app: FastifyInstance,
-  ctx: SetupContext
-): void {
+export function registerSetupRoutes(app: FastifyInstance, ctx: SetupContext): void {
   let isInitializing = false;
   // GET /api/setup/status
   app.get("/api/setup/status", async (_request, reply) => {
@@ -70,12 +71,12 @@ export function registerSetupRoutes(
           port,
           body.database || "beads_gui",
           body.server_user || "root",
-          body.server_password || ""
+          body.server_password || "",
         );
         if (!isReachable) {
           throw validationError(
             `Cannot connect to Dolt server at ${body.server_host}:${port}. ` +
-              "Ensure the server is running and accessible."
+              "Ensure the server is running and accessible.",
           );
         }
       }
@@ -102,10 +103,7 @@ export function registerSetupRoutes(
           dolt_database: body.database || "beads_gui",
           project_id: crypto.randomUUID(),
         };
-        writeFileSync(
-          resolve(beadsDir, "metadata.json"),
-          JSON.stringify(metadata, null, 2)
-        );
+        writeFileSync(resolve(beadsDir, "metadata.json"), JSON.stringify(metadata, null, 2));
       }
 
       // Verify .beads/ was created
@@ -153,7 +151,7 @@ async function testServerConnection(
   port: number,
   database: string,
   user: string,
-  password: string
+  password: string,
 ): Promise<boolean> {
   try {
     const mysql2 = await import("mysql2/promise");

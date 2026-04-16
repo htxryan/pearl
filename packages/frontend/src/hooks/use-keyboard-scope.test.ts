@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, cleanup } from "@testing-library/react";
-import { useKeyboardScope, type KeyBinding } from "./use-keyboard-scope";
+import { act, cleanup, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { type KeyBinding, useKeyboardScope } from "./use-keyboard-scope";
 
 describe("useKeyboardScope", () => {
   beforeEach(() => {
@@ -13,9 +13,7 @@ describe("useKeyboardScope", () => {
 
   it("should register and fire keyboard shortcuts", () => {
     const handler = vi.fn();
-    const bindings: KeyBinding[] = [
-      { key: "1", handler, description: "Go to list" },
-    ];
+    const bindings: KeyBinding[] = [{ key: "1", handler, description: "Go to list" }];
 
     renderHook(() => useKeyboardScope("test", bindings));
 
@@ -28,9 +26,7 @@ describe("useKeyboardScope", () => {
 
   it("should unregister shortcuts on unmount", () => {
     const handler = vi.fn();
-    const bindings: KeyBinding[] = [
-      { key: "1", handler, description: "Go to list" },
-    ];
+    const bindings: KeyBinding[] = [{ key: "1", handler, description: "Go to list" }];
 
     const { unmount } = renderHook(() => useKeyboardScope("test", bindings));
 
@@ -51,15 +47,11 @@ describe("useKeyboardScope", () => {
     renderHook(() => useKeyboardScope("test", bindings));
 
     // Without meta — should not fire
-    window.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "k", bubbles: true }),
-    );
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", bubbles: true }));
     expect(handler).not.toHaveBeenCalled();
 
     // With meta — should fire
-    window.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
-    );
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
     expect(handler).toHaveBeenCalledOnce();
   });
 
@@ -67,16 +59,10 @@ describe("useKeyboardScope", () => {
     const handler1 = vi.fn();
     const handler2 = vi.fn();
 
-    renderHook(() =>
-      useKeyboardScope("scope1", [{ key: "x", handler: handler1 }]),
-    );
-    renderHook(() =>
-      useKeyboardScope("scope2", [{ key: "x", handler: handler2 }]),
-    );
+    renderHook(() => useKeyboardScope("scope1", [{ key: "x", handler: handler1 }]));
+    renderHook(() => useKeyboardScope("scope2", [{ key: "x", handler: handler2 }]));
 
-    window.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "x", bubbles: true }),
-    );
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "x", bubbles: true }));
 
     // scope2 was pushed last, should win
     expect(handler2).toHaveBeenCalledOnce();

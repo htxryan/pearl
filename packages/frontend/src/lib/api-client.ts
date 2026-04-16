@@ -1,21 +1,21 @@
 import type {
-  Issue,
-  IssueListItem,
-  CreateIssueRequest,
-  UpdateIssueRequest,
+  ApiError,
+  Comment,
   CreateCommentRequest,
   CreateDependencyRequest,
-  MutationResponse,
-  Comment,
-  Event,
+  CreateIssueRequest,
   Dependency,
+  Event,
   HealthResponse,
-  StatsResponse,
-  ApiError,
-  SetupStatusResponse,
+  Issue,
+  IssueListItem,
+  LabelWithCount,
+  MutationResponse,
   SetupInitializeRequest,
   SetupInitializeResponse,
-  LabelWithCount,
+  SetupStatusResponse,
+  StatsResponse,
+  UpdateIssueRequest,
   UpsertLabelRequest,
 } from "@pearl/shared";
 
@@ -131,10 +131,7 @@ export function addDependency(
   });
 }
 
-export function removeDependency(
-  issueId: string,
-  dependsOnId: string,
-): Promise<MutationResponse> {
+export function removeDependency(issueId: string, dependsOnId: string): Promise<MutationResponse> {
   return request(
     `/dependencies/${encodeURIComponent(issueId)}/${encodeURIComponent(dependsOnId)}`,
     { method: "DELETE" },
@@ -167,9 +164,7 @@ export function fetchSetupStatus(): Promise<SetupStatusResponse> {
   return request("/setup/status");
 }
 
-export function initializeSetup(
-  data: SetupInitializeRequest
-): Promise<SetupInitializeResponse> {
+export function initializeSetup(data: SetupInitializeRequest): Promise<SetupInitializeResponse> {
   return request("/setup/initialize", {
     method: "POST",
     body: JSON.stringify(data),

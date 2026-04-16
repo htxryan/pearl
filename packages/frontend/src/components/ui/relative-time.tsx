@@ -18,11 +18,7 @@ interface RelativeTimeProps {
 
 export function RelativeTime({ iso, className }: RelativeTimeProps) {
   return (
-    <time
-      dateTime={iso}
-      title={formatAbsoluteTime(iso)}
-      className={className}
-    >
+    <time dateTime={iso} title={formatAbsoluteTime(iso)} className={className}>
       {formatRelativeTime(iso)}
     </time>
   );

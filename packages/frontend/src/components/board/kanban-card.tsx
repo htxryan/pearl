@@ -1,10 +1,10 @@
-import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { IssueListItem, IssueStatus, LabelColor } from "@pearl/shared";
+import { memo } from "react";
+import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
-import { LabelBadge } from "@/components/ui/label-badge";
 import { cn } from "@/lib/utils";
 
 interface KanbanCardProps {
@@ -21,14 +21,7 @@ const statusAccentColor: Record<IssueStatus, string> = {
 };
 
 export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: issue.id,
     data: { type: "card", issue },
     transition: {
@@ -82,9 +75,7 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
       <div className="pl-3.5 pr-3 py-3">
         {/* Header: ID + Priority */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground font-mono truncate">
-            {issue.id}
-          </span>
+          <span className="text-xs text-muted-foreground font-mono truncate">{issue.id}</span>
           <PriorityIndicator priority={issue.priority} />
         </div>
 
@@ -98,14 +89,19 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
           <div className="flex items-center gap-1.5">
             <TypeBadge type={issue.issue_type} />
             {issue.labels.length > 0 && (
-              <div className="flex items-center gap-1 truncate max-w-[120px]" title={issue.labels.join(", ")}>
+              <div
+                className="flex items-center gap-1 truncate max-w-[120px]"
+                title={issue.labels.join(", ")}
+              >
                 <LabelBadge
                   name={issue.labels[0]}
                   color={(issue.labelColors ?? {})[issue.labels[0]] as LabelColor | undefined}
                   size="sm"
                 />
                 {issue.labels.length > 1 && (
-                  <span className="text-[10px] text-muted-foreground">+{issue.labels.length - 1}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    +{issue.labels.length - 1}
+                  </span>
                 )}
               </div>
             )}
@@ -135,26 +131,27 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
       <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusAccentColor[issue.status])} />
       <div className="pl-3.5 pr-3 py-3">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground font-mono truncate">
-            {issue.id}
-          </span>
+          <span className="text-xs text-muted-foreground font-mono truncate">{issue.id}</span>
           <PriorityIndicator priority={issue.priority} />
         </div>
-        <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">
-          {issue.title}
-        </p>
+        <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">{issue.title}</p>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <TypeBadge type={issue.issue_type} />
             {issue.labels.length > 0 && (
-              <div className="flex items-center gap-1 truncate max-w-[120px]" title={issue.labels.join(", ")}>
+              <div
+                className="flex items-center gap-1 truncate max-w-[120px]"
+                title={issue.labels.join(", ")}
+              >
                 <LabelBadge
                   name={issue.labels[0]}
                   color={(issue.labelColors ?? {})[issue.labels[0]] as LabelColor | undefined}
                   size="sm"
                 />
                 {issue.labels.length > 1 && (
-                  <span className="text-[10px] text-muted-foreground">+{issue.labels.length - 1}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    +{issue.labels.length - 1}
+                  </span>
                 )}
               </div>
             )}

@@ -1,17 +1,17 @@
-import type { FastifyInstance } from "fastify";
 import type {
-  IssueStatus,
-  Priority,
-  IssueType,
   CreateIssueRequest,
+  IssueStatus,
+  IssueType,
+  Priority,
   UpdateIssueRequest,
 } from "@pearl/shared";
 import { ISSUE_LIST_FIELDS } from "@pearl/shared";
+import type { FastifyInstance } from "fastify";
+import type { RowDataPacket } from "mysql2";
+import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
 import { notFoundError, validationError } from "../errors.js";
-import type { Config } from "../config.js";
 import type { WriteService } from "../write-service/write-service.js";
-import type { RowDataPacket } from "mysql2";
 import { fetchLabelColors } from "./labels.js";
 
 // ─── JSON Schema for request body validation ───────────
@@ -29,7 +29,11 @@ const createIssueSchema = {
       priority: { type: "integer", minimum: 0, maximum: 4 },
       assignee: { type: "string", maxLength: 200 },
       labels: { type: "array", items: { type: "string", maxLength: 100 }, maxItems: 50 },
-      due: { type: "string", maxLength: 30, pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}(:\\d{2})?)?$" },
+      due: {
+        type: "string",
+        maxLength: 30,
+        pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}(:\\d{2})?)?$",
+      },
       parent: { type: "string", maxLength: 200 },
       estimated_minutes: { type: "integer", minimum: 0, maximum: 525600 },
     },
@@ -48,7 +52,11 @@ const updateIssueSchema = {
       issue_type: { type: "string", enum: ISSUE_TYPES },
       assignee: { type: ["string", "null"], maxLength: 200 },
       labels: { type: "array", items: { type: "string", maxLength: 100 }, maxItems: 50 },
-      due: { type: ["string", "null"], maxLength: 30, pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}(:\\d{2})?)?$" },
+      due: {
+        type: ["string", "null"],
+        maxLength: 30,
+        pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}(:\\d{2})?)?$",
+      },
       notes: { type: "string", maxLength: 10000 },
       design: { type: "string", maxLength: 10000 },
       acceptance_criteria: { type: "string", maxLength: 10000 },
@@ -71,8 +79,14 @@ const deleteIssueSchema = {
 } as const;
 
 const DATE_RANGE_VALUES = [
-  "overdue", "due_today", "due_this_week", "due_next_7_days", "no_due_date",
-  "created_today", "created_this_week", "created_last_week",
+  "overdue",
+  "due_today",
+  "due_this_week",
+  "due_next_7_days",
+  "no_due_date",
+  "created_today",
+  "created_this_week",
+  "created_last_week",
 ];
 const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "is_epic", "no_assignee"];
 
@@ -80,9 +94,17 @@ const listIssuesQuerySchema = {
   querystring: {
     type: "object",
     properties: {
-      status: { type: "string", maxLength: 200, pattern: `^(${ISSUE_STATUSES.join("|")})(,(${ISSUE_STATUSES.join("|")}))*$` },
+      status: {
+        type: "string",
+        maxLength: 200,
+        pattern: `^(${ISSUE_STATUSES.join("|")})(,(${ISSUE_STATUSES.join("|")}))*$`,
+      },
       priority: { type: "string", maxLength: 50 },
-      issue_type: { type: "string", maxLength: 200, pattern: `^(${ISSUE_TYPES.join("|")})(,(${ISSUE_TYPES.join("|")}))*$` },
+      issue_type: {
+        type: "string",
+        maxLength: 200,
+        pattern: `^(${ISSUE_TYPES.join("|")})(,(${ISSUE_TYPES.join("|")}))*$`,
+      },
       assignee: { type: "string", maxLength: 200 },
       search: { type: "string", maxLength: 500 },
       labels: { type: "string", maxLength: 500 },
@@ -113,7 +135,7 @@ const addCommentSchema = {
 export function registerIssueRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
-  writeService: WriteService
+  writeService: WriteService,
 ): void {
   // GET /api/issues — list with filtering, sorting, column projection
   app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
@@ -121,20 +143,17 @@ export function registerIssueRoutes(
 
     // Column projection — never SELECT *
     const requestedFields = query.fields?.split(",").filter(Boolean) || [];
-    const validFields = requestedFields.length > 0
-      ? requestedFields.filter((f) =>
-          (ISSUE_LIST_FIELDS as readonly string[]).includes(f)
-        )
-      : [...ISSUE_LIST_FIELDS];
+    const validFields =
+      requestedFields.length > 0
+        ? requestedFields.filter((f) => (ISSUE_LIST_FIELDS as readonly string[]).includes(f))
+        : [...ISSUE_LIST_FIELDS];
 
     // Always include id
     if (!validFields.includes("id")) {
       validFields.unshift("id");
     }
 
-    const columns = validFields
-      .map((f) => `i.\`${f}\``)
-      .join(", ");
+    const columns = validFields.map((f) => `i.\`${f}\``).join(", ");
 
     let sql = `SELECT ${columns} FROM issues i WHERE 1=1`;
     const params: unknown[] = [];
@@ -200,17 +219,23 @@ export function registerIssueRoutes(
       for (const range of ranges) {
         switch (range) {
           case "overdue":
-            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at < CURDATE() AND i.status != 'closed')`);
+            dateConditions.push(
+              `(i.due_at IS NOT NULL AND i.due_at < CURDATE() AND i.status != 'closed')`,
+            );
             break;
           case "due_today":
             dateConditions.push(`(i.due_at IS NOT NULL AND DATE(i.due_at) = CURDATE())`);
             break;
           case "due_this_week":
             // Forward-looking: today through end of calendar week (Sunday)
-            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY))`);
+            dateConditions.push(
+              `(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY))`,
+            );
             break;
           case "due_next_7_days":
-            dateConditions.push(`(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))`);
+            dateConditions.push(
+              `(i.due_at IS NOT NULL AND i.due_at >= CURDATE() AND i.due_at <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))`,
+            );
             break;
           case "no_due_date":
             dateConditions.push(`(i.due_at IS NULL)`);
@@ -219,10 +244,14 @@ export function registerIssueRoutes(
             dateConditions.push(`(DATE(i.created_at) = CURDATE())`);
             break;
           case "created_this_week":
-            dateConditions.push(`(i.created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))`);
+            dateConditions.push(
+              `(i.created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))`,
+            );
             break;
           case "created_last_week":
-            dateConditions.push(`(i.created_at >= DATE_SUB(CURDATE(), INTERVAL (WEEKDAY(CURDATE()) + 7) DAY) AND i.created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))`);
+            dateConditions.push(
+              `(i.created_at >= DATE_SUB(CURDATE(), INTERVAL (WEEKDAY(CURDATE()) + 7) DAY) AND i.created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY))`,
+            );
             break;
         }
       }
@@ -260,8 +289,15 @@ export function registerIssueRoutes(
     const sortDir = query.direction === "desc" ? "DESC" : "ASC";
     // Validate sort field to prevent SQL injection
     const allowedSortFields = [
-      "id", "title", "status", "priority", "issue_type",
-      "assignee", "created_at", "updated_at", "due_at",
+      "id",
+      "title",
+      "status",
+      "priority",
+      "issue_type",
+      "assignee",
+      "created_at",
+      "updated_at",
+      "due_at",
     ];
     if (allowedSortFields.includes(sortField)) {
       sql += ` ORDER BY i.\`${sortField}\` ${sortDir}`;
@@ -288,13 +324,13 @@ export function registerIssueRoutes(
     }
     if (issueRows.length > 0 && validFields.includes("id")) {
       const ids = issueRows.map((r) => r.id);
-      const labelRows = await queryWithRetry(getConfig(), async (conn) => {
+      const labelRows = (await queryWithRetry(getConfig(), async (conn) => {
         const [rows] = await conn.query<RowDataPacket[]>(
           `SELECT issue_id, label FROM labels WHERE issue_id IN (${ids.map(() => "?").join(",")})`,
-          ids
+          ids,
         );
         return rows;
-      }) as RowDataPacket[];
+      })) as RowDataPacket[];
       const labelMap = new Map<string, string[]>();
       for (const row of labelRows) {
         const existing = labelMap.get(row.issue_id) || [];
@@ -333,10 +369,7 @@ export function registerIssueRoutes(
     const { id } = request.params as { id: string };
 
     const issue = await queryWithRetry(getConfig(), async (conn) => {
-      const [rows] = await conn.query<RowDataPacket[]>(
-        `SELECT * FROM issues WHERE id = ?`,
-        [id]
-      );
+      const [rows] = await conn.query<RowDataPacket[]>(`SELECT * FROM issues WHERE id = ?`, [id]);
       return rows[0] || null;
     });
 
@@ -345,13 +378,13 @@ export function registerIssueRoutes(
     }
 
     // Fetch labels
-    const labelRows = await queryWithRetry(getConfig(), async (conn) => {
+    const labelRows = (await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT label FROM labels WHERE issue_id = ?`,
-        [id]
+        [id],
       );
       return rows;
-    }) as RowDataPacket[];
+    })) as RowDataPacket[];
     const labelNames = labelRows.map((r) => r.label as string);
     issue.labels = labelNames;
 
@@ -370,7 +403,7 @@ export function registerIssueRoutes(
       const [rows] = await conn.query(
         `SELECT id, issue_id, author, text, created_at
          FROM comments WHERE issue_id = ? ORDER BY created_at ASC`,
-        [id]
+        [id],
       );
       return rows;
     });
@@ -386,7 +419,7 @@ export function registerIssueRoutes(
       const [rows] = await conn.query(
         `SELECT id, issue_id, event_type, actor, old_value, new_value, comment, created_at
          FROM events WHERE issue_id = ? ORDER BY created_at DESC`,
-        [id]
+        [id],
       );
       return rows;
     });
@@ -403,7 +436,7 @@ export function registerIssueRoutes(
         `SELECT issue_id, depends_on_id, type, created_at, created_by
          FROM dependencies
          WHERE issue_id = ? OR depends_on_id = ?`,
-        [id, id]
+        [id, id],
       );
       return rows;
     });

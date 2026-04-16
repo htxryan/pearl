@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
 import {
-  useNotificationPreferences,
-  setPreference,
-  requestBrowserPermission,
   getBrowserPermissionState,
   type NotificationType,
+  requestBrowserPermission,
+  setPreference,
+  useNotificationPreferences,
 } from "@/hooks/use-notifications";
 
 interface ToggleItem {

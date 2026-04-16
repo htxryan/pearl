@@ -1,14 +1,36 @@
+import {
+  ISSUE_PRIORITIES,
+  ISSUE_STATUSES,
+  ISSUE_TYPES,
+  type IssueStatus,
+  type IssueType,
+  type Priority,
+} from "@pearl/shared";
+import type { SortingState } from "@tanstack/react-table";
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router";
-import type { SortingState } from "@tanstack/react-table";
-import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type Priority, type IssueType } from "@pearl/shared";
-import { type FilterState, type GroupByField } from "@/components/issue-table/filter-bar";
-import { DATE_RANGE_OPTIONS, STRUCTURAL_FILTER_OPTIONS, type DateRange, type StructuralFilter } from "@/lib/query-syntax";
+import type { FilterState, GroupByField } from "@/components/issue-table/filter-bar";
+import {
+  DATE_RANGE_OPTIONS,
+  type DateRange,
+  STRUCTURAL_FILTER_OPTIONS,
+  type StructuralFilter,
+} from "@/lib/query-syntax";
 
 export const VALID_STATUSES = new Set<string>(ISSUE_STATUSES);
 export const VALID_PRIORITIES = new Set<number>(ISSUE_PRIORITIES);
 const VALID_TYPES = new Set<string>(ISSUE_TYPES);
-const VALID_SORT_COLUMNS = new Set(["id", "title", "status", "priority", "issue_type", "assignee", "created_at", "updated_at", "due_at"]);
+const VALID_SORT_COLUMNS = new Set([
+  "id",
+  "title",
+  "status",
+  "priority",
+  "issue_type",
+  "assignee",
+  "created_at",
+  "updated_at",
+  "due_at",
+]);
 const VALID_DATE_RANGES = new Set<string>(DATE_RANGE_OPTIONS);
 const VALID_STRUCTURAL = new Set<string>(STRUCTURAL_FILTER_OPTIONS);
 const VALID_GROUP_BY = new Set(["status", "priority", "assignee", "issue_type"]);
@@ -32,7 +54,7 @@ function parseFilters(params: URLSearchParams): FilterState {
     labels: rawLabels,
     dateRanges: rawDateRanges.filter((d) => VALID_DATE_RANGES.has(d)) as DateRange[],
     structural: rawStructural.filter((s) => VALID_STRUCTURAL.has(s)) as StructuralFilter[],
-    groupBy: VALID_GROUP_BY.has(rawGroupBy) ? rawGroupBy as GroupByField : null,
+    groupBy: VALID_GROUP_BY.has(rawGroupBy) ? (rawGroupBy as GroupByField) : null,
   };
 }
 

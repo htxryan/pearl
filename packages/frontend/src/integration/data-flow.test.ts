@@ -1,20 +1,20 @@
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
-import { renderHook, waitFor, act, cleanup } from "@testing-library/react";
+import type { InvalidationHint, Issue, IssueListItem, MutationResponse } from "@pearl/shared";
 import { QueryClient, QueryClientProvider, useIsMutating } from "@tanstack/react-query";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import React from "react";
-import type { Issue, IssueListItem, MutationResponse, InvalidationHint } from "@pearl/shared";
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import {
+  dependencyKeys,
+  healthKeys,
   issueKeys,
   statsKeys,
-  healthKeys,
-  dependencyKeys,
-  useIssues,
-  useUpdateIssue,
-  useCreateIssue,
-  useCloseIssue,
   useAddComment,
   useAddDependency,
+  useCloseIssue,
+  useCreateIssue,
+  useIssues,
   useRemoveDependency,
+  useUpdateIssue,
 } from "@/hooks/use-issues";
 
 // ─── Mock the API client ────────────────────────────────────────
@@ -201,7 +201,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
       () =>
         new Promise<MutationResponse<Issue>>((resolve) => {
           resolveMutation = resolve;
-        })
+        }),
     );
 
     // Render both hooks in the same component context
@@ -212,7 +212,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
         const pendingCount = useIsMutating({ mutationKey: ["issues"] });
         return { issues, updateIssue, pendingCount };
       },
-      { wrapper }
+      { wrapper },
     );
 
     // Wait for list to load
@@ -261,7 +261,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
       () =>
         new Promise<MutationResponse>((resolve) => {
           resolveMutation = resolve;
-        })
+        }),
     );
 
     const { result } = renderHook(
@@ -271,7 +271,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
         const pendingDeps = useIsMutating({ mutationKey: ["dependencies"] });
         return { issues, addDep, pendingDeps };
       },
-      { wrapper }
+      { wrapper },
     );
 
     await waitFor(() => {
@@ -316,10 +316,7 @@ describe("Invalidation from hints", () => {
   it("useCreateIssue invalidates issue lists and detail from hints", async () => {
     const { queryClient, wrapper } = createWrapper();
 
-    const hints: InvalidationHint[] = [
-      { entity: "issues", id: "new-1" },
-      { entity: "stats" },
-    ];
+    const hints: InvalidationHint[] = [{ entity: "issues", id: "new-1" }, { entity: "stats" }];
     (api.createIssue as Mock).mockResolvedValue({
       success: true,
       data: makeIssue({ id: "new-1" }),
@@ -376,10 +373,7 @@ describe("Invalidation from hints", () => {
   it("useCloseIssue invalidates from response hints", async () => {
     const { queryClient, wrapper } = createWrapper();
 
-    const hints: InvalidationHint[] = [
-      { entity: "issues", id: "issue-1" },
-      { entity: "stats" },
-    ];
+    const hints: InvalidationHint[] = [{ entity: "issues", id: "issue-1" }, { entity: "stats" }];
     (api.closeIssue as Mock).mockResolvedValue({
       success: true,
       invalidationHints: hints,
@@ -505,7 +499,7 @@ describe("Invalidation from hints", () => {
     expect(invalidatedKeys).toContainEqual(issueKeys.lists());
     // Should NOT have called invalidate with any detail key
     const detailCalls = invalidatedKeys.filter(
-      (key) => Array.isArray(key) && key.length >= 2 && key[1] === "detail"
+      (key) => Array.isArray(key) && key.length >= 2 && key[1] === "detail",
     );
     expect(detailCalls).toHaveLength(0);
   });
@@ -532,7 +526,7 @@ describe("Optimistic updates (useUpdateIssue)", () => {
       () =>
         new Promise<MutationResponse<Issue>>((resolve) => {
           resolveMutation = resolve;
-        })
+        }),
     );
 
     const { result } = renderHook(() => useUpdateIssue(), { wrapper });
@@ -672,7 +666,7 @@ describe("Optimistic updates (useUpdateIssue)", () => {
     const oldDate = "2020-01-01T00:00:00Z";
     queryClient.setQueryData(
       issueKeys.detail("issue-1"),
-      makeIssue({ id: "issue-1", updated_at: oldDate })
+      makeIssue({ id: "issue-1", updated_at: oldDate }),
     );
     queryClient.setQueryData(issueKeys.list(), [
       makeListItem({ id: "issue-1", updated_at: oldDate }),
@@ -680,7 +674,10 @@ describe("Optimistic updates (useUpdateIssue)", () => {
 
     let resolveMutation!: (value: MutationResponse<Issue>) => void;
     (api.updateIssue as Mock).mockImplementation(
-      () => new Promise((resolve) => { resolveMutation = resolve; })
+      () =>
+        new Promise((resolve) => {
+          resolveMutation = resolve;
+        }),
     );
 
     const { result } = renderHook(() => useUpdateIssue(), { wrapper });
@@ -777,7 +774,7 @@ describe("Invalidation hint entity routing", () => {
     expect(invalidatedKeys).toContainEqual(dependencyKeys.all);
     // Should NOT have invalidated a specific dependencies(id)
     const depIdCalls = invalidatedKeys.filter(
-      (key) => Array.isArray(key) && key.length >= 3 && key[1] === "dependencies"
+      (key) => Array.isArray(key) && key.length >= 3 && key[1] === "dependencies",
     );
     expect(depIdCalls).toHaveLength(0);
   });

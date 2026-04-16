@@ -1,37 +1,36 @@
-import { useParams, useNavigate, useLocation, Navigate } from "react-router";
-import { useMemo, useCallback, useEffect, useState, Children } from "react";
-import type { Issue, IssueStatus, Priority, IssueType, LabelColor } from "@pearl/shared";
-import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES } from "@pearl/shared";
-import { LabelPicker } from "@/components/ui/label-picker";
-import { DatePicker } from "@/components/ui/date-picker";
-import {
-  useIssue,
-  useComments,
-  useEvents,
-  useDependencies,
-  useUpdateIssue,
-  useCloseIssue,
-  useAddComment,
-  useAddDependency,
-  useRemoveDependency,
-} from "@/hooks/use-issues";
-import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
-import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PriorityIndicator } from "@/components/ui/priority-indicator";
-import { TypeBadge } from "@/components/ui/type-badge";
-import { Button } from "@/components/ui/button";
-import { MarkdownSection } from "@/components/detail/markdown-section";
-import { CommentThread } from "@/components/detail/comment-thread";
+import type { Issue, IssueStatus, IssueType, LabelColor, Priority } from "@pearl/shared";
+import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
+import { Children, useCallback, useEffect, useMemo, useState } from "react";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
+import { CommentThread } from "@/components/detail/comment-thread";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
+import { MarkdownSection } from "@/components/detail/markdown-section";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DatePicker } from "@/components/ui/date-picker";
+import { LabelPicker } from "@/components/ui/label-picker";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { TypeBadge } from "@/components/ui/type-badge";
+import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
+import {
+  useAddComment,
+  useAddDependency,
+  useCloseIssue,
+  useComments,
+  useDependencies,
+  useEvents,
+  useIssue,
+  useRemoveDependency,
+  useUpdateIssue,
+} from "@/hooks/use-issues";
+import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useScrollReveal } from "@/hooks/use-scroll-reveal";
-
 
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
@@ -216,9 +215,7 @@ function DetailViewContent({ id }: { id: string }) {
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <div className="text-4xl">!</div>
         <h2 className="text-xl font-semibold">Issue not found</h2>
-        <p className="text-muted-foreground">
-          {error?.message ?? `Could not load issue ${id}`}
-        </p>
+        <p className="text-muted-foreground">{error?.message ?? `Could not load issue ${id}`}</p>
         <Button variant="outline" onClick={() => navigate(backPath)}>
           Back to {backLabel.toLowerCase()}
         </Button>
@@ -250,10 +247,20 @@ function DetailViewContent({ id }: { id: string }) {
           <div className="flex items-center gap-2">
             {issue.status !== "closed" && (
               <>
-                <Button variant="outline" size="sm" onClick={handleClaim} disabled={updateMutation.isPending}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClaim}
+                  disabled={updateMutation.isPending}
+                >
                   Claim
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => setShowCloseConfirm(true)} disabled={closeMutation.isPending}>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowCloseConfirm(true)}
+                  disabled={closeMutation.isPending}
+                >
                   Close
                 </Button>
               </>
@@ -309,7 +316,10 @@ function DetailViewContent({ id }: { id: string }) {
               <FieldRow label="Type">
                 <SelectField
                   value={issue.issue_type}
-                  options={ISSUE_TYPES.map((t) => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                  options={ISSUE_TYPES.map((t) => ({
+                    value: t,
+                    label: t.charAt(0).toUpperCase() + t.slice(1),
+                  }))}
                   onChange={(v) => handleFieldUpdate("issue_type", v)}
                   label="Type"
                 />
@@ -408,9 +418,7 @@ function DetailViewContent({ id }: { id: string }) {
           {/* Comments */}
           <CommentThread
             comments={comments}
-            onAdd={(text) =>
-              addCommentMutation.mutateAsync({ issueId: id, data: { text } })
-            }
+            onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
             isAdding={addCommentMutation.isPending}
           />
 
@@ -499,7 +507,6 @@ function SelectField({
     </select>
   );
 }
-
 
 function DetailSkeleton() {
   return (

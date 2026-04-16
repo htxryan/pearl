@@ -1,8 +1,8 @@
-import { describe, it, expect, afterEach } from "vitest";
-import { createReplica, syncReplica, cleanupReplica } from "./replica-sync.js";
-import { mkdir, writeFile, readFile, access, rm, readdir } from "node:fs/promises";
-import { resolve } from "node:path";
+import { access, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { cleanupReplica, createReplica, syncReplica } from "./replica-sync.js";
 
 const TEST_DIR = resolve(tmpdir(), "beads-replica-sync-test");
 
@@ -32,12 +32,8 @@ describe("createReplica", () => {
     await createReplica(primary, replica);
 
     expect(await exists(replica)).toBe(true);
-    expect(await readFile(resolve(replica, ".dolt", "config"), "utf-8")).toBe(
-      "dolt-config"
-    );
-    expect(await readFile(resolve(replica, "data.json"), "utf-8")).toBe(
-      '{"issues": []}'
-    );
+    expect(await readFile(resolve(replica, ".dolt", "config"), "utf-8")).toBe("dolt-config");
+    expect(await readFile(resolve(replica, "data.json"), "utf-8")).toBe('{"issues": []}');
   });
 
   it("removes existing replica before copying", async () => {

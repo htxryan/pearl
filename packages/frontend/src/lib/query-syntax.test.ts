@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { parseQuerySyntax, hasQuerySyntax } from "./query-syntax";
+import { describe, expect, it } from "vitest";
+import { hasQuerySyntax, parseQuerySyntax } from "./query-syntax";
 
 describe("hasQuerySyntax", () => {
   it("detects key:value pairs", () => {

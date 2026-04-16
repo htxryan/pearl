@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mocks ─────────────────────────────────────────────
 
@@ -65,13 +65,27 @@ vi.mock("@/hooks/use-theme", () => ({
       name: "Light+",
       colorScheme: "light" as const,
       colors: {
-        background: "#ffffff", foreground: "#0a0a0a", muted: "#f5f5f5",
-        "muted-foreground": "#737373", border: "#e5e5e5", primary: "#4f46e5",
-        "primary-foreground": "#ffffff", accent: "#eef2ff", "accent-foreground": "#3730a3",
-        destructive: "#ef4444", ring: "#6366f1", info: "#3b82f6",
-        "info-foreground": "#1e3a5f", success: "#22c55e", "success-foreground": "#14532d",
-        warning: "#f59e0b", "warning-foreground": "#78350f", danger: "#ef4444",
-        "danger-foreground": "#7f1d1d", surface: "#ffffff", "surface-raised": "#fafafa",
+        background: "#ffffff",
+        foreground: "#0a0a0a",
+        muted: "#f5f5f5",
+        "muted-foreground": "#737373",
+        border: "#e5e5e5",
+        primary: "#4f46e5",
+        "primary-foreground": "#ffffff",
+        accent: "#eef2ff",
+        "accent-foreground": "#3730a3",
+        destructive: "#ef4444",
+        ring: "#6366f1",
+        info: "#3b82f6",
+        "info-foreground": "#1e3a5f",
+        success: "#22c55e",
+        "success-foreground": "#14532d",
+        warning: "#f59e0b",
+        "warning-foreground": "#78350f",
+        danger: "#ef4444",
+        "danger-foreground": "#7f1d1d",
+        surface: "#ffffff",
+        "surface-raised": "#fafafa",
       },
     },
     setTheme: vi.fn(),
@@ -82,9 +96,7 @@ vi.mock("@/hooks/use-theme", () => ({
 vi.mock("@xyflow/react", async () => ({
   MarkerType: { ArrowClosed: "arrowclosed" },
   Position: { Top: "top", Bottom: "bottom" },
-  ReactFlow: ({ children }: any) => (
-    <div data-testid="react-flow">{children}</div>
-  ),
+  ReactFlow: ({ children }: any) => <div data-testid="react-flow">{children}</div>,
   Background: () => null,
   Controls: () => null,
   MiniMap: () => null,
@@ -104,12 +116,12 @@ vi.mock("react-router", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-import { useHealth, useIssues } from "@/hooks/use-issues";
-import { useAllDependencies } from "@/hooks/use-dependencies";
-import { HealthBanner } from "@/components/health-banner";
-import { ApiClientError, fetchHealth } from "@/lib/api-client";
-import type { UseQueryResult } from "@tanstack/react-query";
 import type { HealthResponse, IssueListItem } from "@pearl/shared";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { HealthBanner } from "@/components/health-banner";
+import { useAllDependencies } from "@/hooks/use-dependencies";
+import { useHealth, useIssues } from "@/hooks/use-issues";
+import { ApiClientError, fetchHealth } from "@/lib/api-client";
 
 // ─── Helpers ───────────────────────────────────────────
 
@@ -186,9 +198,7 @@ describe("HealthBanner", () => {
     renderWithProviders(<HealthBanner />);
 
     expect(screen.getByText("Backend unavailable")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Cannot connect to the server/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Cannot connect to the server/)).toBeInTheDocument();
 
     // Verify destructive/red styling class
     const banner = screen.getByText("Backend unavailable").closest("div");
@@ -229,9 +239,7 @@ describe("HealthBanner", () => {
     renderWithProviders(<HealthBanner />);
 
     expect(screen.getByText("Database unavailable")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Dolt server status: starting/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Dolt server status: starting/)).toBeInTheDocument();
   });
 
   it("shows 'Database unavailable' when dolt_server is 'error'", () => {
@@ -322,9 +330,7 @@ describe("ApiClientError handling", () => {
   });
 
   it("propagates network errors (TypeError) without wrapping", async () => {
-    vi.spyOn(globalThis, "fetch").mockRejectedValue(
-      new TypeError("Failed to fetch"),
-    );
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
 
     try {
       await fetchHealth();
@@ -536,9 +542,7 @@ describe("View degradation during errors", () => {
       const { GraphView } = await import("@/views/graph-view");
       renderWithProviders(<GraphView />);
 
-      expect(
-        screen.getByText("Loading dependency graph..."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Loading dependency graph...")).toBeInTheDocument();
     });
 
     it("shows empty state when useIssues returns empty data on error", async () => {
@@ -565,9 +569,7 @@ describe("View degradation during errors", () => {
       const { GraphView } = await import("@/views/graph-view");
       renderWithProviders(<GraphView />);
 
-      expect(
-        screen.getByText("No issues match the current filters."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("No issues match the current filters.")).toBeInTheDocument();
     });
   });
 

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup, within, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Routes, Route, Navigate } from "react-router";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, Navigate, Route, Routes } from "react-router";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock navigation ─────────────────────────────────────
 const mockNavigate = vi.fn();
@@ -153,7 +153,9 @@ vi.mock("@dagrejs/dagre", () => {
 // ─── Mock cmdk ───────────────────────────────────────────
 vi.mock("cmdk", () => {
   const Command = ({ children, ...props }: any) => (
-    <div data-testid="cmdk" {...props}>{children}</div>
+    <div data-testid="cmdk" {...props}>
+      {children}
+    </div>
   );
   Command.Input = (props: any) => <input data-testid="cmdk-input" {...props} />;
   Command.List = ({ children }: any) => <div data-testid="cmdk-list">{children}</div>;
@@ -171,9 +173,9 @@ vi.mock("cmdk", () => {
 
 // ─── Imports (after mocks) ───────────────────────────────
 import { AppShell } from "@/components/app-shell";
+import { monokai } from "@/themes/definitions/monokai";
 import { ListView } from "@/views/list-view";
 import { SettingsView } from "@/views/settings-view";
-import { monokai } from "@/themes/definitions/monokai";
 
 // ─── Helpers ─────────────────────────────────────────────
 function createQueryClient() {
@@ -335,9 +337,9 @@ describe("E2E theme selection flow", () => {
     expect(localStorage.getItem("pearl-theme")).toBe(monokai.id);
 
     // CSS custom properties should be applied
-    expect(
-      document.documentElement.style.getPropertyValue("--color-background"),
-    ).toBe(monokai.colors.background);
+    expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      monokai.colors.background,
+    );
 
     // Dark class should be applied (Monokai is a dark theme)
     expect(document.documentElement.classList.contains("dark")).toBe(true);
@@ -362,9 +364,9 @@ describe("E2E theme selection flow", () => {
     renderApp("/list");
 
     // CSS variables should still reflect the persisted theme
-    expect(
-      document.documentElement.style.getPropertyValue("--color-background"),
-    ).toBe(monokai.colors.background);
+    expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      monokai.colors.background,
+    );
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 });

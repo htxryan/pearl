@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LABEL_PALETTE } from "./label-badge";
 
 // ---------------------------------------------------------------------------
@@ -9,11 +9,7 @@ import { LABEL_PALETTE } from "./label-badge";
 /** Parse a 6-digit hex color into [r, g, b] in 0..255. */
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
 /**
@@ -22,7 +18,7 @@ function hexToRgb(hex: string): [number, number, number] {
  */
 function srgbToLinear(c: number): number {
   const s = c / 255;
-  return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
 }
 
 /** Relative luminance per WCAG 2.0. */
@@ -69,7 +65,11 @@ describe("WCAG AA contrast verification", () => {
 
 let mockColorScheme = "light";
 vi.mock("@/hooks/use-theme", () => ({
-  useTheme: () => ({ themeId: mockColorScheme, theme: { colorScheme: mockColorScheme }, setTheme: () => {} }),
+  useTheme: () => ({
+    themeId: mockColorScheme,
+    theme: { colorScheme: mockColorScheme },
+    setTheme: () => {},
+  }),
 }));
 
 // Import after mock is set up

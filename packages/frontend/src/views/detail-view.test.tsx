@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Comment, Dependency, Event, Issue } from "@pearl/shared";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DetailView } from "./detail-view";
-import type { Issue, Comment, Event, Dependency } from "@pearl/shared";
 
 // Mock the hooks
 vi.mock("@/hooks/use-issues", () => ({
@@ -20,15 +20,15 @@ vi.mock("@/hooks/use-issues", () => ({
 
 // Import the mocked hooks
 import {
-  useIssue,
-  useComments,
-  useEvents,
-  useDependencies,
-  useUpdateIssue,
-  useCloseIssue,
   useAddComment,
   useAddDependency,
+  useCloseIssue,
+  useComments,
+  useDependencies,
+  useEvents,
+  useIssue,
   useRemoveDependency,
+  useUpdateIssue,
 } from "@/hooks/use-issues";
 
 const mockIssue: Issue = {
@@ -55,7 +55,7 @@ const mockIssue: Issue = {
   pinned: false,
   is_template: false,
   labels: ["frontend", "v1"],
-    labelColors: {},
+  labelColors: {},
   metadata: {},
 };
 
@@ -225,7 +225,11 @@ describe("DetailView", () => {
   });
 
   it("does not show Claim/Close buttons for closed issues", () => {
-    const closedIssue = { ...mockIssue, status: "closed" as const, closed_at: "2026-04-10T14:00:00Z" };
+    const closedIssue = {
+      ...mockIssue,
+      status: "closed" as const,
+      closed_at: "2026-04-10T14:00:00Z",
+    };
 
     (useIssue as ReturnType<typeof vi.fn>).mockReturnValue({
       data: closedIssue,

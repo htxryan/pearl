@@ -1,6 +1,6 @@
 import { createPool, type Pool, type PoolConnection } from "mysql2/promise";
 import type { Config } from "../config.js";
-import { doltUnavailableError, databaseLockedError } from "../errors.js";
+import { databaseLockedError, doltUnavailableError } from "../errors.js";
 
 let pool: Pool | null = null;
 
@@ -32,10 +32,7 @@ export function endSync(): void {
 export async function awaitSync(timeoutMs = 30_000): Promise<void> {
   if (!syncBarrier) return;
   const timeout = new Promise<never>((_, reject) =>
-    setTimeout(
-      () => reject(doltUnavailableError("Replica sync timed out")),
-      timeoutMs
-    )
+    setTimeout(() => reject(doltUnavailableError("Replica sync timed out")), timeoutMs),
   );
   await Promise.race([syncBarrier.promise, timeout]);
 }
@@ -85,7 +82,7 @@ export async function destroyPool(): Promise<void> {
  */
 export async function queryWithRetry<T>(
   config: Config,
-  queryFn: (conn: PoolConnection) => Promise<T>
+  queryFn: (conn: PoolConnection) => Promise<T>,
 ): Promise<T> {
   // If a replica sync is in progress, wait for it to finish
   // rather than failing immediately with "pool not initialized".
@@ -101,17 +98,14 @@ export async function queryWithRetry<T>(
     } catch (err: unknown) {
       if (isLockError(err) && attempt < config.dbLockMaxRetries) {
         console.warn(
-          `[db] Database lock detected, retry ${attempt + 1}/${config.dbLockMaxRetries}`
+          `[db] Database lock detected, retry ${attempt + 1}/${config.dbLockMaxRetries}`,
         );
-        const jitteredDelay =
-          config.dbLockRetryDelayMs * (attempt + 1) + Math.random() * 200;
+        const jitteredDelay = config.dbLockRetryDelayMs * (attempt + 1) + Math.random() * 200;
         await new Promise((r) => setTimeout(r, jitteredDelay));
         continue;
       }
       if (isConnectionError(err)) {
-        throw doltUnavailableError(
-          err instanceof Error ? err.message : "Connection failed"
-        );
+        throw doltUnavailableError(err instanceof Error ? err.message : "Connection failed");
       }
       if (isLockError(err)) {
         throw databaseLockedError();
@@ -141,4 +135,3 @@ function isConnectionError(err: unknown): boolean {
     code === "ER_ACCESS_DENIED_ERROR"
   );
 }
-

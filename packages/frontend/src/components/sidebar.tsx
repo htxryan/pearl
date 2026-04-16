@@ -1,13 +1,21 @@
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router";
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-media-query";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
-import { useEffect, useCallback, useRef, type ReactNode } from "react";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 
 // Inline SVG icons — consistent 16x16, stroke-based
 function ListIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
       <line x1="2" y1="4" x2="14" y2="4" />
       <line x1="2" y1="8" x2="14" y2="8" />
       <line x1="2" y1="12" x2="10" y2="12" />
@@ -17,7 +25,16 @@ function ListIcon() {
 
 function BoardIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="1.5" y="2" width="3.5" height="12" rx="0.5" />
       <rect x="6.25" y="2" width="3.5" height="8" rx="0.5" />
       <rect x="11" y="2" width="3.5" height="10" rx="0.5" />
@@ -27,7 +44,15 @@ function BoardIcon() {
 
 function GraphIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
       <circle cx="4" cy="4" r="2" />
       <circle cx="12" cy="4" r="2" />
       <circle cx="8" cy="12" r="2" />
@@ -39,7 +64,16 @@ function GraphIcon() {
 
 function SettingsIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="8" cy="8" r="2" />
       <path d="M13.5 8a5.5 5.5 0 00-.4-1.6l1.3-1-.8-1.4-1.5.6a5.5 5.5 0 00-1.3-1.1l.2-1.6-1.5-.4-.7 1.4A5.5 5.5 0 008 2.5a5.5 5.5 0 00-.8.1L6.5 1.2 5 1.6l.2 1.6a5.5 5.5 0 00-1.3 1.1l-1.5-.6-.8 1.4 1.3 1A5.5 5.5 0 002.5 8c0 .6.1 1.1.4 1.6l-1.3 1 .8 1.4 1.5-.6c.4.4.8.8 1.3 1.1l-.2 1.6 1.5.4.7-1.4c.3 0 .5.1.8.1s.5 0 .8-.1l.7 1.4 1.5-.4-.2-1.6c.5-.3.9-.7 1.3-1.1l1.5.6.8-1.4-1.3-1c.3-.5.4-1 .4-1.6z" />
     </svg>
@@ -48,7 +82,15 @@ function SettingsIcon() {
 
 function HamburgerIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
       <line x1="3" y1="5" x2="17" y2="5" />
       <line x1="3" y1="10" x2="17" y2="10" />
       <line x1="3" y1="15" x2="17" y2="15" />
@@ -58,7 +100,15 @@ function HamburgerIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
       <line x1="5" y1="5" x2="15" y2="15" />
       <line x1="15" y1="5" x2="5" y2="15" />
     </svg>
@@ -71,9 +121,20 @@ const mainNavItems: { to: string; label: string; shortcut: string; icon: () => R
   { to: "/graph", label: "Graph", shortcut: "3", icon: () => <GraphIcon /> },
 ];
 
-const settingsItem = { to: "/settings", label: "Settings", shortcut: "4", icon: () => <SettingsIcon /> };
+const settingsItem = {
+  to: "/settings",
+  label: "Settings",
+  shortcut: "4",
+  icon: () => <SettingsIcon />,
+};
 
-function NavItem({ item, mobile }: { item: { to: string; label: string; shortcut: string; icon: () => ReactNode }; mobile?: boolean }) {
+function NavItem({
+  item,
+  mobile,
+}: {
+  item: { to: string; label: string; shortcut: string; icon: () => ReactNode };
+  mobile?: boolean;
+}) {
   return (
     <NavLink
       to={item.to}
@@ -174,20 +235,24 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = ""; };
+      return () => {
+        document.body.style.overflow = "";
+      };
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div ref={drawerRef} className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div
+      ref={drawerRef}
+      className="fixed inset-0 z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation menu"
+    >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       {/* Drawer panel */}
       <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-background shadow-lg flex flex-col animate-slide-in-left">
         <div className="flex h-14 items-center justify-between px-4">

@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import * as api from "@/lib/api-client";
 import { addToast } from "./use-toast";
 
@@ -22,7 +22,9 @@ function notify() {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 let entryCounter = 0;
@@ -95,17 +97,14 @@ export function useUndoActions() {
     [],
   );
 
-  const recordClose = useCallback(
-    (issueId: string, issueTitle: string, previousStatus: string) => {
-      pushUndo({
-        description: `Closed "${issueTitle}"`,
-        undo: async () => {
-          await api.updateIssue(issueId, { status: previousStatus as never });
-        },
-      });
-    },
-    [],
-  );
+  const recordClose = useCallback((issueId: string, issueTitle: string, previousStatus: string) => {
+    pushUndo({
+      description: `Closed "${issueTitle}"`,
+      undo: async () => {
+        await api.updateIssue(issueId, { status: previousStatus as never });
+      },
+    });
+  }, []);
 
   const recordFieldEdit = useCallback(
     (issueId: string, issueTitle: string, field: string, oldValue: unknown) => {

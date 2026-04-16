@@ -1,5 +1,5 @@
-import { resolve, dirname, basename } from "node:path";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { basename, dirname, resolve } from "node:path";
 
 export type DoltMode = "embedded" | "server";
 
@@ -73,13 +73,11 @@ export function loadConfig(): Config {
   }
 
   // Auto-discover the .beads database path
-  const doltDbPath =
-    process.env.BEADS_DB_PATH || findBeadsDbPath(cwd);
+  const doltDbPath = process.env.BEADS_DB_PATH || findBeadsDbPath(cwd);
 
   // Read .beads/metadata.json for mode detection
   const metadata = readBeadsMetadata(cwd);
-  const doltMode: DoltMode =
-    metadata?.dolt_mode === "server" ? "server" : "embedded";
+  const doltMode: DoltMode = metadata?.dolt_mode === "server" ? "server" : "embedded";
 
   let doltHost: string;
   if (doltMode === "server") {
@@ -87,7 +85,7 @@ export function loadConfig(): Config {
     if (!doltHost) {
       throw new Error(
         "dolt_mode is 'server' but no dolt_host configured. " +
-          "Set DOLT_HOST env var or dolt_host/dolt_server_host in .beads/metadata.json."
+          "Set DOLT_HOST env var or dolt_host/dolt_server_host in .beads/metadata.json.",
       );
     }
   } else {
@@ -99,9 +97,9 @@ export function loadConfig(): Config {
       String(
         metadata?.dolt_port ||
           (doltMode === "server" ? metadata?.dolt_server_port : undefined) ||
-          3307
+          3307,
       ),
-    10
+    10,
   );
 
   // Derive replica path for embedded mode: sibling __replica__/<dbname>/
@@ -113,10 +111,7 @@ export function loadConfig(): Config {
 
   // Database name: in server mode, prefer explicit metadata; in embedded, derive from path
   const doltDatabase =
-    process.env.DOLT_DATABASE ||
-    metadata?.dolt_database ||
-    basename(doltDbPath) ||
-    "beads_gui";
+    process.env.DOLT_DATABASE || metadata?.dolt_database || basename(doltDbPath) || "beads_gui";
 
   return {
     host: "127.0.0.1",
@@ -152,9 +147,7 @@ interface BeadsMetadata {
   [key: string]: unknown;
 }
 
-export function readBeadsMetadata(
-  startDir: string
-): BeadsMetadata | null {
+export function readBeadsMetadata(startDir: string): BeadsMetadata | null {
   let dir = startDir;
   for (let i = 0; i < 10; i++) {
     const metadataPath = resolve(dir, ".beads", "metadata.json");
@@ -194,9 +187,7 @@ function findBeadsDbPath(startDir: string): string {
     const beadsDir = resolve(dir, ".beads", "embeddeddolt");
     try {
       const entries = readdirSync(beadsDir, { withFileTypes: true });
-      const dbDir = entries.find(
-        (e) => e.isDirectory() && !e.name.startsWith(".")
-      );
+      const dbDir = entries.find((e) => e.isDirectory() && !e.name.startsWith("."));
       if (dbDir) {
         return resolve(beadsDir, dbDir.name);
       }

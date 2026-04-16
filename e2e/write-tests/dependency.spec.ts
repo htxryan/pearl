@@ -1,4 +1,4 @@
-import { test, expect, navigateToIssue, expectToast } from "./fixtures";
+import { expect, expectToast, navigateToIssue, test } from "./fixtures";
 
 const API_BASE = "http://127.0.0.1:3456";
 
@@ -20,7 +20,9 @@ test.describe("Dependency Management", () => {
     for (const dep of deps) {
       const key = `${dep.issue_id}:${dep.depends_on_id}`;
       if (!ORIGINAL_DEPS.has(key)) {
-        await page.request.delete(`${API_BASE}/api/dependencies/${dep.issue_id}/${dep.depends_on_id}`);
+        await page.request.delete(
+          `${API_BASE}/api/dependencies/${dep.issue_id}/${dep.depends_on_id}`,
+        );
       }
     }
     await page.waitForTimeout(3_000);

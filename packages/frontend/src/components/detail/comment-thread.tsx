@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { Comment } from "@pearl/shared";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 
@@ -38,10 +38,7 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
       {comments.length > 0 ? (
         <div className="space-y-3 mb-4">
           {comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="rounded-lg border border-border p-3"
-            >
+            <div key={comment.id} className="rounded-lg border border-border p-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium">{comment.author}</span>
                 <RelativeTime iso={comment.created_at} className="text-xs text-muted-foreground" />
@@ -52,7 +49,9 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
         </div>
       ) : (
         <div className="flex flex-col items-center py-6 text-muted-foreground mb-4">
-          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">&#9998;</span>
+          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">
+            &#9998;
+          </span>
           <p className="text-sm">No comments yet. Start the conversation below.</p>
         </div>
       )}
@@ -71,18 +70,10 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
             }
           }}
         />
-        {error && (
-          <p className="text-xs text-destructive">{error}</p>
-        )}
+        {error && <p className="text-xs text-destructive">{error}</p>}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            Cmd+Enter to submit
-          </span>
-          <Button
-            type="submit"
-            size="sm"
-            disabled={!newComment.trim() || isAdding}
-          >
+          <span className="text-xs text-muted-foreground">Cmd+Enter to submit</span>
+          <Button type="submit" size="sm" disabled={!newComment.trim() || isAdding}>
             {isAdding ? "Posting..." : "Comment"}
           </Button>
         </div>

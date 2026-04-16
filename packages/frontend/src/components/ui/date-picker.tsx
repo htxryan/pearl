@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { format, isValid, parse } from "date-fns";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
-import { format, parse, isValid } from "date-fns";
 import { parseRelativeDate } from "@/lib/parse-relative-date";
 import { cn } from "@/lib/utils";
 
@@ -45,9 +45,7 @@ export function DatePicker({
     setPopoverStyle({
       position: "fixed",
       left: Math.max(8, Math.min(rect.left, window.innerWidth - 308)),
-      ...(above
-        ? { bottom: window.innerHeight - rect.top + 4 }
-        : { top: rect.bottom + 4 }),
+      ...(above ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
       zIndex: 50,
     });
   }, []);
@@ -148,9 +146,7 @@ export function DatePicker({
     close();
   };
 
-  const displayValue = selectedDate
-    ? format(selectedDate, "MMM d, yyyy")
-    : null;
+  const displayValue = selectedDate ? format(selectedDate, "MMM d, yyyy") : null;
 
   return (
     <div ref={containerRef} className={cn("relative inline-block", className)}>
@@ -201,8 +197,10 @@ export function DatePicker({
               months: "flex flex-col",
               month_caption: "flex justify-center items-center h-8 font-medium text-foreground",
               nav: "flex items-center gap-1",
-              button_previous: "absolute left-1 top-0 h-8 w-8 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground",
-              button_next: "absolute right-1 top-0 h-8 w-8 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground",
+              button_previous:
+                "absolute left-1 top-0 h-8 w-8 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground",
+              button_next:
+                "absolute right-1 top-0 h-8 w-8 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground",
               month_grid: "w-full border-collapse",
               weekdays: "flex",
               weekday: "w-9 text-center text-[11px] font-medium text-muted-foreground py-1",

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -6,17 +6,14 @@ const FOCUSABLE_SELECTOR = [
   "input:not([disabled])",
   "select:not([disabled])",
   "textarea:not([disabled])",
-  "[tabindex]:not([tabindex=\"-1\"])",
+  '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
 /**
  * Traps keyboard focus within a container while active.
  * Moves focus into the container on open and restores it on close.
  */
-export function useFocusTrap(
-  containerRef: RefObject<HTMLElement | null>,
-  isActive: boolean,
-) {
+export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, isActive: boolean) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {

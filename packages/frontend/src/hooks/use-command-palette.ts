@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 export interface CommandAction {
   id: string;

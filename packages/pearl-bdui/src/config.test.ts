@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { loadConfig, readBeadsMetadata } from "./config.js";
-import { resolve, basename } from "node:path";
 import { readFileSync as realReadFileSync } from "node:fs";
+import { basename, resolve } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { loadConfig, readBeadsMetadata } from "./config.js";
 
 const { mockedReadFileSync } = vi.hoisted(() => {
   return { mockedReadFileSync: vi.fn() };
@@ -85,17 +85,12 @@ describe("loadConfig", () => {
 
   describe("server mode", () => {
     function mockMetadata(metadata: Record<string, unknown>) {
-      mockedReadFileSync.mockImplementation(
-        (path: unknown, enc: unknown) => {
-          if (String(path).includes("metadata.json")) {
-            return JSON.stringify(metadata);
-          }
-          return realReadFileSync(
-            path as string,
-            enc as BufferEncoding
-          );
+      mockedReadFileSync.mockImplementation((path: unknown, enc: unknown) => {
+        if (String(path).includes("metadata.json")) {
+          return JSON.stringify(metadata);
         }
-      );
+        return realReadFileSync(path as string, enc as BufferEncoding);
+      });
     }
 
     afterEach(() => {

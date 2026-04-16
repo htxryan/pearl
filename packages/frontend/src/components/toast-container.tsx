@@ -1,4 +1,4 @@
-import { useToasts, dismissToast, type Toast, type ToastVariant } from "@/hooks/use-toast";
+import { dismissToast, type Toast, type ToastVariant, useToasts } from "@/hooks/use-toast";
 
 const variantStyles: Record<ToastVariant, string> = {
   success: "border-success/30 bg-success/10 text-success-foreground",

@@ -27,7 +27,15 @@ export type LabelColor =
   | "gray";
 
 export const LABEL_COLORS: LabelColor[] = [
-  "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "gray",
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "teal",
+  "blue",
+  "purple",
+  "pink",
+  "gray",
 ];
 
 /** Request to create or update a label definition */
@@ -85,12 +93,7 @@ export interface IssueListItem {
   labelColors: Record<string, LabelColor>;
 }
 
-export type IssueStatus =
-  | "open"
-  | "in_progress"
-  | "closed"
-  | "blocked"
-  | "deferred";
+export type IssueStatus = "open" | "in_progress" | "closed" | "blocked" | "deferred";
 
 /** 0 = highest (P0), 4 = lowest (P4) */
 export type Priority = 0 | 1 | 2 | 3 | 4;
@@ -106,9 +109,24 @@ export type IssueType =
   | "molecule";
 
 /** Canonical value arrays — single source of truth for validation and UI */
-export const ISSUE_STATUSES: IssueStatus[] = ["open", "in_progress", "closed", "blocked", "deferred"];
+export const ISSUE_STATUSES: IssueStatus[] = [
+  "open",
+  "in_progress",
+  "closed",
+  "blocked",
+  "deferred",
+];
 export const ISSUE_PRIORITIES: Priority[] = [0, 1, 2, 3, 4];
-export const ISSUE_TYPES: IssueType[] = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
+export const ISSUE_TYPES: IssueType[] = [
+  "task",
+  "bug",
+  "epic",
+  "feature",
+  "chore",
+  "event",
+  "gate",
+  "molecule",
+];
 
 export interface Dependency {
   issue_id: string;

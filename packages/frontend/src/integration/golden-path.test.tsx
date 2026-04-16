@@ -1,17 +1,21 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, cleanup, within, act } from "@testing-library/react";
+import type { InvalidationHint, Issue, IssueListItem, MutationResponse } from "@pearl/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Routes, Route, Navigate } from "react-router";
-import type { IssueListItem, Issue, MutationResponse, InvalidationHint } from "@pearl/shared";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { MemoryRouter, Navigate, Route, Routes } from "react-router";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock HTMLDialogElement for jsdom ────────────────────
 // jsdom does not implement showModal/close on <dialog>
-HTMLDialogElement.prototype.showModal = HTMLDialogElement.prototype.showModal || function (this: HTMLDialogElement) {
-  this.setAttribute("open", "");
-};
-HTMLDialogElement.prototype.close = HTMLDialogElement.prototype.close || function (this: HTMLDialogElement) {
-  this.removeAttribute("open");
-};
+HTMLDialogElement.prototype.showModal =
+  HTMLDialogElement.prototype.showModal ||
+  function (this: HTMLDialogElement) {
+    this.setAttribute("open", "");
+  };
+HTMLDialogElement.prototype.close =
+  HTMLDialogElement.prototype.close ||
+  function (this: HTMLDialogElement) {
+    this.removeAttribute("open");
+  };
 
 // ─── Mock navigation ─────────────────────────────────────
 const mockNavigate = vi.fn();
@@ -150,7 +154,11 @@ vi.mock("@xyflow/react", async () => {
     MarkerType: { ArrowClosed: "arrowclosed" },
     Position: { Top: "top", Bottom: "bottom" },
     ReactFlow: ({ nodes, edges, onNodeClick, onNodeDoubleClick, children }: any) => (
-      <div data-testid="react-flow" data-node-count={nodes?.length ?? 0} data-edge-count={edges?.length ?? 0}>
+      <div
+        data-testid="react-flow"
+        data-node-count={nodes?.length ?? 0}
+        data-edge-count={edges?.length ?? 0}
+      >
         {nodes?.map((node: any) => (
           <div
             key={node.id}
@@ -201,28 +209,43 @@ vi.mock("@dagrejs/dagre", () => {
 
 // ─── Mock cmdk ──────────────────────────────────────────
 vi.mock("cmdk", () => {
-  const Command = ({ children, ...props }: any) => <div data-testid="cmdk" {...props}>{children}</div>;
+  const Command = ({ children, ...props }: any) => (
+    <div data-testid="cmdk" {...props}>
+      {children}
+    </div>
+  );
   Command.Input = (props: any) => <input data-testid="cmdk-input" {...props} />;
   Command.List = ({ children }: any) => <div data-testid="cmdk-list">{children}</div>;
   Command.Empty = ({ children }: any) => <div>{children}</div>;
-  Command.Group = ({ children, heading }: any) => <div data-testid={`cmdk-group-${heading}`}>{children}</div>;
+  Command.Group = ({ children, heading }: any) => (
+    <div data-testid={`cmdk-group-${heading}`}>{children}</div>
+  );
   Command.Item = ({ children, onSelect, value, ...props }: any) => (
-    <div data-testid={`cmdk-item-${value}`} onClick={onSelect} {...props}>{children}</div>
+    <div data-testid={`cmdk-item-${value}`} onClick={onSelect} {...props}>
+      {children}
+    </div>
   );
   return { Command };
 });
 
-// ─── Imports (after mocks) ──────────────────────────────
-import { useIssues, useIssue, useCreateIssue, useUpdateIssue, useCloseIssue, issueKeys } from "@/hooks/use-issues";
+import { AppShell } from "@/components/app-shell";
+import { CreateIssueDialog } from "@/components/detail/create-issue-dialog";
 import { closeCommandPalette } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
-import { AppShell } from "@/components/app-shell";
-import { ListView } from "@/views/list-view";
-import { BoardView } from "@/views/board-view";
-import { GraphView } from "@/views/graph-view";
-import { DetailView } from "@/views/detail-view";
-import { CreateIssueDialog } from "@/components/detail/create-issue-dialog";
+// ─── Imports (after mocks) ──────────────────────────────
+import {
+  issueKeys,
+  useCloseIssue,
+  useCreateIssue,
+  useIssue,
+  useIssues,
+  useUpdateIssue,
+} from "@/hooks/use-issues";
 import * as api from "@/lib/api-client";
+import { BoardView } from "@/views/board-view";
+import { DetailView } from "@/views/detail-view";
+import { GraphView } from "@/views/graph-view";
+import { ListView } from "@/views/list-view";
 
 // ─── Test Data ──────────────────────────────────────────
 const mockIssues: IssueListItem[] = [
@@ -297,7 +320,7 @@ const mockIssueDetail: Issue = {
   pinned: false,
   is_template: false,
   labels: [],
-    labelColors: {},
+  labelColors: {},
   metadata: {},
 };
 
@@ -625,9 +648,7 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     // This test verifies the close mutation is invoked when bulk-closing.
     // Note: highlighting of newly-unblocked issues requires end-to-end DnD
     // and refetch integration that cannot be fully tested with mocked hooks.
-    const issuesWithBlocked: IssueListItem[] = [
-      ...mockIssues,
-    ];
+    const issuesWithBlocked: IssueListItem[] = [...mockIssues];
 
     mockCloseMutateAsync.mockResolvedValue({
       success: true,
@@ -701,7 +722,10 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Press Enter to open detail
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/list" } }),
+    );
   });
 
   it("Enter on second row opens correct issue", () => {
@@ -715,7 +739,10 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Press Enter
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-002", expect.objectContaining({ state: { from: "/list" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-002",
+      expect.objectContaining({ state: { from: "/list" } }),
+    );
   });
 
   it("1/2/3 keys switch between views (shell scope)", () => {
@@ -903,7 +930,10 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(issueRow).toBeTruthy();
     fireEvent.click(issueRow!);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/list" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/list" } }),
+    );
   });
 
   it("clicking second issue row navigates to correct detail", () => {
@@ -914,7 +944,10 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(issueRow).toBeTruthy();
     fireEvent.click(issueRow!);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-002", expect.objectContaining({ state: { from: "/list" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-002",
+      expect.objectContaining({ state: { from: "/list" } }),
+    );
   });
 
   it("DetailView renders back button that navigates to /list", () => {
@@ -981,7 +1014,10 @@ describe("View composition: List -> Detail -> Back", () => {
     const card = screen.getByRole("button", { name: /test-001: Open Issue/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/board" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/board" } }),
+    );
   });
 
   it("GraphView node double-click navigates to detail", () => {
@@ -991,7 +1027,10 @@ describe("View composition: List -> Detail -> Back", () => {
     const node = screen.getByTestId("node-test-001");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/test-001", expect.objectContaining({ state: { from: "/graph" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/test-001",
+      expect.objectContaining({ state: { from: "/graph" } }),
+    );
   });
 });
 

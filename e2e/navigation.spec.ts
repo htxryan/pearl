@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 test.describe("Navigation", () => {
   test("root redirects to /list", async ({ page }) => {

@@ -1,15 +1,15 @@
 import type {
-  CreateIssueRequest,
-  UpdateIssueRequest,
   CreateCommentRequest,
   CreateDependencyRequest,
+  CreateIssueRequest,
   MutationResponse,
+  UpdateIssueRequest,
 } from "@pearl/shared";
 import type { Config } from "../config.js";
-import { WriteQueue } from "./queue.js";
-import { IssueWriter } from "./issue-writer.js";
-import { DependencyWriter } from "./dependency-writer.js";
 import { CommentWriter } from "./comment-writer.js";
+import { DependencyWriter } from "./dependency-writer.js";
+import { IssueWriter } from "./issue-writer.js";
+import { WriteQueue } from "./queue.js";
 
 /**
  * Facade for all write operations.
@@ -53,10 +53,7 @@ export class WriteService {
     });
   }
 
-  async updateIssue(
-    id: string,
-    req: UpdateIssueRequest
-  ): Promise<MutationResponse> {
+  async updateIssue(id: string, req: UpdateIssueRequest): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.issues.update(id, req);
       await this.syncAfterWrite();
@@ -80,10 +77,7 @@ export class WriteService {
     });
   }
 
-  async addComment(
-    issueId: string,
-    req: CreateCommentRequest
-  ): Promise<MutationResponse> {
+  async addComment(issueId: string, req: CreateCommentRequest): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.comments.add(issueId, req);
       await this.syncAfterWrite();
@@ -107,10 +101,7 @@ export class WriteService {
     });
   }
 
-  async removeDependency(
-    issueId: string,
-    dependsOnId: string
-  ): Promise<MutationResponse> {
+  async removeDependency(issueId: string, dependsOnId: string): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.dependencies.remove(issueId, dependsOnId);
       await this.syncAfterWrite();

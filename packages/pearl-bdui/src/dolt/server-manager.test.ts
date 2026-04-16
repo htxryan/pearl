@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { DoltServerManager } from "./server-manager.js";
+import { describe, expect, it } from "vitest";
 import type { Config } from "../config.js";
+import { DoltServerManager } from "./server-manager.js";
 
 function makeConfig(overrides: Partial<Config> = {}): Config {
   return {
@@ -39,10 +39,7 @@ describe("DoltServerManager", () => {
 
   it("accepts optional dbPath override", () => {
     // Constructing with a custom dbPath should not throw
-    const mgr = new DoltServerManager(
-      makeConfig(),
-      "/__replica__/beads_gui"
-    );
+    const mgr = new DoltServerManager(makeConfig(), "/__replica__/beads_gui");
     expect(mgr.getState()).toBe("stopped");
   });
 

@@ -1,4 +1,4 @@
-import { test, expect, navigateToFirstIssue } from "./fixtures";
+import { expect, navigateToFirstIssue, test } from "./fixtures";
 
 test.describe("Dependency Autocomplete", () => {
   test("dependencies section heading shows on detail view", async ({ seededPage: page }) => {

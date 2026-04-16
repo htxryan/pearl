@@ -1,6 +1,6 @@
+import { NotificationPreferences } from "@/components/notification-preferences";
 import { SettingsSection } from "@/components/settings-section";
 import { ThemePicker } from "@/components/theme-picker";
-import { NotificationPreferences } from "@/components/notification-preferences";
 
 export function SettingsView() {
   return (

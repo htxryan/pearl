@@ -4,8 +4,9 @@
  * Captures screenshot evidence that every animation in the checklist
  * works correctly, including edge cases and reduced motion.
  */
-import { test, expect } from "./fixtures";
+
 import { resolve } from "node:path";
+import { expect, test } from "./fixtures";
 
 const PROOF_DIR = resolve(__dirname, "../docs/proof/beads-gui-7via");
 
@@ -84,7 +85,9 @@ test.describe("Route transitions", () => {
 
   test("Any view → Detail: slide-in from right (drill-in)", async ({ seededPage: page }) => {
     // Wait for data rows then click title cell to navigate to detail
-    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    const dataRow = page
+      .locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])')
+      .first();
     await expect(dataRow).toBeVisible({ timeout: 15_000 });
     await dataRow.locator("td").nth(2).click();
 
@@ -185,7 +188,9 @@ test.describe("Board animations", () => {
 test.describe("Scroll animations", () => {
   test("Detail view sections: fade-up on scroll into view", async ({ seededPage: page }) => {
     // Navigate to a detail view — wait for data rows
-    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    const dataRow = page
+      .locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])')
+      .first();
     await expect(dataRow).toBeVisible({ timeout: 15_000 });
     await dataRow.locator("td").nth(2).click();
     await page.waitForURL("**/issues/**");
@@ -282,8 +287,9 @@ test.describe("CLS verification", () => {
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           if (!(entry as unknown as { hadRecentInput: boolean }).hadRecentInput) {
-            (window as unknown as { __cls: number }).__cls +=
-              (entry as unknown as { value: number }).value;
+            (window as unknown as { __cls: number }).__cls += (
+              entry as unknown as { value: number }
+            ).value;
           }
         }
       }).observe({ type: "layout-shift", buffered: true });
@@ -305,7 +311,9 @@ test.describe("CLS verification", () => {
     await page.waitForTimeout(500);
 
     // Navigate to detail and back — wait for data rows
-    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    const dataRow = page
+      .locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])')
+      .first();
     await expect(dataRow).toBeVisible({ timeout: 15_000 });
     await dataRow.locator("td").nth(2).click();
     await page.waitForURL("**/issues/**");

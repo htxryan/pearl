@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 test.describe("Dark Mode", () => {
   test("selecting a dark theme via settings applies .dark class", async ({ seededPage: page }) => {

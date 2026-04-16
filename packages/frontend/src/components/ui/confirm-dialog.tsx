@@ -52,19 +52,10 @@ export function ConfirmDialog({
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
         <div className="mt-6 flex items-center justify-end gap-2">
-          <Button
-            ref={cancelRef}
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isPending}
-          >
+          <Button ref={cancelRef} variant="ghost" onClick={onCancel} disabled={isPending}>
             {cancelLabel}
           </Button>
-          <Button
-            variant={variant}
-            onClick={onConfirm}
-            disabled={isPending}
-          >
+          <Button variant={variant} onClick={onConfirm} disabled={isPending}>
             {isPending ? "..." : confirmLabel}
           </Button>
         </div>

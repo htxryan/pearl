@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUnreadCount } from "@/hooks/use-notifications";
 import { NotificationPanel } from "./notification-panel";
 
@@ -14,10 +14,7 @@ export function NotificationBell() {
     if (!isOpen) return;
 
     function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     }

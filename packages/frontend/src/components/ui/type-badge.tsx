@@ -15,8 +15,6 @@ const typeConfig: Record<IssueType, { label: string; className: string }> = {
 export function TypeBadge({ type, className }: { type: IssueType; className?: string }) {
   const config = typeConfig[type] ?? { label: type, className: "text-muted-foreground" };
   return (
-    <span className={cn("text-xs font-medium", config.className, className)}>
-      {config.label}
-    </span>
+    <span className={cn("text-xs font-medium", config.className, className)}>{config.label}</span>
   );
 }

@@ -1,13 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
-import {
-  flexRender,
-  type Table,
-  type Row,
-} from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import type { IssueListItem } from "@pearl/shared";
-import { cn } from "@/lib/utils";
+import { flexRender, type Row, type Table } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
 
 const ROW_HEIGHT = 41; // px – matches py-2.5 + border
 const VIRTUALIZATION_THRESHOLD = 100;
@@ -29,12 +25,22 @@ function SkeletonRow({ colCount }: { colCount: number }) {
           <div
             className={cn(
               "rounded skeleton-shimmer",
-              i === 0 ? "h-4 w-4 rounded-sm" :              // checkbox
-              i === 1 ? "h-3.5 w-20 rounded" :              // ID (short, mono)
-              i === 2 ? "h-4 w-full max-w-[240px] rounded" : // title (long)
-              i === 3 ? "h-5 w-16 rounded-full" :           // status badge
-              i === 4 ? "h-5 w-8 rounded" :                 // priority
-              "h-3.5 w-14 rounded",                          // other cols
+              i === 0
+                ? "h-4 w-4 rounded-sm"
+                : // checkbox
+                  i === 1
+                  ? "h-3.5 w-20 rounded"
+                  : // ID (short, mono)
+                    i === 2
+                    ? "h-4 w-full max-w-[240px] rounded"
+                    : // title (long)
+                      i === 3
+                      ? "h-5 w-16 rounded-full"
+                      : // status badge
+                        i === 4
+                        ? "h-5 w-8 rounded"
+                        : // priority
+                          "h-3.5 w-14 rounded", // other cols
             )}
           />
         </td>
@@ -60,8 +66,12 @@ function TableHeader({ table }: { table: Table<IssueListItem> }) {
             >
               <div className="flex items-center gap-1">
                 {flexRender(header.column.columnDef.header, header.getContext())}
-                {header.column.getIsSorted() === "asc" && <span aria-label="Sorted ascending">&#9650;</span>}
-                {header.column.getIsSorted() === "desc" && <span aria-label="Sorted descending">&#9660;</span>}
+                {header.column.getIsSorted() === "asc" && (
+                  <span aria-label="Sorted ascending">&#9650;</span>
+                )}
+                {header.column.getIsSorted() === "desc" && (
+                  <span aria-label="Sorted descending">&#9660;</span>
+                )}
               </div>
               {header.column.getCanResize() && (
                 <div
@@ -113,19 +123,14 @@ function TableRow({
         "hover:bg-accent/50",
         animated && "animate-fade-up [animation-fill-mode:backwards]",
         index === activeRowIndex && "bg-accent",
-        highlightedIds?.has(row.original.id) &&
-          "ring-2 ring-inset ring-success/50 bg-success/10",
+        highlightedIds?.has(row.original.id) && "ring-2 ring-inset ring-success/50 bg-success/10",
       )}
       style={style}
       data-row-index={index}
       aria-selected={index === activeRowIndex}
     >
       {row.getVisibleCells().map((cell) => (
-        <td
-          key={cell.id}
-          className="px-3 py-2.5"
-          style={{ width: cell.column.getSize() }}
-        >
+        <td key={cell.id} className="px-3 py-2.5" style={{ width: cell.column.getSize() }}>
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </td>
       ))}
@@ -245,7 +250,10 @@ export function IssueTable({
           <tbody>
             {virtualRows.length > 0 && virtualRows[0].start > 0 && (
               <tr>
-                <td colSpan={table.getVisibleFlatColumns().length} style={{ height: virtualRows[0].start, padding: 0 }} />
+                <td
+                  colSpan={table.getVisibleFlatColumns().length}
+                  style={{ height: virtualRows[0].start, padding: 0 }}
+                />
               </tr>
             )}
             {virtualRows.map((virtualRow) => {
@@ -264,17 +272,21 @@ export function IssueTable({
                 />
               );
             })}
-            {virtualRows.length > 0 && (() => {
-              const remaining = Math.max(0, virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end);
-              return remaining > 0 ? (
-                <tr>
-                  <td
-                    colSpan={table.getVisibleFlatColumns().length}
-                    style={{ height: remaining, padding: 0 }}
-                  />
-                </tr>
-              ) : null;
-            })()}
+            {virtualRows.length > 0 &&
+              (() => {
+                const remaining = Math.max(
+                  0,
+                  virtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end,
+                );
+                return remaining > 0 ? (
+                  <tr>
+                    <td
+                      colSpan={table.getVisibleFlatColumns().length}
+                      style={{ height: remaining, padding: 0 }}
+                    />
+                  </tr>
+                ) : null;
+              })()}
           </tbody>
         </table>
       </div>

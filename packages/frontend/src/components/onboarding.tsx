@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
 const STORAGE_KEY = "pearl-onboarding-complete";
 
@@ -89,15 +89,9 @@ export function OnboardingBanner() {
               Step {step + 1} of {STEPS.length}
             </span>
           </div>
-          <h3 className="text-sm font-semibold text-info-foreground">
-            {current.title}
-          </h3>
-          <p className="mt-1 text-sm text-info-foreground/80">
-            {current.description}
-          </p>
-          <p className="mt-1 text-xs text-info">
-            {current.tip}
-          </p>
+          <h3 className="text-sm font-semibold text-info-foreground">{current.title}</h3>
+          <p className="mt-1 text-sm text-info-foreground/80">{current.description}</p>
+          <p className="mt-1 text-xs text-info">{current.tip}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button

@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { Dependency, IssueListItem } from "@pearl/shared";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { useIssue } from "@/hooks/use-issues";
 import * as api from "@/lib/api-client";
 
@@ -77,18 +77,14 @@ export function DependencyList({
             onSelect={handleAdd}
             isAdding={isAdding}
           />
-          {addError && (
-            <p className="text-xs text-destructive mb-3">{addError}</p>
-          )}
+          {addError && <p className="text-xs text-destructive mb-3">{addError}</p>}
         </>
       )}
 
       {/* Blocked by (depends on) */}
       {blockedBy.length > 0 && (
         <div className="mb-3">
-          <h3 className="text-xs font-medium text-muted-foreground mb-1.5">
-            Depends on
-          </h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-1.5">Depends on</h3>
           <div className="space-y-1.5">
             {blockedBy.map((dep) => (
               <DependencyRow
@@ -104,9 +100,7 @@ export function DependencyList({
       {/* Blocking (others depend on this) */}
       {blocking.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-1.5">
-            Blocks
-          </h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-1.5">Blocks</h3>
           <div className="space-y-1.5">
             {blocking.map((dep) => (
               <DependencyRow
@@ -121,7 +115,9 @@ export function DependencyList({
 
       {dependencies.length === 0 && !showAddForm && (
         <div className="flex flex-col items-center py-6 text-muted-foreground">
-          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">&#8644;</span>
+          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">
+            &#8644;
+          </span>
           <p className="text-sm">No dependencies. Add one to track blockers.</p>
         </div>
       )}
@@ -164,7 +160,10 @@ function DependencyAutocomplete({
         params.set("sort", "updated_at");
         params.set("direction", "desc");
         params.set("limit", "20");
-        params.set("fields", "id,title,status,priority,issue_type,assignee,owner,created_at,updated_at,due_at,pinned,labels");
+        params.set(
+          "fields",
+          "id,title,status,priority,issue_type,assignee,owner,created_at,updated_at,due_at,pinned,labels",
+        );
         const issues = await api.fetchIssues(params);
         const filtered = issues.filter((i) => !excludedIds.has(i.id));
         setResults(filtered.slice(0, 8));
@@ -273,9 +272,7 @@ function DependencyAutocomplete({
             aria-expanded={isOpen}
             aria-autocomplete="list"
             aria-controls="dep-autocomplete-list"
-            aria-activedescendant={
-              highlightIndex >= 0 ? `dep-option-${highlightIndex}` : undefined
-            }
+            aria-activedescendant={highlightIndex >= 0 ? `dep-option-${highlightIndex}` : undefined}
           />
           {isSearching && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -305,9 +302,7 @@ function DependencyAutocomplete({
               role="option"
               aria-selected={i === highlightIndex}
               className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
-                i === highlightIndex
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent/50"
+                i === highlightIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
               }`}
               onMouseEnter={() => setHighlightIndex(i)}
               onClick={() => handleSelect(issue.id)}
@@ -315,9 +310,7 @@ function DependencyAutocomplete({
               <PriorityIndicator priority={issue.priority} />
               <StatusBadge status={issue.status} />
               <span className="truncate flex-1">{issue.title}</span>
-              <code className="shrink-0 text-[11px] text-muted-foreground/60">
-                {issue.id}
-              </code>
+              <code className="shrink-0 text-[11px] text-muted-foreground/60">{issue.id}</code>
             </button>
           ))}
         </div>
@@ -326,13 +319,7 @@ function DependencyAutocomplete({
   );
 }
 
-function DependencyRow({
-  targetId,
-  onRemove,
-}: {
-  targetId: string;
-  onRemove: () => void;
-}) {
+function DependencyRow({ targetId, onRemove }: { targetId: string; onRemove: () => void }) {
   const { data: issue } = useIssue(targetId);
   const [showConfirm, setShowConfirm] = useState(false);
 

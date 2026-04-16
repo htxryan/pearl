@@ -1,14 +1,14 @@
 import type { CreateCommentRequest, InvalidationHint } from "@pearl/shared";
 import type { Config } from "../config.js";
-import { runBd } from "./bd-runner.js";
 import { validationError } from "../errors.js";
+import { runBd } from "./bd-runner.js";
 
 export class CommentWriter {
   constructor(private config: Config) {}
 
   async add(
     issueId: string,
-    req: CreateCommentRequest
+    req: CreateCommentRequest,
   ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
     if (!req.text?.trim()) {
       throw validationError("Comment text is required");

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
 import type { IssueListItem } from "@pearl/shared";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 // Mock @xyflow/react — only Handle is used directly in GraphNode
 vi.mock("@xyflow/react", () => ({
@@ -9,7 +9,7 @@ vi.mock("@xyflow/react", () => ({
   memo: (fn: unknown) => fn,
 }));
 
-import { GraphNode, NODE_WIDTH, NODE_HEIGHT } from "./graph-node";
+import { GraphNode, NODE_HEIGHT, NODE_WIDTH } from "./graph-node";
 
 function makeIssue(overrides: Partial<IssueListItem> = {}): IssueListItem {
   return {
@@ -30,13 +30,15 @@ function makeIssue(overrides: Partial<IssueListItem> = {}): IssueListItem {
   };
 }
 
-function renderNode(overrides: {
-  issue?: Partial<IssueListItem>;
-  highlighted?: boolean;
-  dimmed?: boolean;
-  selected?: boolean;
-  clusterChildCount?: number;
-} = {}) {
+function renderNode(
+  overrides: {
+    issue?: Partial<IssueListItem>;
+    highlighted?: boolean;
+    dimmed?: boolean;
+    selected?: boolean;
+    clusterChildCount?: number;
+  } = {},
+) {
   const issue = makeIssue(overrides.issue);
   const props = {
     id: issue.id,

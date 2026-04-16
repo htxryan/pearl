@@ -4,15 +4,18 @@
  * Verifies prefetch-on-hover, code splitting / lazy loading,
  * virtualization threshold, and stale-while-revalidate behavior.
  */
-import { test, expect } from "./fixtures";
+
 import { resolve } from "node:path";
+import { expect, test } from "./fixtures";
 
 const PROOF_DIR = resolve(__dirname, "../docs/proof/beads-gui-ivc5");
 
 // ---------- Prefetch on hover ----------
 
 test.describe("Prefetch on hover", () => {
-  test("hovering over a row for 200ms triggers a detail prefetch request", async ({ seededPage: page }) => {
+  test("hovering over a row for 200ms triggers a detail prefetch request", async ({
+    seededPage: page,
+  }) => {
     const table = page.getByRole("table", { name: "Issue list" });
     const firstRow = table.locator("tbody tr").first();
     await expect(firstRow).toBeVisible();
@@ -38,7 +41,9 @@ test.describe("Prefetch on hover", () => {
     await page.screenshot({ path: `${PROOF_DIR}/07-prefetch-on-hover.png` });
   });
 
-  test("clicking a prefetched row loads detail instantly from cache", async ({ seededPage: page }) => {
+  test("clicking a prefetched row loads detail instantly from cache", async ({
+    seededPage: page,
+  }) => {
     const table = page.getByRole("table", { name: "Issue list" });
     const firstRow = table.locator("tbody tr").first();
     await expect(firstRow).toBeVisible();
@@ -79,21 +84,22 @@ test.describe("Code splitting & lazy loading", () => {
   test("Settings JS chunk is NOT loaded on initial page load", async ({ seededPage: page }) => {
     // Collect all loaded JS resources
     const loadedScripts = await page.evaluate(() => {
-      return performance.getEntriesByType("resource")
+      return performance
+        .getEntriesByType("resource")
         .filter((e) => e.name.endsWith(".js") || e.name.includes(".js?"))
         .map((e) => e.name);
     });
 
     // No settings-related chunk should be loaded yet
-    const settingsChunks = loadedScripts.filter((s) =>
-      s.toLowerCase().includes("settings") || s.toLowerCase().includes("settingsview"),
+    const settingsChunks = loadedScripts.filter(
+      (s) => s.toLowerCase().includes("settings") || s.toLowerCase().includes("settingsview"),
     );
 
     await page.screenshot({ path: `${PROOF_DIR}/09-no-settings-chunk-initial.png` });
 
     // It's ok if the chunk names are hashed — check that graph-related chunks aren't loaded either
-    const graphChunks = loadedScripts.filter((s) =>
-      s.toLowerCase().includes("graph") || s.toLowerCase().includes("graphview"),
+    const graphChunks = loadedScripts.filter(
+      (s) => s.toLowerCase().includes("graph") || s.toLowerCase().includes("graphview"),
     );
 
     // At minimum, verify we don't have ALL chunks loaded (some code splitting is working)
@@ -124,7 +130,9 @@ test.describe("Code splitting & lazy loading", () => {
     expect(newScriptRequests.length).toBeGreaterThan(0);
 
     // Verify the settings view is actually rendered
-    await expect(page.getByText(/theme|appearance|settings/i).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/theme|appearance|settings/i).first()).toBeVisible({
+      timeout: 5_000,
+    });
   });
 
   test("Graph view JS loaded only when navigating to /graph", async ({ seededPage: page }) => {
@@ -134,7 +142,8 @@ test.describe("Code splitting & lazy loading", () => {
 
     // Snapshot current scripts
     const initialScripts = await page.evaluate(() =>
-      performance.getEntriesByType("resource")
+      performance
+        .getEntriesByType("resource")
         .filter((e) => e.name.endsWith(".js") || e.name.includes(".js?"))
         .map((e) => e.name),
     );
@@ -185,7 +194,9 @@ test.describe("Virtualization", () => {
     await expect(table).toBeVisible();
 
     // Get the scroll container
-    const scrollContainer = table.locator("xpath=ancestor::div[contains(@class, 'overflow-auto')]").first();
+    const scrollContainer = table
+      .locator("xpath=ancestor::div[contains(@class, 'overflow-auto')]")
+      .first();
     await expect(scrollContainer).toBeVisible();
 
     // Screenshot before scrolling
@@ -220,7 +231,12 @@ test.describe("Stale-while-revalidate", () => {
   test("navigating away and back shows cached data immediately", async ({ seededPage: page }) => {
     // Capture the first issue title for verification
     const table = page.getByRole("table", { name: "Issue list" });
-    const firstRowTitle = await table.locator("tbody tr").first().locator("td").nth(2).textContent();
+    const firstRowTitle = await table
+      .locator("tbody tr")
+      .first()
+      .locator("td")
+      .nth(2)
+      .textContent();
     expect(firstRowTitle).toBeTruthy();
 
     // Navigate away to settings

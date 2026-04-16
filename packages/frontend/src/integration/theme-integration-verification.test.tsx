@@ -1,13 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  cleanup,
-  within,
-} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Routes, Route, Navigate } from "react-router";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, Navigate, Route, Routes } from "react-router";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock navigation ─────────────────────────────────────
 const mockNavigate = vi.fn();
@@ -131,9 +125,7 @@ vi.mock("@/hooks/use-dependencies", () => ({
 vi.mock("@xyflow/react", async () => ({
   MarkerType: { ArrowClosed: "arrowclosed" },
   Position: { Top: "top", Bottom: "bottom" },
-  ReactFlow: ({ children }: any) => (
-    <div data-testid="react-flow">{children}</div>
-  ),
+  ReactFlow: ({ children }: any) => <div data-testid="react-flow">{children}</div>,
   Background: () => null,
   Controls: () => null,
   MiniMap: () => null,
@@ -171,12 +163,8 @@ vi.mock("cmdk", () => {
       {children}
     </div>
   );
-  Command.Input = (props: any) => (
-    <input data-testid="cmdk-input" {...props} />
-  );
-  Command.List = ({ children }: any) => (
-    <div data-testid="cmdk-list">{children}</div>
-  );
+  Command.Input = (props: any) => <input data-testid="cmdk-input" {...props} />;
+  Command.List = ({ children }: any) => <div data-testid="cmdk-list">{children}</div>;
   Command.Empty = ({ children }: any) => <div>{children}</div>;
   Command.Group = ({ children, heading }: any) => (
     <div data-testid={`cmdk-group-${heading}`}>{children}</div>
@@ -191,14 +179,14 @@ vi.mock("cmdk", () => {
 
 // ─── Imports (after mocks) ───────────────────────────────
 import { AppShell } from "@/components/app-shell";
+import { getAllThemes, getDefaultTheme } from "@/themes";
+import { lightPlus } from "@/themes/definitions/light-plus";
+import { monokai } from "@/themes/definitions/monokai";
+import { solarizedDark } from "@/themes/definitions/solarized-dark";
+import { solarizedLight } from "@/themes/definitions/solarized-light";
+import { COLOR_TOKENS } from "@/themes/types";
 import { ListView } from "@/views/list-view";
 import { SettingsView } from "@/views/settings-view";
-import { monokai } from "@/themes/definitions/monokai";
-import { solarizedLight } from "@/themes/definitions/solarized-light";
-import { solarizedDark } from "@/themes/definitions/solarized-dark";
-import { lightPlus } from "@/themes/definitions/light-plus";
-import { getAllThemes, getDefaultTheme } from "@/themes";
-import { COLOR_TOKENS } from "@/themes/types";
 
 // ─── Derived constants (avoid magic numbers in assertions) ──
 const EXPECTED_THEME_COUNT = getAllThemes().length;
@@ -293,9 +281,9 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
       selectThemeViaSettings("Monokai");
 
-      expect(
-        document.documentElement.style.getPropertyValue("--color-background"),
-      ).toBe(monokai.colors.background);
+      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+        monokai.colors.background,
+      );
     });
 
     it("persists the theme ID to localStorage", () => {
@@ -336,9 +324,9 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
       selectThemeViaCommandPalette("Monokai");
 
-      expect(
-        document.documentElement.style.getPropertyValue("--color-background"),
-      ).toBe(monokai.colors.background);
+      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+        monokai.colors.background,
+      );
     });
 
     it("persists theme ID to localStorage via command palette", () => {
@@ -354,8 +342,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const { unmount: unmount1 } = renderApp("/list");
       selectThemeViaCommandPalette("Monokai");
 
-      const cpBackground =
-        document.documentElement.style.getPropertyValue("--color-background");
+      const cpBackground = document.documentElement.style.getPropertyValue("--color-background");
       const cpDark = document.documentElement.classList.contains("dark");
       const cpStored = localStorage.getItem("pearl-theme");
 
@@ -368,8 +355,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       renderApp("/settings");
       selectThemeViaSettings("Monokai");
 
-      const settBackground =
-        document.documentElement.style.getPropertyValue("--color-background");
+      const settBackground = document.documentElement.style.getPropertyValue("--color-background");
       const settDark = document.documentElement.classList.contains("dark");
       const settStored = localStorage.getItem("pearl-theme");
 
@@ -399,21 +385,21 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       renderApp("/settings");
 
       selectThemeViaSettings("Monokai");
-      expect(
-        document.documentElement.style.getPropertyValue("--color-background"),
-      ).toBe(monokai.colors.background);
+      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+        monokai.colors.background,
+      );
 
       selectThemeViaSettings("Solarized Light");
-      expect(
-        document.documentElement.style.getPropertyValue("--color-background"),
-      ).toBe(solarizedLight.colors.background);
+      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+        solarizedLight.colors.background,
+      );
       // Verify additional tokens (border, surface-raised) update correctly
-      expect(
-        document.documentElement.style.getPropertyValue("--color-border"),
-      ).toBe(solarizedLight.colors.border);
-      expect(
-        document.documentElement.style.getPropertyValue("--color-surface-raised"),
-      ).toBe(solarizedLight.colors["surface-raised"]);
+      expect(document.documentElement.style.getPropertyValue("--color-border")).toBe(
+        solarizedLight.colors.border,
+      );
+      expect(document.documentElement.style.getPropertyValue("--color-surface-raised")).toBe(
+        solarizedLight.colors["surface-raised"],
+      );
     });
 
     it("updates localStorage to the new light theme", () => {
@@ -423,9 +409,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(localStorage.getItem("pearl-theme")).toBe("vscode-monokai");
 
       selectThemeViaSettings("Solarized Light");
-      expect(localStorage.getItem("pearl-theme")).toBe(
-        "vscode-solarized-light",
-      );
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-solarized-light");
     });
 
     it("adds .dark class when switching from light to dark theme", () => {
@@ -464,9 +448,9 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       // Re-render — CSS custom properties survive on the shared document element
       renderApp("/list");
 
-      expect(
-        document.documentElement.style.getPropertyValue("--color-background"),
-      ).toBe(monokai.colors.background);
+      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+        monokai.colors.background,
+      );
       expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
 
@@ -474,16 +458,12 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const { unmount } = renderApp("/settings");
 
       selectThemeViaSettings("Solarized Light");
-      expect(localStorage.getItem("pearl-theme")).toBe(
-        "vscode-solarized-light",
-      );
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-solarized-light");
 
       unmount();
 
       // After unmount, localStorage still holds the theme for next load
-      expect(localStorage.getItem("pearl-theme")).toBe(
-        "vscode-solarized-light",
-      );
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-solarized-light");
 
       // Re-render reads from the same module snapshot
       renderApp("/settings");
@@ -583,13 +563,11 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       // Now apply the default theme (Light+) explicitly
       selectThemeViaSettings("Light+ (Default Light)");
 
-      expect(
-        document.documentElement.style.getPropertyValue("--color-background"),
-      ).toBe(lightPlus.colors.background);
-      expect(document.documentElement.classList.contains("dark")).toBe(false);
-      expect(localStorage.getItem("pearl-theme")).toBe(
-        "vscode-light-plus",
+      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+        lightPlus.colors.background,
       );
+      expect(document.documentElement.classList.contains("dark")).toBe(false);
+      expect(localStorage.getItem("pearl-theme")).toBe("vscode-light-plus");
     });
 
     it("switching back to default theme marks it as active in ThemePicker", () => {
@@ -620,9 +598,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(buttons).toHaveLength(EXPECTED_THEME_COUNT);
 
       // Exactly one button should be marked as active — and it must be Light+
-      const activeButtons = buttons.filter(
-        (btn) => btn.getAttribute("aria-pressed") === "true",
-      );
+      const activeButtons = buttons.filter((btn) => btn.getAttribute("aria-pressed") === "true");
       expect(activeButtons).toHaveLength(1);
 
       const lightPlusButton = screen.getByRole("button", {
@@ -646,53 +622,41 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(COLOR_TOKENS).toHaveLength(EXPECTED_TOKEN_COUNT);
     });
 
-    it.each(allThemes.map((t) => [t.id, t.name, t] as const))(
-      `%s (%s) — sets all ${EXPECTED_TOKEN_COUNT} CSS custom properties and correct .dark class`,
-      (_id, _name, theme) => {
-        renderApp("/list");
+    it.each(
+      allThemes.map((t) => [t.id, t.name, t] as const),
+    )(`%s (%s) — sets all ${EXPECTED_TOKEN_COUNT} CSS custom properties and correct .dark class`, (_id, _name, theme) => {
+      renderApp("/list");
 
-        // Apply the theme via command palette
-        selectThemeViaCommandPalette(theme.name);
+      // Apply the theme via command palette
+      selectThemeViaCommandPalette(theme.name);
 
-        // Verify every COLOR_TOKEN has a truthy CSS custom property
-        for (const token of COLOR_TOKENS) {
-          const value = document.documentElement.style.getPropertyValue(
-            `--color-${token}`,
-          );
-          expect(
-            value,
-            `Theme "${theme.name}" is missing --color-${token}`,
-          ).toBeTruthy();
-        }
+      // Verify every COLOR_TOKEN has a truthy CSS custom property
+      for (const token of COLOR_TOKENS) {
+        const value = document.documentElement.style.getPropertyValue(`--color-${token}`);
+        expect(value, `Theme "${theme.name}" is missing --color-${token}`).toBeTruthy();
+      }
 
-        // Verify .dark class matches colorScheme
-        if (theme.colorScheme === "dark") {
-          expect(document.documentElement.classList.contains("dark")).toBe(true);
-        } else {
-          expect(document.documentElement.classList.contains("dark")).toBe(
-            false,
-          );
-        }
+      // Verify .dark class matches colorScheme
+      if (theme.colorScheme === "dark") {
+        expect(document.documentElement.classList.contains("dark")).toBe(true);
+      } else {
+        expect(document.documentElement.classList.contains("dark")).toBe(false);
+      }
+    });
 
-      },
-    );
+    it.each(
+      allThemes.map((t) => [t.id, t.name, t] as const),
+    )("%s (%s) — CSS property values match ThemeDefinition.colors exactly", (_id, _name, theme) => {
+      renderApp("/list");
 
-    it.each(allThemes.map((t) => [t.id, t.name, t] as const))(
-      "%s (%s) — CSS property values match ThemeDefinition.colors exactly",
-      (_id, _name, theme) => {
-        renderApp("/list");
+      selectThemeViaCommandPalette(theme.name);
 
-        selectThemeViaCommandPalette(theme.name);
-
-        for (const token of COLOR_TOKENS) {
-          const actual = document.documentElement.style.getPropertyValue(
-            `--color-${token}`,
-          );
-          const expected = theme.colors[token];
-          expect(actual).toBe(expected);
-        }
-      },
-    );
+      for (const token of COLOR_TOKENS) {
+        const actual = document.documentElement.style.getPropertyValue(`--color-${token}`);
+        const expected = theme.colors[token];
+        expect(actual).toBe(expected);
+      }
+    });
   });
 });
 
@@ -720,10 +684,9 @@ describe("Contract Validation", () => {
       const themes = getAllThemes();
       for (const theme of themes) {
         for (const token of COLOR_TOKENS) {
-          expect(
-            theme.colors,
-            `Theme "${theme.name}" missing token "${token}"`,
-          ).toHaveProperty(token);
+          expect(theme.colors, `Theme "${theme.name}" missing token "${token}"`).toHaveProperty(
+            token,
+          );
           expect(
             typeof theme.colors[token],
             `Theme "${theme.name}" token "${token}" is not a string`,
@@ -737,9 +700,7 @@ describe("Contract Validation", () => {
     it("navigating to /settings renders the Settings heading", () => {
       renderApp("/settings");
 
-      expect(
-        screen.getByRole("heading", { name: /settings/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /settings/i })).toBeInTheDocument();
     });
 
     it("Settings page contains the ThemePicker with available themes", () => {
@@ -776,13 +737,8 @@ describe("Contract Validation", () => {
 
       const allThemes = getAllThemes();
       for (const theme of allThemes) {
-        const match = items.find((item) =>
-          item.textContent?.includes(`Theme: ${theme.name}`),
-        );
-        expect(
-          match,
-          `Missing command palette item for theme "${theme.name}"`,
-        ).toBeTruthy();
+        const match = items.find((item) => item.textContent?.includes(`Theme: ${theme.name}`));
+        expect(match, `Missing command palette item for theme "${theme.name}"`).toBeTruthy();
       }
     });
   });

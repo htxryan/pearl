@@ -1,4 +1,4 @@
-import { test, expect, expectToast } from "./fixtures";
+import { expect, expectToast, test } from "./fixtures";
 
 test.describe("Board Drag-and-Drop", () => {
   test("board columns are visible", async ({ seededPage: page }) => {
@@ -85,7 +85,7 @@ test.describe("Board Drag-and-Drop", () => {
     await quickAdd.press("Enter");
 
     // Verify success toast appears
-    await expectToast(page, new RegExp(`Created`), 15_000);
+    await expectToast(page, /Created/, 15_000);
   });
 
   test("cannot drag to blocked column", async ({ seededPage: page }) => {

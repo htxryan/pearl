@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 /**
  * Like useState but persists to localStorage.
@@ -23,20 +23,17 @@ export function usePersistedState<T>(
     return defaultValue;
   });
 
-  const setPersistedState = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setState((prev) => {
-        const next = typeof value === "function" ? (value as (prev: T) => T)(prev) : value;
-        try {
-          localStorage.setItem(keyRef.current, JSON.stringify(next));
-        } catch {
-          // localStorage full or unavailable — state still updates in memory
-        }
-        return next;
-      });
-    },
-    [],
-  );
+  const setPersistedState = useCallback((value: T | ((prev: T) => T)) => {
+    setState((prev) => {
+      const next = typeof value === "function" ? (value as (prev: T) => T)(prev) : value;
+      try {
+        localStorage.setItem(keyRef.current, JSON.stringify(next));
+      } catch {
+        // localStorage full or unavailable — state still updates in memory
+      }
+      return next;
+    });
+  }, []);
 
   return [state, setPersistedState];
 }

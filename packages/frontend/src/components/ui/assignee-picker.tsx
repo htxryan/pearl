@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import type { IssueListItem } from "@pearl/shared";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { issueKeys } from "@/hooks/use-issues";
 import { cn } from "@/lib/utils";
 

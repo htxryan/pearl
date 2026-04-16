@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { WriteQueue } from "./queue.js";
 
 describe("WriteQueue", () => {
@@ -48,7 +48,9 @@ describe("WriteQueue", () => {
   it("reports pending count", async () => {
     const queue = new WriteQueue();
     let resolveFirst: () => void;
-    const blocker = new Promise<void>((r) => { resolveFirst = r; });
+    const blocker = new Promise<void>((r) => {
+      resolveFirst = r;
+    });
 
     const p1 = queue.enqueue(async () => {
       await blocker;

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchIssues, fetchHealth, ApiClientError } from "./api-client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiClientError, fetchHealth, fetchIssues } from "./api-client";
 
 describe("api-client", () => {
   beforeEach(() => {
@@ -15,9 +15,12 @@ describe("api-client", () => {
 
     const result = await fetchIssues();
 
-    expect(fetch).toHaveBeenCalledWith("/api/issues", expect.objectContaining({
-      headers: {},
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/issues",
+      expect.objectContaining({
+        headers: {},
+      }),
+    );
     expect(result).toEqual(mockData);
   });
 
@@ -30,10 +33,7 @@ describe("api-client", () => {
     const params = new URLSearchParams({ status: "open", priority: "1" });
     await fetchIssues(params);
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/issues?status=open&priority=1",
-      expect.any(Object),
-    );
+    expect(fetch).toHaveBeenCalledWith("/api/issues?status=open&priority=1", expect.any(Object));
   });
 
   it("should throw ApiClientError on non-OK response", async () => {

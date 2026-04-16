@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LabelPicker } from "./label-picker";
 
 // Mock useTheme
@@ -137,9 +137,7 @@ describe("LabelPicker", () => {
       });
 
       expect(mockMutateAsync).toHaveBeenCalledTimes(1);
-      expect(mockMutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ name: "newlabel" }),
-      );
+      expect(mockMutateAsync).toHaveBeenCalledWith(expect.objectContaining({ name: "newlabel" }));
     });
   });
 
@@ -157,7 +155,17 @@ describe("LabelPicker", () => {
       fireEvent.click(createOpt);
 
       // Now the color picker panel should be visible with 9 color buttons
-      const colorNames = ["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", "gray"];
+      const colorNames = [
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "teal",
+        "blue",
+        "purple",
+        "pink",
+        "gray",
+      ];
       for (const colorName of colorNames) {
         expect(screen.getByRole("button", { name: colorName })).toBeInTheDocument();
       }

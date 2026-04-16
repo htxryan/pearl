@@ -1,19 +1,19 @@
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { RelativeTime } from "@/components/ui/relative-time";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { TypeBadge } from "@/components/ui/type-badge";
 import {
-  useIssue,
+  useAddComment,
+  useCloseIssue,
   useComments,
   useDependencies,
+  useIssue,
   useUpdateIssue,
-  useCloseIssue,
-  useAddComment,
 } from "@/hooks/use-issues";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PriorityIndicator } from "@/components/ui/priority-indicator";
-import { TypeBadge } from "@/components/ui/type-badge";
-import { Button } from "@/components/ui/button";
-import { RelativeTime } from "@/components/ui/relative-time";
 import { useToastActions } from "@/hooks/use-toast";
-import { useState, useCallback } from "react";
 
 interface IssuePanelProps {
   issueId: string;
@@ -37,7 +37,12 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
     setCommentText("");
     addCommentMutation.mutate(
       { issueId, data: { text } },
-      { onError: () => { toast.error("Failed to add comment."); setCommentText(text); } },
+      {
+        onError: () => {
+          toast.error("Failed to add comment.");
+          setCommentText(text);
+        },
+      },
     );
   }, [issueId, commentText, addCommentMutation, toast]);
 
@@ -61,7 +66,9 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <p className="font-semibold">Issue not found</p>
-            <p className="text-sm text-muted-foreground mt-1">{error?.message ?? `Could not load ${issueId}`}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {error?.message ?? `Could not load ${issueId}`}
+            </p>
           </div>
         </div>
       </div>
@@ -105,18 +112,24 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
           </div>
           <div>
             <span className="text-muted-foreground">Created</span>
-            <p><RelativeTime iso={issue.created_at} /></p>
+            <p>
+              <RelativeTime iso={issue.created_at} />
+            </p>
           </div>
           <div>
             <span className="text-muted-foreground">Updated</span>
-            <p><RelativeTime iso={issue.updated_at} /></p>
+            <p>
+              <RelativeTime iso={issue.updated_at} />
+            </p>
           </div>
         </div>
 
         {/* Description */}
         {issue.description && (
           <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Description</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">
+              Description
+            </h3>
             <p className="text-sm whitespace-pre-wrap">{issue.description}</p>
           </div>
         )}
@@ -129,8 +142,13 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
             </h3>
             <ul className="space-y-1">
               {dependencies.map((dep) => (
-                <li key={`${dep.issue_id}-${dep.depends_on_id}`} className="text-sm text-muted-foreground">
-                  {dep.issue_id === issueId ? `Depends on ${dep.depends_on_id}` : `Blocks ${dep.issue_id}`}
+                <li
+                  key={`${dep.issue_id}-${dep.depends_on_id}`}
+                  className="text-sm text-muted-foreground"
+                >
+                  {dep.issue_id === issueId
+                    ? `Depends on ${dep.depends_on_id}`
+                    : `Blocks ${dep.issue_id}`}
                 </li>
               ))}
             </ul>
@@ -171,11 +189,20 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
             <input
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddComment(); } }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddComment();
+                }
+              }}
               placeholder="Add a comment..."
               className="flex-1 h-8 rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
-            <Button size="sm" onClick={handleAddComment} disabled={!commentText.trim() || addCommentMutation.isPending}>
+            <Button
+              size="sm"
+              onClick={handleAddComment}
+              disabled={!commentText.trim() || addCommentMutation.isPending}
+            >
               Post
             </Button>
           </div>
@@ -187,10 +214,15 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => updateMutation.mutate({ id: issueId, data: { claim: true } }, {
-                onSuccess: () => toast.success("Issue claimed."),
-                onError: () => toast.error("Failed to claim."),
-              })}
+              onClick={() =>
+                updateMutation.mutate(
+                  { id: issueId, data: { claim: true } },
+                  {
+                    onSuccess: () => toast.success("Issue claimed."),
+                    onError: () => toast.error("Failed to claim."),
+                  },
+                )
+              }
               disabled={updateMutation.isPending}
             >
               Claim
@@ -198,10 +230,18 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => closeMutation.mutate({ id: issueId }, {
-                onSuccess: () => { toast.success("Issue closed."); onClose(); },
-                onError: () => toast.error("Failed to close."),
-              })}
+              onClick={() =>
+                closeMutation.mutate(
+                  { id: issueId },
+                  {
+                    onSuccess: () => {
+                      toast.success("Issue closed.");
+                      onClose();
+                    },
+                    onError: () => toast.error("Failed to close."),
+                  },
+                )
+              }
               disabled={closeMutation.isPending}
             >
               Close
@@ -216,7 +256,9 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
 function PanelHeader({ onClose, children }: { onClose: () => void; children?: React.ReactNode }) {
   return (
     <div className="shrink-0 flex items-center justify-between border-b border-border px-4 py-2">
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Detail</span>
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+        Detail
+      </span>
       <div className="flex items-center gap-1">
         {children}
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close panel">

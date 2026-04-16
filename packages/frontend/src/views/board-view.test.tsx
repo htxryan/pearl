@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter } from "react-router";
 import type { IssueListItem } from "@pearl/shared";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock navigation
 const mockNavigate = vi.fn();
@@ -274,7 +274,10 @@ describe("BoardView", () => {
     const card = screen.getByRole("button", { name: /beads-001: Fix login bug/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001", expect.objectContaining({ state: { from: "/board" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/beads-001",
+      expect.objectContaining({ state: { from: "/board" } }),
+    );
   });
 
   it("shows labels on cards", () => {

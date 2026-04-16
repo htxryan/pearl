@@ -1,39 +1,34 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
 import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  TouchSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
   closestCorners,
-  type DragStartEvent,
+  DndContext,
   type DragEndEvent,
   type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@pearl/shared";
-import { cn } from "@/lib/utils";
-import { KanbanColumn } from "@/components/board/kanban-column";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
-import { FilterBar, EMPTY_FILTERS } from "@/components/issue-table/filter-bar";
-import { useIssues, useUpdateIssue, useCreateIssue } from "@/hooks/use-issues";
+import { KanbanColumn } from "@/components/board/kanban-column";
+import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
+import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
+import { useCreateIssue, useIssues, useUpdateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
-import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
-import { useUrlFilters, buildApiParams } from "@/hooks/use-url-filters";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
-import { useIsMobile } from "@/hooks/use-media-query";
+import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
+import { cn } from "@/lib/utils";
 
 /** Statuses that users can drag cards into */
-const DROPPABLE_STATUSES: Set<IssueStatus> = new Set([
-  "open",
-  "in_progress",
-  "closed",
-  "deferred",
-]);
+const DROPPABLE_STATUSES: Set<IssueStatus> = new Set(["open", "in_progress", "closed", "deferred"]);
 
 /** Column order for display */
 const COLUMN_ORDER: IssueStatus[] = ISSUE_STATUSES;
@@ -44,10 +39,7 @@ export function BoardView() {
 
   // Shared URL filter state (same as List view)
   const { filters, sorting, setFilters } = useUrlFilters();
-  const apiParams = useMemo(
-    () => buildApiParams(filters, sorting),
-    [filters, sorting],
-  );
+  const apiParams = useMemo(() => buildApiParams(filters, sorting), [filters, sorting]);
 
   // Data fetching — shared cache with List view
   const { data: issues = [], isLoading } = useIssues(apiParams);
@@ -252,15 +244,16 @@ export function BoardView() {
     <div className="flex flex-col h-full">
       {/* Toolbar — same filter bar as list view */}
       <div className="shrink-0 bg-muted/30 px-4 py-3">
-        <FilterBar
-          filters={filters}
-          onChange={setFilters}
-          searchInputRef={searchInputRef}
-        />
+        <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
       </div>
 
       {/* Board */}
-      <div className={cn("flex-1 p-4", isMobile ? "overflow-y-auto" : "overflow-x-auto overflow-y-hidden")}>
+      <div
+        className={cn(
+          "flex-1 p-4",
+          isMobile ? "overflow-y-auto" : "overflow-x-auto overflow-y-hidden",
+        )}
+      >
         {isLoading && issues.length === 0 ? (
           <BoardSkeleton isMobile={isMobile} />
         ) : (
@@ -291,9 +284,7 @@ export function BoardView() {
             </div>
 
             <DragOverlay dropAnimation={null}>
-              {activeIssue ? (
-                <KanbanCardOverlay issue={activeIssue} />
-              ) : null}
+              {activeIssue ? <KanbanCardOverlay issue={activeIssue} /> : null}
             </DragOverlay>
           </DndContext>
         )}
@@ -304,7 +295,12 @@ export function BoardView() {
 
 function BoardSkeleton({ isMobile }: { isMobile?: boolean }) {
   return (
-    <div className={isMobile ? "flex flex-col gap-4" : "flex gap-4 h-full"} role="status" aria-label="Loading board" aria-busy>
+    <div
+      className={isMobile ? "flex flex-col gap-4" : "flex gap-4 h-full"}
+      role="status"
+      aria-label="Loading board"
+      aria-busy
+    >
       {COLUMN_ORDER.map((status, colIdx) => (
         <div
           key={status}

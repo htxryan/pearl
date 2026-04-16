@@ -1,4 +1,4 @@
-import { test, expect, issueTable, expectToast } from "./fixtures";
+import { expect, expectToast, issueTable, test } from "./fixtures";
 
 /** Platform-aware shortcut for opening the command palette. */
 const CMD_K = process.platform === "darwin" ? "Meta+k" : "Control+k";
@@ -51,7 +51,7 @@ test.describe("Create Issue", () => {
       await cmdInput.fill("Create Issue");
 
       // Click the "Create Issue" command item
-      const createItem = page.locator('[cmdk-item]').filter({ hasText: "Create Issue" }).first();
+      const createItem = page.locator("[cmdk-item]").filter({ hasText: "Create Issue" }).first();
       await expect(createItem).toBeVisible({ timeout: 3_000 });
       await createItem.click();
 

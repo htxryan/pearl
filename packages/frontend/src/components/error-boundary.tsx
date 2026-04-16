@@ -1,4 +1,4 @@
-import { Component, type ReactNode, type ErrorInfo } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -90,12 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
             <p className="text-sm font-medium text-destructive">{config.title}</p>
             <p className="mt-1 text-xs text-muted-foreground">{config.suggestion}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={this.handleRetry}
-            >
+            <Button variant="outline" size="sm" className="mt-2" onClick={this.handleRetry}>
               Try Again
             </Button>
           </div>
@@ -109,9 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <span className="text-2xl font-bold text-destructive">{config.icon}</span>
             </div>
             <h2 className="text-xl font-semibold">{config.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {config.suggestion}
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{config.suggestion}</p>
             {error && category === "unexpected" && (
               <details className="mt-4 text-left">
                 <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
@@ -123,9 +116,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </details>
             )}
             <div className="mt-6 flex items-center justify-center gap-3">
-              <Button onClick={this.handleRetry}>
-                Try Again
-              </Button>
+              <Button onClick={this.handleRetry}>Try Again</Button>
               <Button variant="outline" onClick={() => window.location.reload()}>
                 Reload Page
               </Button>

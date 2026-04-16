@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
-import { getTheme, getDefaultTheme } from "@/themes";
 import type { ThemeDefinition } from "@/themes";
+import { getDefaultTheme, getTheme } from "@/themes";
 
 const STORAGE_KEY = "pearl-theme";
 const CACHE_KEY = "pearl-theme-cache";

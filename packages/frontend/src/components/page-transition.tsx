@@ -1,5 +1,5 @@
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
-import { useRef, useState, useEffect, type ReactNode } from "react";
 
 /**
  * Route indices matching sidebar nav order.
@@ -38,10 +38,7 @@ export function getDirection(from: string, to: string): Direction {
 }
 
 /** Map direction + phase to CSS class names (defined in index.css). */
-function getAnimationClass(
-  direction: Direction,
-  phase: "exiting" | "entering",
-): string {
+function getAnimationClass(direction: Direction, phase: "exiting" | "entering"): string {
   if (direction === "fade") {
     return phase === "exiting" ? "page-exit-fade" : "page-enter-fade";
   }
@@ -100,8 +97,7 @@ export function PageTransition({ children }: PageTransitionProps) {
     return () => clearTimeout(timer);
   }, [phase]);
 
-  const className =
-    phase === "idle" ? "page-idle" : getAnimationClass(direction, phase);
+  const className = phase === "idle" ? "page-idle" : getAnimationClass(direction, phase);
 
   return (
     <div className={className} style={{ height: "100%", width: "100%" }}>

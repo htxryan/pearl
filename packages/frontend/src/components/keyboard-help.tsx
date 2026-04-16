@@ -12,7 +12,9 @@ function notify() {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function toggleKeyboardHelp() {
@@ -59,15 +61,11 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
   },
   {
     name: "Board View",
-    shortcuts: [
-      { key: "/", description: "Focus search" },
-    ],
+    shortcuts: [{ key: "/", description: "Focus search" }],
   },
   {
     name: "Detail View",
-    shortcuts: [
-      { key: "Esc", description: "Close detail / back to list" },
-    ],
+    shortcuts: [{ key: "Esc", description: "Close detail / back to list" }],
   },
 ];
 
@@ -103,7 +101,9 @@ export function KeyboardHelpOverlay() {
       {/* Modal */}
       <div className="relative z-50 w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden animate-modal-enter">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 id="keyboard-help-title" className="text-lg font-semibold">Keyboard Shortcuts</h2>
+          <h2 id="keyboard-help-title" className="text-lg font-semibold">
+            Keyboard Shortcuts
+          </h2>
           <button
             onClick={closeKeyboardHelp}
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -121,10 +121,7 @@ export function KeyboardHelpOverlay() {
               </h3>
               <div className="space-y-1">
                 {group.shortcuts.map((shortcut) => (
-                  <div
-                    key={shortcut.key}
-                    className="flex items-center justify-between py-1"
-                  >
+                  <div key={shortcut.key} className="flex items-center justify-between py-1">
                     <span className="text-sm">{shortcut.description}</span>
                     <kbd className="rounded border border-border bg-muted px-2 py-0.5 text-xs font-mono text-muted-foreground">
                       {shortcut.key}

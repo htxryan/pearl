@@ -7,8 +7,9 @@
  * Strategy: intercept API calls with a delay, then verify the UI updates
  * BEFORE the delayed response arrives. This proves optimistic updates.
  */
-import { test, expect } from "./fixtures";
+
 import { resolve } from "node:path";
+import { expect, test } from "./fixtures";
 
 const PROOF_DIR = resolve(__dirname, "../../docs/proof/beads-gui-ivc5");
 
@@ -32,7 +33,9 @@ async function getRowTitle(row: import("@playwright/test").Locator): Promise<str
 }
 
 test.describe("Optimistic mutations", () => {
-  test("status change updates UI before network response completes", async ({ seededPage: page }) => {
+  test("status change updates UI before network response completes", async ({
+    seededPage: page,
+  }) => {
     const table = await waitForDataRows(page);
     const firstRow = table.locator("tbody tr").first();
 
@@ -168,7 +171,9 @@ test.describe("Optimistic mutations", () => {
     await page.unroute("**/api/issues/*");
   });
 
-  test("optimistic create shows issue in list before server responds", async ({ seededPage: page }) => {
+  test("optimistic create shows issue in list before server responds", async ({
+    seededPage: page,
+  }) => {
     await waitForDataRows(page);
 
     const quickAdd = page.getByLabel("Quick add issue");

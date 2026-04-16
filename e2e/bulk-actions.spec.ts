@@ -1,4 +1,4 @@
-import { test, expect, issueTable } from "./fixtures";
+import { expect, issueTable, test } from "./fixtures";
 
 test.describe("Bulk Actions", () => {
   test("selecting rows shows bulk action bar", async ({ seededPage: page }) => {

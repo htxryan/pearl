@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import type { IssueListItem, IssueStatus, LabelColor, Priority } from "@pearl/shared";
 import { createColumnHelper } from "@tanstack/react-table";
-import type { IssueListItem, IssueStatus, Priority, LabelColor } from "@pearl/shared";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PriorityIndicator } from "@/components/ui/priority-indicator";
-import { TypeBadge } from "@/components/ui/type-badge";
-import { RelativeTime } from "@/components/ui/relative-time";
-import { LabelBadge } from "@/components/ui/label-badge";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AssigneePicker } from "@/components/ui/assignee-picker";
-import { LabelPicker } from "@/components/ui/label-picker";
 import { DatePicker } from "@/components/ui/date-picker";
+import { LabelBadge } from "@/components/ui/label-badge";
+import { LabelPicker } from "@/components/ui/label-picker";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { RelativeTime } from "@/components/ui/relative-time";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { TypeBadge } from "@/components/ui/type-badge";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -73,8 +73,15 @@ function InlineTitleEditor({
         onChange={(e) => setEditValue(e.target.value)}
         onBlur={handleSave}
         onKeyDown={(e) => {
-          if (e.key === "Enter") { e.preventDefault(); handleSave(); }
-          if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); handleCancel(); }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleSave();
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCancel();
+          }
           e.stopPropagation();
         }}
         onClick={(e) => e.stopPropagation()}
@@ -139,14 +146,12 @@ function InlineAssigneeEditor({
 
   return (
     <>
-      <span
-        ref={triggerRef}
-        onClick={handleClick}
-        className="cursor-pointer"
-      >
-        {value
-          ? <span className="text-sm truncate">{value}</span>
-          : <span className="text-xs text-muted-foreground/50 italic">—</span>}
+      <span ref={triggerRef} onClick={handleClick} className="cursor-pointer">
+        {value ? (
+          <span className="text-sm truncate">{value}</span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50 italic">—</span>
+        )}
       </span>
       {isOpen && (
         <AssigneePicker
@@ -189,9 +194,12 @@ function InlineLabelEditor({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [isOpen]);
 
-  const handleChange = useCallback((newLabels: string[]) => {
-    onLabelsChange(issueId, newLabels);
-  }, [issueId, onLabelsChange]);
+  const handleChange = useCallback(
+    (newLabels: string[]) => {
+      onLabelsChange(issueId, newLabels);
+    },
+    [issueId, onLabelsChange],
+  );
 
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
@@ -216,11 +224,14 @@ function InlineLabelEditor({
     };
   }, [isOpen, updatePosition]);
 
-  const handleOpen = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    updatePosition();
-    setIsOpen((prev) => !prev);
-  }, [updatePosition]);
+  const handleOpen = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      updatePosition();
+      setIsOpen((prev) => !prev);
+    },
+    [updatePosition],
+  );
 
   return (
     <div ref={containerRef} className="relative">
@@ -229,9 +240,7 @@ function InlineLabelEditor({
         onClick={handleOpen}
         className="flex gap-1 flex-wrap cursor-pointer min-h-[20px]"
       >
-        {labels.length === 0 && (
-          <span className="text-xs text-muted-foreground/50 italic">—</span>
-        )}
+        {labels.length === 0 && <span className="text-xs text-muted-foreground/50 italic">—</span>}
         {labels.slice(0, 3).map((label) => (
           <LabelBadge
             key={label}
@@ -245,11 +254,7 @@ function InlineLabelEditor({
         )}
       </div>
       {isOpen && (
-        <div
-          style={popoverStyle}
-          className="w-[260px]"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div style={popoverStyle} className="w-[260px]" onClick={(e) => e.stopPropagation()}>
           <LabelPicker
             selected={labels}
             selectedColors={labelColors}
@@ -272,9 +277,12 @@ function InlineDateEditor({
   issueId: string;
   onDueDateChange: (id: string, date: string | null) => void;
 }) {
-  const handleChange = useCallback((date: string | null) => {
-    onDueDateChange(issueId, date);
-  }, [issueId, onDueDateChange]);
+  const handleChange = useCallback(
+    (date: string | null) => {
+      onDueDateChange(issueId, date);
+    },
+    [issueId, onDueDateChange],
+  );
 
   const isOverdue = value ? isDateOverdue(value) : false;
 
@@ -284,7 +292,11 @@ function InlineDateEditor({
         value={value}
         onChange={handleChange}
         placeholder="—"
-        className={isOverdue ? "[&_button]:text-destructive [&_button]:font-medium" : "[&_button]:text-muted-foreground"}
+        className={
+          isOverdue
+            ? "[&_button]:text-destructive [&_button]:font-medium"
+            : "[&_button]:text-muted-foreground"
+        }
       />
     </div>
   );
@@ -360,7 +372,10 @@ export function buildColumns({
           <div className="flex items-center gap-2 min-w-0">
             {progress && onToggleExpand && (
               <button
-                onClick={(e) => { e.stopPropagation(); onToggleExpand(issue.id); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleExpand(issue.id);
+                }}
                 className="shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-accent text-muted-foreground text-xs"
                 aria-label={isExpanded ? "Collapse children" : "Expand children"}
               >
@@ -423,7 +438,9 @@ export function buildColumns({
           return (
             <select
               value={priority}
-              onChange={(e) => onPriorityChange(info.row.original.id, Number(e.target.value) as Priority)}
+              onChange={(e) =>
+                onPriorityChange(info.row.original.id, Number(e.target.value) as Priority)
+              }
               onClick={(e) => e.stopPropagation()}
               className="appearance-none bg-transparent border-none text-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring rounded p-0"
               aria-label={`Change priority for ${info.row.original.title}`}
@@ -458,9 +475,11 @@ export function buildColumns({
             />
           );
         }
-        return val
-          ? <span className="text-sm truncate">{val}</span>
-          : <span className="text-xs text-muted-foreground/50 italic">—</span>;
+        return val ? (
+          <span className="text-sm truncate">{val}</span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50 italic">—</span>
+        );
       },
       size: 120,
     }),
@@ -486,7 +505,9 @@ export function buildColumns({
         }
         const isOverdue = val && isDateOverdue(val);
         return (
-          <span className={`text-xs ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+          <span
+            className={`text-xs ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}
+          >
             {formatDate(val)}
           </span>
         );

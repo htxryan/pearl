@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import type { LabelColor, LabelWithCount } from "@pearl/shared";
 import { LABEL_COLORS } from "@pearl/shared";
-import { useLabels, useCreateLabel } from "@/hooks/use-labels";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCreateLabel, useLabels } from "@/hooks/use-labels";
 import { useTheme } from "@/hooks/use-theme";
-import { LabelBadge, LABEL_PALETTE } from "./label-badge";
 import { cn } from "@/lib/utils";
+import { LABEL_PALETTE, LabelBadge } from "./label-badge";
 
 interface LabelPickerProps {
   /** Currently selected label names */
@@ -45,15 +45,17 @@ export function LabelPicker({
   // Filter labels by search (memoized to avoid recomputing on every render)
   const selectedSet = useMemo(() => new Set(selected), [selected]);
   const filteredLabels = useMemo(
-    () => allLabels.filter(
-      (l) => !selectedSet.has(l.name) && l.name.toLowerCase().includes(search.toLowerCase()),
-    ),
+    () =>
+      allLabels.filter(
+        (l) => !selectedSet.has(l.name) && l.name.toLowerCase().includes(search.toLowerCase()),
+      ),
     [allLabels, selectedSet, search],
   );
 
   const searchTrimmed = search.trim();
   const exactMatch = allLabels.some((l) => l.name.toLowerCase() === searchTrimmed.toLowerCase());
-  const canCreate = allowCreate && searchTrimmed.length > 0 && !exactMatch && !selectedSet.has(searchTrimmed);
+  const canCreate =
+    allowCreate && searchTrimmed.length > 0 && !exactMatch && !selectedSet.has(searchTrimmed);
 
   // Total options: filtered + optional "create new"
   const totalOptions = filteredLabels.length + (canCreate ? 1 : 0);
@@ -94,73 +96,98 @@ export function LabelPicker({
     item?.scrollIntoView({ block: "nearest" });
   }, [highlightIndex]);
 
-  const selectLabel = useCallback((labelName: string) => {
-    onChange([...selected, labelName]);
-    setSearch("");
-    setHighlightIndex(0);
-    inputRef.current?.focus();
-  }, [selected, onChange]);
+  const selectLabel = useCallback(
+    (labelName: string) => {
+      onChange([...selected, labelName]);
+      setSearch("");
+      setHighlightIndex(0);
+      inputRef.current?.focus();
+    },
+    [selected, onChange],
+  );
 
-  const removeLabel = useCallback((labelName: string) => {
-    onChange(selected.filter((l) => l !== labelName));
-  }, [selected, onChange]);
+  const removeLabel = useCallback(
+    (labelName: string) => {
+      onChange(selected.filter((l) => l !== labelName));
+    },
+    [selected, onChange],
+  );
 
-  const handleCreateNew = useCallback(async (name: string, color?: LabelColor) => {
-    const assignedColor = color ?? LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)];
-    try {
-      await createLabel.mutateAsync({ name, color: assignedColor });
-      selectLabel(name);
-    } catch (err) {
-      console.error("Label creation failed:", err);
-    }
-    setShowColorPicker(false);
-    setNewLabelColor(null);
-  }, [createLabel, selectLabel]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
-      setIsOpen(true);
-      return;
-    }
-
-    if (e.key === "Escape") {
-      // stopPropagation prevents other React keydown handlers from seeing
-      // this event, and preventDefault stops the browser from firing a
-      // native cancel event on an ancestor <dialog>.
-      e.stopPropagation();
-      e.preventDefault();
-      if (showColorPicker) {
-        setShowColorPicker(false);
-      } else {
-        setIsOpen(false);
+  const handleCreateNew = useCallback(
+    async (name: string, color?: LabelColor) => {
+      const assignedColor = color ?? LABEL_COLORS[Math.floor(Math.random() * LABEL_COLORS.length)];
+      try {
+        await createLabel.mutateAsync({ name, color: assignedColor });
+        selectLabel(name);
+      } catch (err) {
+        console.error("Label creation failed:", err);
       }
-      return;
-    }
+      setShowColorPicker(false);
+      setNewLabelColor(null);
+    },
+    [createLabel, selectLabel],
+  );
 
-    if (e.key === "Backspace" && !search && selected.length > 0) {
-      removeLabel(selected[selected.length - 1]);
-      return;
-    }
-
-    if (!isOpen || totalOptions === 0) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightIndex((prev) => (prev + 1) % totalOptions);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightIndex((prev) => (prev - 1 + totalOptions) % totalOptions);
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      e.stopPropagation();
-      if (highlightIndex < filteredLabels.length) {
-        selectLabel(filteredLabels[highlightIndex].name);
-      } else if (canCreate) {
-        // Quick-create with random color (Enter key = fast path)
-        handleCreateNew(searchTrimmed);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        setIsOpen(true);
+        return;
       }
-    }
-  }, [isOpen, showColorPicker, search, selected, totalOptions, filteredLabels, highlightIndex, canCreate, selectLabel, removeLabel, handleCreateNew, searchTrimmed]);
+
+      if (e.key === "Escape") {
+        // stopPropagation prevents other React keydown handlers from seeing
+        // this event, and preventDefault stops the browser from firing a
+        // native cancel event on an ancestor <dialog>.
+        e.stopPropagation();
+        e.preventDefault();
+        if (showColorPicker) {
+          setShowColorPicker(false);
+        } else {
+          setIsOpen(false);
+        }
+        return;
+      }
+
+      if (e.key === "Backspace" && !search && selected.length > 0) {
+        removeLabel(selected[selected.length - 1]);
+        return;
+      }
+
+      if (!isOpen || totalOptions === 0) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev + 1) % totalOptions);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev - 1 + totalOptions) % totalOptions);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (highlightIndex < filteredLabels.length) {
+          selectLabel(filteredLabels[highlightIndex].name);
+        } else if (canCreate) {
+          // Quick-create with random color (Enter key = fast path)
+          handleCreateNew(searchTrimmed);
+        }
+      }
+    },
+    [
+      isOpen,
+      showColorPicker,
+      search,
+      selected,
+      totalOptions,
+      filteredLabels,
+      highlightIndex,
+      canCreate,
+      selectLabel,
+      removeLabel,
+      handleCreateNew,
+      searchTrimmed,
+    ],
+  );
 
   const labelColorMap = useMemo(() => {
     const map: Record<string, LabelColor> = { ...selectedColors };
@@ -282,9 +309,7 @@ function ColorPickerPanel({
 
   return (
     <div className="p-3 space-y-3">
-      <div className="text-sm font-medium">
-        Color for &ldquo;{labelName}&rdquo;
-      </div>
+      <div className="text-sm font-medium">Color for &ldquo;{labelName}&rdquo;</div>
       <div className="grid grid-cols-5 gap-2">
         {LABEL_COLORS.map((c) => {
           const pal = LABEL_PALETTE[c];

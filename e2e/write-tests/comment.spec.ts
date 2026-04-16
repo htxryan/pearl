@@ -1,4 +1,4 @@
-import { test, expect, navigateToIssue, expectToast } from "./fixtures";
+import { expect, expectToast, navigateToIssue, test } from "./fixtures";
 
 test.describe("Comments", () => {
   // Use an issue that has existing comments

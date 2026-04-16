@@ -1,15 +1,15 @@
-import type { FastifyInstance } from "fastify";
 import type { HealthResponse } from "@pearl/shared";
-import type { DoltServerManager } from "../dolt/server-manager.js";
+import type { FastifyInstance } from "fastify";
 import type { Config } from "../config.js";
 import { getPool } from "../dolt/pool.js";
+import type { DoltServerManager } from "../dolt/server-manager.js";
 
 const VERSION = "0.1.0";
 
 export function registerHealthRoutes(
   app: FastifyInstance,
   getDoltManager: () => DoltServerManager | null,
-  getConfig: () => Config
+  getConfig: () => Config,
 ): void {
   // GET /api/health
   app.get("/api/health", async (_request, reply) => {

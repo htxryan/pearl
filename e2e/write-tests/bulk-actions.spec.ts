@@ -1,4 +1,4 @@
-import { test, expect, issueTable, expectToast } from "./fixtures";
+import { expect, expectToast, issueTable, test } from "./fixtures";
 
 test.describe("Bulk Actions", () => {
   test("bulk close selected issues with confirmation", async ({ seededPage: page }) => {

@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
 import type { Event } from "@pearl/shared";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 
@@ -39,9 +39,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
 
   const filteredEvents = useMemo(
     () =>
-      filterType === "all"
-        ? sortedEvents
-        : sortedEvents.filter((e) => e.event_type === filterType),
+      filterType === "all" ? sortedEvents : sortedEvents.filter((e) => e.event_type === filterType),
     [sortedEvents, filterType],
   );
 
@@ -90,14 +88,10 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
               <div className="text-sm">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{event.actor}</span>
-                  <span className="text-muted-foreground">
-                    {describeEvent(event)}
-                  </span>
+                  <span className="text-muted-foreground">{describeEvent(event)}</span>
                 </div>
                 {event.comment && (
-                  <p className="mt-1 text-muted-foreground text-xs">
-                    {event.comment}
-                  </p>
+                  <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
                 )}
                 <button
                   type="button"
@@ -113,7 +107,9 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
         </div>
       ) : (
         <div className="flex flex-col items-center py-6 text-muted-foreground">
-          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">&#9716;</span>
+          <span className="text-3xl opacity-20 mb-1" aria-hidden="true">
+            &#9716;
+          </span>
           <p className="text-sm">
             {filterType === "all"
               ? "No activity yet. Changes will appear here."
@@ -148,7 +144,8 @@ function describeEvent(event: Event): string {
     case "assignee_change":
       return `changed assignee from ${formatValue(old_value)} to ${formatValue(new_value)}`;
     case "title_change":
-      if (old_value && new_value) return `changed title from "${formatValue(old_value)}" to "${formatValue(new_value)}"`;
+      if (old_value && new_value)
+        return `changed title from "${formatValue(old_value)}" to "${formatValue(new_value)}"`;
       if (new_value) return `changed title to "${formatValue(new_value)}"`;
       if (old_value) return `changed title (was "${formatValue(old_value)}")`;
       return `changed title`;

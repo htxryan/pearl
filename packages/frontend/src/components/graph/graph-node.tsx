@@ -1,9 +1,9 @@
-import { memo, useState, useCallback } from "react";
-import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 import type { IssueListItem, IssueStatus, LabelColor } from "@pearl/shared";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
+import { memo, useCallback, useState } from "react";
+import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
-import { LabelBadge } from "@/components/ui/label-badge";
 import { cn } from "@/lib/utils";
 
 export const NODE_WIDTH = 260;
@@ -89,9 +89,7 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
       <div className="pl-3.5 pr-3 py-2.5">
         {/* Row 1: ID + Priority */}
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[10px] text-muted-foreground font-mono truncate">
-            {issue.id}
-          </span>
+          <span className="text-[10px] text-muted-foreground font-mono truncate">{issue.id}</span>
           <PriorityIndicator priority={issue.priority} />
         </div>
 
@@ -114,24 +112,31 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
           <div className="flex items-center gap-1.5 min-w-0">
             <TypeBadge type={issue.issue_type} className="text-[10px] shrink-0" />
             {issue.labels.length > 0 && (
-              <div className="flex items-center gap-1 truncate max-w-[100px]" title={issue.labels.join(", ")}>
+              <div
+                className="flex items-center gap-1 truncate max-w-[100px]"
+                title={issue.labels.join(", ")}
+              >
                 <LabelBadge
                   name={issue.labels[0]}
                   color={(issue.labelColors ?? {})[issue.labels[0]] as LabelColor | undefined}
                   size="sm"
                 />
                 {issue.labels.length > 1 && (
-                  <span className="text-[9px] text-muted-foreground">+{issue.labels.length - 1}</span>
+                  <span className="text-[9px] text-muted-foreground">
+                    +{issue.labels.length - 1}
+                  </span>
                 )}
               </div>
             )}
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {dueText && (
-              <span className={cn(
-                "text-[9px] font-medium",
-                dueText.includes("overdue") ? "text-danger" : "text-muted-foreground",
-              )}>
+              <span
+                className={cn(
+                  "text-[9px] font-medium",
+                  dueText.includes("overdue") ? "text-danger" : "text-muted-foreground",
+                )}
+              >
                 {dueText}
               </span>
             )}
@@ -177,7 +182,11 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
               <div className="flex items-center gap-1.5 col-span-2">
                 <span className="text-muted-foreground">Due:</span>
                 <span className={cn("font-medium", dueText?.includes("overdue") && "text-danger")}>
-                  {new Date(issue.due_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                  {new Date(issue.due_at).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </span>
               </div>
             )}

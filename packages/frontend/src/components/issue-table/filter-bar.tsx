@@ -1,20 +1,27 @@
-import { useCallback, useRef, useState, useEffect } from "react";
-import { ISSUE_STATUSES, ISSUE_PRIORITIES, ISSUE_TYPES, type IssueStatus, type IssueType, type Priority } from "@pearl/shared";
-import { cn } from "@/lib/utils";
-import { useFilterPresets } from "@/hooks/use-filter-presets";
-import { addToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-media-query";
-import { LabelPicker } from "@/components/ui/label-picker";
 import {
-  parseQuerySyntax,
-  hasQuerySyntax,
-  DATE_RANGE_OPTIONS,
+  ISSUE_PRIORITIES,
+  ISSUE_STATUSES,
+  ISSUE_TYPES,
+  type IssueStatus,
+  type IssueType,
+  type Priority,
+} from "@pearl/shared";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LabelPicker } from "@/components/ui/label-picker";
+import { useFilterPresets } from "@/hooks/use-filter-presets";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { addToast } from "@/hooks/use-toast";
+import {
   DATE_RANGE_LABELS,
-  STRUCTURAL_FILTER_OPTIONS,
-  STRUCTURAL_FILTER_LABELS,
+  DATE_RANGE_OPTIONS,
   type DateRange,
+  hasQuerySyntax,
+  parseQuerySyntax,
+  STRUCTURAL_FILTER_LABELS,
+  STRUCTURAL_FILTER_OPTIONS,
   type StructuralFilter,
 } from "@/lib/query-syntax";
+import { cn } from "@/lib/utils";
 
 export interface FilterState {
   status: IssueStatus[];
@@ -61,8 +68,14 @@ const STATUS_LABELS: Record<IssueStatus, string> = {
   deferred: "Deferred",
 };
 const TYPE_LABELS: Record<IssueType, string> = {
-  task: "Task", bug: "Bug", epic: "Epic", feature: "Feature",
-  chore: "Chore", event: "Event", gate: "Gate", molecule: "Molecule",
+  task: "Task",
+  bug: "Bug",
+  epic: "Epic",
+  feature: "Feature",
+  chore: "Chore",
+  event: "Event",
+  gate: "Gate",
+  molecule: "Molecule",
 };
 
 interface FilterBarProps {
@@ -135,9 +148,21 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   // Sync external → local (e.g., "Clear all") and cancel pending debounce
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const assigneeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => { setLocalSearch(filters.search); clearTimeout(searchTimer.current); }, [filters.search]);
-  useEffect(() => { setLocalAssignee(filters.assignee); clearTimeout(assigneeTimer.current); }, [filters.assignee]);
-  useEffect(() => () => { clearTimeout(searchTimer.current); clearTimeout(assigneeTimer.current); }, []);
+  useEffect(() => {
+    setLocalSearch(filters.search);
+    clearTimeout(searchTimer.current);
+  }, [filters.search]);
+  useEffect(() => {
+    setLocalAssignee(filters.assignee);
+    clearTimeout(assigneeTimer.current);
+  }, [filters.assignee]);
+  useEffect(
+    () => () => {
+      clearTimeout(searchTimer.current);
+      clearTimeout(assigneeTimer.current);
+    },
+    [],
+  );
 
   // Refs to avoid stale closures in debounced callbacks
   const filtersRef = useRef(filters);
@@ -215,7 +240,9 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   // Shared filter controls
   const filterControls = (
     <>
-      <div className={cn("flex items-center gap-2", isMobile ? "flex-col items-stretch" : "flex-wrap")}>
+      <div
+        className={cn("flex items-center gap-2", isMobile ? "flex-col items-stretch" : "flex-wrap")}
+      >
         {/* Search */}
         <div className="relative">
           <input
@@ -349,7 +376,9 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         >
           <option value="">Group by...</option>
           {(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => (
-            <option key={key} value={key}>{GROUP_BY_LABELS[key]}</option>
+            <option key={key} value={key}>
+              {GROUP_BY_LABELS[key]}
+            </option>
           ))}
         </select>
 
@@ -414,7 +443,10 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             onChange={(e) => setPresetName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSavePreset();
-              if (e.key === "Escape") { setShowSaveInput(false); setPresetName(""); }
+              if (e.key === "Escape") {
+                setShowSaveInput(false);
+                setPresetName("");
+              }
             }}
             placeholder="View name..."
             className="h-7 w-32 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
@@ -427,7 +459,10 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             Save
           </button>
           <button
-            onClick={() => { setShowSaveInput(false); setPresetName(""); }}
+            onClick={() => {
+              setShowSaveInput(false);
+              setPresetName("");
+            }}
             className="h-7 rounded px-1.5 text-xs text-muted-foreground hover:text-foreground"
           >
             &times;
@@ -444,21 +479,36 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         <FilterPill
           key={`status-${s}`}
           label={`Status: ${STATUS_LABELS[s]}`}
-          onRemove={() => setField("status", filters.status.filter((x) => x !== s))}
+          onRemove={() =>
+            setField(
+              "status",
+              filters.status.filter((x) => x !== s),
+            )
+          }
         />
       ))}
       {filters.priority.map((p) => (
         <FilterPill
           key={`priority-${p}`}
           label={`Priority: ${PRIORITY_LABELS[p]}`}
-          onRemove={() => setField("priority", filters.priority.filter((x) => x !== p))}
+          onRemove={() =>
+            setField(
+              "priority",
+              filters.priority.filter((x) => x !== p),
+            )
+          }
         />
       ))}
       {filters.issue_type.map((t) => (
         <FilterPill
           key={`type-${t}`}
           label={`Type: ${TYPE_LABELS[t]}`}
-          onRemove={() => setField("issue_type", filters.issue_type.filter((x) => x !== t))}
+          onRemove={() =>
+            setField(
+              "issue_type",
+              filters.issue_type.filter((x) => x !== t),
+            )
+          }
         />
       ))}
       {filters.assignee && (
@@ -471,21 +521,36 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         <FilterPill
           key={`label-${l}`}
           label={`Label: ${l}`}
-          onRemove={() => setField("labels", filters.labels.filter((x) => x !== l))}
+          onRemove={() =>
+            setField(
+              "labels",
+              filters.labels.filter((x) => x !== l),
+            )
+          }
         />
       ))}
       {filters.dateRanges.map((d) => (
         <FilterPill
           key={`date-${d}`}
           label={`Date: ${DATE_RANGE_LABELS[d]}`}
-          onRemove={() => setField("dateRanges", filters.dateRanges.filter((x) => x !== d))}
+          onRemove={() =>
+            setField(
+              "dateRanges",
+              filters.dateRanges.filter((x) => x !== d),
+            )
+          }
         />
       ))}
       {filters.structural.map((s) => (
         <FilterPill
           key={`struct-${s}`}
           label={STRUCTURAL_FILTER_LABELS[s]}
-          onRemove={() => setField("structural", filters.structural.filter((x) => x !== s))}
+          onRemove={() =>
+            setField(
+              "structural",
+              filters.structural.filter((x) => x !== s),
+            )
+          }
         />
       ))}
       {filters.groupBy && (
@@ -495,10 +560,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         />
       )}
       {filters.search && (
-        <FilterPill
-          label={`Search: "${filters.search}"`}
-          onRemove={() => setField("search", "")}
-        />
+        <FilterPill label={`Search: "${filters.search}"`} onRemove={() => setField("search", "")} />
       )}
     </div>
   ) : null;
@@ -520,7 +582,15 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             aria-expanded={filtersExpanded}
             aria-label="Toggle filters"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            >
               <line x1="2" y1="4" x2="14" y2="4" />
               <line x1="4" y1="8" x2="12" y2="8" />
               <line x1="6" y1="12" x2="10" y2="12" />

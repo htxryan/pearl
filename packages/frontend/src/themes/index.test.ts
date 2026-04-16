@@ -1,10 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  getAllThemes,
-  getTheme,
-  getDefaultTheme,
-  COLOR_TOKENS,
-} from "./index";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { COLOR_TOKENS, getAllThemes, getDefaultTheme, getTheme } from "./index";
 
 describe("Theme Registry", () => {
   beforeEach(() => {
@@ -21,7 +16,7 @@ describe("Theme Registry", () => {
       for (const token of COLOR_TOKENS) {
         expect(
           theme.colors[token],
-          `Theme "${theme.name}" is missing color token: ${token}`
+          `Theme "${theme.name}" is missing color token: ${token}`,
         ).toBeDefined();
       }
     }
@@ -75,7 +70,7 @@ describe("Theme Registry", () => {
     for (const theme of themes) {
       expect(
         ["light", "dark"],
-        `Theme "${theme.name}" has invalid colorScheme: ${theme.colorScheme}`
+        `Theme "${theme.name}" has invalid colorScheme: ${theme.colorScheme}`,
       ).toContain(theme.colorScheme);
     }
   });

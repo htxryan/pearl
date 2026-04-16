@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addNotification,
-  markAsRead,
-  markAllAsRead,
-  dismissNotification,
   clearAllNotifications,
-  setPreference,
-  notifyCommentAdded,
   detectChanges,
+  dismissNotification,
+  markAllAsRead,
+  markAsRead,
   type NotificationPreferences,
+  notifyCommentAdded,
+  setPreference,
 } from "./use-notifications";
 
 // We need to re-import the store getters after clearing
@@ -311,7 +311,9 @@ describe("detectChanges", () => {
 
   it("detects status change", () => {
     const prev = { "i-1": { status: "open" as const, assignee: null } };
-    const current = [{ id: "i-1", title: "Test", status: "in_progress" as const, assignee: null }] as any;
+    const current = [
+      { id: "i-1", title: "Test", status: "in_progress" as const, assignee: null },
+    ] as any;
 
     const result = detectChanges(prev, current, allEnabled);
     expect(result).toHaveLength(1);
@@ -340,7 +342,9 @@ describe("detectChanges", () => {
   it("status_changed fires for non-blocker transitions when blocker_resolved is disabled", () => {
     const prefs = { ...allEnabled, blocker_resolved: false };
     const prev = { "i-1": { status: "open" as const, assignee: null } };
-    const current = [{ id: "i-1", title: "Test", status: "closed" as const, assignee: null }] as any;
+    const current = [
+      { id: "i-1", title: "Test", status: "closed" as const, assignee: null },
+    ] as any;
 
     const result = detectChanges(prev, current, prefs);
     expect(result).toHaveLength(1);
@@ -368,7 +372,9 @@ describe("detectChanges", () => {
 
   it("detects assignee change", () => {
     const prev = { "i-1": { status: "open" as const, assignee: null } };
-    const current = [{ id: "i-1", title: "Test", status: "open" as const, assignee: "alice" }] as any;
+    const current = [
+      { id: "i-1", title: "Test", status: "open" as const, assignee: "alice" },
+    ] as any;
 
     const result = detectChanges(prev, current, allEnabled);
     expect(result).toHaveLength(1);

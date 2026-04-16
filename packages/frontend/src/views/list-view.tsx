@@ -1,37 +1,48 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
+import type { IssueListItem, IssueStatus, Priority } from "@pearl/shared";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  type VisibilityState,
   type ColumnOrderState,
   type ColumnSizingState,
+  getCoreRowModel,
+  getSortedRowModel,
   type RowSelectionState,
+  useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import type { IssueStatus, Priority } from "@pearl/shared";
-import { IssueTable } from "@/components/issue-table/issue-table";
-import { FilterBar, GROUP_BY_LABELS, type GroupByField } from "@/components/issue-table/filter-bar";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
-import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
 import { buildColumns, type EpicProgress } from "@/components/issue-table/columns";
-import { useIssues, useUpdateIssue, useCloseIssue, useCreateIssue, issueKeys, prefetchIssueDetail } from "@/hooks/use-issues";
+import { FilterBar, GROUP_BY_LABELS, type GroupByField } from "@/components/issue-table/filter-bar";
+import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table";
+import { IssueCardList } from "@/components/issue-table/issue-card";
+import { IssuePanel } from "@/components/issue-table/issue-panel";
+import { IssueTable } from "@/components/issue-table/issue-table";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
-import { useQueryClient } from "@tanstack/react-query";
-import type { IssueListItem } from "@pearl/shared";
-import * as api from "@/lib/api-client";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+import {
+  issueKeys,
+  prefetchIssueDetail,
+  useCloseIssue,
+  useCreateIssue,
+  useIssues,
+  useUpdateIssue,
+} from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
-import { useCommandPaletteActions, type CommandAction } from "@/hooks/use-command-palette";
-import { useUrlFilters, buildApiParams, VALID_STATUSES, VALID_PRIORITIES } from "@/hooks/use-url-filters";
+import { useIsCompact, useIsMobile } from "@/hooks/use-media-query";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { usePersistedState } from "@/hooks/use-persisted-state";
-import { IssuePanel } from "@/components/issue-table/issue-panel";
-import { IssueCardList } from "@/components/issue-table/issue-card";
-import { useIsMobile, useIsCompact } from "@/hooks/use-media-query";
-import { useFocusTrap } from "@/hooks/use-focus-trap";
+import {
+  buildApiParams,
+  useUrlFilters,
+  VALID_PRIORITIES,
+  VALID_STATUSES,
+} from "@/hooks/use-url-filters";
+import * as api from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
 export function ListView() {
@@ -44,10 +55,7 @@ export function ListView() {
   const { filters, sorting, setFilters, setSorting } = useUrlFilters();
 
   // Build API params from filter state
-  const apiParams = useMemo(
-    () => buildApiParams(filters, sorting),
-    [filters, sorting],
-  );
+  const apiParams = useMemo(() => buildApiParams(filters, sorting), [filters, sorting]);
 
   // Data fetching
   const { data: issues = [], isLoading } = useIssues(apiParams);
@@ -65,7 +73,11 @@ export function ListView() {
     const epicIds = new Set(issues.filter((i) => i.issue_type === "epic").map((i) => i.id));
 
     for (const dep of allDeps) {
-      if (dep.type === "contains" && epicIds.has(dep.issue_id) && dep.depends_on_id !== dep.issue_id) {
+      if (
+        dep.type === "contains" &&
+        epicIds.has(dep.issue_id) &&
+        dep.depends_on_id !== dep.issue_id
+      ) {
         const existing = map.get(dep.issue_id) ?? { done: 0, total: 0, childIds: [] };
         existing.childIds.push(dep.depends_on_id);
         existing.total += 1;
@@ -179,9 +191,15 @@ export function ListView() {
   }, [quickAddTitle, createMutation, toast, navigate]);
 
   // Table state
-  const [columnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>("beads:col-visibility", {});
+  const [columnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>(
+    "beads:col-visibility",
+    {},
+  );
   const [columnOrder, setColumnOrder] = usePersistedState<ColumnOrderState>("beads:col-order", []);
-  const [columnSizing, setColumnSizing] = usePersistedState<ColumnSizingState>("beads:col-sizing", {});
+  const [columnSizing, setColumnSizing] = usePersistedState<ColumnSizingState>(
+    "beads:col-sizing",
+    {},
+  );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const rowSelectionRef = useRef(rowSelection);
   rowSelectionRef.current = rowSelection;
@@ -351,7 +369,9 @@ export function ListView() {
       const failed = allResults.filter((r) => r.status === "rejected");
       const succeeded = ids.length - failed.length;
       if (failed.length > 0) {
-        toast.warning(`Closed ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed to close.`);
+        toast.warning(
+          `Closed ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed to close.`,
+        );
       } else {
         toast.success(`Closed ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
       }
@@ -365,7 +385,9 @@ export function ListView() {
           staleTime: 0,
         });
         const newlyUnblocked = (afterIssues ?? [])
-          .filter((i) => blockedBefore.has(i.id) && !closedIdSet.has(i.id) && i.status !== "blocked")
+          .filter(
+            (i) => blockedBefore.has(i.id) && !closedIdSet.has(i.id) && i.status !== "blocked",
+          )
           .map((i) => i.id);
         setHighlightedIds(new Set(newlyUnblocked));
       } else {
@@ -381,188 +403,231 @@ export function ListView() {
     setRowSelection({});
   }, []);
 
-  const handleBulkReassign = useCallback(async (assignee: string) => {
-    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-    if (ids.length === 0) return;
-    setIsUpdating(true);
-    try {
-      const BATCH_SIZE = 5;
-      const allResults: PromiseSettledResult<unknown>[] = [];
-      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-        const batch = ids.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((id) => updateMutation.mutateAsync({ id, data: { assignee } })),
-        );
-        allResults.push(...results);
+  const handleBulkReassign = useCallback(
+    async (assignee: string) => {
+      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+      if (ids.length === 0) return;
+      setIsUpdating(true);
+      try {
+        const BATCH_SIZE = 5;
+        const allResults: PromiseSettledResult<unknown>[] = [];
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+          const batch = ids.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((id) => updateMutation.mutateAsync({ id, data: { assignee } })),
+          );
+          allResults.push(...results);
+        }
+        const failed = allResults.filter((r) => r.status === "rejected");
+        const succeeded = ids.length - failed.length;
+        if (failed.length > 0) {
+          toast.warning(
+            `Reassigned ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+          );
+        } else {
+          toast.success(
+            `Reassigned ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${assignee}.`,
+          );
+        }
+        setRowSelection({});
+      } finally {
+        setIsUpdating(false);
       }
-      const failed = allResults.filter((r) => r.status === "rejected");
-      const succeeded = ids.length - failed.length;
-      if (failed.length > 0) {
-        toast.warning(`Reassigned ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
-      } else {
-        toast.success(`Reassigned ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${assignee}.`);
-      }
-      setRowSelection({});
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [updateMutation, toast]);
+    },
+    [updateMutation, toast],
+  );
 
-  const handleBulkReprioritize = useCallback(async (priority: Priority) => {
-    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-    if (ids.length === 0) return;
-    setIsUpdating(true);
-    try {
-      const BATCH_SIZE = 5;
-      const allResults: PromiseSettledResult<unknown>[] = [];
-      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-        const batch = ids.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((id) => updateMutation.mutateAsync({ id, data: { priority } })),
-        );
-        allResults.push(...results);
+  const handleBulkReprioritize = useCallback(
+    async (priority: Priority) => {
+      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+      if (ids.length === 0) return;
+      setIsUpdating(true);
+      try {
+        const BATCH_SIZE = 5;
+        const allResults: PromiseSettledResult<unknown>[] = [];
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+          const batch = ids.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((id) => updateMutation.mutateAsync({ id, data: { priority } })),
+          );
+          allResults.push(...results);
+        }
+        const failed = allResults.filter((r) => r.status === "rejected");
+        const succeeded = ids.length - failed.length;
+        const label = `P${priority}`;
+        if (failed.length > 0) {
+          toast.warning(
+            `Reprioritized ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+          );
+        } else {
+          toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${label}.`);
+        }
+        setRowSelection({});
+      } finally {
+        setIsUpdating(false);
       }
-      const failed = allResults.filter((r) => r.status === "rejected");
-      const succeeded = ids.length - failed.length;
-      const label = `P${priority}`;
-      if (failed.length > 0) {
-        toast.warning(`Reprioritized ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
-      } else {
-        toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${label}.`);
-      }
-      setRowSelection({});
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [updateMutation, toast]);
+    },
+    [updateMutation, toast],
+  );
 
   // Build columns and table instance
 
-  const handleBulkChangeStatus = useCallback(async (status: IssueStatus) => {
-    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-    if (ids.length === 0) return;
-    setIsUpdating(true);
-    try {
-      const BATCH_SIZE = 5;
-      const allResults: PromiseSettledResult<unknown>[] = [];
-      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-        const batch = ids.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((id) => updateMutation.mutateAsync({ id, data: { status } })),
-        );
-        allResults.push(...results);
+  const handleBulkChangeStatus = useCallback(
+    async (status: IssueStatus) => {
+      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+      if (ids.length === 0) return;
+      setIsUpdating(true);
+      try {
+        const BATCH_SIZE = 5;
+        const allResults: PromiseSettledResult<unknown>[] = [];
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+          const batch = ids.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((id) => updateMutation.mutateAsync({ id, data: { status } })),
+          );
+          allResults.push(...results);
+        }
+        const failed = allResults.filter((r) => r.status === "rejected");
+        const succeeded = ids.length - failed.length;
+        if (failed.length > 0) {
+          toast.warning(
+            `Updated ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+          );
+        } else {
+          toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${status}.`);
+        }
+        setRowSelection({});
+      } finally {
+        setIsUpdating(false);
       }
-      const failed = allResults.filter((r) => r.status === "rejected");
-      const succeeded = ids.length - failed.length;
-      if (failed.length > 0) {
-        toast.warning(`Updated ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
-      } else {
-        toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${status}.`);
-      }
-      setRowSelection({});
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [updateMutation, toast]);
+    },
+    [updateMutation, toast],
+  );
 
-  const getIssueLabels = useCallback((id: string): string[] => {
-    // Read from QueryClient cache to avoid stale/filtered list issues.
-    // The detail cache has the freshest labels; fall back to scanning list caches.
-    const detail = queryClient.getQueryData<IssueListItem>(issueKeys.detail(id));
-    if (detail?.labels) return detail.labels;
-    const lists = queryClient.getQueriesData<IssueListItem[]>({ queryKey: issueKeys.lists() });
-    for (const [, list] of lists) {
-      const found = list?.find((iss) => iss.id === id);
-      if (found) return found.labels ?? [];
-    }
-    return [];
-  }, [queryClient]);
+  const getIssueLabels = useCallback(
+    (id: string): string[] => {
+      // Read from QueryClient cache to avoid stale/filtered list issues.
+      // The detail cache has the freshest labels; fall back to scanning list caches.
+      const detail = queryClient.getQueryData<IssueListItem>(issueKeys.detail(id));
+      if (detail?.labels) return detail.labels;
+      const lists = queryClient.getQueriesData<IssueListItem[]>({ queryKey: issueKeys.lists() });
+      for (const [, list] of lists) {
+        const found = list?.find((iss) => iss.id === id);
+        if (found) return found.labels ?? [];
+      }
+      return [];
+    },
+    [queryClient],
+  );
 
-  const handleBulkAddLabel = useCallback(async (label: string) => {
-    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-    if (ids.length === 0) return;
-    setIsUpdating(true);
-    try {
-      const BATCH_SIZE = 5;
-      const allResults: PromiseSettledResult<unknown>[] = [];
-      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-        const batch = ids.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((id) => {
-            const existingLabels = getIssueLabels(id);
-            if (existingLabels.includes(label)) {
-              return Promise.resolve(null); // Already has label
-            }
-            return updateMutation.mutateAsync({
-              id,
-              data: { labels: [...existingLabels, label] },
-            });
-          }),
-        );
-        allResults.push(...results);
+  const handleBulkAddLabel = useCallback(
+    async (label: string) => {
+      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+      if (ids.length === 0) return;
+      setIsUpdating(true);
+      try {
+        const BATCH_SIZE = 5;
+        const allResults: PromiseSettledResult<unknown>[] = [];
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+          const batch = ids.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((id) => {
+              const existingLabels = getIssueLabels(id);
+              if (existingLabels.includes(label)) {
+                return Promise.resolve(null); // Already has label
+              }
+              return updateMutation.mutateAsync({
+                id,
+                data: { labels: [...existingLabels, label] },
+              });
+            }),
+          );
+          allResults.push(...results);
+        }
+        const failed = allResults.filter((r) => r.status === "rejected");
+        const succeeded = ids.length - failed.length;
+        if (failed.length > 0) {
+          toast.warning(
+            `Added label to ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+          );
+        } else {
+          toast.success(`Added "${label}" to ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+        }
+        setRowSelection({});
+      } finally {
+        setIsUpdating(false);
       }
-      const failed = allResults.filter((r) => r.status === "rejected");
-      const succeeded = ids.length - failed.length;
-      if (failed.length > 0) {
-        toast.warning(`Added label to ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
-      } else {
-        toast.success(`Added "${label}" to ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
-      }
-      setRowSelection({});
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [updateMutation, toast, getIssueLabels]);
+    },
+    [updateMutation, toast, getIssueLabels],
+  );
 
-  const handleBulkRemoveLabel = useCallback(async (label: string) => {
-    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-    if (ids.length === 0) return;
-    setIsUpdating(true);
-    try {
-      const BATCH_SIZE = 5;
-      const allResults: PromiseSettledResult<unknown>[] = [];
-      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-        const batch = ids.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((id) => {
-            const existingLabels = getIssueLabels(id);
-            if (!existingLabels.includes(label)) {
-              return Promise.resolve(null); // Doesn't have label
-            }
-            return updateMutation.mutateAsync({
-              id,
-              data: { labels: existingLabels.filter((l) => l !== label) },
-            });
-          }),
-        );
-        allResults.push(...results);
+  const handleBulkRemoveLabel = useCallback(
+    async (label: string) => {
+      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+      if (ids.length === 0) return;
+      setIsUpdating(true);
+      try {
+        const BATCH_SIZE = 5;
+        const allResults: PromiseSettledResult<unknown>[] = [];
+        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+          const batch = ids.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((id) => {
+              const existingLabels = getIssueLabels(id);
+              if (!existingLabels.includes(label)) {
+                return Promise.resolve(null); // Doesn't have label
+              }
+              return updateMutation.mutateAsync({
+                id,
+                data: { labels: existingLabels.filter((l) => l !== label) },
+              });
+            }),
+          );
+          allResults.push(...results);
+        }
+        const failed = allResults.filter((r) => r.status === "rejected");
+        const succeeded = ids.length - failed.length;
+        if (failed.length > 0) {
+          toast.warning(
+            `Removed label from ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+          );
+        } else {
+          toast.success(
+            `Removed "${label}" from ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`,
+          );
+        }
+        setRowSelection({});
+      } finally {
+        setIsUpdating(false);
       }
-      const failed = allResults.filter((r) => r.status === "rejected");
-      const succeeded = ids.length - failed.length;
-      if (failed.length > 0) {
-        toast.warning(`Removed label from ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`);
-      } else {
-        toast.success(`Removed "${label}" from ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
-      }
-      setRowSelection({});
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [updateMutation, toast, getIssueLabels]);
+    },
+    [updateMutation, toast, getIssueLabels],
+  );
 
   const columns = useMemo(
-    () => buildColumns({
-      onStatusChange: handleStatusChange,
-      onPriorityChange: handlePriorityChange,
-      onTitleChange: handleTitleChange,
-      onAssigneeChange: handleAssigneeChange,
-      onLabelsChange: handleLabelsChange,
-      onDueDateChange: handleDueDateChange,
+    () =>
+      buildColumns({
+        onStatusChange: handleStatusChange,
+        onPriorityChange: handlePriorityChange,
+        onTitleChange: handleTitleChange,
+        onAssigneeChange: handleAssigneeChange,
+        onLabelsChange: handleLabelsChange,
+        onDueDateChange: handleDueDateChange,
+        epicProgress,
+        expandedEpics,
+        onToggleExpand: handleToggleExpand,
+      }),
+    [
+      handleStatusChange,
+      handlePriorityChange,
+      handleTitleChange,
+      handleAssigneeChange,
+      handleLabelsChange,
+      handleDueDateChange,
       epicProgress,
       expandedEpics,
-      onToggleExpand: handleToggleExpand,
-    }),
-    [handleStatusChange, handlePriorityChange, handleTitleChange, handleAssigneeChange, handleLabelsChange, handleDueDateChange, epicProgress, expandedEpics, handleToggleExpand],
+      handleToggleExpand,
+    ],
   );
 
   const table = useReactTable({
@@ -609,8 +674,7 @@ export function ListView() {
     () => [
       {
         key: "j",
-        handler: () =>
-          setActiveRowIndex((prev) => Math.min(prev + 1, issues.length - 1)),
+        handler: () => setActiveRowIndex((prev) => Math.min(prev + 1, issues.length - 1)),
         description: "Move to next row",
       },
       {
@@ -662,7 +726,18 @@ export function ListView() {
         id: "list-clear-filters",
         label: "Clear all filters",
         group: "List",
-        handler: () => setFilters({ status: [], priority: [], issue_type: [], assignee: "", search: "", labels: [], dateRanges: [], structural: [], groupBy: null }),
+        handler: () =>
+          setFilters({
+            status: [],
+            priority: [],
+            issue_type: [],
+            assignee: "",
+            search: "",
+            labels: [],
+            dateRanges: [],
+            structural: [],
+            groupBy: null,
+          }),
       },
       {
         id: "list-select-all",
@@ -696,15 +771,16 @@ export function ListView() {
   return (
     <div className="flex h-full relative">
       {/* Main list area */}
-      <div className={cn("flex flex-col", panelIssueId && panelMode && !panelIsOverlay ? "flex-1 min-w-0" : "w-full")}>
+      <div
+        className={cn(
+          "flex flex-col",
+          panelIssueId && panelMode && !panelIsOverlay ? "flex-1 min-w-0" : "w-full",
+        )}
+      >
         {/* Toolbar */}
         <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
           <div className={cn("flex items-start gap-4", isMobile ? "flex-col" : "justify-between")}>
-            <FilterBar
-              filters={filters}
-              onChange={setFilters}
-              searchInputRef={searchInputRef}
-            />
+            <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
             {!isMobile && (
               <div className="flex items-center gap-2">
                 <button
@@ -762,8 +838,14 @@ export function ListView() {
               value={quickAddTitle}
               onChange={(e) => setQuickAddTitle(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); handleQuickAdd(); }
-                if (e.key === "Escape") { setQuickAddTitle(""); quickAddRef.current?.blur(); }
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleQuickAdd();
+                }
+                if (e.key === "Escape") {
+                  setQuickAddTitle("");
+                  quickAddRef.current?.blur();
+                }
               }}
               placeholder="Quick add issue... (Enter to create)"
               disabled={createMutation.isPending}
@@ -826,7 +908,13 @@ export function ListView() {
 
       {/* Slide-over overlay for tablet/mobile */}
       {panelMode && panelIssueId && panelIsOverlay && (
-        <div ref={slideOverRef} className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Issue detail panel">
+        <div
+          ref={slideOverRef}
+          className="fixed inset-0 z-40"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Issue detail panel"
+        >
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setPanelIssueId(null)}

@@ -1,17 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import type { IssueListItem } from "@pearl/shared";
 import {
-  useReactTable,
+  type ColumnOrderState,
   getCoreRowModel,
   getSortedRowModel,
-  type SortingState,
-  type VisibilityState,
-  type ColumnOrderState,
   type RowSelectionState,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import type { IssueListItem } from "@pearl/shared";
-import { IssueTable } from "./issue-table";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { buildColumns } from "./columns";
+import { IssueTable } from "./issue-table";
 
 const mockIssues: IssueListItem[] = [
   {

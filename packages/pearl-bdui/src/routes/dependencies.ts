@@ -1,7 +1,7 @@
-import type { FastifyInstance } from "fastify";
 import type { CreateDependencyRequest } from "@pearl/shared";
-import { queryWithRetry } from "../dolt/pool.js";
+import type { FastifyInstance } from "fastify";
 import type { Config } from "../config.js";
+import { queryWithRetry } from "../dolt/pool.js";
 import type { WriteService } from "../write-service/write-service.js";
 
 const createDependencySchema = {
@@ -11,7 +11,10 @@ const createDependencySchema = {
     properties: {
       issue_id: { type: "string", minLength: 1, maxLength: 200 },
       depends_on_id: { type: "string", minLength: 1, maxLength: 200 },
-      type: { type: "string", enum: ["blocks", "depends_on", "relates_to", "discovered_from", "contains"] },
+      type: {
+        type: "string",
+        enum: ["blocks", "depends_on", "relates_to", "discovered_from", "contains"],
+      },
     },
     additionalProperties: false,
   },
@@ -20,7 +23,7 @@ const createDependencySchema = {
 export function registerDependencyRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
-  writeService: WriteService
+  writeService: WriteService,
 ): void {
   // GET /api/dependencies — full DAG
   app.get("/api/dependencies", async (_request, reply) => {
@@ -29,7 +32,7 @@ export function registerDependencyRoutes(
         `SELECT issue_id, depends_on_id, type, created_at, created_by
          FROM dependencies
          ORDER BY created_at DESC
-         LIMIT 5000`
+         LIMIT 5000`,
       );
       return rows;
     });
@@ -45,15 +48,12 @@ export function registerDependencyRoutes(
   });
 
   // DELETE /api/dependencies/:issueId/:dependsOnId — remove dependency
-  app.delete(
-    "/api/dependencies/:issueId/:dependsOnId",
-    async (request, reply) => {
-      const { issueId, dependsOnId } = request.params as {
-        issueId: string;
-        dependsOnId: string;
-      };
-      const result = await writeService.removeDependency(issueId, dependsOnId);
-      return reply.send(result);
-    }
-  );
+  app.delete("/api/dependencies/:issueId/:dependsOnId", async (request, reply) => {
+    const { issueId, dependsOnId } = request.params as {
+      issueId: string;
+      dependsOnId: string;
+    };
+    const result = await writeService.removeDependency(issueId, dependsOnId);
+    return reply.send(result);
+  });
 }

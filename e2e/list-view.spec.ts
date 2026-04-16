@@ -1,4 +1,4 @@
-import { test, expect, issueTable } from "./fixtures";
+import { expect, issueTable, test } from "./fixtures";
 
 test.describe("List View", () => {
   test("loads and displays issues in a table", async ({ seededPage: page }) => {
@@ -29,7 +29,9 @@ test.describe("List View", () => {
 
   test("search filter narrows results", async ({ seededPage: page }) => {
     // Ensure data rows are loaded (not skeletons)
-    const dataRows = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])');
+    const dataRows = page.locator(
+      'table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])',
+    );
     const initialCount = await dataRows.count();
     expect(initialCount).toBeGreaterThan(1);
 
@@ -38,17 +40,21 @@ test.describe("List View", () => {
     await searchInput.fill("zzzznotfound");
 
     // Wait for filter to reduce to 0 rows
-    await expect.poll(
-      () => dataRows.count(),
-      { message: "Expected rows to be filtered out", timeout: 10_000 },
-    ).toBe(0);
+    await expect
+      .poll(() => dataRows.count(), {
+        message: "Expected rows to be filtered out",
+        timeout: 10_000,
+      })
+      .toBe(0);
 
     // Clear search — rows should come back
     await searchInput.clear();
-    await expect.poll(
-      () => dataRows.count(),
-      { message: "Expected rows to return after clearing search", timeout: 10_000 },
-    ).toBe(initialCount);
+    await expect
+      .poll(() => dataRows.count(), {
+        message: "Expected rows to return after clearing search",
+        timeout: 10_000,
+      })
+      .toBe(initialCount);
   });
 
   test("sort by column header click", async ({ seededPage: page }) => {

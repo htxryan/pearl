@@ -1,4 +1,4 @@
-import { test, expect, navigateToIssue } from "./fixtures";
+import { expect, navigateToIssue, test } from "./fixtures";
 
 const API_BASE = "http://127.0.0.1:3456";
 

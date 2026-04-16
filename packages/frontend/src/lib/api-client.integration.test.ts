@@ -1,19 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  fetchIssues,
-  fetchIssue,
-  createIssue,
-  updateIssue,
-  closeIssue,
-  fetchComments,
-  addComment,
-  fetchEvents,
-  fetchAllDependencies,
-  addDependency,
-  removeDependency,
-  fetchHealth,
-  fetchStats,
   ApiClientError,
+  addComment,
+  addDependency,
+  closeIssue,
+  createIssue,
+  fetchAllDependencies,
+  fetchComments,
+  fetchEvents,
+  fetchHealth,
+  fetchIssue,
+  fetchIssues,
+  fetchStats,
+  removeDependency,
+  updateIssue,
 } from "./api-client";
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -140,7 +140,7 @@ describe("API client integration contracts", () => {
           due_at: null,
           pinned: false,
           labels: [],
-    labelColors: {},
+          labelColors: {},
         },
       ];
       mockFetchOk(mockItems);
@@ -229,7 +229,7 @@ describe("API client integration contracts", () => {
         pinned: false,
         is_template: false,
         labels: [],
-    labelColors: {},
+        labelColors: {},
         metadata: {},
       };
       mockFetchOk(fullIssue);
@@ -316,10 +316,7 @@ describe("API client integration contracts", () => {
       const response = {
         success: true,
         data: { id: "ISS-42", title: "Created" },
-        invalidationHints: [
-          { entity: "issues" },
-          { entity: "stats" },
-        ],
+        invalidationHints: [{ entity: "issues" }, { entity: "stats" }],
       };
       mockFetchOk(response);
 

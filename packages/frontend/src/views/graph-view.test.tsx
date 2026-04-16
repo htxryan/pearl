@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import type { Dependency, IssueListItem } from "@pearl/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import type { IssueListItem, Dependency } from "@pearl/shared";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock navigation
 const mockNavigate = vi.fn();
@@ -70,7 +70,10 @@ vi.mock("@xyflow/react", async () => {
             data-highlighted={String(node.data.highlighted)}
             data-dimmed={String(node.data.dimmed)}
             data-selected={String(node.data.selected)}
-            onClick={(e) => { e.stopPropagation(); onNodeClick?.(e, node); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onNodeClick?.(e, node);
+            }}
             onDoubleClick={(e) => onNodeDoubleClick?.(e, node)}
           >
             <span>{node.data.issue.title}</span>
@@ -93,19 +96,23 @@ vi.mock("@xyflow/react", async () => {
     }),
     useNodesState: (initial: any[]) => {
       mockNodes = initial;
-      mockSetNodes = vi.fn((v: any) => { mockNodes = typeof v === "function" ? v(mockNodes) : v; });
+      mockSetNodes = vi.fn((v: any) => {
+        mockNodes = typeof v === "function" ? v(mockNodes) : v;
+      });
       return [initial, mockSetNodes, vi.fn()];
     },
     useEdgesState: (initial: any[]) => {
       mockEdges = initial;
-      mockSetEdges = vi.fn((v: any) => { mockEdges = typeof v === "function" ? v(mockEdges) : v; });
+      mockSetEdges = vi.fn((v: any) => {
+        mockEdges = typeof v === "function" ? v(mockEdges) : v;
+      });
       return [initial, mockSetEdges, vi.fn()];
     },
   };
 });
 
-import { useIssues } from "@/hooks/use-issues";
 import { useAllDependencies } from "@/hooks/use-dependencies";
+import { useIssues } from "@/hooks/use-issues";
 import { GraphView } from "./graph-view";
 
 const mockIssues: IssueListItem[] = [
@@ -366,7 +373,10 @@ describe("GraphView", () => {
 
     // Click Open detail
     fireEvent.click(screen.getByText("Open detail"));
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-001", expect.objectContaining({ state: { from: "/graph" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/beads-001",
+      expect.objectContaining({ state: { from: "/graph" } }),
+    );
   });
 
   it("shows performance cap message when over 200 issues", () => {
@@ -384,7 +394,7 @@ describe("GraphView", () => {
       due_at: null,
       pinned: false,
       labels: [],
-    labelColors: {},
+      labelColors: {},
     }));
 
     setupMocks({ issues: manyIssues, deps: [] });
@@ -412,7 +422,10 @@ describe("GraphView", () => {
     const node = screen.getByTestId("node-beads-002");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/issues/beads-002", expect.objectContaining({ state: { from: "/graph" } }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/issues/beads-002",
+      expect.objectContaining({ state: { from: "/graph" } }),
+    );
   });
 
   it("deselects node when clicking the same node again", () => {

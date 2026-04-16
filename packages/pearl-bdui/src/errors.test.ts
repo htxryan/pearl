@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   AppError,
-  doltUnavailableError,
-  databaseLockedError,
   cliError,
-  validationError,
-  notFoundError,
+  databaseLockedError,
+  doltUnavailableError,
   internalError,
+  notFoundError,
+  validationError,
 } from "./errors.js";
 
 describe("AppError", () => {

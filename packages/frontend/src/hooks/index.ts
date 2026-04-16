@@ -1,36 +1,33 @@
 // Public API for view epics to import from
-export {
-  useKeyboardScope,
-  getRegisteredBindings,
-  type KeyBinding,
-} from "./use-keyboard-scope";
 
 export {
-  useCommandPaletteActions,
-  useCommandPaletteOpen,
-  openCommandPalette,
+  type CommandAction,
   closeCommandPalette,
+  openCommandPalette,
   toggleCommandPalette,
   useAllCommandActions,
-  type CommandAction,
+  useCommandPaletteActions,
+  useCommandPaletteOpen,
 } from "./use-command-palette";
-
-export { useTheme } from "./use-theme";
-
+export { useAllDependencies } from "./use-dependencies";
 export {
-  useIssues,
-  useIssue,
-  useComments,
-  useEvents,
-  useCreateIssue,
-  useUpdateIssue,
-  useCloseIssue,
-  useStats,
-  useHealth,
+  dependencyKeys,
+  healthKeys,
   issueKeys,
   statsKeys,
-  healthKeys,
-  dependencyKeys,
+  useCloseIssue,
+  useComments,
+  useCreateIssue,
+  useEvents,
+  useHealth,
+  useIssue,
+  useIssues,
+  useStats,
+  useUpdateIssue,
 } from "./use-issues";
-
-export { useAllDependencies } from "./use-dependencies";
+export {
+  getRegisteredBindings,
+  type KeyBinding,
+  useKeyboardScope,
+} from "./use-keyboard-scope";
+export { useTheme } from "./use-theme";

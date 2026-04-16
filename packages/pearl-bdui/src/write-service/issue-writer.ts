@@ -1,18 +1,12 @@
-import type {
-  CreateIssueRequest,
-  UpdateIssueRequest,
-  InvalidationHint,
-} from "@pearl/shared";
+import type { CreateIssueRequest, InvalidationHint, UpdateIssueRequest } from "@pearl/shared";
 import type { Config } from "../config.js";
-import { runBd } from "./bd-runner.js";
 import { validationError } from "../errors.js";
+import { runBd } from "./bd-runner.js";
 
 export class IssueWriter {
   constructor(private config: Config) {}
 
-  async create(
-    req: CreateIssueRequest
-  ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+  async create(req: CreateIssueRequest): Promise<{ stdout: string; hints: InvalidationHint[] }> {
     if (!req.title?.trim()) {
       throw validationError("Title is required");
     }
@@ -49,17 +43,13 @@ export class IssueWriter {
 
     return {
       stdout: result.stdout,
-      hints: [
-        { entity: "issues" },
-        { entity: "stats" },
-        { entity: "events" },
-      ],
+      hints: [{ entity: "issues" }, { entity: "stats" }, { entity: "events" }],
     };
   }
 
   async update(
     id: string,
-    req: UpdateIssueRequest
+    req: UpdateIssueRequest,
   ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
     const args: string[] = ["update", id];
 
@@ -110,18 +100,11 @@ export class IssueWriter {
 
     return {
       stdout: result.stdout,
-      hints: [
-        { entity: "issues", id },
-        { entity: "stats" },
-        { entity: "events", id },
-      ],
+      hints: [{ entity: "issues", id }, { entity: "stats" }, { entity: "events", id }],
     };
   }
 
-  async close(
-    id: string,
-    reason?: string
-  ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+  async close(id: string, reason?: string): Promise<{ stdout: string; hints: InvalidationHint[] }> {
     const args: string[] = ["close", id];
     if (reason) {
       args.push("--reason", reason);
@@ -140,5 +123,4 @@ export class IssueWriter {
       ],
     };
   }
-
 }

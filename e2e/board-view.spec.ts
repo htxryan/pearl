@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 test.describe("Board View", () => {
   test("renders kanban board region", async ({ seededPage: page }) => {
@@ -35,7 +35,9 @@ test.describe("Board View", () => {
 
   test("filter bar present on board view", async ({ seededPage: page }) => {
     await page.goto("/board");
-    await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     const searchInput = page.getByPlaceholder(/search/i).first();
     await expect(searchInput).toBeVisible();
@@ -54,9 +56,11 @@ test.describe("Board View", () => {
     await searchInput.fill("zzz-nonexistent-e2e-term");
 
     // Wait for filter to take effect — poll instead of fixed timeout
-    await expect.poll(
-      () => cards.count(),
-      { message: "Expected no cards after filtering with non-matching term", timeout: 5_000 },
-    ).toBe(0);
+    await expect
+      .poll(() => cards.count(), {
+        message: "Expected no cards after filtering with non-matching term",
+        timeout: 5_000,
+      })
+      .toBe(0);
   });
 });

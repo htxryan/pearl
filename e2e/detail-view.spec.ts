@@ -1,4 +1,4 @@
-import { test, expect, issueTable, navigateToFirstIssue } from "./fixtures";
+import { expect, issueTable, navigateToFirstIssue, test } from "./fixtures";
 
 test.describe("Detail View", () => {
   test("navigate to detail view via table row click", async ({ seededPage: page }) => {
@@ -58,12 +58,16 @@ test.describe("Detail View", () => {
   test("description section renders", async ({ seededPage: page }) => {
     await navigateToFirstIssue(page);
     // Use heading to find the section
-    await expect(page.getByRole("heading", { name: "Description" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Description" })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("markdown edit button toggles editor", async ({ seededPage: page }) => {
     await navigateToFirstIssue(page);
-    await expect(page.getByRole("heading", { name: "Description" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Description" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // Click "Edit" button near Description section
     const editBtn = page.getByRole("button", { name: /edit/i }).first();
@@ -118,6 +122,8 @@ test.describe("Detail View", () => {
 
   test("issue not found shows error state", async ({ seededPage: page }) => {
     await page.goto("/issues/nonexistent-issue-id");
-    await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { test, expect, navigateToIssue } from "./fixtures";
+import { expect, navigateToIssue, test } from "./fixtures";
 
 test.describe("Edit Issue", () => {
   // Use an open issue with known state for editing
@@ -107,7 +107,9 @@ test.describe("Edit Issue", () => {
       await assigneeDisplay.click();
     } else {
       // Already has an assignee — find the FieldEditor by input name
-      const existingAssignee = page.locator('[role="button"]').filter({ has: page.locator('text=Assignee').locator('..') });
+      const existingAssignee = page
+        .locator('[role="button"]')
+        .filter({ has: page.locator("text=Assignee").locator("..") });
       // Fallback: click on the text after the "Assignee" label
       const assigneeLabel = page.getByText("Assignee", { exact: true }).first();
       // Click the sibling content area

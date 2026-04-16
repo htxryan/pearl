@@ -1,9 +1,9 @@
-import { memo } from "react";
 import type { IssueListItem, LabelColor } from "@pearl/shared";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PriorityIndicator } from "@/components/ui/priority-indicator";
-import { TypeBadge } from "@/components/ui/type-badge";
+import { memo } from "react";
 import { LabelBadge } from "@/components/ui/label-badge";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { TypeBadge } from "@/components/ui/type-badge";
 
 interface IssueCardProps {
   issue: IssueListItem;
@@ -94,7 +94,9 @@ export function IssueCardList({ issues, isLoading, onCardClick }: IssueCardListP
   if (issues.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <span className="text-4xl mb-2" aria-hidden="true">&#9744;</span>
+        <span className="text-4xl mb-2" aria-hidden="true">
+          &#9744;
+        </span>
         <p className="text-sm">No issues found</p>
       </div>
     );

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
@@ -47,12 +47,7 @@ function insertLinePrefix(
   });
 }
 
-export function MarkdownSection({
-  title,
-  content,
-  field,
-  onSave,
-}: MarkdownSectionProps) {
+export function MarkdownSection({ title, content, field, onSave }: MarkdownSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content ?? "");
   const [activeTab, setActiveTab] = useState<EditorTab>("write");
@@ -72,30 +67,27 @@ export function MarkdownSection({
     setActiveTab("write");
   };
 
-  const handleToolbar = useCallback(
-    (action: string) => {
-      const ta = textareaRef.current;
-      if (!ta) return;
-      switch (action) {
-        case "bold":
-          insertAround(ta, "**", "**", setEditValue);
-          break;
-        case "italic":
-          insertAround(ta, "_", "_", setEditValue);
-          break;
-        case "code":
-          insertAround(ta, "`", "`", setEditValue);
-          break;
-        case "link":
-          insertAround(ta, "[", "](url)", setEditValue);
-          break;
-        case "list":
-          insertLinePrefix(ta, "- ", setEditValue);
-          break;
-      }
-    },
-    [],
-  );
+  const handleToolbar = useCallback((action: string) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    switch (action) {
+      case "bold":
+        insertAround(ta, "**", "**", setEditValue);
+        break;
+      case "italic":
+        insertAround(ta, "_", "_", setEditValue);
+        break;
+      case "code":
+        insertAround(ta, "`", "`", setEditValue);
+        break;
+      case "link":
+        insertAround(ta, "[", "](url)", setEditValue);
+        break;
+      case "list":
+        insertLinePrefix(ta, "- ", setEditValue);
+        break;
+    }
+  }, []);
 
   return (
     <section>

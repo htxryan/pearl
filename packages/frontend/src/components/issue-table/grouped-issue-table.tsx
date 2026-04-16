@@ -1,10 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
-import {
-  flexRender,
-  type Row,
-  type Table,
-} from "@tanstack/react-table";
-import type { IssueListItem, IssueStatus, Priority, IssueType } from "@pearl/shared";
+import type { IssueListItem, IssueStatus, IssueType, Priority } from "@pearl/shared";
+import { flexRender, type Row, type Table } from "@tanstack/react-table";
+import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { GroupByField } from "./filter-bar";
 
@@ -17,8 +13,14 @@ const STATUS_LABELS: Record<IssueStatus, string> = {
   deferred: "Deferred",
 };
 const TYPE_LABELS: Record<IssueType, string> = {
-  task: "Task", bug: "Bug", epic: "Epic", feature: "Feature",
-  chore: "Chore", event: "Event", gate: "Gate", molecule: "Molecule",
+  task: "Task",
+  bug: "Bug",
+  epic: "Epic",
+  feature: "Feature",
+  chore: "Chore",
+  event: "Event",
+  gate: "Gate",
+  molecule: "Molecule",
 };
 
 interface GroupedIssueTableProps {
@@ -114,7 +116,9 @@ export function GroupedIssueTable({
                   className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                   style={{ width: header.getSize() }}
                 >
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </th>
               ))}
             </tr>
@@ -158,7 +162,9 @@ export function GroupedIssueTable({
                 style={{ width: header.getSize() }}
                 onClick={header.column.getToggleSortingHandler()}
               >
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(header.column.columnDef.header, header.getContext())}
               </th>
             ))}
           </tr>
@@ -167,9 +173,7 @@ export function GroupedIssueTable({
       <tbody>
         {(() => {
           // Build O(1) lookup map once instead of O(n²) filter per group
-          const rowById = new Map(
-            table.getRowModel().rows.map((row) => [row.original.id, row]),
-          );
+          const rowById = new Map(table.getRowModel().rows.map((row) => [row.original.id, row]));
           return groups.map((group) => {
             const isCollapsed = collapsedGroups.has(group.key);
             const groupRows = group.issues
@@ -233,46 +237,41 @@ function GroupSection({
       >
         <td colSpan={colCount} className="px-3 py-2">
           <div className="flex items-center gap-2">
-            <span className={cn(
-              "inline-block transition-transform text-muted-foreground text-xs",
-              isCollapsed ? "" : "rotate-90",
-            )}>
+            <span
+              className={cn(
+                "inline-block transition-transform text-muted-foreground text-xs",
+                isCollapsed ? "" : "rotate-90",
+              )}
+            >
               &#9654;
             </span>
-            <span className="font-medium text-sm text-foreground">
-              {group.label}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              ({group.issues.length})
-            </span>
+            <span className="font-medium text-sm text-foreground">{group.label}</span>
+            <span className="text-xs text-muted-foreground">({group.issues.length})</span>
           </div>
         </td>
       </tr>
       {/* Group rows */}
-      {!isCollapsed && rows.map((row) => {
-        const isHighlighted = highlightedIds?.has(row.original.id);
-        return (
-          <tr
-            key={row.id}
-            className={cn(
-              "border-b border-border cursor-pointer hover:bg-muted/50 transition-colors",
-              isHighlighted && "ring-2 ring-primary/30 bg-primary/5",
-            )}
-            onClick={() => onRowClick(row.original.id)}
-            onMouseEnter={() => onRowHover?.(row.original.id)}
-          >
-            {row.getVisibleCells().map((cell) => (
-              <td
-                key={cell.id}
-                className="px-3 py-2.5"
-                style={{ width: cell.column.getSize() }}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
-            ))}
-          </tr>
-        );
-      })}
+      {!isCollapsed &&
+        rows.map((row) => {
+          const isHighlighted = highlightedIds?.has(row.original.id);
+          return (
+            <tr
+              key={row.id}
+              className={cn(
+                "border-b border-border cursor-pointer hover:bg-muted/50 transition-colors",
+                isHighlighted && "ring-2 ring-primary/30 bg-primary/5",
+              )}
+              onClick={() => onRowClick(row.original.id)}
+              onMouseEnter={() => onRowHover?.(row.original.id)}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="px-3 py-2.5" style={{ width: cell.column.getSize() }}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
     </>
   );
 }

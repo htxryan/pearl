@@ -1,14 +1,20 @@
-import { useQuery, useMutation, useQueryClient, useIsMutating, type QueryClient } from "@tanstack/react-query";
 import type {
-  IssueListItem,
-  Issue,
-  CreateIssueRequest,
-  UpdateIssueRequest,
   CreateCommentRequest,
   CreateDependencyRequest,
+  CreateIssueRequest,
   Dependency,
   InvalidationHint,
+  Issue,
+  IssueListItem,
+  UpdateIssueRequest,
 } from "@pearl/shared";
+import {
+  type QueryClient,
+  useIsMutating,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import * as api from "@/lib/api-client";
 import { labelKeys } from "./use-labels";
 
@@ -221,9 +227,7 @@ export function useUpdateIssue() {
         queryClient.setQueryData<IssueListItem[]>(
           queryKey,
           list.map((item) =>
-            item.id === id
-              ? { ...item, ...data, updated_at: new Date().toISOString() }
-              : item,
+            item.id === id ? { ...item, ...data, updated_at: new Date().toISOString() } : item,
           ),
         );
       }
@@ -254,8 +258,7 @@ export function useCloseIssue() {
 
   return useMutation({
     mutationKey: ["issues", "close"],
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
-      api.closeIssue(id, reason),
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) => api.closeIssue(id, reason),
     onMutate: async ({ id }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: issueKeys.detail(id) });
@@ -379,7 +382,9 @@ export function useAddDependency() {
       // Snapshot previous values
       const previousDeps = queryClient.getQueryData(dependencyKeys.all);
       const previousIssueDeps = queryClient.getQueryData(issueKeys.dependencies(data.issue_id));
-      const previousDepOnDeps = queryClient.getQueryData(issueKeys.dependencies(data.depends_on_id));
+      const previousDepOnDeps = queryClient.getQueryData(
+        issueKeys.dependencies(data.depends_on_id),
+      );
 
       // Optimistic update: add dependency
       const tempDependency = {
@@ -391,22 +396,18 @@ export function useAddDependency() {
       };
 
       queryClient.setQueryData(dependencyKeys.all, (old: any) => [...(old || []), tempDependency]);
-      queryClient.setQueryData(
-        issueKeys.dependencies(data.issue_id),
-        (old: any) => [...(old || []), tempDependency],
-      );
-      queryClient.setQueryData(
-        issueKeys.dependencies(data.depends_on_id),
-        (old: any) => [...(old || []), tempDependency],
-      );
+      queryClient.setQueryData(issueKeys.dependencies(data.issue_id), (old: any) => [
+        ...(old || []),
+        tempDependency,
+      ]);
+      queryClient.setQueryData(issueKeys.dependencies(data.depends_on_id), (old: any) => [
+        ...(old || []),
+        tempDependency,
+      ]);
 
       return { previousDeps, previousIssueDeps, previousDepOnDeps };
     },
-    onError: (
-      _err,
-      { issue_id, depends_on_id },
-      context,
-    ) => {
+    onError: (_err, { issue_id, depends_on_id }, context) => {
       // Rollback on error
       if (context?.previousDeps !== undefined) {
         queryClient.setQueryData(dependencyKeys.all, context.previousDeps);
@@ -444,25 +445,24 @@ export function useRemoveDependency() {
       const previousDepOnDeps = queryClient.getQueryData(issueKeys.dependencies(dependsOnId));
 
       // Optimistic update: remove dependency
-      queryClient.setQueryData(dependencyKeys.all, (old: any) =>
-        old?.filter(
-          (d: any) => !(d.issue_id === issueId && d.depends_on_id === dependsOnId),
-        ) || [],
+      queryClient.setQueryData(
+        dependencyKeys.all,
+        (old: any) =>
+          old?.filter((d: any) => !(d.issue_id === issueId && d.depends_on_id === dependsOnId)) ||
+          [],
       );
-      queryClient.setQueryData(issueKeys.dependencies(issueId), (old: any) =>
-        old?.filter((d: any) => d.depends_on_id !== dependsOnId) || [],
+      queryClient.setQueryData(
+        issueKeys.dependencies(issueId),
+        (old: any) => old?.filter((d: any) => d.depends_on_id !== dependsOnId) || [],
       );
-      queryClient.setQueryData(issueKeys.dependencies(dependsOnId), (old: any) =>
-        old?.filter((d: any) => d.issue_id !== issueId) || [],
+      queryClient.setQueryData(
+        issueKeys.dependencies(dependsOnId),
+        (old: any) => old?.filter((d: any) => d.issue_id !== issueId) || [],
       );
 
       return { previousDeps, previousIssueDeps, previousDepOnDeps };
     },
-    onError: (
-      _err,
-      { issueId, dependsOnId },
-      context,
-    ) => {
+    onError: (_err, { issueId, dependsOnId }, context) => {
       // Rollback on error
       if (context?.previousDeps !== undefined) {
         queryClient.setQueryData(dependencyKeys.all, context.previousDeps);

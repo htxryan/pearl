@@ -10,7 +10,10 @@ const statusConfig: Record<IssueStatus, { label: string; className: string }> = 
 };
 
 export function StatusBadge({ status, className }: { status: IssueStatus; className?: string }) {
-  const config = statusConfig[status] ?? { label: status, className: "bg-muted text-muted-foreground" };
+  const config = statusConfig[status] ?? {
+    label: status,
+    className: "bg-muted text-muted-foreground",
+  };
   return (
     <span
       className={cn(

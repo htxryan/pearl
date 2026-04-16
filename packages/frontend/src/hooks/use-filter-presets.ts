@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import type { FilterState } from "@/components/issue-table/filter-bar";
 
 export interface FilterPreset {
@@ -21,7 +21,9 @@ function notify() {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  return () => { listeners.delete(listener); };
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 function normalizePresetFilters(filters: Record<string, unknown>): FilterState {
@@ -63,27 +65,77 @@ function defaultPresets(): FilterPreset[] {
     {
       id: "preset-my-issues",
       name: "My Issues",
-      filters: { status: ["open", "in_progress"], priority: [], issue_type: [], assignee: "", search: "", labels: [], dateRanges: [], structural: [], groupBy: null },
+      filters: {
+        status: ["open", "in_progress"],
+        priority: [],
+        issue_type: [],
+        assignee: "",
+        search: "",
+        labels: [],
+        dateRanges: [],
+        structural: [],
+        groupBy: null,
+      },
     },
     {
       id: "preset-blocked",
       name: "Blocked",
-      filters: { status: ["blocked"], priority: [], issue_type: [], assignee: "", search: "", labels: [], dateRanges: [], structural: [], groupBy: null },
+      filters: {
+        status: ["blocked"],
+        priority: [],
+        issue_type: [],
+        assignee: "",
+        search: "",
+        labels: [],
+        dateRanges: [],
+        structural: [],
+        groupBy: null,
+      },
     },
     {
       id: "preset-high-priority",
       name: "High Priority",
-      filters: { status: ["open", "in_progress"], priority: [0, 1], issue_type: [], assignee: "", search: "", labels: [], dateRanges: [], structural: [], groupBy: null },
+      filters: {
+        status: ["open", "in_progress"],
+        priority: [0, 1],
+        issue_type: [],
+        assignee: "",
+        search: "",
+        labels: [],
+        dateRanges: [],
+        structural: [],
+        groupBy: null,
+      },
     },
     {
       id: "preset-overdue",
       name: "Overdue",
-      filters: { status: [], priority: [], issue_type: [], assignee: "", search: "", labels: [], dateRanges: ["overdue"], structural: [], groupBy: null },
+      filters: {
+        status: [],
+        priority: [],
+        issue_type: [],
+        assignee: "",
+        search: "",
+        labels: [],
+        dateRanges: ["overdue"],
+        structural: [],
+        groupBy: null,
+      },
     },
     {
       id: "preset-unassigned",
       name: "Unassigned",
-      filters: { status: ["open", "in_progress"], priority: [], issue_type: [], assignee: "", search: "", labels: [], dateRanges: [], structural: ["no_assignee"], groupBy: null },
+      filters: {
+        status: ["open", "in_progress"],
+        priority: [],
+        issue_type: [],
+        assignee: "",
+        search: "",
+        labels: [],
+        dateRanges: [],
+        structural: ["no_assignee"],
+        groupBy: null,
+      },
     },
   ];
 }

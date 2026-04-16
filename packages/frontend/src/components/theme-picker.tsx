@@ -1,7 +1,7 @@
 import { useTheme } from "@/hooks/use-theme";
-import { getAllThemes } from "@/themes";
 import { cn } from "@/lib/utils";
 import type { ThemeDefinition } from "@/themes";
+import { getAllThemes } from "@/themes";
 
 /** Representative color tokens to show as swatches on each theme card. */
 const SWATCH_TOKENS = ["background", "foreground", "primary", "accent", "muted"] as const;
@@ -59,9 +59,7 @@ function ThemeCard({
       {/* Theme info */}
       <div className="space-y-0.5">
         <span className="text-sm font-medium leading-tight">{theme.name}</span>
-        <span className="block text-xs capitalize text-muted-foreground">
-          {theme.colorScheme}
-        </span>
+        <span className="block text-xs capitalize text-muted-foreground">{theme.colorScheme}</span>
       </div>
     </button>
   );

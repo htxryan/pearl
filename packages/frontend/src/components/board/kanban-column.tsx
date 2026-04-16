@@ -1,10 +1,10 @@
-import { memo, useState, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { IssueListItem, IssueStatus } from "@pearl/shared";
+import { memo, useRef, useState } from "react";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { KanbanCard } from "./kanban-card";
 import { cn } from "@/lib/utils";
+import { KanbanCard } from "./kanban-card";
 
 interface KanbanColumnProps {
   status: IssueStatus;
@@ -69,7 +69,9 @@ export const KanbanColumn = memo(function KanbanColumn({
 
         {issues.length === 0 && (
           <div className="flex flex-col items-center justify-center h-20 gap-1 text-muted-foreground">
-            <span className="text-lg opacity-20" aria-hidden="true">&#9744;</span>
+            <span className="text-lg opacity-20" aria-hidden="true">
+              &#9744;
+            </span>
             <span className="text-xs">No issues</span>
           </div>
         )}
@@ -104,8 +106,14 @@ function ColumnQuickAdd({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") { e.preventDefault(); handleSubmit(); }
-          if (e.key === "Escape") { setTitle(""); inputRef.current?.blur(); }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleSubmit();
+          }
+          if (e.key === "Escape") {
+            setTitle("");
+            inputRef.current?.blur();
+          }
         }}
         placeholder="+ Add issue..."
         className="w-full bg-transparent text-xs placeholder:text-muted-foreground focus:outline-none py-1"

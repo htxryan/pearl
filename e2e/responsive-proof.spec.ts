@@ -5,8 +5,9 @@
  * Captures screenshot evidence at multiple viewports for every responsive
  * feature listed in the verification checklist.
  */
-import { test, expect, type Page } from "@playwright/test";
+
 import { resolve } from "node:path";
+import { expect, type Page, test } from "@playwright/test";
 
 const PROOF_DIR = resolve(__dirname, "../docs/proof/beads-gui-idt3");
 
@@ -33,7 +34,9 @@ test.describe("Sidebar responsiveness", () => {
     await page.setViewportSize(VIEWPORTS.mobile);
     await seedAndNavigate(page, "/list");
     await expect(
-      page.getByRole("list", { name: "Issues" }).or(page.getByRole("table", { name: "Issue list" })),
+      page
+        .getByRole("list", { name: "Issues" })
+        .or(page.getByRole("table", { name: "Issue list" })),
     ).toBeVisible({ timeout: 15_000 });
 
     // Sidebar nav should NOT be visible on mobile
@@ -175,7 +178,10 @@ test.describe("Detail view responsive", () => {
 
     // Click the title cell of the first row (title has .truncate class)
     const firstRow = page.getByRole("table", { name: "Issue list" }).locator("tbody tr").first();
-    await firstRow.getByRole("cell").filter({ has: page.locator(".truncate") }).click();
+    await firstRow
+      .getByRole("cell")
+      .filter({ has: page.locator(".truncate") })
+      .click();
     await page.waitForURL("**/issues/**", { timeout: 15_000 });
     await expect(page.getByText("Fields")).toBeVisible({ timeout: 10_000 });
 
@@ -210,7 +216,10 @@ test.describe("Touch targets", () => {
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }
 
-    await page.screenshot({ path: `${PROOF_DIR}/touch-targets-drawer-navitems.png`, fullPage: false });
+    await page.screenshot({
+      path: `${PROOF_DIR}/touch-targets-drawer-navitems.png`,
+      fullPage: false,
+    });
   });
 
   test("mobile filter button meets 44px minimum", async ({ page }) => {
@@ -223,7 +232,10 @@ test.describe("Touch targets", () => {
     expect(filterBox).toBeTruthy();
     expect(filterBox!.height).toBeGreaterThanOrEqual(44);
 
-    await page.screenshot({ path: `${PROOF_DIR}/touch-targets-filter-button.png`, fullPage: false });
+    await page.screenshot({
+      path: `${PROOF_DIR}/touch-targets-filter-button.png`,
+      fullPage: false,
+    });
   });
 
   test("mobile cards meet 44px minimum height", async ({ page }) => {
@@ -250,14 +262,19 @@ test.describe("No horizontal overflow", () => {
       await seedAndNavigate(page, "/list");
       // Wait for either card list or table depending on viewport
       await expect(
-        page.getByRole("list", { name: "Issues" }).or(page.getByRole("table", { name: "Issue list" })),
+        page
+          .getByRole("list", { name: "Issues" })
+          .or(page.getByRole("table", { name: "Issue list" })),
       ).toBeVisible({ timeout: 15_000 });
 
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1); // +1 for rounding
 
-      await page.screenshot({ path: `${PROOF_DIR}/overflow-list-${vp.width}.png`, fullPage: false });
+      await page.screenshot({
+        path: `${PROOF_DIR}/overflow-list-${vp.width}.png`,
+        fullPage: false,
+      });
     });
 
     test(`${name} (${vp.width}px): no horizontal scroll on /settings`, async ({ page }) => {
@@ -269,7 +286,10 @@ test.describe("No horizontal overflow", () => {
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
 
-      await page.screenshot({ path: `${PROOF_DIR}/overflow-settings-${vp.width}.png`, fullPage: false });
+      await page.screenshot({
+        path: `${PROOF_DIR}/overflow-settings-${vp.width}.png`,
+        fullPage: false,
+      });
     });
   }
 });

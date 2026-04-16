@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 /**
  * Helper: trigger the ? keyboard shortcut for keyboard help overlay.
@@ -23,12 +23,16 @@ test.describe("Keyboard Shortcuts", () => {
   test("? opens keyboard shortcuts overlay", async ({ seededPage: page }) => {
     await pressQuestionMark(page);
 
-    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({
+      timeout: 5_000,
+    });
   });
 
   test("keyboard help overlay shows shortcut groups", async ({ seededPage: page }) => {
     await pressQuestionMark(page);
-    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({
+      timeout: 5_000,
+    });
 
     await expect(page.getByRole("heading", { name: "Global" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "List View" })).toBeVisible();
@@ -38,10 +42,14 @@ test.describe("Keyboard Shortcuts", () => {
 
   test("keyboard help closes via close button", async ({ seededPage: page }) => {
     await pressQuestionMark(page);
-    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible({
+      timeout: 5_000,
+    });
 
     await page.getByLabel("Close").click();
-    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).not.toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).not.toBeVisible({
+      timeout: 5_000,
+    });
   });
 
   test("keyboard help closes via Escape key", async ({ seededPage: page }) => {
@@ -66,7 +74,9 @@ test.describe("Keyboard Shortcuts", () => {
 
   test("pressing 1 navigates to list view", async ({ seededPage: page }) => {
     await page.goto("/board");
-    await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.keyboard.press("1");
     await page.waitForURL("**/list");

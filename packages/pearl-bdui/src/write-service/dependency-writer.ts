@@ -1,14 +1,12 @@
 import type { CreateDependencyRequest, InvalidationHint } from "@pearl/shared";
 import type { Config } from "../config.js";
-import { runBd } from "./bd-runner.js";
 import { validationError } from "../errors.js";
+import { runBd } from "./bd-runner.js";
 
 export class DependencyWriter {
   constructor(private config: Config) {}
 
-  async add(
-    req: CreateDependencyRequest
-  ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+  async add(req: CreateDependencyRequest): Promise<{ stdout: string; hints: InvalidationHint[] }> {
     if (!req.issue_id || !req.depends_on_id) {
       throw validationError("Both issue_id and depends_on_id are required");
     }
@@ -32,7 +30,7 @@ export class DependencyWriter {
 
   async remove(
     issueId: string,
-    dependsOnId: string
+    dependsOnId: string,
   ): Promise<{ stdout: string; hints: InvalidationHint[] }> {
     if (!issueId || !dependsOnId) {
       throw validationError("Both issueId and dependsOnId are required");

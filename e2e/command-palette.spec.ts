@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 /** Platform-aware shortcut for opening the command palette. */
 const CMD_K = process.platform === "darwin" ? "Meta+k" : "Control+k";
@@ -26,7 +26,9 @@ test.describe("Command Palette", () => {
   test("shows recent issues by default", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+      timeout: 5_000,
+    });
 
     await expect(page.getByText("Recent issues")).toBeVisible({ timeout: 5_000 });
   });
@@ -34,7 +36,9 @@ test.describe("Command Palette", () => {
   test("shows navigation commands", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+      timeout: 5_000,
+    });
 
     await expect(page.getByText("Go to List View")).toBeVisible();
     await expect(page.getByText("Go to Board View")).toBeVisible();
@@ -73,7 +77,9 @@ test.describe("Command Palette", () => {
   test("navigate command: Go to Board View", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+      timeout: 5_000,
+    });
 
     await page.getByText("Go to Board View").click();
     await page.waitForURL("**/board");
@@ -82,7 +88,9 @@ test.describe("Command Palette", () => {
   test("navigate command: Go to Graph View", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+      timeout: 5_000,
+    });
 
     await page.getByText("Go to Graph View").click();
     await page.waitForURL("**/graph");

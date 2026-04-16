@@ -1,6 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useMediaQuery, useIsMobile, useIsCompact, useIsTablet, MOBILE_BREAKPOINT, TABLET_BREAKPOINT } from "./use-media-query";
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  MOBILE_BREAKPOINT,
+  TABLET_BREAKPOINT,
+  useIsCompact,
+  useIsMobile,
+  useIsTablet,
+  useMediaQuery,
+} from "./use-media-query";
 
 describe("useMediaQuery", () => {
   let listeners: Map<string, Set<() => void>>;
@@ -16,7 +23,9 @@ describe("useMediaQuery", () => {
 
       return {
         // Getter so the cached mql instance reflects current state
-        get matches() { return matchState.get(query)!; },
+        get matches() {
+          return matchState.get(query)!;
+        },
         media: query,
         addEventListener: (_: string, cb: () => void) => {
           listeners.get(query)!.add(cb);
@@ -77,16 +86,19 @@ describe("useIsMobile", () => {
   it("uses correct breakpoint", () => {
     expect(MOBILE_BREAKPOINT).toBe(768);
 
-    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
-      matches: query === `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }) as unknown as MediaQueryList);
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
+          media: query,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as unknown as MediaQueryList,
+    );
 
     const { result } = renderHook(() => useIsMobile());
     expect(result.current).toBe(true);
@@ -97,16 +109,19 @@ describe("useIsCompact", () => {
   it("uses correct breakpoint", () => {
     expect(TABLET_BREAKPOINT).toBe(1024);
 
-    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
-      matches: query === `(max-width: ${TABLET_BREAKPOINT - 1}px)`,
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }) as unknown as MediaQueryList);
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === `(max-width: ${TABLET_BREAKPOINT - 1}px)`,
+          media: query,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as unknown as MediaQueryList,
+    );
 
     const { result } = renderHook(() => useIsCompact());
     expect(result.current).toBe(true);

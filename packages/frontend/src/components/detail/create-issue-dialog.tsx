@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
 import type { IssueType, Priority } from "@pearl/shared";
-import { ISSUE_TYPES, ISSUE_PRIORITIES } from "@pearl/shared";
-import { useCreateIssue } from "@/hooks/use-issues";
-import { useDraft } from "@/hooks/use-draft";
-import { Button } from "@/components/ui/button";
-import { LabelPicker } from "@/components/ui/label-picker";
-import { DatePicker } from "@/components/ui/date-picker";
+import { ISSUE_PRIORITIES, ISSUE_TYPES } from "@pearl/shared";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { LabelPicker } from "@/components/ui/label-picker";
+import { useDraft } from "@/hooks/use-draft";
+import { useCreateIssue } from "@/hooks/use-issues";
 import { cn } from "@/lib/utils";
 
 const DRAFT_KEY = "beads:create-issue-draft";
@@ -72,7 +72,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
       setTitleDirty(false);
       setDescTab("write");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- draft excluded to prevent focus theft on every keystroke
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft excluded to prevent focus theft on every keystroke
   }, [isOpen, hasDraft]);
 
   // Auto-save draft on field changes
@@ -342,9 +342,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
 
         {/* Labels */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Labels
-          </label>
+          <label className="block text-sm font-medium mb-1">Labels</label>
           <LabelPicker
             selected={labels}
             selectedColors={{}}
@@ -355,9 +353,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
 
         {/* Due date */}
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Due Date
-          </label>
+          <label className="block text-sm font-medium mb-1">Due Date</label>
           <DatePicker
             value={due || null}
             onChange={(date) => setDue(date ?? "")}
@@ -367,25 +363,16 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleCancel}
-          >
+          <Button type="button" variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={!title.trim() || createMutation.isPending}
-          >
+          <Button type="submit" disabled={!title.trim() || createMutation.isPending}>
             {createMutation.isPending ? "Creating..." : "Create Issue"}
           </Button>
         </div>
 
         {createMutation.isError && (
-          <div className="text-sm text-destructive">
-            Failed to create issue. Please try again.
-          </div>
+          <div className="text-sm text-destructive">Failed to create issue. Please try again.</div>
         )}
       </form>
     </dialog>

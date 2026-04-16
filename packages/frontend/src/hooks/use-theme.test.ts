@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useTheme } from "./use-theme";
 
 describe("useTheme", () => {
@@ -31,9 +31,7 @@ describe("useTheme", () => {
       result.current.setTheme("vscode-monokai");
     });
 
-    expect(
-      document.documentElement.style.getPropertyValue("--color-background"),
-    ).toBe("#272822");
+    expect(document.documentElement.style.getPropertyValue("--color-background")).toBe("#272822");
   });
 
   it("setTheme toggles .dark class for dark themes", () => {

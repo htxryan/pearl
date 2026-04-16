@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 test.describe("Graph View", () => {
   test("renders the dependency graph canvas", async ({ seededPage: page }) => {

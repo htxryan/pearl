@@ -1,25 +1,25 @@
+import { useCallback, useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import { useMemo, useState, useCallback } from "react";
-import { Sidebar, MobileMenuButton, MobileDrawer } from "./sidebar";
-import { Header } from "./header";
-import { CommandPalette } from "./command-palette";
-import { HealthBanner } from "./health-banner";
-import { CreateIssueDialog } from "./detail/create-issue-dialog";
-import { ToastContainer } from "./toast-container";
-import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import {
+  type CommandAction,
   toggleCommandPalette,
   useCommandPaletteActions,
-  type CommandAction,
 } from "@/hooks/use-command-palette";
-import { undoLast, useCanUndo } from "@/hooks/use-undo";
-import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
-import { PageTransition } from "./page-transition";
-import { OnboardingBanner } from "./onboarding";
+import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
+import { useNotificationPoller } from "@/hooks/use-notifications";
 import { useRouteAnnouncer } from "@/hooks/use-route-announcer";
 import { useTheme } from "@/hooks/use-theme";
+import { undoLast, useCanUndo } from "@/hooks/use-undo";
 import { getAllThemes } from "@/themes";
-import { useNotificationPoller } from "@/hooks/use-notifications";
+import { CommandPalette } from "./command-palette";
+import { CreateIssueDialog } from "./detail/create-issue-dialog";
+import { Header } from "./header";
+import { HealthBanner } from "./health-banner";
+import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
+import { OnboardingBanner } from "./onboarding";
+import { PageTransition } from "./page-transition";
+import { MobileDrawer, MobileMenuButton, Sidebar } from "./sidebar";
+import { ToastContainer } from "./toast-container";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -44,7 +44,9 @@ export function AppShell() {
       {
         key: "z",
         modifiers: ["meta" as const],
-        handler: () => { undoLast(); },
+        handler: () => {
+          undoLast();
+        },
         description: "Undo last action",
       },
       {
@@ -130,7 +132,9 @@ export function AppShell() {
               label: "Undo last action",
               shortcut: "⌘Z",
               group: "Actions",
-              handler: () => { undoLast(); },
+              handler: () => {
+                undoLast();
+              },
             },
           ]
         : []),
@@ -182,10 +186,7 @@ export function AppShell() {
         </main>
       </div>
       <CommandPalette />
-      <CreateIssueDialog
-        isOpen={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
-      />
+      <CreateIssueDialog isOpen={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
       <KeyboardHelpOverlay />
       <ToastContainer />
     </div>

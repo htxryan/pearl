@@ -18,12 +18,7 @@ const scopeStack: ScopeEntry[] = [];
 function isInputElement(target: EventTarget | null): boolean {
   if (!target || !(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
-  return (
-    tag === "INPUT" ||
-    tag === "TEXTAREA" ||
-    tag === "SELECT" ||
-    target.isContentEditable
-  );
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
 }
 
 function matchesBinding(e: KeyboardEvent, binding: KeyBinding): boolean {
@@ -124,4 +119,3 @@ export function getRegisteredBindings(): Array<{ scope: string } & KeyBinding> {
   }
   return result;
 }
-

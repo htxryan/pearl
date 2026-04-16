@@ -1,4 +1,4 @@
-import { test, expect, issueTable } from "./fixtures";
+import { expect, issueTable, test } from "./fixtures";
 
 test.describe("Accessibility", () => {
   test("skip-to-content link is present", async ({ seededPage: page }) => {
@@ -43,7 +43,9 @@ test.describe("Accessibility", () => {
   });
 
   test("breadcrumb navigation has aria-label", async ({ seededPage: page }) => {
-    const dataRow = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
+    const dataRow = page
+      .locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])')
+      .first();
     await expect(dataRow).toBeVisible({ timeout: 15_000 });
     await dataRow.locator("td").nth(2).click();
     await page.waitForURL("**/issues/**");

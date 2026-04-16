@@ -42,10 +42,10 @@
   --shadow-4: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
 
   /* Semantic spacing scale (geometric: each step ~1.5x previous) */
-  --spacing-compact: 0.5rem;   /* 8px — tight lists, inline elements */
-  --spacing-default: 1rem;     /* 16px — standard element spacing */
-  --spacing-spacious: 1.5rem;  /* 24px — section gaps */
-  --spacing-section: 2rem;     /* 32px — major section separation */
+  --spacing-compact: 0.5rem; /* 8px — tight lists, inline elements */
+  --spacing-default: 1rem; /* 16px — standard element spacing */
+  --spacing-spacious: 1.5rem; /* 24px — section gaps */
+  --spacing-section: 2rem; /* 32px — major section separation */
 
   /* Entrance animation */
   --animate-fade-up: fade-up 0.3s ease-out;
@@ -89,14 +89,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code, kbd, pre, .font-mono {
+code,
+kbd,
+pre,
+.font-mono {
   font-family: var(--font-mono);
 }
 
 /* Skeleton shimmer effect */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-shimmer {
@@ -123,36 +130,80 @@ code, kbd, pre, .font-mono {
 }
 
 /* Dark mode shadow refinement — use border glow instead of invisible shadows */
-.dark .shadow-sm, .dark [style*="--shadow-1"] {
-  box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4);
+.dark .shadow-sm,
+.dark [style*="--shadow-1"] {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 1px 2px rgba(0, 0, 0, 0.4);
 }
-.dark .shadow-md, .dark [style*="--shadow-2"] {
-  box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5);
+.dark .shadow-md,
+.dark [style*="--shadow-2"] {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 2px 8px rgba(0, 0, 0, 0.5);
 }
-.dark .shadow-lg, .dark [style*="--shadow-3"] {
-  box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6);
+.dark .shadow-lg,
+.dark [style*="--shadow-3"] {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 4px 16px rgba(0, 0, 0, 0.6);
 }
-.dark .shadow-2xl, .dark [style*="--shadow-4"] {
-  box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7);
+.dark .shadow-2xl,
+.dark [style*="--shadow-4"] {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 8px 32px rgba(0, 0, 0, 0.7);
 }
 
 /* Elevation utility classes */
-.elevation-0 { box-shadow: var(--shadow-0); }
-.elevation-1 { box-shadow: var(--shadow-1); }
-.elevation-2 { box-shadow: var(--shadow-2); }
-.elevation-3 { box-shadow: var(--shadow-3); }
-.elevation-4 { box-shadow: var(--shadow-4); }
+.elevation-0 {
+  box-shadow: var(--shadow-0);
+}
+.elevation-1 {
+  box-shadow: var(--shadow-1);
+}
+.elevation-2 {
+  box-shadow: var(--shadow-2);
+}
+.elevation-3 {
+  box-shadow: var(--shadow-3);
+}
+.elevation-4 {
+  box-shadow: var(--shadow-4);
+}
 
-.dark .elevation-1 { box-shadow: 0 0 0 1px var(--color-border), 0 1px 2px rgba(0, 0, 0, 0.4); }
-.dark .elevation-2 { box-shadow: 0 0 0 1px var(--color-border), 0 2px 8px rgba(0, 0, 0, 0.5); }
-.dark .elevation-3 { box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0, 0, 0, 0.6); }
-.dark .elevation-4 { box-shadow: 0 0 0 1px var(--color-border), 0 8px 32px rgba(0, 0, 0, 0.7); }
+.dark .elevation-1 {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.dark .elevation-2 {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.dark .elevation-3 {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 4px 16px rgba(0, 0, 0, 0.6);
+}
+.dark .elevation-4 {
+  box-shadow:
+    0 0 0 1px var(--color-border),
+    0 8px 32px rgba(0, 0, 0, 0.7);
+}
 
 /* Checkbox toggle animation — only on user interaction, not initial render */
 @keyframes check-pop {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 input[type="checkbox"]:focus-visible:checked {
@@ -160,18 +211,28 @@ input[type="checkbox"]:focus-visible:checked {
 }
 
 /* Interactive element base transitions */
-select, input[type="text"], textarea {
-  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+select,
+input[type="text"],
+textarea {
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
 }
 
-select:focus, input[type="text"]:focus, textarea:focus {
+select:focus,
+input[type="text"]:focus,
+textarea:focus {
   border-color: var(--color-ring);
 }
 
 /* Mobile drawer slide-in animation */
 @keyframes slide-in-from-left {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .animate-slide-in-left {
@@ -184,14 +245,24 @@ select:focus, input[type="text"]:focus, textarea:focus {
 }
 
 @keyframes slide-in-from-right-panel {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 /* Toast slide-in animation */
 @keyframes slide-in-from-right {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .animate-in.slide-in-from-right-full {
@@ -202,45 +273,89 @@ select:focus, input[type="text"]:focus, textarea:focus {
 
 /* Exit animations (100ms — quick fade out) */
 @keyframes page-exit-fade {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes page-exit-left {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: 0; transform: translateX(-60px); }
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
 }
 
 @keyframes page-exit-right {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: 0; transform: translateX(60px); }
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(60px);
+  }
 }
 
 /* Enter animations (200ms — slide in with fade) */
 @keyframes page-enter-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes page-enter-from-right {
-  from { opacity: 0; transform: translateX(60px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes page-enter-from-left {
-  from { opacity: 0; transform: translateX(-60px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Detail view uses a larger offset for "drill-down" feel */
 @keyframes page-enter-drill {
-  from { opacity: 0; transform: translateX(100px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes page-exit-drill {
-  from { opacity: 1; transform: translateX(0); }
-  to { opacity: 0; transform: translateX(100px); }
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100px);
+  }
 }
 
 .page-idle {
@@ -248,38 +363,79 @@ select:focus, input[type="text"]:focus, textarea:focus {
 }
 
 /* Exit classes (100ms) */
-.page-exit-fade { animation: page-exit-fade 100ms ease-in forwards; }
-.page-exit-left { animation: page-exit-left 100ms ease-in forwards; }
-.page-exit-right { animation: page-exit-right 100ms ease-in forwards; }
-.page-exit-drill { animation: page-exit-drill 100ms ease-in forwards; }
+.page-exit-fade {
+  animation: page-exit-fade 100ms ease-in forwards;
+}
+.page-exit-left {
+  animation: page-exit-left 100ms ease-in forwards;
+}
+.page-exit-right {
+  animation: page-exit-right 100ms ease-in forwards;
+}
+.page-exit-drill {
+  animation: page-exit-drill 100ms ease-in forwards;
+}
 
 /* Enter classes (200ms) */
-.page-enter-fade { animation: page-enter-fade 200ms ease-out; }
-.page-enter-from-right { animation: page-enter-from-right 200ms ease-out; }
-.page-enter-from-left { animation: page-enter-from-left 200ms ease-out; }
-.page-enter-drill { animation: page-enter-drill 200ms ease-out; }
+.page-enter-fade {
+  animation: page-enter-fade 200ms ease-out;
+}
+.page-enter-from-right {
+  animation: page-enter-from-right 200ms ease-out;
+}
+.page-enter-from-left {
+  animation: page-enter-from-left 200ms ease-out;
+}
+.page-enter-drill {
+  animation: page-enter-drill 200ms ease-out;
+}
 
 /* ─── Command palette spring animation ──────────────── */
 @keyframes cmd-spring-in {
-  0% { opacity: 0; transform: scale(0.95) translateY(-8px); }
-  60% { opacity: 1; transform: scale(1.02) translateY(1px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes cmd-fade-out {
-  from { opacity: 1; transform: scale(1) translateY(0); }
-  to { opacity: 0; transform: scale(0.98) translateY(-4px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98) translateY(-4px);
+  }
 }
 
 /* ─── Modal/dialog entrance ─────────────────────────── */
 @keyframes modal-enter {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes modal-backdrop-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .animate-modal-enter {
@@ -292,7 +448,9 @@ dialog[open]::backdrop {
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 test.describe("Onboarding", () => {
   test("banner appears for new users (no localStorage)", async ({ page }) => {
