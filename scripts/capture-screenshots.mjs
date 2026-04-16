@@ -17,8 +17,8 @@ async function capture() {
   await page.goto(`${BASE_URL}/list`);
   await page.evaluate(() => localStorage.setItem('pearl-onboarding-complete', 'true'));
   await page.reload();
-  await page.waitForSelector('table', { timeout: 10000 });
-  await sleep(2000);
+  await page.waitForSelector('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])', { timeout: 15000 });
+  await sleep(1000);
 
   // ── 1. List View with sidebar icons, quick-add, filter bar ──
   console.log('1. List View (sidebar icons, quick-add, filters)...');
@@ -67,18 +67,18 @@ async function capture() {
   console.log('4. Column visibility...');
   const colBtn = page.locator('button[aria-label="Toggle column visibility"]').first();
   if (await colBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await colBtn.click();
+    await colBtn.click({ timeout: 5000 });
     await sleep(800);
     await page.screenshot({ path: 'docs/demo/04-column-visibility.png', fullPage: false });
-    await colBtn.click(); // close
+    await page.keyboard.press('Escape');
     await sleep(300);
   }
 
   // ── 5. Click a row to open detail view (breadcrumbs, fields, markdown) ──
   console.log('5. Issue Detail (breadcrumbs, inline edit, fields)...');
-  const row = page.locator('tbody tr').first();
+  const row = page.locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])').first();
   if (await row.isVisible()) {
-    await row.click();
+    await row.locator('td').nth(2).click();
     await sleep(2000);
     await page.screenshot({ path: 'docs/demo/05-detail-view.png', fullPage: false });
   }
