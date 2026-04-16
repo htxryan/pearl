@@ -38,6 +38,14 @@ vi.mock("@/hooks/use-issues", () => ({
     details: () => ["issues", "detail"],
     detail: (id: string) => ["issues", "detail", id],
   },
+  dependencyKeys: {
+    all: ["dependencies"],
+  },
+}));
+
+// Mock use-dependencies
+vi.mock("@/hooks/use-dependencies", () => ({
+  useAllDependencies: vi.fn().mockReturnValue({ data: [], isLoading: false }),
 }));
 
 import { useIssues } from "@/hooks/use-issues";
@@ -167,41 +175,40 @@ describe("BoardView", () => {
     });
   });
 
-  it("renders all five status columns", () => {
+  it("renders four status columns (no blocked column)", () => {
     renderBoard();
 
     // Each status column has a list with aria-label "{status} issues"
     expect(screen.getByRole("list", { name: "open issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "in_progress issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "blocked issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "deferred issues" })).toBeInTheDocument();
+    // "blocked" is derived from dependencies, not a column
+    expect(screen.queryByRole("list", { name: "blocked issues" })).not.toBeInTheDocument();
   });
 
   it("renders issue cards in correct columns", () => {
     renderBoard();
 
-    // Open column should have beads-001
+    // Open column should have beads-001 and beads-003 (status "blocked" falls to open)
     const openList = screen.getByRole("list", { name: "open issues" });
     expect(within(openList).getByText("Fix login bug")).toBeInTheDocument();
+    expect(within(openList).getByText("Blocked migration")).toBeInTheDocument();
 
     // In Progress column should have beads-002
     const inProgressList = screen.getByRole("list", { name: "in_progress issues" });
     expect(within(inProgressList).getByText("Add dashboard view")).toBeInTheDocument();
-
-    // Blocked column should have beads-003
-    const blockedList = screen.getByRole("list", { name: "blocked issues" });
-    expect(within(blockedList).getByText("Blocked migration")).toBeInTheDocument();
   });
 
   it("displays column issue counts", () => {
     renderBoard();
 
-    // Each column has a count — 5 columns each with 1 issue,
-    // plus other "1" text may appear. Check the board region specifically.
+    // 4 columns: open has 2 (beads-001 + beads-003 which had status "blocked"),
+    // in_progress, closed, deferred each have 1
     const board = screen.getByRole("region", { name: "Kanban board" });
-    const countBadges = within(board).getAllByText("1");
-    expect(countBadges.length).toBeGreaterThanOrEqual(5);
+    expect(within(board).getByText("2")).toBeInTheDocument(); // open column
+    const countOnes = within(board).getAllByText("1");
+    expect(countOnes.length).toBeGreaterThanOrEqual(3);
   });
 
   it("displays assignee initials on cards", () => {
@@ -244,7 +251,7 @@ describe("BoardView", () => {
     renderBoard({ issues: [] });
 
     const emptyMessages = screen.getAllByText("No issues");
-    expect(emptyMessages).toHaveLength(5); // One per column
+    expect(emptyMessages).toHaveLength(4); // One per column (no blocked column)
   });
 
   it("renders the filter bar", () => {

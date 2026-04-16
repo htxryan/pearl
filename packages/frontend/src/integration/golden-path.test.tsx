@@ -550,9 +550,8 @@ describe("SC5+SC10: Kanban board column rendering and mutation wiring", () => {
     const inProgressList = screen.getByRole("list", { name: "in_progress issues" });
     expect(within(inProgressList).getByText("In Progress Issue")).toBeInTheDocument();
 
-    // Blocked column should have test-003
-    const blockedList = screen.getByRole("list", { name: "blocked issues" });
-    expect(within(blockedList).getByText("Blocked Issue")).toBeInTheDocument();
+    // Issues with status "blocked" now land in the open column (blocked is derived)
+    expect(within(openList).getByText("Blocked Issue")).toBeInTheDocument();
   });
 
   it("wires up useUpdateIssue hook and renders the board region", () => {
@@ -588,9 +587,9 @@ describe("SC5+SC10: Kanban board column rendering and mutation wiring", () => {
     expect(within(inProgressList).getByText("Open Issue")).toBeInTheDocument();
     expect(within(inProgressList).getByText("In Progress Issue")).toBeInTheDocument();
 
-    // open column should be empty
+    // open column should still have test-003 (status "blocked" falls to open)
     const openList = screen.getByRole("list", { name: "open issues" });
-    expect(within(openList).getByText("No issues")).toBeInTheDocument();
+    expect(within(openList).getByText("Blocked Issue")).toBeInTheDocument();
   });
 });
 
@@ -1085,7 +1084,7 @@ describe("Cross-view data consistency", () => {
     // Board shows "No issues" in each column
     const { unmount: u2 } = renderApp("/board");
     const emptyMessages = screen.getAllByText("No issues");
-    expect(emptyMessages.length).toBe(5); // 5 columns
+    expect(emptyMessages.length).toBe(4); // 4 columns (blocked is derived, not a column)
     u2();
 
     // Graph shows empty state message

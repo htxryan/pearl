@@ -515,7 +515,7 @@ describe("View degradation during errors", () => {
 
       // Board renders columns even when empty; each column shows "No issues"
       const emptyMessages = screen.getAllByText("No issues");
-      expect(emptyMessages.length).toBe(5);
+      expect(emptyMessages.length).toBe(4); // 4 columns (blocked is derived, not a column)
     });
   });
 
