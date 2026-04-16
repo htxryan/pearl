@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.7.0...pearl-bdui-v0.8.0) (2026-04-16)
+
+
+### Features
+
+* test OIDC publish without registry-url ([a225538](https://github.com/htxryan/pearl/commit/a225538d07556e122695f7e770a4946101e37c0a))
+
 ## [0.7.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.6.1...pearl-bdui-v0.7.0) (2026-04-16)
 
 
