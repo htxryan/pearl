@@ -1,10 +1,10 @@
-import type { FastifyInstance } from "fastify";
 import type { LabelColor } from "@pearl/shared";
 import { LABEL_COLORS } from "@pearl/shared";
+import type { FastifyInstance } from "fastify";
+import type { RowDataPacket } from "mysql2";
+import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
 import { validationError } from "../errors.js";
-import type { Config } from "../config.js";
-import type { RowDataPacket } from "mysql2";
 
 const LABEL_COLOR_SET = new Set<string>(LABEL_COLORS);
 
@@ -42,10 +42,7 @@ export async function ensureLabelDefinitionsTable(getConfig: () => Config): Prom
   }
 }
 
-export function registerLabelRoutes(
-  app: FastifyInstance,
-  getConfig: () => Config,
-): void {
+export function registerLabelRoutes(app: FastifyInstance, getConfig: () => Config): void {
   // Ensure table exists before routes handle requests
   app.addHook("onReady", async () => {
     await ensureLabelDefinitionsTable(getConfig);
@@ -53,26 +50,46 @@ export function registerLabelRoutes(
 
   // GET /api/labels — list all known labels with colors and usage counts
   app.get("/api/labels", async (_request, reply) => {
-    const labels = await queryWithRetry(getConfig(), async (conn) => {
-      const [rows] = await conn.query<RowDataPacket[]>(`
-        SELECT
-          COALESCE(ld.name, l.label) AS name,
-          ld.color,
-          COUNT(l.issue_id) AS count
-        FROM labels l
-        LEFT JOIN label_definitions ld ON ld.name = l.label
-        GROUP BY COALESCE(ld.name, l.label), ld.color
-        UNION ALL
-        SELECT ld2.name, ld2.color, 0 AS count
-        FROM label_definitions ld2
-        LEFT JOIN labels l3 ON l3.label = ld2.name
-        WHERE l3.label IS NULL
-        ORDER BY count DESC, name ASC
-      `);
-      return rows;
-    });
+    try {
+      const labels = await queryWithRetry(getConfig(), async (conn) => {
+        const [rows] = await conn.query<RowDataPacket[]>(`
+          SELECT
+            COALESCE(ld.name, l.label) AS name,
+            ld.color,
+            COUNT(l.issue_id) AS count
+          FROM labels l
+          LEFT JOIN label_definitions ld ON ld.name = l.label
+          GROUP BY COALESCE(ld.name, l.label), ld.color
+          UNION ALL
+          SELECT ld2.name, ld2.color, 0 AS count
+          FROM label_definitions ld2
+          LEFT JOIN labels l3 ON l3.label = ld2.name
+          WHERE l3.label IS NULL
+          ORDER BY count DESC, name ASC
+        `);
+        return rows;
+      });
 
-    return reply.send(labels);
+      return reply.send(labels);
+    } catch (err: unknown) {
+      // The label_definitions table may not exist yet (e.g. after a replica sync
+      // overwrites the replica before the table is created). Return labels from
+      // the labels table only, without color info, rather than failing with a 500.
+      const errno = (err as { errno?: number }).errno;
+      if (errno === 1146) {
+        const labels = await queryWithRetry(getConfig(), async (conn) => {
+          const [rows] = await conn.query<RowDataPacket[]>(`
+            SELECT label AS name, NULL AS color, COUNT(issue_id) AS count
+            FROM labels
+            GROUP BY label
+            ORDER BY count DESC, name ASC
+          `);
+          return rows;
+        });
+        return reply.send(labels);
+      }
+      throw err;
+    }
   });
 
   // POST /api/labels — create or update a label definition
@@ -92,7 +109,7 @@ export function registerLabelRoutes(
       await conn.query(
         `INSERT INTO label_definitions (name, color) VALUES (?, ?)
          ON DUPLICATE KEY UPDATE color = VALUES(color)`,
-        [name, color]
+        [name, color],
       );
     });
 
@@ -115,13 +132,13 @@ export async function fetchLabelColors(
   if (labelNames.length === 0) return {};
 
   try {
-    const rows = await queryWithRetry(getConfig(), async (conn) => {
+    const rows = (await queryWithRetry(getConfig(), async (conn) => {
       const [result] = await conn.query<RowDataPacket[]>(
         `SELECT name, color FROM label_definitions WHERE name IN (${labelNames.map(() => "?").join(",")})`,
-        labelNames
+        labelNames,
       );
       return result;
-    }) as RowDataPacket[];
+    })) as RowDataPacket[];
 
     const colorMap: Record<string, LabelColor> = {};
     for (const row of rows) {

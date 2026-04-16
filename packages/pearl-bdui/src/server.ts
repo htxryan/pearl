@@ -1,20 +1,20 @@
-import { resolve, dirname } from "node:path";
 import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import Fastify, { type FastifyError } from "fastify";
 import fastifyStatic from "@fastify/static";
+import Fastify, { type FastifyError } from "fastify";
 import type { Config } from "./config.js";
+import { beginSync, createDoltPool, destroyPool, endSync, getPool } from "./dolt/pool.js";
+import { cleanupReplica, createReplica, syncReplica } from "./dolt/replica-sync.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
-import { createDoltPool, destroyPool, beginSync, endSync } from "./dolt/pool.js";
-import { createReplica, syncReplica, cleanupReplica } from "./dolt/replica-sync.js";
-import { WriteService } from "./write-service/write-service.js";
-import { registerIssueRoutes } from "./routes/issues.js";
-import { registerDependencyRoutes } from "./routes/dependencies.js";
-import { registerStatsRoutes } from "./routes/stats.js";
-import { registerHealthRoutes } from "./routes/health.js";
-import { registerSetupRoutes } from "./routes/setup.js";
-import { registerLabelRoutes, ensureLabelDefinitionsTable } from "./routes/labels.js";
 import { AppError } from "./errors.js";
+import { registerDependencyRoutes } from "./routes/dependencies.js";
+import { registerHealthRoutes } from "./routes/health.js";
+import { registerIssueRoutes } from "./routes/issues.js";
+import { registerLabelRoutes } from "./routes/labels.js";
+import { registerSetupRoutes } from "./routes/setup.js";
+import { registerStatsRoutes } from "./routes/stats.js";
+import { WriteService } from "./write-service/write-service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,7 +49,8 @@ function isPearlWorkspace(startDir: string): boolean {
     if (
       existsSync(resolve(dir, "pnpm-workspace.yaml")) &&
       existsSync(resolve(dir, "packages", "frontend", "package.json"))
-    ) return true;
+    )
+      return true;
     const parent = resolve(dir, "..");
     if (parent === dir) break;
     dir = parent;
@@ -129,15 +130,34 @@ export async function createServer(initialConfig: Config) {
             await manager.start();
           };
           const timeout = new Promise<never>((_, reject) =>
-            setTimeout(
-              () => reject(new Error("Replica sync timed out")),
-              SYNC_TIMEOUT_MS
-            )
+            setTimeout(() => reject(new Error("Replica sync timed out")), SYNC_TIMEOUT_MS),
           );
           await Promise.race([syncOp(), timeout]);
 
           if (manager.getState() === "running") {
             createDoltPool(config);
+            // Create label_definitions on the replica BEFORE releasing the sync barrier.
+            // Use the pool directly (not queryWithRetry) to avoid deadlocking on awaitSync().
+            try {
+              const conn = await getPool().getConnection();
+              try {
+                await conn.query(`
+                  CREATE TABLE IF NOT EXISTS label_definitions (
+                    name VARCHAR(100) NOT NULL,
+                    color VARCHAR(32) NOT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (name)
+                  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
+                `);
+              } finally {
+                conn.release();
+              }
+            } catch (tableErr) {
+              app.log.warn(
+                { err: tableErr },
+                "[replica] Failed to create label_definitions before endSync",
+              );
+            }
           }
           app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
         } catch (err) {
@@ -150,6 +170,27 @@ export async function createServer(initialConfig: Config) {
             }
             if (manager.getState() === "running") {
               createDoltPool(config);
+              // Create label_definitions before endSync in recovery path too.
+              try {
+                const conn = await getPool().getConnection();
+                try {
+                  await conn.query(`
+                    CREATE TABLE IF NOT EXISTS label_definitions (
+                      name VARCHAR(100) NOT NULL,
+                      color VARCHAR(32) NOT NULL,
+                      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                      PRIMARY KEY (name)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
+                  `);
+                } finally {
+                  conn.release();
+                }
+              } catch (tableErr) {
+                app.log.warn(
+                  { err: tableErr },
+                  "[replica] Failed to create label_definitions before endSync (recovery)",
+                );
+              }
               app.log.info("[replica] Recovery successful");
             }
           } catch (recoveryErr) {
@@ -159,13 +200,6 @@ export async function createServer(initialConfig: Config) {
         } finally {
           endSync();
         }
-
-        // Re-create the label_definitions table on the replica — it was
-        // wiped when the primary (which may not have it) was copied over.
-        // Must be called AFTER endSync() to avoid deadlocking on the sync barrier.
-        await ensureLabelDefinitionsTable(() => config).catch((err) => {
-          app.log.warn({ err }, "[replica] Failed to re-create label_definitions after sync");
-        });
       }
     : undefined;
 
@@ -200,14 +234,8 @@ export async function createServer(initialConfig: Config) {
   // A restrictive origin would break frontend dev servers on different ports.
   app.addHook("onRequest", async (request, reply) => {
     reply.header("Access-Control-Allow-Origin", "*");
-    reply.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PATCH, DELETE, OPTIONS"
-    );
-    reply.header(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
+    reply.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    reply.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
     if (request.method === "OPTIONS") {
       return reply.code(204).send();
@@ -225,7 +253,7 @@ export async function createServer(initialConfig: Config) {
       } catch (err) {
         done(err as Error, undefined);
       }
-    }
+    },
   );
 
   // ─── Setup Mode Guard ─────────────────────────────────
@@ -279,7 +307,9 @@ export async function createServer(initialConfig: Config) {
         }
       } else {
         // Server mode: just create the pool
-        app.log.info(`[setup] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`);
+        app.log.info(
+          `[setup] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
+        );
         createDoltPool(newConfig);
       }
 
@@ -342,7 +372,7 @@ export async function createServer(initialConfig: Config) {
     if (isServerMode) {
       // Server mode: connect directly to external Dolt SQL server
       app.log.info(
-        `Connecting to external Dolt SQL server at ${config.doltHost}:${config.doltPort}...`
+        `Connecting to external Dolt SQL server at ${config.doltHost}:${config.doltPort}...`,
       );
       createDoltPool(config);
       app.log.info("Connection pool created for external Dolt server");
@@ -363,9 +393,7 @@ export async function createServer(initialConfig: Config) {
         app.log.info("Dolt SQL server is running, creating connection pool...");
         createDoltPool(config);
       } else {
-        app.log.warn(
-          "Dolt SQL server failed to start — running in degraded mode"
-        );
+        app.log.warn("Dolt SQL server failed to start — running in degraded mode");
       }
     }
 
