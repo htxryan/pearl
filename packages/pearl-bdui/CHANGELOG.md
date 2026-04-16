@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.6.0...pearl-bdui-v0.6.1) (2026-04-16)
+
+
+### Bug Fixes
+
+* correct repository URL to htxryan/pearl for OIDC trusted publishing ([d506262](https://github.com/htxryan/pearl/commit/d5062629a28bfef820c7ffd3bc7a660e2dfeab01))
+
 ## [0.6.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.5.0...pearl-bdui-v0.6.0) (2026-04-16)
 
 
