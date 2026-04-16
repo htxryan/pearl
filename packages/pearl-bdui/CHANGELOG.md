@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.9.0...pearl-bdui-v0.10.0) (2026-04-16)
+
+
+### Features
+
+* OIDC publish with Node 24 ([ecfc874](https://github.com/htxryan/pearl/commit/ecfc874d8ff9a8c15de3a5fb8e3f551e280bdd56))
+
 ## [0.9.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.8.0...pearl-bdui-v0.9.0) (2026-04-16)
 
 
