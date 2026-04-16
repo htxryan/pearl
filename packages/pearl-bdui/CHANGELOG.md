@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.6.1...pearl-bdui-v0.7.0) (2026-04-16)
+
+
+### Features
+
+* verify OIDC publish pipeline ([f12af0f](https://github.com/htxryan/pearl/commit/f12af0f5dfa59c44e95c311e066bb425094648ed))
+
 ## [0.6.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.6.0...pearl-bdui-v0.6.1) (2026-04-16)
 
 
