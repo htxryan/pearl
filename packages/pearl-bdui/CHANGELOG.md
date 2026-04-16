@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.5.0...pearl-bdui-v0.6.0) (2026-04-16)
+
+
+### Features
+
+* test automated publish pipeline ([b52ce3b](https://github.com/htxryan/pearl/commit/b52ce3b84c763ef57ef35f69436b3f8cffdb7d36))
+
 ## [0.5.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.4.0...pearl-bdui-v0.5.0) (2026-04-16)
 
 
