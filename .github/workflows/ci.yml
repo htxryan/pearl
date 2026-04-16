@@ -40,6 +40,33 @@ jobs:
             packages/shared/dist
           key: workspace-${{ github.sha }}
 
+  lint:
+    name: Lint
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - run: pnpm lint
+
   typecheck:
     name: Typecheck
     needs: install

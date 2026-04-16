@@ -1,20 +1,32 @@
 {
-	"private": true,
-	"workspaces": [
-		"packages/*"
-	],
-	"scripts": {
-		"dev": "pnpm --filter pearl-bdui dev",
-		"build": "pnpm -r build",
-		"test": "pnpm -r test",
-		"typecheck": "pnpm -r typecheck",
-		"test:e2e": "playwright test",
-		"test:e2e:read": "playwright test --project=chromium",
-		"test:e2e:write": "playwright test --project=write-tests",
-		"test:e2e:ui": "playwright test --ui"
-	},
-	"devDependencies": {
-		"@playwright/test": "^1.59.1",
-		"compound-agent": "^2.7.1"
-	}
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter pearl-bdui dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "test:e2e": "playwright test",
+    "test:e2e:read": "playwright test --project=chromium",
+    "test:e2e:write": "playwright test --project=write-tests",
+    "test:e2e:ui": "playwright test --ui",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.12",
+    "@playwright/test": "^1.59.1",
+    "compound-agent": "^2.7.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  }
 }
