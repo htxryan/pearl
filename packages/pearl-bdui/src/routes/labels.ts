@@ -2,11 +2,21 @@ import type { LabelColor } from "@pearl/shared";
 import { LABEL_COLORS } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { RowDataPacket } from "mysql2";
+import type { Pool } from "mysql2/promise";
 import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
 import { validationError } from "../errors.js";
 
 const LABEL_COLOR_SET = new Set<string>(LABEL_COLORS);
+
+export const LABEL_DEFINITIONS_DDL = `
+  CREATE TABLE IF NOT EXISTS label_definitions (
+    name VARCHAR(100) NOT NULL,
+    color VARCHAR(32) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (name)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
+`;
 
 const upsertLabelSchema = {
   body: {
@@ -22,20 +32,26 @@ const upsertLabelSchema = {
 
 /**
  * Ensure the label_definitions table exists.
- * Called at startup and after replica sync — idempotent CREATE IF NOT EXISTS.
+ * Called at startup (via queryWithRetry) and after replica sync (via direct pool).
+ * When called during sync, pass the pool directly to bypass awaitSync() deadlock.
  */
-export async function ensureLabelDefinitionsTable(getConfig: () => Config): Promise<void> {
+export async function ensureLabelDefinitionsTable(
+  getConfig: () => Config,
+  directPool?: Pool,
+): Promise<void> {
   try {
-    await queryWithRetry(getConfig(), async (conn) => {
-      await conn.query(`
-        CREATE TABLE IF NOT EXISTS label_definitions (
-          name VARCHAR(100) NOT NULL,
-          color VARCHAR(32) NOT NULL,
-          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (name)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
-      `);
-    });
+    if (directPool) {
+      const conn = await directPool.getConnection();
+      try {
+        await conn.query(LABEL_DEFINITIONS_DDL);
+      } finally {
+        conn.release();
+      }
+    } else {
+      await queryWithRetry(getConfig(), async (conn) => {
+        await conn.query(LABEL_DEFINITIONS_DDL);
+      });
+    }
   } catch {
     // Table creation may fail in setup mode (no DB yet) — that's OK,
     // it will be created when the DB is initialized.

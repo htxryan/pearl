@@ -4,14 +4,14 @@ import { fileURLToPath } from "node:url";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyError } from "fastify";
 import type { Config } from "./config.js";
-import { beginSync, createDoltPool, destroyPool, endSync, getPool } from "./dolt/pool.js";
+import { beginSync, createDoltPool, destroyPool, endSync } from "./dolt/pool.js";
 import { cleanupReplica, createReplica, syncReplica } from "./dolt/replica-sync.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { AppError } from "./errors.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerIssueRoutes } from "./routes/issues.js";
-import { registerLabelRoutes } from "./routes/labels.js";
+import { ensureLabelDefinitionsTable, registerLabelRoutes } from "./routes/labels.js";
 import { registerSetupRoutes } from "./routes/setup.js";
 import { registerStatsRoutes } from "./routes/stats.js";
 import { WriteService } from "./write-service/write-service.js";
@@ -135,29 +135,15 @@ export async function createServer(initialConfig: Config) {
           await Promise.race([syncOp(), timeout]);
 
           if (manager.getState() === "running") {
-            createDoltPool(config);
+            const pool = createDoltPool(config);
             // Create label_definitions on the replica BEFORE releasing the sync barrier.
-            // Use the pool directly (not queryWithRetry) to avoid deadlocking on awaitSync().
-            try {
-              const conn = await getPool().getConnection();
-              try {
-                await conn.query(`
-                  CREATE TABLE IF NOT EXISTS label_definitions (
-                    name VARCHAR(100) NOT NULL,
-                    color VARCHAR(32) NOT NULL,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (name)
-                  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
-                `);
-              } finally {
-                conn.release();
-              }
-            } catch (tableErr) {
+            // Pass pool directly to bypass queryWithRetry/awaitSync deadlock.
+            await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
               app.log.warn(
                 { err: tableErr },
                 "[replica] Failed to create label_definitions before endSync",
               );
-            }
+            });
           }
           app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
         } catch (err) {
@@ -169,28 +155,13 @@ export async function createServer(initialConfig: Config) {
               await manager.start();
             }
             if (manager.getState() === "running") {
-              createDoltPool(config);
-              // Create label_definitions before endSync in recovery path too.
-              try {
-                const conn = await getPool().getConnection();
-                try {
-                  await conn.query(`
-                    CREATE TABLE IF NOT EXISTS label_definitions (
-                      name VARCHAR(100) NOT NULL,
-                      color VARCHAR(32) NOT NULL,
-                      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                      PRIMARY KEY (name)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin
-                  `);
-                } finally {
-                  conn.release();
-                }
-              } catch (tableErr) {
+              const pool = createDoltPool(config);
+              await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
                 app.log.warn(
                   { err: tableErr },
                   "[replica] Failed to create label_definitions before endSync (recovery)",
                 );
-              }
+              });
               app.log.info("[replica] Recovery successful");
             }
           } catch (recoveryErr) {
