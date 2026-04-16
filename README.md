@@ -89,11 +89,18 @@ packages/
 
 ### Publishing
 
-```bash
-task publish
-```
+Releases are automated via [release-please](https://github.com/googleapis/release-please):
 
-The `prepublishOnly` hook automatically runs `build:dist` which builds all packages, copies frontend assets, inlines shared types, and verifies the artifact.
+1. Merge PRs to `main` using [conventional commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, etc.)
+2. Release-please opens a release PR with the version bump and generated changelog
+3. Merge the release PR — this creates a GitHub release and publishes to npm via OIDC (no tokens needed)
+
+**Manual publish** (for local testing):
+
+```bash
+task publish       # build + publish to npm
+task publish:dry   # dry-run (no upload)
+```
 
 ## License
 
