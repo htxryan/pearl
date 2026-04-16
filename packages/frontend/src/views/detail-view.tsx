@@ -1,5 +1,5 @@
 import type { Issue, IssueStatus, IssueType, LabelColor, Priority } from "@pearl/shared";
-import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
+import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
 import { Children, useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
@@ -300,7 +300,7 @@ function DetailViewContent({ id }: { id: string }) {
               <FieldRow label="Status">
                 <SelectField
                   value={issue.status}
-                  options={ISSUE_STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
+                  options={SETTABLE_STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
                   onChange={(v) => handleFieldUpdate("status", v)}
                   label="Status"
                 />
