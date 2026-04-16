@@ -29,7 +29,6 @@ jobs:
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
     steps:
       - uses: actions/checkout@v4
@@ -42,9 +41,13 @@ jobs:
         with:
           node-version-file: .nvmrc
           registry-url: 'https://registry.npmjs.org'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - run: pnpm install --frozen-lockfile
 
       - name: Build & publish
         working-directory: packages/pearl-bdui
-        run: npm publish --provenance --access public
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
