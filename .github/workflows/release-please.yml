@@ -47,4 +47,4 @@ jobs:
 
       - name: Build & publish
         working-directory: packages/pearl-bdui
-        run: npm publish
+        run: npm publish --provenance --access public
