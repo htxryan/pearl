@@ -1,6 +1,6 @@
 {
   "name": "pearl-bdui",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Pearl: A web UI for the Beads issue tracker",
   "type": "module",
   "main": "./dist/index.js",

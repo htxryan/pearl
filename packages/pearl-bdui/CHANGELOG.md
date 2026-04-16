@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.8.0...pearl-bdui-v0.9.0) (2026-04-16)
+
+
+### Features
+
+* final OIDC publish test ([0e2d0ab](https://github.com/htxryan/pearl/commit/0e2d0abaa37a87c5fa694e4bdcf9f8040b6bbd61))
+
 ## [0.8.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.7.0...pearl-bdui-v0.8.0) (2026-04-16)
 
 
