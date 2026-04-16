@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface KanbanCardProps {
   issue: IssueListItem;
   onClick: (id: string) => void;
+  isBlocked?: boolean;
 }
 
 const statusAccentColor: Record<IssueStatus, string> = {
@@ -20,7 +21,7 @@ const statusAccentColor: Record<IssueStatus, string> = {
   deferred: "bg-gray-400",
 };
 
-export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCardProps) {
+export const KanbanCard = memo(function KanbanCard({ issue, onClick, isBlocked }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: issue.id,
     data: { type: "card", issue },
@@ -69,14 +70,26 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick }: KanbanCar
         isHighPriority && "bg-gradient-to-r from-danger/10 to-transparent",
       )}
     >
-      {/* Left-edge status accent bar */}
-      <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusAccentColor[issue.status])} />
+      {/* Left-edge accent bar — red when blocked, otherwise status color */}
+      <div
+        className={cn(
+          "absolute inset-y-0 left-0 w-[3px]",
+          isBlocked ? "bg-red-500" : statusAccentColor[issue.status],
+        )}
+      />
 
       <div className="pl-3.5 pr-3 py-3">
-        {/* Header: ID + Priority */}
+        {/* Header: ID + Priority + Blocked pill */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <span className="text-xs text-muted-foreground font-mono truncate">{issue.id}</span>
-          <PriorityIndicator priority={issue.priority} />
+          <div className="flex items-center gap-1.5">
+            {isBlocked && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
+                Blocked
+              </span>
+            )}
+            <PriorityIndicator priority={issue.priority} />
+          </div>
         </div>
 
         {/* Title */}

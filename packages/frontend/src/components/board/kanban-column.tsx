@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   isDropTarget?: boolean;
   onQuickAdd?: (title: string, status: IssueStatus) => void;
   mobile?: boolean;
+  blockedIds?: Set<string>;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -22,6 +23,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   isDropTarget,
   onQuickAdd,
   mobile,
+  blockedIds,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -62,7 +64,11 @@ export const KanbanColumn = memo(function KanbanColumn({
               className="animate-fade-up [animation-fill-mode:backwards]"
               style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
             >
-              <KanbanCard issue={issue} onClick={onCardClick} />
+              <KanbanCard
+                issue={issue}
+                onClick={onCardClick}
+                isBlocked={blockedIds?.has(issue.id)}
+              />
             </div>
           ))}
         </SortableContext>

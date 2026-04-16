@@ -12,13 +12,14 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { ISSUE_STATUSES, type IssueListItem, type IssueStatus } from "@pearl/shared";
+import { type IssueListItem, type IssueStatus, SETTABLE_STATUSES } from "@pearl/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
 import { KanbanColumn } from "@/components/board/kanban-column";
 import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
+import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useCreateIssue, useIssues, useUpdateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -27,11 +28,11 @@ import { useUndoActions } from "@/hooks/use-undo";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
 
-/** Statuses that users can drag cards into */
-const DROPPABLE_STATUSES: Set<IssueStatus> = new Set(["open", "in_progress", "closed", "deferred"]);
+/** Statuses that users can drag cards into — same as board columns */
+const DROPPABLE_STATUSES: Set<IssueStatus> = new Set(SETTABLE_STATUSES);
 
-/** Column order for display */
-const COLUMN_ORDER: IssueStatus[] = ISSUE_STATUSES;
+/** Column order for display — no "blocked" column (it's a derived state shown as a pill) */
+const COLUMN_ORDER: IssueStatus[] = SETTABLE_STATUSES;
 
 export function BoardView() {
   const navigate = useNavigate();
@@ -43,6 +44,26 @@ export function BoardView() {
 
   // Data fetching — shared cache with List view
   const { data: issues = [], isLoading } = useIssues(apiParams);
+  const { data: allDeps = [] } = useAllDependencies();
+
+  // Compute which issues are dependency-blocked (have an open dep they depend on)
+  const blockedIds = useMemo(() => {
+    const closedStatuses = new Set(["closed"]);
+    const issueMap = new Map(issues.map((i) => [i.id, i]));
+    const blocked = new Set<string>();
+    for (const dep of allDeps) {
+      if (dep.type !== "blocks") continue;
+      // dep.issue_id depends on dep.depends_on_id
+      const blocker = issueMap.get(dep.depends_on_id);
+      if (blocker && !closedStatuses.has(blocker.status)) {
+        blocked.add(dep.issue_id);
+      }
+    }
+    return blocked;
+  }, [issues, allDeps]);
+
+  // Toggle to show/hide blocked issues
+  const [showBlocked, setShowBlocked] = useState(true);
 
   // Mutation for status changes
   const updateMutation = useUpdateIssue();
@@ -78,7 +99,7 @@ export function BoardView() {
   const [overColumnStatus, setOverColumnStatus] = useState<IssueStatus | null>(null);
   const isDragging = activeId !== null;
 
-  // Group issues by status
+  // Group issues by status — items with status "blocked" fall into "open"
   const columnData = useMemo(() => {
     const grouped: Record<IssueStatus, IssueListItem[]> = {
       open: [],
@@ -88,12 +109,16 @@ export function BoardView() {
       deferred: [],
     };
     for (const issue of issues) {
-      if (grouped[issue.status]) {
-        grouped[issue.status].push(issue);
+      // If "Show Blocked" is off, hide dependency-blocked items
+      if (!showBlocked && blockedIds.has(issue.id)) continue;
+      // Issues with status "blocked" (legacy/manual) go to "open"
+      const col = issue.status === "blocked" ? "open" : issue.status;
+      if (grouped[col]) {
+        grouped[col].push(issue);
       }
     }
     return grouped;
-  }, [issues]);
+  }, [issues, showBlocked, blockedIds]);
 
   // Find the active issue for the drag overlay
   const activeIssue = useMemo(
@@ -245,6 +270,26 @@ export function BoardView() {
       {/* Toolbar — same filter bar as list view */}
       <div className="shrink-0 bg-muted/30 px-4 py-3">
         <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
+        {blockedIds.size > 0 && (
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowBlocked((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                showBlocked
+                  ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400 dark:hover:bg-red-900/60"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80",
+              )}
+              aria-pressed={showBlocked}
+            >
+              <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white">
+                {blockedIds.size}
+              </span>
+              {showBlocked ? "Blocked visible" : "Blocked hidden"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Board */}
@@ -279,6 +324,7 @@ export function BoardView() {
                   isDropTarget={isDragging && overColumnStatus === status}
                   onQuickAdd={handleColumnQuickAdd}
                   mobile={isMobile}
+                  blockedIds={blockedIds}
                 />
               ))}
             </div>
