@@ -32,7 +32,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryanandrewhenderson/pearl.git"
+    "url": "git+https://github.com/htxryan/pearl.git"
   },
   "engines": {
     "node": ">=22"
