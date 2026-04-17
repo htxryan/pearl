@@ -58,7 +58,7 @@ export function MultiSelect<T extends string | number>({
         );
         onChange(values);
       }}
-      className="h-8 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+      className="h-8 min-h-[44px] sm:min-h-0 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
       aria-label={`Filter by ${label}`}
     >
       {options.map((opt) => (
@@ -82,7 +82,7 @@ export function FilterPill({ label, onRemove }: { label: string; onRemove: () =>
       {label}
       <button
         onClick={onRemove}
-        className="ml-0.5 text-muted-foreground hover:text-foreground"
+        className="ml-0.5 min-w-[28px] min-h-[28px] inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
         aria-label={`Remove filter: ${label}`}
       >
         &times;
@@ -222,7 +222,7 @@ export function PresetSelector({
         <button
           key={preset.id}
           onClick={() => onChange(preset.filters)}
-          className="group inline-flex items-center gap-1 h-7 rounded-full border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          className="group inline-flex items-center gap-1 h-7 min-h-[44px] sm:min-h-0 rounded-full border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
         >
           {preset.name}
           <span
@@ -251,7 +251,7 @@ export function PresetSelector({
       {hasActiveFilters(filters) && !showSaveInput && (
         <button
           onClick={() => setShowSaveInput(true)}
-          className="h-7 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          className="h-7 min-h-[44px] sm:min-h-0 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
         >
           + Save view
         </button>

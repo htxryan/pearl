@@ -8,6 +8,7 @@ interface MarkdownSectionProps {
   content?: string;
   field: string;
   onSave: (value: string) => void;
+  hideTitle?: boolean;
 }
 
 type EditorTab = "write" | "preview";
@@ -47,7 +48,13 @@ function insertLinePrefix(
   });
 }
 
-export function MarkdownSection({ title, content, field, onSave }: MarkdownSectionProps) {
+export function MarkdownSection({
+  title,
+  content,
+  field,
+  onSave,
+  hideTitle,
+}: MarkdownSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content ?? "");
   const [activeTab, setActiveTab] = useState<EditorTab>("write");
@@ -92,9 +99,11 @@ export function MarkdownSection({ title, content, field, onSave }: MarkdownSecti
   return (
     <section>
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
-          {title}
-        </h2>
+        {!hideTitle && (
+          <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+            {title}
+          </h2>
+        )}
         {!isEditing && (
           <Button
             variant="ghost"

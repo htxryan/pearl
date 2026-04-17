@@ -65,6 +65,10 @@ function CollapsibleSection({
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(hasContent);
 
+  useEffect(() => {
+    if (hasContent) setExpanded(true);
+  }, [hasContent]);
+
   if (!isMobile) return <>{children}</>;
 
   return (
@@ -98,6 +102,7 @@ function CollapsibleSection({
 function DetailViewContent({ id }: { id: string }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Determine where the user came from for breadcrumbs
   const fromPath = (location.state as { from?: string } | null)?.from;
@@ -420,6 +425,7 @@ function DetailViewContent({ id }: { id: string }) {
               content={issue.description}
               field="description"
               onSave={(val) => handleFieldUpdate("description", val)}
+              hideTitle={isMobile}
             />
           </CollapsibleSection>
 
@@ -431,6 +437,7 @@ function DetailViewContent({ id }: { id: string }) {
                 content={issue.design}
                 field="design"
                 onSave={(val) => handleFieldUpdate("design", val)}
+                hideTitle={isMobile}
               />
             </CollapsibleSection>
           )}
@@ -446,6 +453,7 @@ function DetailViewContent({ id }: { id: string }) {
                 content={issue.acceptance_criteria}
                 field="acceptance_criteria"
                 onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
+                hideTitle={isMobile}
               />
             </CollapsibleSection>
           )}
@@ -458,6 +466,7 @@ function DetailViewContent({ id }: { id: string }) {
                 content={issue.notes}
                 field="notes"
                 onSave={(val) => handleFieldUpdate("notes", val)}
+                hideTitle={isMobile}
               />
             </CollapsibleSection>
           )}
@@ -474,6 +483,7 @@ function DetailViewContent({ id }: { id: string }) {
                 removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })
               }
               isAdding={addDepMutation.isPending}
+              hideTitle={isMobile}
             />
           </CollapsibleSection>
 
@@ -483,6 +493,7 @@ function DetailViewContent({ id }: { id: string }) {
               comments={comments}
               onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
               isAdding={addCommentMutation.isPending}
+              hideTitle={isMobile}
             />
           </CollapsibleSection>
 

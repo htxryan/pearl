@@ -7,9 +7,10 @@ interface CommentThreadProps {
   comments: Comment[];
   onAdd: (text: string) => Promise<unknown>;
   isAdding: boolean;
+  hideTitle?: boolean;
 }
 
-export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps) {
+export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentThreadProps) {
   const [newComment, setNewComment] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +31,11 @@ export function CommentThread({ comments, onAdd, isAdding }: CommentThreadProps)
 
   return (
     <section>
-      <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
-        Comments ({comments.length})
-      </h2>
+      {!hideTitle && (
+        <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
+          Comments ({comments.length})
+        </h2>
+      )}
 
       {/* Comment list */}
       {comments.length > 0 ? (

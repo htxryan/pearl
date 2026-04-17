@@ -263,18 +263,25 @@ export function BoardView() {
   // Mobile column navigation
   const [mobileColumnIdx, setMobileColumnIdx] = useState(0);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
   }, []);
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) {
-      setMobileColumnIdx((prev) => {
-        if (dx < 0) return Math.min(prev + 1, COLUMN_ORDER.length - 1);
-        return Math.max(prev - 1, 0);
-      });
-    }
-  }, []);
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (isDragging) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = e.changedTouches[0].clientY - touchStartY.current;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        setMobileColumnIdx((prev) => {
+          if (dx < 0) return Math.min(prev + 1, COLUMN_ORDER.length - 1);
+          return Math.max(prev - 1, 0);
+        });
+      }
+    },
+    [isDragging],
+  );
 
   // Show mutation errors via toast
   useEffect(() => {
@@ -330,7 +337,7 @@ export function BoardView() {
           >
             {/* Tab bar */}
             <div
-              className="shrink-0 flex border-b border-border bg-muted/30 px-2"
+              className="shrink-0 flex border-b border-border bg-muted/30 px-2 overflow-x-auto"
               role="tablist"
               aria-label="Board columns"
             >
@@ -427,26 +434,55 @@ export function BoardView() {
 }
 
 function BoardSkeleton({ isMobile }: { isMobile?: boolean }) {
+  if (isMobile) {
+    return (
+      <div role="status" aria-label="Loading board" aria-busy>
+        {/* Tab bar skeleton */}
+        <div className="shrink-0 flex border-b border-border bg-muted/30 px-2 gap-2">
+          {COLUMN_ORDER.map((status, idx) => (
+            <div key={status} className="flex items-center gap-1.5 min-h-[44px] px-3 py-2">
+              <div
+                className="h-4 w-16 rounded skeleton-shimmer"
+                style={{ animationDelay: `${idx * 80}ms` }}
+              />
+            </div>
+          ))}
+        </div>
+        {/* Single column card skeletons */}
+        <div className="p-4 space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-border/50 p-3 space-y-2"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-20 rounded skeleton-shimmer" />
+                <div className="h-4 w-6 rounded skeleton-shimmer" />
+              </div>
+              <div className="h-4 w-full rounded skeleton-shimmer" />
+              <div className="h-3.5 w-2/3 rounded skeleton-shimmer" />
+              <div className="flex items-center justify-between">
+                <div className="h-3.5 w-10 rounded skeleton-shimmer" />
+                <div className="h-6 w-6 rounded-full skeleton-shimmer" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={isMobile ? "flex flex-col gap-4" : "flex gap-4 h-full"}
-      role="status"
-      aria-label="Loading board"
-      aria-busy
-    >
+    <div className="flex gap-4 h-full" role="status" aria-label="Loading board" aria-busy>
       {COLUMN_ORDER.map((status, colIdx) => (
         <div
           key={status}
-          className={cn(
-            "flex flex-col rounded-lg border border-border bg-muted/30",
-            isMobile ? "w-full" : "min-w-[280px] w-[280px]",
-          )}
+          className="flex flex-col rounded-lg border border-border bg-muted/30 min-w-[280px] w-[280px]"
         >
-          {/* Column header skeleton */}
           <div className="px-3 py-2.5">
             <div className="h-5 w-20 rounded-full skeleton-shimmer" />
           </div>
-          {/* Card skeletons */}
           <div className="p-2 space-y-2">
             {[1, 2, 3].map((i) => (
               <div
