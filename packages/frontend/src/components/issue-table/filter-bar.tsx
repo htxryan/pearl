@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import {
   countActiveFilters,
   FilterPills,
+  hasActiveFilters,
   MultiSelect,
   PRIORITY_LABELS,
   PresetSelector,
@@ -120,16 +121,6 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   const handleLabelsChange = useCallback((labels: string[]) => {
     onChangeRef.current({ ...filtersRef.current, labels });
   }, []);
-
-  const hasActiveFilters =
-    filters.status.length > 0 ||
-    filters.priority.length > 0 ||
-    filters.issue_type.length > 0 ||
-    filters.assignee !== "" ||
-    filters.search !== "" ||
-    filters.labels.length > 0 ||
-    filters.dateRanges.length > 0 ||
-    filters.structural.length > 0;
 
   const activeCount = countActiveFilters(filters);
 
@@ -278,7 +269,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           ))}
         </select>
 
-        {hasActiveFilters && (
+        {hasActiveFilters(filters) && (
           <button
             onClick={() => onChange(EMPTY_FILTERS)}
             className="h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -300,7 +291,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             onClick={() => setFiltersExpanded((prev) => !prev)}
             className={cn(
               "inline-flex items-center gap-1.5 h-9 min-h-[44px] rounded border px-3 text-sm font-medium transition-colors",
-              filtersExpanded || hasActiveFilters
+              filtersExpanded || hasActiveFilters(filters)
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border text-muted-foreground hover:text-foreground",
             )}
@@ -327,7 +318,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
               </span>
             )}
           </button>
-          {hasActiveFilters && (
+          {hasActiveFilters(filters) && (
             <button
               onClick={() => onChange(EMPTY_FILTERS)}
               className="h-9 min-h-[44px] rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

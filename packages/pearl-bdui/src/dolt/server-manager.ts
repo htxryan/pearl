@@ -143,19 +143,21 @@ export class DoltServerManager {
 
   /** Check if the SQL server is responsive */
   async healthCheck(): Promise<boolean> {
+    let conn: Awaited<ReturnType<typeof import("mysql2/promise").createConnection>> | null = null;
     try {
       const { createConnection } = await import("mysql2/promise");
-      const conn = await createConnection({
+      conn = await createConnection({
         host: "127.0.0.1",
         port: this.config.doltPort,
         user: "root",
         connectTimeout: 2000,
       });
       await conn.query("SELECT 1");
-      await conn.end();
       return true;
     } catch {
       return false;
+    } finally {
+      await conn?.end();
     }
   }
 

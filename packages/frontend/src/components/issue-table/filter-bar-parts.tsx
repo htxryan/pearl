@@ -100,17 +100,7 @@ export function FilterPills({
   filters: FilterState;
   setField: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
 }) {
-  const hasActiveFilters =
-    filters.status.length > 0 ||
-    filters.priority.length > 0 ||
-    filters.issue_type.length > 0 ||
-    filters.assignee !== "" ||
-    filters.search !== "" ||
-    filters.labels.length > 0 ||
-    filters.dateRanges.length > 0 ||
-    filters.structural.length > 0;
-
-  if (!hasActiveFilters) return null;
+  if (!hasActiveFilters(filters)) return null;
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
@@ -218,16 +208,6 @@ export function PresetSelector({
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [presetName, setPresetName] = useState("");
 
-  const hasActiveFilters =
-    filters.status.length > 0 ||
-    filters.priority.length > 0 ||
-    filters.issue_type.length > 0 ||
-    filters.assignee !== "" ||
-    filters.search !== "" ||
-    filters.labels.length > 0 ||
-    filters.dateRanges.length > 0 ||
-    filters.structural.length > 0;
-
   const handleSavePreset = useCallback(() => {
     if (!presetName.trim()) return;
     savePreset(presetName.trim(), filters);
@@ -268,7 +248,7 @@ export function PresetSelector({
           </span>
         </button>
       ))}
-      {hasActiveFilters && !showSaveInput && (
+      {hasActiveFilters(filters) && !showSaveInput && (
         <button
           onClick={() => setShowSaveInput(true)}
           className="h-7 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
@@ -311,6 +291,19 @@ export function PresetSelector({
         </div>
       )}
     </div>
+  );
+}
+
+export function hasActiveFilters(filters: FilterState): boolean {
+  return (
+    filters.status.length > 0 ||
+    filters.priority.length > 0 ||
+    filters.issue_type.length > 0 ||
+    filters.assignee !== "" ||
+    filters.search !== "" ||
+    filters.labels.length > 0 ||
+    filters.dateRanges.length > 0 ||
+    filters.structural.length > 0
   );
 }
 

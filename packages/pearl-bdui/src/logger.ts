@@ -8,9 +8,13 @@ import pino from "pino";
  * in server.ts so all log output is visually consistent.
  */
 export const logger = pino({
-  level: "info",
-  transport: {
-    target: "pino-pretty",
-    options: { translateTime: "HH:MM:ss", ignore: "pid,hostname" },
-  },
+  level: process.env.LOG_LEVEL || "info",
+  ...(process.env.NODE_ENV === "production"
+    ? {}
+    : {
+        transport: {
+          target: "pino-pretty",
+          options: { translateTime: "HH:mm:ss", ignore: "pid,hostname" },
+        },
+      }),
 });

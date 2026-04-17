@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 const DROPPABLE_STATUSES: Set<IssueStatus> = new Set(SETTABLE_STATUSES);
 
 /** Column order for display — no "blocked" column (it's a derived state shown as a pill) */
-const COLUMN_ORDER: IssueStatus[] = SETTABLE_STATUSES;
+const COLUMN_ORDER: readonly IssueStatus[] = SETTABLE_STATUSES;
 
 export function BoardView() {
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ export function BoardView() {
     const issueMap = new Map(issues.map((i) => [i.id, i]));
     const blocked = new Set<string>();
     for (const dep of allDeps) {
-      if (dep.type !== "blocks") continue;
+      if (dep.type !== "blocks" && dep.type !== "depends_on") continue;
       // dep.issue_id depends on dep.depends_on_id
       const blocker = issueMap.get(dep.depends_on_id);
       if (blocker && !closedStatuses.has(blocker.status)) {

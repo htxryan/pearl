@@ -223,13 +223,16 @@ export function useListBulkActions({
           allResults.push(...results);
         }
         const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
+        const skipped = allResults.filter(
+          (r) => r.status === "fulfilled" && r.value === null,
+        ).length;
+        const updated = ids.length - failed.length - skipped;
         if (failed.length > 0) {
           toast.warning(
-            `Added label to ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+            `Added label to ${updated} issue${updated !== 1 ? "s" : ""}. ${failed.length} failed.`,
           );
         } else {
-          toast.success(`Added "${label}" to ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+          toast.success(`Added "${label}" to ${updated} issue${updated !== 1 ? "s" : ""}.`);
         }
         setRowSelection({});
       } finally {
@@ -264,15 +267,16 @@ export function useListBulkActions({
           allResults.push(...results);
         }
         const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
+        const skipped = allResults.filter(
+          (r) => r.status === "fulfilled" && r.value === null,
+        ).length;
+        const updated = ids.length - failed.length - skipped;
         if (failed.length > 0) {
           toast.warning(
-            `Removed label from ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+            `Removed label from ${updated} issue${updated !== 1 ? "s" : ""}. ${failed.length} failed.`,
           );
         } else {
-          toast.success(
-            `Removed "${label}" from ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`,
-          );
+          toast.success(`Removed "${label}" from ${updated} issue${updated !== 1 ? "s" : ""}.`);
         }
         setRowSelection({});
       } finally {

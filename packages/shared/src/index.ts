@@ -118,7 +118,12 @@ export const ISSUE_STATUSES: IssueStatus[] = [
 ];
 
 /** Statuses a user can manually set — "blocked" is derived from dependencies */
-export const SETTABLE_STATUSES: IssueStatus[] = ["open", "in_progress", "closed", "deferred"];
+export const SETTABLE_STATUSES: readonly IssueStatus[] = [
+  "open",
+  "in_progress",
+  "closed",
+  "deferred",
+] as const;
 export const ISSUE_PRIORITIES: Priority[] = [0, 1, 2, 3, 4];
 export const ISSUE_TYPES: IssueType[] = [
   "task",

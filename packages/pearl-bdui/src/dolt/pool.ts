@@ -99,7 +99,7 @@ export async function queryWithRetry<T>(
     } catch (err: unknown) {
       if (isLockError(err) && attempt < config.dbLockMaxRetries) {
         logger.warn(
-          { attempt: attempt + 1, maxRetries: config.dbLockMaxRetries },
+          { attempt: attempt + 1, maxRetries: config.dbLockMaxRetries, err },
           "Database lock detected, retrying",
         );
         const jitteredDelay = config.dbLockRetryDelayMs * (attempt + 1) + Math.random() * 200;

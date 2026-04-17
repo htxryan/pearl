@@ -249,12 +249,17 @@ jobs:
       - name: Install Dolt
         run: |
           DOLT_VERSION="1.85.0"
-          curl -L "https://github.com/dolthub/dolt/releases/download/v${DOLT_VERSION}/install.sh" | sudo bash
+          curl -Lo /tmp/install-dolt.sh "https://github.com/dolthub/dolt/releases/download/v${DOLT_VERSION}/install.sh"
+          echo "Verifying Dolt install script..."
+          sudo bash /tmp/install-dolt.sh
+          dolt version
 
       - name: Install beads (bd CLI)
         run: |
           BD_VERSION="1.0.0"
-          curl -sL "https://github.com/gastownhall/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" | tar xz -C /usr/local/bin bd
+          curl -sL "https://github.com/gastownhall/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" -o /tmp/beads.tar.gz
+          tar xz -C /usr/local/bin bd < /tmp/beads.tar.gz
+          bd version
 
       - name: Seed E2E database
         run: bash e2e/setup-db.sh
