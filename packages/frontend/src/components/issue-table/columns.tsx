@@ -358,9 +358,12 @@ export function buildColumns({
     col.accessor("id", {
       header: "ID",
       cell: (info) => (
-        <code className="text-[11px] text-muted-foreground/70">{info.getValue()}</code>
+        <code className="whitespace-nowrap text-[11px] text-muted-foreground/70">
+          {info.getValue()}
+        </code>
       ),
       size: 140,
+      minSize: 120,
     }),
     col.accessor("title", {
       header: "Title",
