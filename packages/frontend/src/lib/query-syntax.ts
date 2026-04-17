@@ -9,7 +9,7 @@
 
 import type { IssueStatus, IssueType, Priority } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
-import type { FilterState } from "@/components/issue-table/filter-bar";
+import type { FilterState } from "@/components/issue-table/filter-bar-types";
 
 const VALID_STATUSES = new Set<string>(ISSUE_STATUSES);
 const VALID_PRIORITIES = new Set<number>(ISSUE_PRIORITIES);

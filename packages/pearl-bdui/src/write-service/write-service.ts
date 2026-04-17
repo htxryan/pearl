@@ -6,6 +6,7 @@ import type {
   UpdateIssueRequest,
 } from "@pearl/shared";
 import type { Config } from "../config.js";
+import { logger } from "../logger.js";
 import { CommentWriter } from "./comment-writer.js";
 import { DependencyWriter } from "./dependency-writer.js";
 import { IssueWriter } from "./issue-writer.js";
@@ -122,7 +123,7 @@ export class WriteService {
     try {
       await this.onAfterWrite();
     } catch (err) {
-      console.error("[write-service] Post-write replica sync failed:", err);
+      logger.error({ err }, "Post-write replica sync failed");
     }
   }
 
@@ -135,7 +136,7 @@ function tryParseJson(str: string): unknown {
   try {
     return JSON.parse(str);
   } catch {
-    console.warn("[write-service] bd returned non-JSON output:", str.slice(0, 200));
+    logger.warn({ output: str.slice(0, 200) }, "bd returned non-JSON output");
     return { raw: str };
   }
 }

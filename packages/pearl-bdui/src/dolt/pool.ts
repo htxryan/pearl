@@ -1,6 +1,7 @@
 import { createPool, type Pool, type PoolConnection } from "mysql2/promise";
 import type { Config } from "../config.js";
 import { databaseLockedError, doltUnavailableError } from "../errors.js";
+import { logger } from "../logger.js";
 
 let pool: Pool | null = null;
 
@@ -41,7 +42,7 @@ export function createDoltPool(config: Config): Pool {
   // Destroy any existing pool to prevent connection leaks
   if (pool) {
     pool.end().catch((err) => {
-      console.warn("[pool] Error closing previous pool:", err);
+      logger.warn({ err }, "Error closing previous pool");
     });
     pool = null;
   }
@@ -97,8 +98,9 @@ export async function queryWithRetry<T>(
       return result;
     } catch (err: unknown) {
       if (isLockError(err) && attempt < config.dbLockMaxRetries) {
-        console.warn(
-          `[db] Database lock detected, retry ${attempt + 1}/${config.dbLockMaxRetries}`,
+        logger.warn(
+          { attempt: attempt + 1, maxRetries: config.dbLockMaxRetries },
+          "Database lock detected, retrying",
         );
         const jitteredDelay = config.dbLockRetryDelayMs * (attempt + 1) + Math.random() * 200;
         await new Promise((r) => setTimeout(r, jitteredDelay));

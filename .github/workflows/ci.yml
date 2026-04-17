@@ -67,6 +67,33 @@ jobs:
 
       - run: pnpm lint
 
+  lint-deps:
+    name: Dependency boundaries
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - run: pnpm lint:deps
+
   typecheck:
     name: Typecheck
     needs: install
@@ -93,6 +120,37 @@ jobs:
           fail-on-cache-miss: true
 
       - run: pnpm typecheck
+
+  type-contract:
+    name: Shared type contract
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Rebuild @pearl/shared
+        run: pnpm --filter @pearl/shared run build
+
+      - name: Verify shared dist is up to date
+        run: git diff --exit-code packages/shared/dist/
 
   test:
     name: Test

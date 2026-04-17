@@ -1,5 +1,6 @@
 import type { ResultPromise } from "execa";
 import type { Config } from "../config.js";
+import { logger } from "../logger.js";
 
 export type DoltServerState = "stopped" | "starting" | "running" | "error";
 
@@ -91,13 +92,13 @@ export class DoltServerManager {
       // Monitor the process for unexpected exit
       this.process.then((result) => {
         if (this.state === "running") {
-          console.error(`[dolt-manager] Dolt server exited unexpectedly (code=${result.exitCode})`);
+          logger.error({ exitCode: result.exitCode }, "Dolt server exited unexpectedly");
           this.setState("error");
           this.scheduleRestart();
         }
       });
     } catch (err) {
-      console.error("[dolt-manager] Failed to start Dolt server:", err);
+      logger.error({ err }, "Failed to start Dolt server");
       this.setState("error");
       this.scheduleRestart();
     }
@@ -180,8 +181,9 @@ export class DoltServerManager {
     this.consecutiveFailures++;
 
     if (this.consecutiveFailures >= DoltServerManager.MAX_RESTART_ATTEMPTS) {
-      console.error(
-        `[dolt-manager] Giving up after ${this.consecutiveFailures} consecutive failures`,
+      logger.error(
+        { consecutiveFailures: this.consecutiveFailures },
+        "Giving up after consecutive failures",
       );
       return;
     }
@@ -189,9 +191,12 @@ export class DoltServerManager {
     if (this.restartTimer) return; // Already scheduled
 
     if (this.consecutiveFailures < this.config.doltRestartThreshold) {
-      console.log(
-        `[dolt-manager] Failure ${this.consecutiveFailures}/${this.config.doltRestartThreshold}, ` +
-          `will restart after threshold`,
+      logger.info(
+        {
+          failures: this.consecutiveFailures,
+          threshold: this.config.doltRestartThreshold,
+        },
+        "Failure below threshold, will restart",
       );
       // Kill any lingering process before quick retry
       if (this.process) {
@@ -205,9 +210,12 @@ export class DoltServerManager {
       return;
     }
 
-    console.log(
-      `[dolt-manager] ${this.consecutiveFailures} consecutive failures, ` +
-        `restarting after ${this.config.doltRestartDebounceMs}ms debounce`,
+    logger.info(
+      {
+        consecutiveFailures: this.consecutiveFailures,
+        debounceMs: this.config.doltRestartDebounceMs,
+      },
+      "Consecutive failures hit threshold, restarting after debounce",
     );
 
     this.restartTimer = setTimeout(() => {
@@ -220,7 +228,7 @@ export class DoltServerManager {
       }
 
       void this.start().catch((err) => {
-        console.error("[dolt-manager] Restart failed:", err);
+        logger.error({ err }, "Restart failed");
       });
     }, this.config.doltRestartDebounceMs);
   }

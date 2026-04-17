@@ -1,4 +1,3 @@
-import type { IssueListItem, IssueStatus, Priority } from "@pearl/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnOrderState,
@@ -13,37 +12,26 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
-import { buildColumns, type EpicProgress } from "@/components/issue-table/columns";
-import { FilterBar, GROUP_BY_LABELS, type GroupByField } from "@/components/issue-table/filter-bar";
+import { buildColumns } from "@/components/issue-table/columns";
+import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
 import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table";
 import { IssueCardList } from "@/components/issue-table/issue-card";
-import { IssuePanel } from "@/components/issue-table/issue-panel";
 import { IssueTable } from "@/components/issue-table/issue-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
-import {
-  issueKeys,
-  prefetchIssueDetail,
-  useCloseIssue,
-  useCreateIssue,
-  useIssues,
-  useUpdateIssue,
-} from "@/hooks/use-issues";
+import { prefetchIssueDetail, useCreateIssue, useIssues } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsCompact, useIsMobile } from "@/hooks/use-media-query";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useToastActions } from "@/hooks/use-toast";
-import { useUndoActions } from "@/hooks/use-undo";
-import {
-  buildApiParams,
-  useUrlFilters,
-  VALID_PRIORITIES,
-  VALID_STATUSES,
-} from "@/hooks/use-url-filters";
-import * as api from "@/lib/api-client";
+import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
+import { ListPanelOverlay, ListSidePanel } from "@/views/list-panel-overlay";
+import { useListBulkActions } from "@/views/use-list-bulk-actions";
+import { useListEpicHierarchy } from "@/views/use-list-epic-hierarchy";
+import { useListFieldHandlers } from "@/views/use-list-field-handlers";
 
 export function ListView() {
   const navigate = useNavigate();
@@ -63,44 +51,15 @@ export function ListView() {
   // All dependencies (for epic hierarchy)
   const { data: allDeps = [] } = useAllDependencies();
 
-  // Compute epic progress from dependency graph
-  const epicProgress = useMemo(() => {
-    const map = new Map<string, EpicProgress>();
-    const issueStatusMap = new Map(issues.map((i) => [i.id, i.status]));
-
-    // Only "contains" type dependencies represent parent-child (epic hierarchy).
-    // Other dependency types (blocks, depends_on, relates_to) are prerequisites, not children.
-    const epicIds = new Set(issues.filter((i) => i.issue_type === "epic").map((i) => i.id));
-
-    for (const dep of allDeps) {
-      if (
-        dep.type === "contains" &&
-        epicIds.has(dep.issue_id) &&
-        dep.depends_on_id !== dep.issue_id
-      ) {
-        const existing = map.get(dep.issue_id) ?? { done: 0, total: 0, childIds: [] };
-        existing.childIds.push(dep.depends_on_id);
-        existing.total += 1;
-        const childStatus = issueStatusMap.get(dep.depends_on_id);
-        if (childStatus === "closed") existing.done += 1;
-        map.set(dep.issue_id, existing);
-      }
-    }
-
-    return map;
-  }, [issues, allDeps]);
-
-  // Compute child IDs (issues that are children of any epic)
-  const childIssueIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const progress of epicProgress.values()) {
-      for (const childId of progress.childIds) ids.add(childId);
-    }
-    return ids;
-  }, [epicProgress]);
-
-  // Top-level only filter
-  const [topLevelOnly, setTopLevelOnly] = useState(false);
+  // Epic hierarchy: progress, top-level filtering, expanded epics
+  const {
+    epicProgress,
+    topLevelOnly,
+    setTopLevelOnly,
+    expandedEpics,
+    handleToggleExpand,
+    tableIssues,
+  } = useListEpicHierarchy(issues, allDeps);
 
   // Responsive hooks
   const isMobile = useIsMobile();
@@ -110,62 +69,18 @@ export function ListView() {
   const [panelIssueId, setPanelIssueId] = useState<string | null>(null);
   const [panelMode, setPanelMode] = usePersistedState<boolean>("beads:panel-mode", false);
 
-  // Expanded epics for inline children
-  const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
-
-  const handleToggleExpand = useCallback((id: string) => {
-    setExpandedEpics((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  // Filter issues for top-level only
-  const displayIssues = useMemo(() => {
-    if (!topLevelOnly) return issues;
-    return issues.filter((i) => !childIssueIds.has(i.id));
-  }, [issues, topLevelOnly, childIssueIds]);
-
-  // Build expanded list with inline children
-  const tableIssues = useMemo(() => {
-    // In default mode, collect children of expanded epics so we can skip them
-    // at their original position and re-insert them directly after their epic
-    const expandedChildIds = new Set<string>();
-    if (!topLevelOnly) {
-      for (const epicId of expandedEpics) {
-        const progress = epicProgress.get(epicId);
-        if (progress) {
-          for (const childId of progress.childIds) expandedChildIds.add(childId);
-        }
-      }
-    }
-
-    const result: IssueListItem[] = [];
-    for (const issue of displayIssues) {
-      // Skip children that will be inserted after their expanded epic
-      if (expandedChildIds.has(issue.id)) continue;
-
-      result.push(issue);
-      // If this epic is expanded, insert its children right after
-      if (expandedEpics.has(issue.id)) {
-        const progress = epicProgress.get(issue.id);
-        if (progress) {
-          const childItems = issues.filter((i) => progress.childIds.includes(i.id));
-          result.push(...childItems);
-        }
-      }
-    }
-    return result;
-  }, [displayIssues, expandedEpics, epicProgress, issues, topLevelOnly]);
-
   // Mutations
-  const updateMutation = useUpdateIssue();
-  const closeMutation = useCloseIssue();
+  const {
+    updateMutation,
+    handleStatusChange,
+    handlePriorityChange,
+    handleTitleChange,
+    handleAssigneeChange,
+    handleLabelsChange,
+    handleDueDateChange,
+  } = useListFieldHandlers(issues);
   const createMutation = useCreateIssue();
   const toast = useToastActions();
-  const undo = useUndoActions();
 
   // Quick-add state
   const [quickAddTitle, setQuickAddTitle] = useState("");
@@ -184,7 +99,7 @@ export function ListView() {
         },
         onError: () => {
           toast.error("Failed to create issue.");
-          setQuickAddTitle(title); // Restore the title
+          setQuickAddTitle(title);
         },
       },
     );
@@ -201,8 +116,6 @@ export function ListView() {
     {},
   );
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const rowSelectionRef = useRef(rowSelection);
-  rowSelectionRef.current = rowSelection;
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
 
@@ -223,11 +136,26 @@ export function ListView() {
   }, [issues]);
 
   // Bulk action state
-  const [isClosing, setIsClosing] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [showBulkCloseConfirm, setShowBulkCloseConfirm] = useState(false);
 
   const selectedIds = Object.keys(rowSelection).filter((k) => rowSelection[k]);
+
+  // Bulk actions hook
+  const {
+    isClosing,
+    isUpdating,
+    handleBulkClose,
+    handleBulkReassign,
+    handleBulkReprioritize,
+    handleBulkChangeStatus,
+    handleBulkAddLabel,
+    handleBulkRemoveLabel,
+  } = useListBulkActions({
+    rowSelection,
+    setRowSelection,
+    setHighlightedIds,
+    apiParams,
+  });
 
   // Handlers
   const handleRowClick = useCallback(
@@ -248,362 +176,11 @@ export function ListView() {
     [queryClient],
   );
 
-  const handleStatusChange = useCallback(
-    (id: string, status: IssueStatus) => {
-      if (!VALID_STATUSES.has(status)) return;
-      const issue = issues.find((i) => i.id === id);
-      const oldStatus = issue?.status ?? "open";
-      updateMutation.mutate(
-        { id, data: { status } },
-        {
-          onSuccess: () => {
-            undo.recordStatusChange(id, issue?.title ?? id, oldStatus, status);
-          },
-          onError: () => {
-            toast.error(`Failed to update status for "${issue?.title ?? id}"`);
-          },
-        },
-      );
-    },
-    [updateMutation, issues, undo, toast],
-  );
-
-  const handlePriorityChange = useCallback(
-    (id: string, priority: Priority) => {
-      if (!VALID_PRIORITIES.has(priority)) return;
-      const issue = issues.find((i) => i.id === id);
-      updateMutation.mutate(
-        { id, data: { priority } },
-        {
-          onError: () => {
-            toast.error(`Failed to update priority for "${issue?.title ?? id}"`);
-          },
-        },
-      );
-    },
-    [updateMutation, issues, toast],
-  );
-
-  const handleTitleChange = useCallback(
-    (id: string, title: string) => {
-      if (!title.trim()) return;
-      const issue = issues.find((i) => i.id === id);
-      updateMutation.mutate(
-        { id, data: { title: title.trim() } },
-        {
-          onError: () => {
-            toast.error(`Failed to update title for "${issue?.title ?? id}"`);
-          },
-        },
-      );
-    },
-    [updateMutation, issues, toast],
-  );
-
-  const handleAssigneeChange = useCallback(
-    (id: string, assignee: string) => {
-      const issue = issues.find((i) => i.id === id);
-      updateMutation.mutate(
-        { id, data: { assignee: assignee.trim() || undefined } },
-        {
-          onError: () => {
-            toast.error(`Failed to update assignee for "${issue?.title ?? id}"`);
-          },
-        },
-      );
-    },
-    [updateMutation, issues, toast],
-  );
-
-  const handleLabelsChange = useCallback(
-    (id: string, labels: string[]) => {
-      const issue = issues.find((i) => i.id === id);
-      updateMutation.mutate(
-        { id, data: { labels } },
-        {
-          onError: () => {
-            toast.error(`Failed to update labels for "${issue?.title ?? id}"`);
-          },
-        },
-      );
-    },
-    [updateMutation, issues, toast],
-  );
-
-  const handleDueDateChange = useCallback(
-    (id: string, date: string | null) => {
-      const issue = issues.find((i) => i.id === id);
-      updateMutation.mutate(
-        { id, data: { due: date } },
-        {
-          onError: () => {
-            toast.error(`Failed to update due date for "${issue?.title ?? id}"`);
-          },
-        },
-      );
-    },
-    [updateMutation, issues, toast],
-  );
-
-  const handleBulkClose = useCallback(async () => {
-    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-    if (ids.length === 0) return;
-    setIsClosing(true);
-    try {
-      // Snapshot blocked issues before closing
-      const beforeIssues = queryClient.getQueryData<IssueListItem[]>(issueKeys.list(apiParams));
-      const blockedBefore = new Set(
-        (beforeIssues ?? []).filter((i) => i.status === "blocked").map((i) => i.id),
-      );
-
-      // Process in batches to avoid unbounded parallel requests
-      const BATCH_SIZE = 5;
-      const allResults: PromiseSettledResult<unknown>[] = [];
-      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-        const batch = ids.slice(i, i + BATCH_SIZE);
-        const results = await Promise.allSettled(
-          batch.map((id) => closeMutation.mutateAsync({ id })),
-        );
-        allResults.push(...results);
-      }
-      const failed = allResults.filter((r) => r.status === "rejected");
-      const succeeded = ids.length - failed.length;
-      if (failed.length > 0) {
-        toast.warning(
-          `Closed ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed to close.`,
-        );
-      } else {
-        toast.success(`Closed ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
-      }
-
-      // Refetch issue list and highlight newly-unblocked dependents
-      const closedIdSet = new Set(ids.filter((_, i) => allResults[i].status === "fulfilled"));
-      if (blockedBefore.size > 0 && closedIdSet.size > 0) {
-        const afterIssues = await queryClient.fetchQuery<IssueListItem[]>({
-          queryKey: issueKeys.list(apiParams),
-          queryFn: () => api.fetchIssues(apiParams),
-          staleTime: 0,
-        });
-        const newlyUnblocked = (afterIssues ?? [])
-          .filter(
-            (i) => blockedBefore.has(i.id) && !closedIdSet.has(i.id) && i.status !== "blocked",
-          )
-          .map((i) => i.id);
-        setHighlightedIds(new Set(newlyUnblocked));
-      } else {
-        setHighlightedIds(new Set());
-      }
-      setRowSelection({});
-    } finally {
-      setIsClosing(false);
-    }
-  }, [closeMutation, queryClient, apiParams]);
-
   const handleClearSelection = useCallback(() => {
     setRowSelection({});
   }, []);
 
-  const handleBulkReassign = useCallback(
-    async (assignee: string) => {
-      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-      if (ids.length === 0) return;
-      setIsUpdating(true);
-      try {
-        const BATCH_SIZE = 5;
-        const allResults: PromiseSettledResult<unknown>[] = [];
-        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-          const batch = ids.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(
-            batch.map((id) => updateMutation.mutateAsync({ id, data: { assignee } })),
-          );
-          allResults.push(...results);
-        }
-        const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
-        if (failed.length > 0) {
-          toast.warning(
-            `Reassigned ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
-          );
-        } else {
-          toast.success(
-            `Reassigned ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${assignee}.`,
-          );
-        }
-        setRowSelection({});
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [updateMutation, toast],
-  );
-
-  const handleBulkReprioritize = useCallback(
-    async (priority: Priority) => {
-      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-      if (ids.length === 0) return;
-      setIsUpdating(true);
-      try {
-        const BATCH_SIZE = 5;
-        const allResults: PromiseSettledResult<unknown>[] = [];
-        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-          const batch = ids.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(
-            batch.map((id) => updateMutation.mutateAsync({ id, data: { priority } })),
-          );
-          allResults.push(...results);
-        }
-        const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
-        const label = `P${priority}`;
-        if (failed.length > 0) {
-          toast.warning(
-            `Reprioritized ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
-          );
-        } else {
-          toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${label}.`);
-        }
-        setRowSelection({});
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [updateMutation, toast],
-  );
-
   // Build columns and table instance
-
-  const handleBulkChangeStatus = useCallback(
-    async (status: IssueStatus) => {
-      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-      if (ids.length === 0) return;
-      setIsUpdating(true);
-      try {
-        const BATCH_SIZE = 5;
-        const allResults: PromiseSettledResult<unknown>[] = [];
-        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-          const batch = ids.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(
-            batch.map((id) => updateMutation.mutateAsync({ id, data: { status } })),
-          );
-          allResults.push(...results);
-        }
-        const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
-        if (failed.length > 0) {
-          toast.warning(
-            `Updated ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
-          );
-        } else {
-          toast.success(`Set ${ids.length} issue${ids.length !== 1 ? "s" : ""} to ${status}.`);
-        }
-        setRowSelection({});
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [updateMutation, toast],
-  );
-
-  const getIssueLabels = useCallback(
-    (id: string): string[] => {
-      // Read from QueryClient cache to avoid stale/filtered list issues.
-      // The detail cache has the freshest labels; fall back to scanning list caches.
-      const detail = queryClient.getQueryData<IssueListItem>(issueKeys.detail(id));
-      if (detail?.labels) return detail.labels;
-      const lists = queryClient.getQueriesData<IssueListItem[]>({ queryKey: issueKeys.lists() });
-      for (const [, list] of lists) {
-        const found = list?.find((iss) => iss.id === id);
-        if (found) return found.labels ?? [];
-      }
-      return [];
-    },
-    [queryClient],
-  );
-
-  const handleBulkAddLabel = useCallback(
-    async (label: string) => {
-      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-      if (ids.length === 0) return;
-      setIsUpdating(true);
-      try {
-        const BATCH_SIZE = 5;
-        const allResults: PromiseSettledResult<unknown>[] = [];
-        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-          const batch = ids.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(
-            batch.map((id) => {
-              const existingLabels = getIssueLabels(id);
-              if (existingLabels.includes(label)) {
-                return Promise.resolve(null); // Already has label
-              }
-              return updateMutation.mutateAsync({
-                id,
-                data: { labels: [...existingLabels, label] },
-              });
-            }),
-          );
-          allResults.push(...results);
-        }
-        const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
-        if (failed.length > 0) {
-          toast.warning(
-            `Added label to ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
-          );
-        } else {
-          toast.success(`Added "${label}" to ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
-        }
-        setRowSelection({});
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [updateMutation, toast, getIssueLabels],
-  );
-
-  const handleBulkRemoveLabel = useCallback(
-    async (label: string) => {
-      const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
-      if (ids.length === 0) return;
-      setIsUpdating(true);
-      try {
-        const BATCH_SIZE = 5;
-        const allResults: PromiseSettledResult<unknown>[] = [];
-        for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-          const batch = ids.slice(i, i + BATCH_SIZE);
-          const results = await Promise.allSettled(
-            batch.map((id) => {
-              const existingLabels = getIssueLabels(id);
-              if (!existingLabels.includes(label)) {
-                return Promise.resolve(null); // Doesn't have label
-              }
-              return updateMutation.mutateAsync({
-                id,
-                data: { labels: existingLabels.filter((l) => l !== label) },
-              });
-            }),
-          );
-          allResults.push(...results);
-        }
-        const failed = allResults.filter((r) => r.status === "rejected");
-        const succeeded = ids.length - failed.length;
-        if (failed.length > 0) {
-          toast.warning(
-            `Removed label from ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
-          );
-        } else {
-          toast.success(
-            `Removed "${label}" from ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`,
-          );
-        }
-        setRowSelection({});
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [updateMutation, toast, getIssueLabels],
-  );
-
   const columns = useMemo(
     () =>
       buildColumns({
@@ -726,18 +303,7 @@ export function ListView() {
         id: "list-clear-filters",
         label: "Clear all filters",
         group: "List",
-        handler: () =>
-          setFilters({
-            status: [],
-            priority: [],
-            issue_type: [],
-            assignee: "",
-            search: "",
-            labels: [],
-            dateRanges: [],
-            structural: [],
-            groupBy: null,
-          }),
+        handler: () => setFilters(EMPTY_FILTERS),
       },
       {
         id: "list-select-all",
@@ -763,7 +329,7 @@ export function ListView() {
   const slideOverActive = !!(panelMode && panelIssueId && panelIsOverlay);
   useFocusTrap(slideOverRef, slideOverActive);
 
-  // Force panelMode off on mobile — the toggle is hidden, so users can't disable it
+  // Force panelMode off on mobile
   useEffect(() => {
     if (isMobile && panelMode) setPanelMode(false);
   }, [isMobile, panelMode, setPanelMode]);
@@ -895,39 +461,18 @@ export function ListView() {
         </div>
       </div>
 
-      {/* Split-pane detail panel — desktop: side panel; tablet/mobile: slide-over overlay */}
+      {/* Split-pane detail panel — desktop side panel */}
       {panelMode && panelIssueId && !panelIsOverlay && (
-        <div className="w-[420px] shrink-0 border-l border-border bg-background overflow-hidden">
-          <IssuePanel
-            key={panelIssueId}
-            issueId={panelIssueId}
-            onClose={() => setPanelIssueId(null)}
-          />
-        </div>
+        <ListSidePanel panelIssueId={panelIssueId} onClose={() => setPanelIssueId(null)} />
       )}
 
       {/* Slide-over overlay for tablet/mobile */}
       {panelMode && panelIssueId && panelIsOverlay && (
-        <div
-          ref={slideOverRef}
-          className="fixed inset-0 z-40"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Issue detail panel"
-        >
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setPanelIssueId(null)}
-            aria-hidden="true"
-          />
-          <div className="absolute inset-y-0 right-0 w-full max-w-md bg-background shadow-lg overflow-hidden animate-slide-in-right">
-            <IssuePanel
-              key={panelIssueId}
-              issueId={panelIssueId}
-              onClose={() => setPanelIssueId(null)}
-            />
-          </div>
-        </div>
+        <ListPanelOverlay
+          panelIssueId={panelIssueId}
+          slideOverRef={slideOverRef}
+          onClose={() => setPanelIssueId(null)}
+        />
       )}
 
       <ConfirmDialog
