@@ -396,6 +396,7 @@ function renderCreateDialog(props: { isOpen: boolean; onClose: () => void }) {
 // ─── Setup / Teardown ───────────────────────────────────
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.removeItem("beads:create-issue-draft");
   setupIssuesMock();
   setupDependenciesMock();
 });
@@ -430,11 +431,17 @@ describe("SC2+SC1: Create issue via form", () => {
     const descInput = screen.getByLabelText(/description/i);
     fireEvent.change(descInput, { target: { value: "Description for testing" } });
 
-    const typeSelect = screen.getByLabelText(/type/i);
-    fireEvent.change(typeSelect, { target: { value: "bug" } });
+    // Select type via custom dropdown
+    const typeButton = screen.getByRole("combobox", { name: /issue type/i });
+    fireEvent.click(typeButton);
+    const bugOption = screen.getByRole("option", { name: /bug/i });
+    fireEvent.click(bugOption);
 
-    const prioritySelect = screen.getByLabelText(/priority/i);
-    fireEvent.change(prioritySelect, { target: { value: "1" } });
+    // Select priority via custom dropdown
+    const priorityButton = screen.getByRole("combobox", { name: /priority/i });
+    fireEvent.click(priorityButton);
+    const p1Option = screen.getByRole("option", { name: /P1/i });
+    fireEvent.click(p1Option);
 
     const assigneeInput = screen.getByLabelText(/assignee/i);
     fireEvent.change(assigneeInput, { target: { value: "alice" } });

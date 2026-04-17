@@ -1,6 +1,7 @@
 import type { Event } from "@pearl/shared";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { RelativeTime } from "@/components/ui/relative-time";
 
 interface ActivityTimelineProps {
@@ -61,21 +62,16 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
         <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
           Activity ({filteredEvents.length})
         </h2>
-        <select
+        <CustomSelect
           value={filterType}
-          onChange={(e) => {
-            setFilterType(e.target.value);
+          options={EVENT_FILTER_OPTIONS}
+          onChange={(value) => {
+            setFilterType(value);
             setVisibleCount(PAGE_SIZE);
           }}
-          className="text-xs border border-border rounded px-1.5 py-0.5 bg-background text-foreground"
           aria-label="Filter events by type"
-        >
-          {EVENT_FILTER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          size="sm"
+        />
       </div>
 
       {visibleEvents.length > 0 ? (

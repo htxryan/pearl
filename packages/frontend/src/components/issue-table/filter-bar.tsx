@@ -1,5 +1,6 @@
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { useIsMobile } from "@/hooks/use-media-query";
 import {
@@ -210,73 +211,53 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         />
 
         {/* Date range */}
-        <select
-          value=""
-          onChange={(e) => {
-            const value = e.target.value as DateRange;
-            if (value && !filters.dateRanges.includes(value)) {
+        <CustomSelect<DateRange>
+          value={null}
+          options={DATE_RANGE_OPTIONS.map((opt) => ({
+            value: opt,
+            label: DATE_RANGE_LABELS[opt],
+            disabled: filters.dateRanges.includes(opt),
+          }))}
+          onChange={(value) => {
+            if (!filters.dateRanges.includes(value)) {
               onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
             }
-            e.target.value = "";
           }}
-          className={cn(
-            "h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring",
-            isMobile && "min-h-[44px]",
-          )}
+          placeholder="Date filter..."
           aria-label="Filter by date range"
-        >
-          <option value="">Date filter...</option>
-          {DATE_RANGE_OPTIONS.map((opt) => (
-            <option key={opt} value={opt} disabled={filters.dateRanges.includes(opt)}>
-              {DATE_RANGE_LABELS[opt]}
-            </option>
-          ))}
-        </select>
+          className="min-w-[120px]"
+        />
 
         {/* Structural filters */}
-        <select
-          value=""
-          onChange={(e) => {
-            const value = e.target.value as StructuralFilter;
-            if (value && !filters.structural.includes(value)) {
+        <CustomSelect<StructuralFilter>
+          value={null}
+          options={STRUCTURAL_FILTER_OPTIONS.map((opt) => ({
+            value: opt,
+            label: STRUCTURAL_FILTER_LABELS[opt],
+            disabled: filters.structural.includes(opt),
+          }))}
+          onChange={(value) => {
+            if (!filters.structural.includes(value)) {
               onChange({ ...filters, structural: [...filters.structural, value] });
             }
-            e.target.value = "";
           }}
-          className={cn(
-            "h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring",
-            isMobile && "min-h-[44px]",
-          )}
+          placeholder="Properties..."
           aria-label="Filter by properties"
-        >
-          <option value="">Properties...</option>
-          {STRUCTURAL_FILTER_OPTIONS.map((opt) => (
-            <option key={opt} value={opt} disabled={filters.structural.includes(opt)}>
-              {STRUCTURAL_FILTER_LABELS[opt]}
-            </option>
-          ))}
-        </select>
+          className="min-w-[120px]"
+        />
 
         {/* Group by */}
-        <select
-          value={filters.groupBy ?? ""}
-          onChange={(e) => {
-            const value = e.target.value as GroupByField | "";
-            onChange({ ...filters, groupBy: value || null });
-          }}
-          className={cn(
-            "h-8 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring",
-            isMobile && "min-h-[44px]",
-          )}
+        <CustomSelect<GroupByField>
+          value={filters.groupBy}
+          options={(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => ({
+            value: key,
+            label: GROUP_BY_LABELS[key],
+          }))}
+          onChange={(value) => onChange({ ...filters, groupBy: value })}
+          placeholder="Group by..."
           aria-label="Group by"
-        >
-          <option value="">Group by...</option>
-          {(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => (
-            <option key={key} value={key}>
-              {GROUP_BY_LABELS[key]}
-            </option>
-          ))}
-        </select>
+          className="min-w-[100px]"
+        />
 
         {hasActiveFilters(filters) && (
           <button

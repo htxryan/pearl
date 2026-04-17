@@ -42,9 +42,9 @@ test.describe("Detail View", () => {
 
     const statusSelect = page.getByLabel("Status");
     await expect(statusSelect).toBeVisible();
-    // Verify it has some value (data-agnostic — don't assume a specific status)
-    const value = await statusSelect.inputValue();
-    expect(value.length).toBeGreaterThan(0);
+    // Verify it displays a value (custom dropdown uses a button, not a native select)
+    const text = await statusSelect.textContent();
+    expect(text!.trim().length).toBeGreaterThan(0);
   });
 
   test("priority select field is present", async ({ seededPage: page }) => {

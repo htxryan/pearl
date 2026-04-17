@@ -1,6 +1,7 @@
 import type { IssueStatus } from "@pearl/shared";
 import { Children } from "react";
 import { Button } from "@/components/ui/button";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 // ─── Helper Components ─────────────────────────────────
@@ -52,20 +53,7 @@ export function SelectField({
   onChange: (value: string) => void;
   label: string;
 }) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label={label}
-      className="text-sm bg-transparent border border-border rounded px-2 py-1 min-h-[44px] sm:min-h-0 focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
-  );
+  return <CustomSelect value={value} options={options} onChange={onChange} aria-label={label} />;
 }
 
 export function DetailSkeleton() {

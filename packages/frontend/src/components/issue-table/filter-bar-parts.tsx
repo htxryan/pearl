@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
 import { DATE_RANGE_LABELS, STRUCTURAL_FILTER_LABELS } from "@/lib/query-syntax";
 import { cn } from "@/lib/utils";
-import type { FilterState, GroupByField } from "./filter-bar-types";
+import type { FilterState } from "./filter-bar-types";
 import { GROUP_BY_LABELS } from "./filter-bar-types";
 
 // ─── Constants ────────────────────────────────────────
@@ -48,25 +49,21 @@ export function MultiSelect<T extends string | number>({
   labels: Record<string & T, string> | Record<number & T, string>;
   onChange: (values: T[]) => void;
 }) {
+  const selectOptions = options.map((opt) => ({
+    value: opt,
+    label: (labels as Record<string, string>)[String(opt)],
+  }));
+
   return (
-    <select
+    <CustomSelect<T>
       multiple
-      value={selected.map(String)}
-      onChange={(e) => {
-        const values = Array.from(e.target.selectedOptions, (o) =>
-          typeof options[0] === "number" ? (Number(o.value) as T) : (o.value as T),
-        );
-        onChange(values);
-      }}
-      className="h-8 min-h-[44px] sm:min-h-0 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+      value={selected}
+      options={selectOptions}
+      onChange={onChange}
+      placeholder={label.charAt(0).toUpperCase() + label.slice(1)}
       aria-label={`Filter by ${label}`}
-    >
-      {options.map((opt) => (
-        <option key={String(opt)} value={String(opt)}>
-          {(labels as Record<string, string>)[String(opt)]}
-        </option>
-      ))}
-    </select>
+      className="min-w-[100px]"
+    />
   );
 }
 
