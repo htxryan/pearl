@@ -37,6 +37,11 @@ vi.mock("@/lib/api-client", () => ({
   fetchAllDependencies: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("@/hooks/use-notifications", () => ({
+  notifyCommentAdded: vi.fn(),
+}));
+
+import { notifyCommentAdded } from "@/hooks/use-notifications";
 import * as api from "@/lib/api-client";
 
 // ─── Test helpers ───────────────────────────────────────────────
@@ -419,6 +424,58 @@ describe("Invalidation from hints", () => {
     const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.comments("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.events("issue-1"));
+  });
+
+  it("useAddComment calls notifyCommentAdded when response has data and issue is cached", async () => {
+    const { queryClient, wrapper } = createWrapper();
+
+    queryClient.setQueryData(issueKeys.detail("issue-1"), makeIssue());
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      data: {
+        id: "c1",
+        issue_id: "issue-1",
+        author: "alice",
+        text: "hi",
+        created_at: "2025-01-01T00:00:00Z",
+      },
+      invalidationHints: [{ entity: "comments", id: "issue-1" }],
+    });
+
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).toHaveBeenCalledWith("issue-1", "Test Issue", "alice");
+  });
+
+  it("useAddComment skips notification when response has no data", async () => {
+    const { queryClient, wrapper } = createWrapper();
+
+    queryClient.setQueryData(issueKeys.detail("issue-1"), makeIssue());
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      invalidationHints: [],
+    });
+
+    vi.mocked(notifyCommentAdded).mockClear();
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).not.toHaveBeenCalled();
   });
 
   it("useAddDependency invalidates dependency keys from hints", async () => {

@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-query";
 import * as api from "@/lib/api-client";
 import { labelKeys } from "./use-labels";
+import { notifyCommentAdded } from "./use-notifications";
 
 // ─── Query Keys ─────────────────────────────────────────
 export const issueKeys = {
@@ -351,6 +352,12 @@ export function useAddComment() {
     },
     onSuccess: (response, { issueId }) => {
       invalidateFromHints(queryClient, response.invalidationHints);
+      if (response.data) {
+        const issue = queryClient.getQueryData<Issue>(issueKeys.detail(issueId));
+        if (issue) {
+          notifyCommentAdded(issueId, issue.title, response.data.author);
+        }
+      }
     },
   });
 }
