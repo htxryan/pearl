@@ -60,7 +60,7 @@ export function GraphControls() {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   return (
-    <Panel position="bottom-right">
+    <Panel position="top-right">
       <div className="flex flex-col gap-1 bg-background/80 backdrop-blur-sm rounded-lg border border-border p-1 shadow-sm">
         <Button
           variant="outline"
@@ -84,7 +84,7 @@ export function GraphControls() {
           variant="outline"
           size="icon"
           className="h-8 w-8"
-          onClick={() => fitView({ padding: 0.2, maxZoom: 1.5 })}
+          onClick={() => fitView({ padding: 0.2, minZoom: 0.3, maxZoom: 2 })}
           title="Fit view"
         >
           {"\u2299"}
