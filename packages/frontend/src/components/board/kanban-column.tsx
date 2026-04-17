@@ -14,6 +14,8 @@ interface KanbanColumnProps {
   onQuickAdd?: (title: string, status: IssueStatus) => void;
   mobile?: boolean;
   blockedIds?: Set<string>;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -24,6 +26,8 @@ export const KanbanColumn = memo(function KanbanColumn({
   onQuickAdd,
   mobile,
   blockedIds,
+  collapsed,
+  onToggleCollapse,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -31,6 +35,37 @@ export const KanbanColumn = memo(function KanbanColumn({
   });
 
   const issueIds = issues.map((i) => i.id);
+
+  if (collapsed && !mobile) {
+    return (
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "flex flex-col items-center rounded-lg border border-border bg-muted/30",
+          "transition-colors duration-150 w-[48px] min-w-[48px] cursor-pointer select-none",
+          (isOver || isDropTarget) && "border-ring bg-ring/5",
+        )}
+        onClick={onToggleCollapse}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggleCollapse?.();
+          }
+        }}
+        aria-label={`Expand ${status} column (${issues.length} issues)`}
+        aria-expanded={false}
+      >
+        <div className="py-3 flex flex-col items-center gap-2">
+          <StatusBadge status={status} />
+          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded-full bg-muted text-xs font-semibold text-muted-foreground tabular-nums">
+            {issues.length}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -42,7 +77,27 @@ export const KanbanColumn = memo(function KanbanColumn({
       )}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-2.5">
+      <div
+        className={cn(
+          "flex items-center justify-between px-3 py-2.5",
+          onToggleCollapse && "cursor-pointer",
+        )}
+        onClick={onToggleCollapse}
+        onKeyDown={
+          onToggleCollapse
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onToggleCollapse();
+                }
+              }
+            : undefined
+        }
+        role={onToggleCollapse ? "button" : undefined}
+        tabIndex={onToggleCollapse ? 0 : undefined}
+        aria-expanded={onToggleCollapse ? true : undefined}
+        aria-label={onToggleCollapse ? `Collapse ${status} column` : undefined}
+      >
         <StatusBadge status={status} />
         <span className="text-xs font-medium text-muted-foreground tabular-nums">
           {issues.length}

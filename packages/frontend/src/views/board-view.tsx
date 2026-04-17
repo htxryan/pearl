@@ -66,6 +66,9 @@ export function BoardView() {
   // Toggle to show/hide blocked issues
   const [showBlocked, setShowBlocked] = useState(true);
 
+  // Closed column collapsed by default to reduce noise
+  const [closedCollapsed, setClosedCollapsed] = useState(true);
+
   // Mutation for status changes
   const updateMutation = useUpdateIssue();
   const { mutate: updateStatus } = updateMutation;
@@ -419,6 +422,10 @@ export function BoardView() {
                   onQuickAdd={handleColumnQuickAdd}
                   mobile={false}
                   blockedIds={blockedIds}
+                  collapsed={status === "closed" ? closedCollapsed : undefined}
+                  onToggleCollapse={
+                    status === "closed" ? () => setClosedCollapsed((v) => !v) : undefined
+                  }
                 />
               ))}
             </section>

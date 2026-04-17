@@ -175,14 +175,16 @@ describe("BoardView", () => {
     });
   });
 
-  it("renders four status columns (no blocked column)", () => {
+  it("renders four status columns (no blocked column), closed collapsed by default", () => {
     renderBoard();
 
-    // Each status column has a list with aria-label "{status} issues"
+    // Expanded columns show their issue list
     expect(screen.getByRole("list", { name: "open issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "in_progress issues" })).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "deferred issues" })).toBeInTheDocument();
+    // Closed column is collapsed by default — no card list, but an expand button
+    expect(screen.queryByRole("list", { name: "closed issues" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Expand closed column/i })).toBeInTheDocument();
     // "blocked" is derived from dependencies, not a column
     expect(screen.queryByRole("list", { name: "blocked issues" })).not.toBeInTheDocument();
   });
@@ -214,9 +216,9 @@ describe("BoardView", () => {
   it("displays assignee initials on cards", () => {
     renderBoard();
 
-    // alice appears on beads-001 and beads-005
+    // alice appears on beads-001 (open); beads-005 (closed) is in collapsed column
     const aliceAvatars = screen.getAllByTitle("alice");
-    expect(aliceAvatars.length).toBe(2);
+    expect(aliceAvatars.length).toBe(1);
     expect(aliceAvatars[0]).toHaveTextContent("AL");
     // bob appears on beads-002
     expect(screen.getByTitle("bob")).toHaveTextContent("BO");
@@ -236,7 +238,8 @@ describe("BoardView", () => {
 
     const board = screen.getByRole("region", { name: "Kanban board" });
     expect(within(board).getAllByText("Bug")).toHaveLength(1);
-    expect(within(board).getAllByText("Feature")).toHaveLength(2); // beads-002, beads-005
+    // beads-005 (Feature, closed) is in collapsed column — only beads-002 visible
+    expect(within(board).getAllByText("Feature")).toHaveLength(1);
     expect(within(board).getAllByText("Task")).toHaveLength(1);
   });
 
@@ -250,8 +253,9 @@ describe("BoardView", () => {
   it("shows empty columns when no issues match filters", () => {
     renderBoard({ issues: [] });
 
+    // 3 expanded columns show "No issues"; closed is collapsed by default
     const emptyMessages = screen.getAllByText("No issues");
-    expect(emptyMessages).toHaveLength(4); // One per column (no blocked column)
+    expect(emptyMessages).toHaveLength(3);
   });
 
   it("renders the filter bar", () => {
@@ -285,6 +289,43 @@ describe("BoardView", () => {
       "/issues/beads-001",
       expect.objectContaining({ state: { from: "/board" } }),
     );
+  });
+
+  it("expands closed column when clicking the collapsed strip", () => {
+    renderBoard();
+
+    // Initially collapsed — no card list
+    expect(screen.queryByRole("list", { name: "closed issues" })).not.toBeInTheDocument();
+
+    // Click the expand button
+    fireEvent.click(screen.getByRole("button", { name: /Expand closed column/i }));
+
+    // Now expanded — card list visible
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
+    const closedList = screen.getByRole("list", { name: "closed issues" });
+    expect(within(closedList).getByText("Completed feature")).toBeInTheDocument();
+  });
+
+  it("collapses closed column when clicking the expanded header", () => {
+    renderBoard();
+
+    // Expand first
+    fireEvent.click(screen.getByRole("button", { name: /Expand closed column/i }));
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
+
+    // Click the header to collapse
+    fireEvent.click(screen.getByRole("button", { name: /Collapse closed column/i }));
+
+    // Back to collapsed
+    expect(screen.queryByRole("list", { name: "closed issues" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Expand closed column/i })).toBeInTheDocument();
+  });
+
+  it("shows issue count on collapsed closed column", () => {
+    renderBoard();
+
+    const expandBtn = screen.getByRole("button", { name: /Expand closed column/i });
+    expect(expandBtn).toHaveTextContent("1");
   });
 
   it("shows labels on cards", () => {
