@@ -193,6 +193,52 @@ pre,
     0 8px 32px rgba(0, 0, 0, 0.7);
 }
 
+/* Custom checkboxes inside rendered markdown prose */
+.prose input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--color-muted-foreground);
+  border-radius: 3px;
+  background: transparent;
+  vertical-align: middle;
+  position: relative;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.prose input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.prose input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--color-primary-foreground);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.prose ul:has(> li > input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose li:has(> input[type="checkbox"]) {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.prose li:has(> input[type="checkbox"]) > input[type="checkbox"] {
+  margin-top: 3px;
+}
+
 /* Checkbox toggle animation — only on user interaction, not initial render */
 @keyframes check-pop {
   0% {
