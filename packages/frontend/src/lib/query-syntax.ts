@@ -9,7 +9,6 @@
 
 import type { IssueStatus, IssueType, Priority } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
-import type { FilterState } from "@/components/issue-table/filter-bar-types";
 
 const VALID_STATUSES = new Set<string>(ISSUE_STATUSES);
 const VALID_PRIORITIES = new Set<number>(ISSUE_PRIORITIES);
@@ -58,6 +57,39 @@ export const STRUCTURAL_FILTER_LABELS: Record<StructuralFilter, string> = {
 };
 
 const VALID_STRUCTURAL = new Set<string>(STRUCTURAL_FILTER_OPTIONS);
+
+export interface FilterState {
+  status: IssueStatus[];
+  priority: Priority[];
+  issue_type: IssueType[];
+  assignee: string;
+  search: string;
+  labels: string[];
+  dateRanges: DateRange[];
+  structural: StructuralFilter[];
+  groupBy: GroupByField | null;
+}
+
+export type GroupByField = "status" | "priority" | "assignee" | "issue_type";
+
+export const GROUP_BY_LABELS: Record<GroupByField, string> = {
+  status: "Status",
+  priority: "Priority",
+  assignee: "Assignee",
+  issue_type: "Type",
+};
+
+export const EMPTY_FILTERS: FilterState = {
+  status: [],
+  priority: [],
+  issue_type: [],
+  assignee: "",
+  search: "",
+  labels: [],
+  dateRanges: [],
+  structural: [],
+  groupBy: null,
+};
 
 /** Token pattern: `key:value` or `key:"value with spaces"` */
 const TOKEN_RE = /(\w+):(?:"([^"]*)"|([\S]+))/g;
