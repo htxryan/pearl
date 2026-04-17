@@ -8,6 +8,12 @@ interface ActivityTimelineProps {
   events: Event[];
 }
 
+interface EventGroup {
+  key: string;
+  events: Event[];
+  representative: Event;
+}
+
 const PAGE_SIZE = 20;
 
 const EVENT_FILTER_OPTIONS: { value: string; label: string }[] = [
@@ -44,8 +50,10 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
     [sortedEvents, filterType],
   );
 
-  const visibleEvents = filteredEvents.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredEvents.length;
+  const groupedEvents = useMemo(() => groupAdjacentEvents(filteredEvents), [filteredEvents]);
+
+  const visibleGroups = groupedEvents.slice(0, visibleCount);
+  const hasMore = visibleCount < groupedEvents.length;
 
   const handleTimestampClick = useCallback((eventId: string) => {
     const anchor = `#event-${eventId}`;
@@ -60,7 +68,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
     <section>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
-          Activity ({filteredEvents.length})
+          Activity ({groupedEvents.length})
         </h2>
         <CustomSelect
           value={filterType}
@@ -74,32 +82,43 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
         />
       </div>
 
-      {visibleEvents.length > 0 ? (
+      {visibleGroups.length > 0 ? (
         <div className="relative pl-4 border-l-2 border-border space-y-3">
-          {visibleEvents.map((event) => (
-            <div key={event.id} id={`event-${event.id}`} className="relative">
-              {/* Dot on timeline */}
-              <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-border" />
+          {visibleGroups.map((group) => {
+            const event = group.representative;
+            const count = group.events.length;
+            return (
+              <div key={group.key} id={`event-${event.id}`} className="relative">
+                <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-border" />
 
-              <div className="text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{event.actor}</span>
-                  <span className="text-muted-foreground">{describeEvent(event)}</span>
+                <div className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{event.actor}</span>
+                    <span className="text-muted-foreground">{describeEvent(event)}</span>
+                    {count > 1 && (
+                      <span className="text-xs text-muted-foreground/60 font-medium">
+                        &times;{count}
+                      </span>
+                    )}
+                  </div>
+                  {event.comment && (
+                    <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleTimestampClick(event.id)}
+                    className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer bg-transparent border-none p-0"
+                    title="Copy link to this event"
+                  >
+                    <RelativeTime
+                      iso={event.created_at}
+                      className="text-xs text-muted-foreground"
+                    />
+                  </button>
                 </div>
-                {event.comment && (
-                  <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleTimestampClick(event.id)}
-                  className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer bg-transparent border-none p-0"
-                  title="Copy link to this event"
-                >
-                  <RelativeTime iso={event.created_at} className="text-xs text-muted-foreground" />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-col items-center py-6 text-muted-foreground">
@@ -121,12 +140,36 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
             size="sm"
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
           >
-            Show more ({filteredEvents.length - visibleCount} remaining)
+            Show more ({groupedEvents.length - visibleCount} remaining)
           </Button>
         </div>
       )}
     </section>
   );
+}
+
+export function groupAdjacentEvents(events: Event[]): EventGroup[] {
+  const groups: EventGroup[] = [];
+  for (const event of events) {
+    const prev = groups[groups.length - 1];
+    if (
+      prev &&
+      prev.representative.actor === event.actor &&
+      prev.representative.event_type === event.event_type &&
+      prev.representative.old_value === event.old_value &&
+      prev.representative.new_value === event.new_value &&
+      !event.comment
+    ) {
+      prev.events.push(event);
+    } else {
+      groups.push({
+        key: event.id,
+        events: [event],
+        representative: event,
+      });
+    }
+  }
+  return groups;
 }
 
 function describeEvent(event: Event): string {
