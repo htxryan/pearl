@@ -166,7 +166,7 @@ export function Sidebar() {
   if (isMobile) return null;
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col bg-muted/50">
+    <aside className="flex w-56 shrink-0 flex-col bg-surface-raised">
       <div className="flex h-14 items-center px-4">
         <span className="text-lg font-semibold tracking-tight">Beads</span>
       </div>

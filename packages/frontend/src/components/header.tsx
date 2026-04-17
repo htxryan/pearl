@@ -9,7 +9,7 @@ function isMacPlatform(): boolean {
 
 export function Header({ mobileMenuButton }: { mobileMenuButton?: ReactNode }) {
   return (
-    <header className="flex h-14 items-center bg-muted/30 px-4 gap-2">
+    <header className="flex h-14 items-center bg-surface-raised px-4 gap-2">
       {mobileMenuButton}
       <span className="text-sm text-muted-foreground hidden sm:inline">
         Press{" "}
