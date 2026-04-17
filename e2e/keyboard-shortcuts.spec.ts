@@ -97,4 +97,25 @@ test.describe("Keyboard Shortcuts", () => {
     const searchInput = page.getByPlaceholder(/search/i).first();
     await expect(searchInput).toBeFocused({ timeout: 3_000 });
   });
+
+  test("/ focuses search after clicking blank area (body focused)", async ({
+    seededPage: page,
+  }) => {
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement)?.blur();
+    });
+    const focusedTag = await page.evaluate(() => document.activeElement?.tagName);
+    expect(focusedTag).toBe("BODY");
+
+    await page.keyboard.press("/");
+    const searchInput = page.getByPlaceholder(/search/i).first();
+    await expect(searchInput).toBeFocused({ timeout: 3_000 });
+  });
+
+  test("/ does not steal focus from other inputs", async ({ seededPage: page }) => {
+    const quickAdd = page.getByPlaceholder(/quick add/i);
+    await quickAdd.click();
+    await page.keyboard.press("/");
+    await expect(quickAdd).toBeFocused();
+  });
 });
