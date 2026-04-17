@@ -16,32 +16,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import * as api from "@/lib/api-client";
+import { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys } from "./issue-keys";
 import { labelKeys } from "./use-labels";
 import { notifyCommentAdded } from "./use-notifications";
 
-// ─── Query Keys ─────────────────────────────────────────
-export const issueKeys = {
-  all: ["issues"] as const,
-  lists: () => [...issueKeys.all, "list"] as const,
-  list: (params?: URLSearchParams) => [...issueKeys.lists(), params?.toString() ?? ""] as const,
-  details: () => [...issueKeys.all, "detail"] as const,
-  detail: (id: string) => [...issueKeys.details(), id] as const,
-  comments: (id: string) => [...issueKeys.all, "comments", id] as const,
-  events: (id: string) => [...issueKeys.all, "events", id] as const,
-  dependencies: (id: string) => [...issueKeys.all, "dependencies", id] as const,
-};
-
-export const statsKeys = {
-  all: ["stats"] as const,
-};
-
-export const healthKeys = {
-  all: ["health"] as const,
-};
-
-export const dependencyKeys = {
-  all: ["dependencies"] as const,
-};
+export { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys };
 
 // ─── Invalidation from hints ────────────────────────────
 function invalidateFromHints(
@@ -352,7 +331,7 @@ export function useAddComment() {
     },
     onSuccess: (response, { issueId }) => {
       invalidateFromHints(queryClient, response.invalidationHints);
-      if (response.data) {
+      if (response.data?.author) {
         const issue = queryClient.getQueryData<Issue>(issueKeys.detail(issueId));
         if (issue) {
           notifyCommentAdded(issueId, issue.title, response.data.author);
@@ -507,10 +486,6 @@ export function useHealth() {
 }
 
 // ─── Setup Hook ─────────────────────────────────────────
-export const setupKeys = {
-  status: ["setup", "status"] as const,
-};
-
 export function useSetupStatus() {
   return useQuery({
     queryKey: setupKeys.status,

@@ -478,6 +478,58 @@ describe("Invalidation from hints", () => {
     expect(notifyCommentAdded).not.toHaveBeenCalled();
   });
 
+  it("useAddComment skips notification when issue is not in cache", async () => {
+    const { wrapper } = createWrapper();
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      data: {
+        id: "c1",
+        issue_id: "issue-1",
+        author: "alice",
+        text: "hi",
+        created_at: "2025-01-01T00:00:00Z",
+      },
+      invalidationHints: [{ entity: "comments", id: "issue-1" }],
+    });
+
+    vi.mocked(notifyCommentAdded).mockClear();
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).not.toHaveBeenCalled();
+  });
+
+  it("useAddComment skips notification when response data has no author", async () => {
+    const { queryClient, wrapper } = createWrapper();
+
+    queryClient.setQueryData(issueKeys.detail("issue-1"), makeIssue());
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      data: { raw: "non-json response" },
+      invalidationHints: [{ entity: "comments", id: "issue-1" }],
+    });
+
+    vi.mocked(notifyCommentAdded).mockClear();
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).not.toHaveBeenCalled();
+  });
+
   it("useAddDependency invalidates dependency keys from hints", async () => {
     const { queryClient, wrapper } = createWrapper();
 

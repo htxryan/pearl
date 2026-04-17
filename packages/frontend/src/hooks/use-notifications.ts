@@ -2,7 +2,7 @@ import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { fetchIssues } from "@/lib/api-client";
-import { issueKeys } from "./use-issues";
+import { issueKeys } from "./issue-keys";
 
 // ─── Types ────────────────────────────────────────────
 export type NotificationType =
@@ -147,6 +147,7 @@ function isDuplicate(input: Omit<AppNotification, "id" | "read" | "createdAt">):
     (n) =>
       n.type === input.type &&
       n.issueId === input.issueId &&
+      n.message === input.message &&
       new Date(n.createdAt).getTime() > cutoff,
   );
 }
