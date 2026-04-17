@@ -1,0 +1,121 @@
+=== ADR files ===
+-rw-r--r--@ 1 redhale  staff  3033 Apr 16 12:25 /Users/redhale/src/pearl/docs/adr/001-dolt-embedded-mode.md
+-rw-r--r--@ 1 redhale  staff  2012 Apr 16 22:45 /Users/redhale/src/pearl/docs/adr/002-react19-vite-frontend.md
+-rw-r--r--@ 1 redhale  staff  2025 Apr 16 22:45 /Users/redhale/src/pearl/docs/adr/003-biome-unified-tooling.md
+-rw-r--r--@ 1 redhale  staff  2218 Apr 16 22:45 /Users/redhale/src/pearl/docs/adr/004-pnpm-workspaces-monorepo.md
+-rw-r--r--@ 1 redhale  staff  2231 Apr 16 22:45 /Users/redhale/src/pearl/docs/adr/005-typescript-strict-mode.md
+-rw-r--r--@ 1 redhale  staff   631 Apr 16 23:00 /Users/redhale/src/pearl/docs/adr/README.md
+-rw-r--r--@ 1 redhale  staff   329 Apr 16 12:25 /Users/redhale/src/pearl/docs/adr/template.md
+
+=== Dependabot config ===
+version: 2
+
+updates:
+  # npm ecosystem — pnpm monorepo (lockfile lives at root)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+=== CI type-contract job ===
+  type-contract:
+    name: Shared type contract
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+
+=== Dependency-cruiser config ===
+/** @type {import('dependency-cruiser').IConfiguration} */
+module.exports = {
+  forbidden: [
+    {
+      name: "no-circular",
+      severity: "error",
+      comment: "Circular dependencies lead to hard-to-debug issues",
+      from: {},
+      to: {
+        circular: true,
+      },
+    },
+    {
+      name: "shared-no-import-frontend",
+      severity: "error",
+      comment: "@pearl/shared must not import from @pearl/frontend",
+      from: {
+        path: "^packages/shared/",
+      },
+      to: {
+        path: "^packages/frontend/",
+      },
+    },
+    {
+      name: "shared-no-import-backend",
+      severity: "error",
+      comment: "@pearl/shared must not import from pearl-bdui",
+      from: {
+        path: "^packages/shared/",
+      },
+      to: {
+        path: "^packages/pearl-bdui/",
+      },
+    },
+    {
+      name: "frontend-no-import-backend-internals",
+      severity: "error",
+      comment:
+        "@pearl/frontend must not import pearl-bdui internals (only @pearl/shared is allowed)",
+      from: {
+        path: "^packages/frontend/",
+      },
+      to: {
+        path: "^packages/pearl-bdui/",
+      },
+    },
+  ],
+  options: {
+    doNotFollow: {
+      path: "node_modules",
+    },
+    tsPreCompilationDeps: true,
+    enhancedResolveOptions: {
+      exportsFields: ["exports"],
+      conditionNames: ["import", "require", "node", "default"],
+    },
+    reporterOptions: {
+      text: {
+        highlightFocused: true,
+      },
+    },
+  },
+};

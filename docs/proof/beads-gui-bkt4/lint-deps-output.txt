@@ -1,0 +1,7 @@
+
+> @ lint:deps /Users/redhale/src/pearl
+> depcruise packages/*/src --config .dependency-cruiser.cjs
+
+
+✔ no dependency violations found (284 modules, 722 dependencies cruised)
+

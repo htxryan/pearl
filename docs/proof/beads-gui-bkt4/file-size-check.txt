@@ -1,0 +1,14 @@
+=== Frontend source file line counts (files > 400 LOC shown) ===
+    1094 /Users/redhale/src/pearl/packages/frontend/src/integration/golden-path.test.tsx
+    1007 /Users/redhale/src/pearl/packages/frontend/src/lib/api-client.integration.test.ts
+     983 /Users/redhale/src/pearl/packages/frontend/src/integration/data-flow.test.ts
+     745 /Users/redhale/src/pearl/packages/frontend/src/integration/theme-integration-verification.test.tsx
+     621 /Users/redhale/src/pearl/packages/frontend/src/integration/error-recovery.test.tsx
+     552 /Users/redhale/src/pearl/packages/frontend/src/components/issue-table/columns.tsx
+     542 /Users/redhale/src/pearl/packages/frontend/src/integration/view-navigation.test.tsx
+     496 /Users/redhale/src/pearl/packages/frontend/src/hooks/use-issues.ts
+     491 /Users/redhale/src/pearl/packages/frontend/src/views/list-view.tsx
+     490 /Users/redhale/src/pearl/packages/frontend/src/views/graph-view.tsx
+     472 /Users/redhale/src/pearl/packages/frontend/src/views/graph-view.test.tsx
+     449 /Users/redhale/src/pearl/packages/frontend/src/views/detail-view.tsx
+     409 /Users/redhale/src/pearl/packages/frontend/src/hooks/use-notifications.ts

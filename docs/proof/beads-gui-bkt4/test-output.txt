@@ -1,0 +1,10 @@
+packages/frontend test:   /* fire events that update state */
+packages/frontend test: });
+packages/frontend test: /* assert on the output */
+packages/frontend test: This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+packages/frontend test:  ✓ src/integration/golden-path.test.tsx (34 tests) 555ms
+packages/frontend test:  Test Files  26 passed (26)
+packages/frontend test:       Tests  505 passed (505)
+packages/frontend test:    Start at  23:07:25
+packages/frontend test:    Duration  2.91s (transform 1.29s, setup 1.16s, collect 13.28s, tests 4.87s, environment 7.44s, prepare 1.33s)
+packages/frontend test: Done
