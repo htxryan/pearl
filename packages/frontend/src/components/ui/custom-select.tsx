@@ -205,9 +205,12 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
         }}
         onKeyDown={handleKeyDown}
         className={cn(
-          "inline-flex items-center justify-between gap-1 rounded border border-border bg-background cursor-pointer transition-colors",
-          "hover:border-foreground/30 focus:outline-none focus:ring-1 focus:ring-ring",
+          "inline-flex items-center justify-between gap-1 rounded border bg-background cursor-pointer transition-colors",
+          "focus:outline-none focus:ring-1 focus:ring-ring",
           sizeClasses,
+          hasValue && isMulti
+            ? "border-primary/50 bg-primary/5 text-primary hover:border-primary/70"
+            : "border-border hover:border-foreground/30",
           !hasValue && "text-muted-foreground",
           triggerClassName,
         )}
