@@ -41,7 +41,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex flex-col items-center rounded-lg border border-border bg-muted/30",
+          "flex flex-col items-center rounded-lg border border-border bg-surface-raised",
           "transition-colors duration-150 w-[48px] min-w-[48px] cursor-pointer select-none",
           (isOver || isDropTarget) && "border-ring bg-ring/5",
         )}
@@ -70,7 +70,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-lg border border-border bg-muted/30",
+        "flex flex-col rounded-lg border border-border bg-surface-raised",
         "transition-colors duration-150",
         mobile ? "w-full" : "min-w-[280px] w-[280px]",
         (isOver || isDropTarget) && "border-ring bg-ring/5",
@@ -161,7 +161,7 @@ function ColumnQuickAdd({
   };
 
   return (
-    <div className="px-2 py-1.5 bg-muted/30 rounded-b-lg">
+    <div className="px-2 py-1.5 bg-surface-raised rounded-b-lg">
       <input
         ref={inputRef}
         value={title}

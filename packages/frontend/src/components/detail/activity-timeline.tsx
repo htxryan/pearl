@@ -158,7 +158,8 @@ export function groupAdjacentEvents(events: Event[]): EventGroup[] {
       prev.representative.event_type === event.event_type &&
       prev.representative.old_value === event.old_value &&
       prev.representative.new_value === event.new_value &&
-      !event.comment
+      !event.comment &&
+      !prev.representative.comment
     ) {
       prev.events.push(event);
     } else {

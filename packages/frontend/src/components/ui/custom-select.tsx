@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export interface SelectOption<T extends string | number = string> {
@@ -44,6 +44,7 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  const listboxId = useId();
 
   const enabledOptions = options.filter((o) => !o.disabled);
 
@@ -80,11 +81,12 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
     const dropdownHeight = Math.min(options.length * 36 + 8, 256);
     const spaceBelow = window.innerHeight - rect.bottom - 8;
     const showAbove = spaceBelow < dropdownHeight && rect.top > spaceBelow;
+    const dropdownWidth = Math.max(rect.width, 140);
 
     setDropdownStyle({
       position: "fixed",
-      left: Math.max(4, Math.min(rect.left, window.innerWidth - 220)),
-      width: Math.max(rect.width, 140),
+      left: Math.max(4, Math.min(rect.left, window.innerWidth - dropdownWidth - 4)),
+      width: dropdownWidth,
       ...(showAbove ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
       zIndex: 50,
     });
@@ -187,7 +189,11 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
     [open, openDropdown, closeDropdown, enabledOptions, highlightIndex, handleSelect],
   );
 
-  const sizeClasses = size === "sm" ? "h-7 px-2 text-xs" : "h-8 px-2 text-xs sm:text-sm";
+  const sizeClasses =
+    size === "sm" ? "h-7 px-2 text-xs" : "min-h-[44px] sm:min-h-0 h-8 px-2 text-xs sm:text-sm";
+
+  const activeDescendantId =
+    open && highlightIndex >= 0 ? `${listboxId}-opt-${highlightIndex}` : undefined;
 
   return (
     <div ref={containerRef} className={cn("relative inline-block", className)}>
@@ -197,6 +203,8 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-controls={open ? listboxId : undefined}
+        aria-activedescendant={activeDescendantId}
         aria-label={ariaLabel}
         onClick={(e) => {
           e.stopPropagation();
@@ -235,6 +243,7 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
       {open && (
         <div
           ref={listRef}
+          id={listboxId}
           role="listbox"
           aria-multiselectable={isMulti || undefined}
           style={dropdownStyle}
@@ -247,6 +256,7 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
             return (
               <div
                 key={String(opt.value)}
+                id={enabledIdx >= 0 ? `${listboxId}-opt-${enabledIdx}` : undefined}
                 role="option"
                 tabIndex={-1}
                 aria-selected={selected}
