@@ -43,7 +43,7 @@ export function NotificationBell() {
         }
         aria-expanded={isOpen}
         aria-haspopup="true"
-        className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="relative flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {/* Bell SVG icon */}
         <svg

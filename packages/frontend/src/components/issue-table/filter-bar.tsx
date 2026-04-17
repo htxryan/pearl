@@ -140,7 +140,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             placeholder="Search issues... (/)"
             className={cn(
               "h-8 rounded border border-border bg-background pl-3 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
-              isMobile ? "w-full" : "w-56",
+              isMobile ? "w-full min-h-[44px]" : "w-56",
             )}
             aria-label="Search issues"
           />
@@ -194,7 +194,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           placeholder="Assignee"
           className={cn(
             "h-8 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
-            isMobile ? "w-full" : "w-32",
+            isMobile ? "w-full min-h-[44px]" : "w-32",
           )}
           aria-label="Filter by assignee"
         />
@@ -219,7 +219,10 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             }
             e.target.value = "";
           }}
-          className="h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          className={cn(
+            "h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring",
+            isMobile && "min-h-[44px]",
+          )}
           aria-label="Filter by date range"
         >
           <option value="">Date filter...</option>
@@ -240,7 +243,10 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             }
             e.target.value = "";
           }}
-          className="h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          className={cn(
+            "h-8 min-w-[120px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring",
+            isMobile && "min-h-[44px]",
+          )}
           aria-label="Filter by properties"
         >
           <option value="">Properties...</option>
@@ -258,7 +264,10 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
             const value = e.target.value as GroupByField | "";
             onChange({ ...filters, groupBy: value || null });
           }}
-          className="h-8 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          className={cn(
+            "h-8 min-w-[100px] rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring",
+            isMobile && "min-h-[44px]",
+          )}
           aria-label="Group by"
         >
           <option value="">Group by...</option>
@@ -272,7 +281,10 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         {hasActiveFilters(filters) && (
           <button
             onClick={() => onChange(EMPTY_FILTERS)}
-            className="h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            className={cn(
+              "h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+              isMobile && "min-h-[44px]",
+            )}
           >
             Clear all
           </button>

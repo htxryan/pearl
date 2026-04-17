@@ -1,6 +1,6 @@
 import type { IssueStatus, LabelColor } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { CommentThread } from "@/components/detail/comment-thread";
@@ -28,6 +28,7 @@ import {
   useUpdateIssue,
 } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 import {
@@ -50,6 +51,49 @@ const VIEW_LABELS: Record<string, string> = {
   "/board": "Board",
   "/graph": "Graph",
 };
+
+/** Collapsible wrapper for detail sections on mobile. On desktop, renders children directly. */
+function CollapsibleSection({
+  title,
+  hasContent,
+  children,
+}: {
+  title: string;
+  hasContent: boolean;
+  children: ReactNode;
+}) {
+  const isMobile = useIsMobile();
+  const [expanded, setExpanded] = useState(hasContent);
+
+  if (!isMobile) return <>{children}</>;
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="flex items-center justify-between w-full py-2 text-left text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        aria-expanded={expanded}
+      >
+        <span>{title}</span>
+        <svg
+          className={`h-4 w-4 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+      {expanded && children}
+    </div>
+  );
+}
 
 function DetailViewContent({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -233,7 +277,7 @@ function DetailViewContent({ id }: { id: string }) {
       {/* Header bar */}
       <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
               <button
@@ -301,7 +345,7 @@ function DetailViewContent({ id }: { id: string }) {
             <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
               Fields
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FieldRow label="Status">
                 <SelectField
                   value={issue.status}
@@ -370,62 +414,77 @@ function DetailViewContent({ id }: { id: string }) {
           </section>
 
           {/* Description */}
-          <MarkdownSection
-            title="Description"
-            content={issue.description}
-            field="description"
-            onSave={(val) => handleFieldUpdate("description", val)}
-          />
+          <CollapsibleSection title="Description" hasContent={!!issue.description}>
+            <MarkdownSection
+              title="Description"
+              content={issue.description}
+              field="description"
+              onSave={(val) => handleFieldUpdate("description", val)}
+            />
+          </CollapsibleSection>
 
           {/* Design Notes */}
           {(issue.design || issue.status !== "closed") && (
-            <MarkdownSection
-              title="Design Notes"
-              content={issue.design}
-              field="design"
-              onSave={(val) => handleFieldUpdate("design", val)}
-            />
+            <CollapsibleSection title="Design Notes" hasContent={!!issue.design}>
+              <MarkdownSection
+                title="Design Notes"
+                content={issue.design}
+                field="design"
+                onSave={(val) => handleFieldUpdate("design", val)}
+              />
+            </CollapsibleSection>
           )}
 
           {/* Acceptance Criteria */}
           {(issue.acceptance_criteria || issue.status !== "closed") && (
-            <MarkdownSection
+            <CollapsibleSection
               title="Acceptance Criteria"
-              content={issue.acceptance_criteria}
-              field="acceptance_criteria"
-              onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
-            />
+              hasContent={!!issue.acceptance_criteria}
+            >
+              <MarkdownSection
+                title="Acceptance Criteria"
+                content={issue.acceptance_criteria}
+                field="acceptance_criteria"
+                onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
+              />
+            </CollapsibleSection>
           )}
 
           {/* Notes */}
           {(issue.notes || issue.status !== "closed") && (
-            <MarkdownSection
-              title="Notes"
-              content={issue.notes}
-              field="notes"
-              onSave={(val) => handleFieldUpdate("notes", val)}
-            />
+            <CollapsibleSection title="Notes" hasContent={!!issue.notes}>
+              <MarkdownSection
+                title="Notes"
+                content={issue.notes}
+                field="notes"
+                onSave={(val) => handleFieldUpdate("notes", val)}
+              />
+            </CollapsibleSection>
           )}
 
           {/* Dependencies */}
-          <DependencyList
-            issueId={id}
-            dependencies={dependencies}
-            onAdd={(dependsOnId) =>
-              addDepMutation.mutateAsync({ issue_id: id, depends_on_id: dependsOnId })
-            }
-            onRemove={(depIssueId, depDependsOnId) =>
-              removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })
-            }
-            isAdding={addDepMutation.isPending}
-          />
+          <CollapsibleSection title="Dependencies" hasContent={dependencies.length > 0}>
+            <DependencyList
+              issueId={id}
+              dependencies={dependencies}
+              onAdd={(dependsOnId) =>
+                addDepMutation.mutateAsync({ issue_id: id, depends_on_id: dependsOnId })
+              }
+              onRemove={(depIssueId, depDependsOnId) =>
+                removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })
+              }
+              isAdding={addDepMutation.isPending}
+            />
+          </CollapsibleSection>
 
           {/* Comments */}
-          <CommentThread
-            comments={comments}
-            onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
-            isAdding={addCommentMutation.isPending}
-          />
+          <CollapsibleSection title="Comments" hasContent={comments.length > 0}>
+            <CommentThread
+              comments={comments}
+              onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
+              isAdding={addCommentMutation.isPending}
+            />
+          </CollapsibleSection>
 
           {/* Activity Timeline */}
           <ActivityTimeline events={events} />

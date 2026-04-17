@@ -27,6 +27,7 @@ import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
+import { statusLabel } from "@/views/detail-components";
 
 /** Statuses that users can drag cards into — same as board columns */
 const DROPPABLE_STATUSES: Set<IssueStatus> = new Set(SETTABLE_STATUSES);
@@ -259,6 +260,22 @@ export function BoardView() {
 
   const isMobile = useIsMobile();
 
+  // Mobile column navigation
+  const [mobileColumnIdx, setMobileColumnIdx] = useState(0);
+  const touchStartX = useRef(0);
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 50) {
+      setMobileColumnIdx((prev) => {
+        if (dx < 0) return Math.min(prev + 1, COLUMN_ORDER.length - 1);
+        return Math.max(prev - 1, 0);
+      });
+    }
+  }, []);
+
   // Show mutation errors via toast
   useEffect(() => {
     if (!updateMutation.isError || !updateMutation.error) return;
@@ -295,13 +312,14 @@ export function BoardView() {
       {/* Board */}
       <div
         className={cn(
-          "flex-1 p-4",
-          isMobile ? "overflow-y-auto" : "overflow-x-auto overflow-y-hidden",
+          "flex-1",
+          isMobile ? "overflow-y-auto flex flex-col" : "overflow-x-auto overflow-y-hidden p-4",
         )}
       >
         {isLoading && issues.length === 0 ? (
           <BoardSkeleton isMobile={isMobile} />
-        ) : (
+        ) : isMobile ? (
+          /* Mobile: tab bar + single column with swipe */
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
@@ -310,11 +328,80 @@ export function BoardView() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
+            {/* Tab bar */}
             <div
-              className={isMobile ? "flex flex-col gap-4" : "flex gap-4 h-full"}
-              role="region"
-              aria-label="Kanban board"
+              className="shrink-0 flex border-b border-border bg-muted/30 px-2"
+              role="tablist"
+              aria-label="Board columns"
             >
+              {COLUMN_ORDER.map((status, idx) => (
+                <button
+                  key={status}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === mobileColumnIdx}
+                  aria-controls={`board-panel-${status}`}
+                  className={cn(
+                    "flex items-center gap-1.5 min-h-[44px] px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap",
+                    idx === mobileColumnIdx
+                      ? "text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  onClick={() => setMobileColumnIdx(idx)}
+                >
+                  {statusLabel(status)}
+                  <span
+                    className={cn(
+                      "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-semibold",
+                      idx === mobileColumnIdx
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {columnData[status].length}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Swipeable column area */}
+            <div
+              className="flex-1 p-4 overflow-y-auto"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              role="tabpanel"
+              id={`board-panel-${COLUMN_ORDER[mobileColumnIdx]}`}
+              aria-label={`${statusLabel(COLUMN_ORDER[mobileColumnIdx])} column`}
+            >
+              <section aria-label="Kanban board">
+                <KanbanColumn
+                  key={COLUMN_ORDER[mobileColumnIdx]}
+                  status={COLUMN_ORDER[mobileColumnIdx]}
+                  issues={columnData[COLUMN_ORDER[mobileColumnIdx]]}
+                  onCardClick={handleCardClick}
+                  isDropTarget={isDragging && overColumnStatus === COLUMN_ORDER[mobileColumnIdx]}
+                  onQuickAdd={handleColumnQuickAdd}
+                  mobile={isMobile}
+                  blockedIds={blockedIds}
+                />
+              </section>
+            </div>
+
+            <DragOverlay dropAnimation={null}>
+              {activeIssue ? <KanbanCardOverlay issue={activeIssue} /> : null}
+            </DragOverlay>
+          </DndContext>
+        ) : (
+          /* Desktop: all columns side by side */
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <section className="flex gap-4 h-full" aria-label="Kanban board">
               {COLUMN_ORDER.map((status) => (
                 <KanbanColumn
                   key={status}
@@ -323,11 +410,11 @@ export function BoardView() {
                   onCardClick={handleCardClick}
                   isDropTarget={isDragging && overColumnStatus === status}
                   onQuickAdd={handleColumnQuickAdd}
-                  mobile={isMobile}
+                  mobile={false}
                   blockedIds={blockedIds}
                 />
               ))}
-            </div>
+            </section>
 
             <DragOverlay dropAnimation={null}>
               {activeIssue ? <KanbanCardOverlay issue={activeIssue} /> : null}

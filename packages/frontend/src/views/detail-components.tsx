@@ -57,7 +57,7 @@ export function SelectField({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label={label}
-      className="text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+      className="text-sm bg-transparent border border-border rounded px-2 py-1 min-h-[44px] sm:min-h-0 focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
     >
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -81,7 +81,7 @@ export function DetailSkeleton() {
         {/* Fields grid skeleton */}
         <div className="space-y-2">
           <div className="h-3 skeleton-shimmer rounded w-16 mb-3" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="space-y-1.5">
                 <div className="h-3 skeleton-shimmer rounded w-16" />
