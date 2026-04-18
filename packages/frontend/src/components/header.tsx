@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useIsEmbeddedMode } from "@/hooks/use-embedded-mode";
 import { useSyncReplica } from "@/hooks/use-issues";
 import { NotificationBell } from "./notification-bell";
 
@@ -53,6 +54,7 @@ export function Header({
   onCreateIssue?: () => void;
 }) {
   const syncMutation = useSyncReplica();
+  const isReadOnly = useIsEmbeddedMode();
 
   return (
     <header className="flex h-14 items-center bg-surface-raised border-b border-border px-4 gap-2">
@@ -61,7 +63,9 @@ export function Header({
         <button
           type="button"
           onClick={onCreateIssue}
-          className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          disabled={isReadOnly}
+          className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          data-testid="create-issue-btn"
         >
           <PlusIcon />
           <span className="hidden sm:inline">Create Issue</span>
@@ -70,7 +74,7 @@ export function Header({
       <button
         type="button"
         onClick={() => syncMutation.mutate()}
-        disabled={syncMutation.isPending}
+        disabled={syncMutation.isPending || isReadOnly}
         title="Sync from primary database"
         className="inline-flex items-center gap-1.5 rounded-[var(--radius)] border border-border bg-surface-raised px-2.5 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >

@@ -420,8 +420,30 @@ export async function createServer(initialConfig: Config) {
       return;
     }
 
-    if (isServerMode) {
-      // Server mode: connect directly to external Dolt SQL server
+    if (isServerMode && config.pearlManaged) {
+      // Pearl-managed server mode: start dolt sql-server on the managed data dir
+      const dataDir = config.doltDataDir || config.doltDbPath;
+      app.log.info(`[managed] Starting pearl-managed dolt sql-server on ${dataDir}...`);
+
+      doltManager = new DoltServerManager(config, dataDir);
+      doltManager.onStateChange(async (state) => {
+        app.log.info(`[dolt] Managed server state: ${state}`);
+        if (state === "running" && initialStartupDone) {
+          app.log.info("Managed dolt server recovered, recreating connection pool...");
+          await destroyPool();
+          createDoltPool(config);
+        }
+      });
+
+      await doltManager.start();
+      if (doltManager.getState() === "running") {
+        createDoltPool(config);
+        app.log.info("[managed] Pearl-managed dolt sql-server running, pool created");
+      } else {
+        app.log.warn("[managed] Pearl-managed dolt sql-server failed to start — degraded mode");
+      }
+    } else if (isServerMode) {
+      // External server mode: connect directly to external Dolt SQL server
       app.log.info(
         `Connecting to external Dolt SQL server at ${config.doltHost}:${config.doltPort}...`,
       );

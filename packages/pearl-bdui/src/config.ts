@@ -38,6 +38,10 @@ export interface Config {
   doltPassword: string;
   /** Dolt database name (server mode: from metadata; embedded: from path) */
   doltDatabase: string;
+  /** True when pearl manages the dolt sql-server lifecycle (server mode only) */
+  pearlManaged: boolean;
+  /** Data directory for pearl-managed dolt server */
+  doltDataDir: string;
   /** True when no .beads/ directory found — backend runs in setup-only mode */
   needsSetup: boolean;
 }
@@ -68,6 +72,8 @@ export function loadConfig(): Config {
       doltUser: process.env.DOLT_USER || "root",
       doltPassword: process.env.DOLT_PASSWORD || "",
       doltDatabase: "beads_gui",
+      pearlManaged: false,
+      doltDataDir: "",
       needsSetup: true,
     };
   }
@@ -131,6 +137,8 @@ export function loadConfig(): Config {
     doltUser: process.env.DOLT_USER || String(metadata?.dolt_user || "") || "root",
     doltPassword: process.env.DOLT_PASSWORD || String(metadata?.dolt_password || ""),
     doltDatabase,
+    pearlManaged: !!metadata?.pearl_managed,
+    doltDataDir: metadata?.dolt_data_dir || "",
     needsSetup: false,
   };
 }
@@ -144,6 +152,8 @@ interface BeadsMetadata {
   /** Written by `bd dolt set port` */
   dolt_server_port?: number;
   dolt_database?: string;
+  pearl_managed?: boolean;
+  dolt_data_dir?: string;
   [key: string]: unknown;
 }
 
