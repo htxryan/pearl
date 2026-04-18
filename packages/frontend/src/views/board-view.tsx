@@ -75,7 +75,7 @@ export function BoardView() {
   const [showBlocked, setShowBlocked] = useState(true);
 
   // Closed column collapsed by default to reduce noise
-  const [closedCollapsed, setClosedCollapsed] = useState(true);
+  const [closedCollapsed, setClosedCollapsed] = useState(false);
 
   // Mutation for status changes
   const updateMutation = useUpdateIssue();

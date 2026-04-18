@@ -168,7 +168,7 @@ export function Sidebar() {
   return (
     <aside className="flex w-56 shrink-0 flex-col bg-surface-raised border-r border-border">
       <div className="flex h-14 items-center px-4">
-        <span className="text-lg font-semibold tracking-tight">Beads</span>
+        <span className="text-lg font-semibold tracking-tight">Pearl</span>
       </div>
       <nav className="flex flex-1 flex-col p-2">
         <div className="flex flex-col gap-1">
@@ -256,7 +256,7 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
       {/* Drawer panel */}
       <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-background shadow-lg flex flex-col animate-slide-in-left">
         <div className="flex h-14 items-center justify-between px-4">
-          <span className="text-lg font-semibold tracking-tight">Beads</span>
+          <span className="text-lg font-semibold tracking-tight">Pearl</span>
           <button
             onClick={onClose}
             className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

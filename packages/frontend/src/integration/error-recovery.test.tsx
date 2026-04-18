@@ -513,9 +513,9 @@ describe("View degradation during errors", () => {
       const { BoardView } = await import("@/views/board-view");
       renderWithProviders(<BoardView />);
 
-      // 3 expanded columns show "No issues"; closed column is collapsed by default
+      // All 4 columns show "No issues"
       const emptyMessages = screen.getAllByText("No issues");
-      expect(emptyMessages.length).toBe(3);
+      expect(emptyMessages.length).toBe(4);
     });
   });
 

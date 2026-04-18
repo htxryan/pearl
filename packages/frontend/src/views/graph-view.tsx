@@ -464,6 +464,7 @@ export function GraphView() {
             fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 2 }}
             minZoom={0.3}
             maxZoom={3}
+            proOptions={{ hideAttribution: true }}
           >
             <Background />
             <GraphControls />

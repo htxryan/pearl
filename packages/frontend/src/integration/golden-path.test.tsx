@@ -1088,10 +1088,10 @@ describe("Cross-view data consistency", () => {
     expect(screen.getByText("No issues found")).toBeInTheDocument();
     u1();
 
-    // Board: 3 expanded columns show "No issues"; closed column collapsed by default
+    // Board: all 4 columns show "No issues"
     const { unmount: u2 } = renderApp("/board");
     const emptyMessages = screen.getAllByText("No issues");
-    expect(emptyMessages.length).toBe(3);
+    expect(emptyMessages.length).toBe(4);
     u2();
 
     // Graph shows empty state message

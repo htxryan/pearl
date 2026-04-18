@@ -205,8 +205,15 @@ function describeEvent(event: Event): string {
     case "claimed":
       return `claimed this issue`;
     case "label_change":
-      return `updated labels`;
+      if (old_value && new_value)
+        return `changed labels from ${formatValue(old_value)} to ${formatValue(new_value)}`;
+      if (new_value) return `added label ${formatValue(new_value)}`;
+      if (old_value) return `removed label ${formatValue(old_value)}`;
+      return "updated labels";
     default:
+      if (old_value && new_value)
+        return `changed ${event_type.replace(/_/g, " ")} from ${formatValue(old_value)} to ${formatValue(new_value)}`;
+      if (new_value) return `set ${event_type.replace(/_/g, " ")} to ${formatValue(new_value)}`;
       return event_type.replace(/_/g, " ");
   }
 }

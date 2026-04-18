@@ -1,5 +1,8 @@
 import { useCallback, useState } from "react";
+import Markdown from "react-markdown";
 import { useNavigate } from "react-router";
+import rehypeHighlight from "rehype-highlight";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
@@ -130,7 +133,11 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">
               Description
             </h3>
-            <p className="text-sm whitespace-pre-wrap">{issue.description}</p>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                {issue.description}
+              </Markdown>
+            </div>
           </div>
         )}
 
