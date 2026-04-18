@@ -52,8 +52,15 @@ pearl-bdui
 ### Requirements
 
 - Node.js >= 22
-- [Dolt](https://docs.dolthub.com/introduction/installation) (for the embedded database)
+- [Dolt](https://docs.dolthub.com/introduction/installation) (Pearl manages a `dolt sql-server` or connects to your own)
 - A project with a `.beads/` directory (created by the `bd` CLI)
+
+### Database Mode
+
+Pearl runs against a Dolt SQL server. On first start, if your project uses the legacy embedded mode, Pearl shows a migration modal with two options:
+
+- **Pearl-managed**: Pearl starts and supervises a `dolt sql-server` for you. One click.
+- **External**: Run `dolt sql-server` yourself and provide the host/port.
 
 ## Development
 

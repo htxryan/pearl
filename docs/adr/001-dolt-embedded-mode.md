@@ -1,7 +1,7 @@
 # ADR-001: Dolt Embedded Mode with Replica
 
 ## Status
-Accepted
+Superseded by [ADR-006: Deprecate Embedded Mode](006-deprecate-embedded-mode.md)
 
 ## Context
 The pearl-bdui backend needs a version-controlled database that supports Git-like branching for its issue tracking system (`bd`/beads). Local development should work without requiring external database servers -- developers should be able to clone the repo and start working immediately.
