@@ -11,11 +11,23 @@ export function useIsEmbeddedMode(): boolean {
 
 export function useEmbeddedModeDetection(): {
   isEmbedded: boolean;
+  showModal: boolean;
   isLoading: boolean;
 } {
   const { data: health, isLoading } = useHealth();
+  const isEmbedded = health?.dolt_mode === "embedded";
   return {
-    isEmbedded: health?.dolt_mode === "embedded",
+    isEmbedded,
+    showModal:
+      isEmbedded &&
+      typeof window !== "undefined" &&
+      !window.__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__,
     isLoading,
   };
+}
+
+declare global {
+  interface Window {
+    __PEARL_TEST_SUPPRESS_MIGRATION_MODAL__?: boolean;
+  }
 }

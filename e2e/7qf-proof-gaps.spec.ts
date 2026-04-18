@@ -22,6 +22,7 @@ async function seedAndGoto(page: Page, path: string) {
   await page.addInitScript(() => {
     localStorage.setItem("pearl-onboarding-complete", "true");
     localStorage.removeItem("beads:panel-mode");
+    (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
   });
   await page.goto(path);
 }

@@ -23,6 +23,7 @@ const VIEWPORTS = {
 async function seedAndNavigate(page: Page, path: string) {
   await page.addInitScript(() => {
     localStorage.setItem("pearl-onboarding-complete", "true");
+    (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
   });
   await page.goto(path);
 }
@@ -172,6 +173,7 @@ test.describe("Detail view responsive", () => {
       localStorage.setItem("pearl-onboarding-complete", "true");
       // Ensure panel mode is off so clicks navigate
       localStorage.removeItem("beads:panel-mode");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
     await page.goto("/list");
     await expect(page.getByRole("table", { name: "Issue list" })).toBeVisible({ timeout: 15_000 });

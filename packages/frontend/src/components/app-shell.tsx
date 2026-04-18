@@ -30,7 +30,7 @@ export function AppShell() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const canUndo = useCanUndo();
   const { setTheme } = useTheme();
-  const { isEmbedded } = useEmbeddedModeDetection();
+  const { isEmbedded, showModal } = useEmbeddedModeDetection();
 
   // Start polling for notification changes
   useNotificationPoller();
@@ -158,7 +158,7 @@ export function AppShell() {
   return (
     <EmbeddedModeProvider value={isEmbedded}>
       <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
-        {isEmbedded && <EmbeddedModeModal />}
+        {showModal && <EmbeddedModeModal />}
         {/* Skip to content link */}
         <a
           href="#main-content"

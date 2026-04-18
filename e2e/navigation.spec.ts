@@ -4,6 +4,7 @@ test.describe("Navigation", () => {
   test("root redirects to /list", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
     await page.goto("/");
     await page.waitForURL("**/list");
