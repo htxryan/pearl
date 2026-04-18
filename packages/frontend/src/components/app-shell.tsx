@@ -177,7 +177,10 @@ export function AppShell() {
       <MobileDrawer isOpen={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <HealthBanner />
-        <Header mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />} />
+        <Header
+          mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />}
+          onCreateIssue={openCreateDialog}
+        />
         <OnboardingBanner />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
           <PageTransition>
