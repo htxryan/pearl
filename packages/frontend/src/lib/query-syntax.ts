@@ -98,6 +98,18 @@ export const SHOW_ALL_FILTERS: FilterState = {
   status: [...ISSUE_STATUSES] as IssueStatus[],
 };
 
+export const DEFAULT_ACTIVE_STATUSES: IssueStatus[] = [
+  "open",
+  "in_progress",
+  "deferred",
+  "blocked",
+];
+
+export const ACTIVE_FILTERS: FilterState = {
+  ...EMPTY_FILTERS,
+  status: DEFAULT_ACTIVE_STATUSES,
+};
+
 export function isShowingAllStatuses(statuses: IssueStatus[]): boolean {
   if (statuses.length !== ISSUE_STATUSES.length) return false;
   const set = new Set(statuses);

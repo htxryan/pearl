@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import type { FilterState } from "@/lib/query-syntax";
-import { SHOW_ALL_FILTERS } from "@/lib/query-syntax";
+import { EMPTY_FILTERS } from "@/lib/query-syntax";
 
 export interface FilterPreset {
   id: string;
@@ -66,7 +66,7 @@ function defaultPresets(): FilterPreset[] {
     {
       id: "preset-all",
       name: "All Issues",
-      filters: SHOW_ALL_FILTERS,
+      filters: EMPTY_FILTERS,
     },
     {
       id: "preset-blocked",

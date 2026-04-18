@@ -299,7 +299,7 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
         {hasActiveFilters(filters) && (
           <button
             onClick={() => {
-              onChange(SHOW_ALL_FILTERS);
+              onChange(EMPTY_FILTERS);
               setShowMore(false);
             }}
             className={cn(
@@ -353,7 +353,7 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
           </button>
           {hasActiveFilters(filters) && (
             <button
-              onClick={() => onChange(SHOW_ALL_FILTERS)}
+              onClick={() => onChange(EMPTY_FILTERS)}
               className="h-9 min-h-[44px] rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               Clear

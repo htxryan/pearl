@@ -84,13 +84,12 @@ function serializeToParams(filters: FilterState, sorting: SortingState): URLSear
   return params;
 }
 
-const DEFAULT_ACTIVE_STATUSES: IssueStatus[] = ["open", "in_progress", "deferred", "blocked"];
-
 /** Build API query params from filter state + sorting. */
 export function buildApiParams(filters: FilterState, sorting: SortingState): URLSearchParams {
   const params = new URLSearchParams();
-  const statusList = filters.status.length > 0 ? filters.status : DEFAULT_ACTIVE_STATUSES;
-  params.set("status", statusList.join(","));
+  if (filters.status.length > 0) {
+    params.set("status", filters.status.join(","));
+  }
   if (filters.priority.length) params.set("priority", filters.priority.join(","));
   if (filters.issue_type.length) params.set("issue_type", filters.issue_type.join(","));
   if (filters.assignee) params.set("assignee", filters.assignee);

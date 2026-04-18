@@ -16,9 +16,9 @@ const baseFilters: FilterState = {
 };
 
 describe("buildApiParams", () => {
-  it("defaults to active statuses when no status filter set", () => {
+  it("omits status param when no status filter set (returns all issues)", () => {
     const params = buildApiParams(baseFilters, []);
-    expect(params.get("status")).toBe("open,in_progress,deferred,blocked");
+    expect(params.get("status")).toBeNull();
   });
 
   it("encodes status filter", () => {

@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
-import { DATE_RANGE_LABELS, EMPTY_FILTERS, STRUCTURAL_FILTER_LABELS } from "@/lib/query-syntax";
+import {
+  ACTIVE_FILTERS,
+  DATE_RANGE_LABELS,
+  EMPTY_FILTERS,
+  STRUCTURAL_FILTER_LABELS,
+} from "@/lib/query-syntax";
 import { cn } from "@/lib/utils";
 import type { FilterState } from "./filter-bar-types";
 import { GROUP_BY_LABELS, isShowingAllStatuses } from "./filter-bar-types";
@@ -265,7 +270,7 @@ export function PresetDropdown({
     ? activePreset.name
     : hasActiveFilters(filters)
       ? "Custom"
-      : "Active Issues";
+      : "All Issues";
 
   const handleSaveAs = useCallback(() => {
     if (!newName.trim()) return;
@@ -327,7 +332,7 @@ export function PresetDropdown({
           <button
             type="button"
             onClick={() => {
-              onChange(EMPTY_FILTERS);
+              onChange(ACTIVE_FILTERS);
               setSelectedPresetId(null);
               setOpen(false);
             }}
