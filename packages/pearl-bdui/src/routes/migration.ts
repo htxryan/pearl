@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { cp, mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:net";
 import { basename, dirname, resolve } from "node:path";
 import type {
   MigrateRequest,
@@ -179,7 +180,14 @@ async function migrateToPearlManaged(
   originalMetadata: string,
   force: boolean,
 ): Promise<MigrateResponse | { ok: false; error: string }> {
-  const managedPort = 3307;
+  const candidatePorts = [3307, 3308, 3309];
+  const managedPort = await findAvailablePort(candidatePorts);
+  if (!managedPort) {
+    return {
+      ok: false,
+      error: `All candidate ports (${candidatePorts.join(", ")}) are in use. Free one of these ports or stop conflicting services.`,
+    };
+  }
   const managedDataDir = resolve(beadsDir, "doltdb");
 
   if (existsSync(managedDataDir)) {
@@ -327,6 +335,26 @@ async function migrateToExternal(
       error: err instanceof Error ? err.message : "Migration failed",
     };
   }
+}
+
+function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = createServer();
+    server.once("error", () => resolve(false));
+    server.once("listening", () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(port, "127.0.0.1");
+  });
+}
+
+async function findAvailablePort(candidates: number[]): Promise<number | null> {
+  for (const port of candidates) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  return null;
 }
 
 async function waitForServer(host: string, port: number, maxWaitMs = 15000): Promise<boolean> {

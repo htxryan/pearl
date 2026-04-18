@@ -207,12 +207,13 @@ export async function createServer(initialConfig: Config) {
         if (doltManager.getState() !== "running") {
           app.log.warn("[migration] Pearl-managed dolt sql-server failed to start after migration");
         }
+      } else {
+        app.log.info(
+          `[migration] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
+        );
+        createDoltPool(newConfig);
       }
 
-      app.log.info(
-        `[migration] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
-      );
-      createDoltPool(newConfig);
       writeService.updateConfig(newConfig);
 
       app.log.info("[migration] Migration complete, running in server mode");
