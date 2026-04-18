@@ -301,6 +301,7 @@ export function useDeleteIssue() {
     mutationFn: ({ id }: { id: string }) => api.deleteIssue(id),
     onMutate: async ({ id }) => {
       await queryClient.cancelQueries({ queryKey: issueKeys.lists() });
+      await queryClient.cancelQueries({ queryKey: issueKeys.detail(id) });
 
       const previousLists = queryClient.getQueriesData<IssueListItem[]>({
         queryKey: issueKeys.lists(),

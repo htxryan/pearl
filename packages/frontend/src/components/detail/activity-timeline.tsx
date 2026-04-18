@@ -226,7 +226,10 @@ function formatValue(val: string | null): string {
       if (Array.isArray(parsed)) return parsed.join(", ");
       if (typeof parsed === "object" && parsed !== null) {
         return Object.entries(parsed)
-          .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+          .map(
+            ([k, v]) =>
+              `${k.replace(/_/g, " ")}: ${typeof v === "object" && v !== null ? JSON.stringify(v) : v}`,
+          )
           .join(", ");
       }
     } catch {

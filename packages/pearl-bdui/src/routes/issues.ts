@@ -69,10 +69,18 @@ const updateIssueSchema = {
 } as const;
 
 const deleteIssueSchema = {
+  params: {
+    type: "object",
+    properties: {
+      id: { type: "string" },
+    },
+    required: ["id"],
+  },
   querystring: {
     type: "object",
     properties: {
       reason: { type: "string", maxLength: 500 },
+      permanent: { type: "string", enum: ["true"] },
     },
     additionalProperties: false,
   },
@@ -462,18 +470,14 @@ export function registerIssueRoutes(
     return reply.send(result);
   });
 
-  // DELETE /api/issues/:id — close/delete
+  // DELETE /api/issues/:id — close (default) or permanently delete (?permanent=true)
   app.delete("/api/issues/:id", { schema: deleteIssueSchema }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const { reason } = request.query as { reason?: string };
-    const result = await writeService.closeIssue(id, reason);
-    return reply.send(result);
-  });
-
-  // POST /api/issues/:id/delete — permanently delete
-  app.post("/api/issues/:id/delete", async (request, reply) => {
-    const { id } = request.params as { id: string };
-    const result = await writeService.deleteIssue(id);
+    const { reason, permanent } = request.query as { reason?: string; permanent?: string };
+    const result =
+      permanent === "true"
+        ? await writeService.deleteIssue(id)
+        : await writeService.closeIssue(id, reason);
     return reply.send(result);
   });
 

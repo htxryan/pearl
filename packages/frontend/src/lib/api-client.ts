@@ -94,8 +94,8 @@ export function closeIssue(id: string, reason?: string): Promise<MutationRespons
 }
 
 export function deleteIssue(id: string): Promise<MutationResponse> {
-  return request(`/issues/${encodeURIComponent(id)}/delete`, {
-    method: "POST",
+  return request(`/issues/${encodeURIComponent(id)}?permanent=true`, {
+    method: "DELETE",
   });
 }
 

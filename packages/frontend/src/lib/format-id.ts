@@ -1,5 +1,6 @@
 export function shortId(id: string): string {
-  const lastDash = id.lastIndexOf("-");
-  if (lastDash === -1) return id;
-  return id.slice(lastDash + 1);
+  const parts = id.split("-");
+  if (parts.length <= 1) return id;
+  if (parts.length <= 2) return parts[parts.length - 1];
+  return parts.slice(-2).join("-");
 }

@@ -202,10 +202,12 @@ function DetailViewContent({ id }: { id: string }) {
       { id },
       {
         onSuccess: () => {
+          setShowDeleteConfirm(false);
           toast.success("Issue deleted.");
           navigate(backPath);
         },
         onError: () => {
+          setShowDeleteConfirm(false);
           toast.error("Failed to delete issue. Please try again.");
         },
       },
@@ -549,7 +551,6 @@ function DetailViewContent({ id }: { id: string }) {
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onConfirm={() => {
-          setShowDeleteConfirm(false);
           handleDelete();
         }}
         onCancel={() => setShowDeleteConfirm(false)}
