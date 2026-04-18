@@ -93,6 +93,12 @@ export function closeIssue(id: string, reason?: string): Promise<MutationRespons
   });
 }
 
+export function deleteIssue(id: string): Promise<MutationResponse> {
+  return request(`/issues/${encodeURIComponent(id)}/delete`, {
+    method: "POST",
+  });
+}
+
 // ─── Comments ───────────────────────────────────────────
 export function fetchComments(issueId: string): Promise<Comment[]> {
   return request(`/issues/${encodeURIComponent(issueId)}/comments`);

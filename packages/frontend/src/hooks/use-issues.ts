@@ -292,6 +292,43 @@ export function useCloseIssue() {
   });
 }
 
+// ─── Delete Issue Mutation (permanent) ─────────────────
+export function useDeleteIssue() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["issues", "delete"],
+    mutationFn: ({ id }: { id: string }) => api.deleteIssue(id),
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: issueKeys.lists() });
+
+      const previousLists = queryClient.getQueriesData<IssueListItem[]>({
+        queryKey: issueKeys.lists(),
+      });
+
+      for (const [queryKey, list] of previousLists) {
+        if (!list) continue;
+        queryClient.setQueryData<IssueListItem[]>(
+          queryKey,
+          list.filter((item) => item.id !== id),
+        );
+      }
+
+      return { previousLists };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+    },
+    onSuccess: (response) => {
+      invalidateFromHints(queryClient, response.invalidationHints);
+    },
+  });
+}
+
 // ─── Add Comment Mutation ──────────────────────────────
 export function useAddComment() {
   const queryClient = useQueryClient();

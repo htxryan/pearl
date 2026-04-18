@@ -116,7 +116,24 @@ export class IssueWriter {
       stdout: result.stdout,
       hints: [
         { entity: "issues", id },
-        { entity: "issues" }, // Other issues may become unblocked
+        { entity: "issues" },
+        { entity: "dependencies" },
+        { entity: "stats" },
+        { entity: "events", id },
+      ],
+    };
+  }
+
+  async delete(id: string): Promise<{ stdout: string; hints: InvalidationHint[] }> {
+    const args: string[] = ["delete", id, "--force"];
+
+    const result = await runBd(this.config, args);
+
+    return {
+      stdout: result.stdout,
+      hints: [
+        { entity: "issues", id },
+        { entity: "issues" },
         { entity: "dependencies" },
         { entity: "stats" },
         { entity: "events", id },

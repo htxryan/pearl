@@ -470,6 +470,13 @@ export function registerIssueRoutes(
     return reply.send(result);
   });
 
+  // POST /api/issues/:id/delete — permanently delete
+  app.post("/api/issues/:id/delete", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const result = await writeService.deleteIssue(id);
+    return reply.send(result);
+  });
+
   // POST /api/issues/:id/comments — add comment
   app.post("/api/issues/:id/comments", { schema: addCommentSchema }, async (request, reply) => {
     const { id } = request.params as { id: string };

@@ -78,6 +78,18 @@ export class WriteService {
     });
   }
 
+  async deleteIssue(id: string): Promise<MutationResponse> {
+    return this.queue.enqueue(async () => {
+      const result = await this.issues.delete(id);
+      await this.syncAfterWrite();
+      return {
+        success: true,
+        data: tryParseJson(result.stdout),
+        invalidationHints: result.hints,
+      };
+    });
+  }
+
   async addComment(issueId: string, req: CreateCommentRequest): Promise<MutationResponse> {
     return this.queue.enqueue(async () => {
       const result = await this.comments.add(issueId, req);
