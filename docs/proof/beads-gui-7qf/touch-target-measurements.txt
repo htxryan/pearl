@@ -1,5 +1,5 @@
 === Touch Target Measurements (beads-gui-7qf) ===
-Captured: 2026-04-17T19:48:15.131Z
+Captured: 2026-04-18T09:01:58.878Z
 Viewport: 375x812px
 Minimum target: 44x44px (WCAG 2.5.5 / iOS HIG)
 
