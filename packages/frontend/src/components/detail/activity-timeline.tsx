@@ -39,7 +39,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
   const sortedEvents = useMemo(
     () =>
       [...events].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       ),
     [events],
   );
@@ -220,5 +220,18 @@ function describeEvent(event: Event): string {
 
 function formatValue(val: string | null): string {
   if (val === null || val === "") return "none";
+  if (val.startsWith("{") || val.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed.join(", ");
+      if (typeof parsed === "object" && parsed !== null) {
+        return Object.entries(parsed)
+          .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+          .join(", ");
+      }
+    } catch {
+      // Not valid JSON, fall through
+    }
+  }
   return val.replace(/_/g, " ");
 }
