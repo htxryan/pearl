@@ -180,6 +180,65 @@ export async function createServer(initialConfig: Config) {
 
   const writeService = new WriteService(config, onAfterWrite);
 
+  // ─── Replica Sync (reusable) ──────────────────────────
+  // Extracted so both onAfterWrite and the /api/sync endpoint can use it.
+  const performReplicaSync = isEmbedded
+    ? async () => {
+        const manager = doltManager!;
+        app.log.info("[replica] Manual sync requested...");
+        const start = Date.now();
+        beginSync();
+        try {
+          await destroyPool();
+          await manager.stop();
+
+          const syncOp = async () => {
+            await syncReplica(config.doltDbPath, config.replicaPath);
+            await manager.start();
+          };
+          const timeout = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Replica sync timed out")), SYNC_TIMEOUT_MS),
+          );
+          await Promise.race([syncOp(), timeout]);
+
+          if (manager.getState() === "running") {
+            const pool = createDoltPool(config);
+            await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
+              app.log.warn(
+                { err: tableErr },
+                "[replica] Failed to create label_definitions before endSync",
+              );
+            });
+          }
+          const elapsed = Date.now() - start;
+          app.log.info(`[replica] Manual sync completed in ${elapsed}ms`);
+          return { elapsed };
+        } catch (err) {
+          app.log.error({ err }, "[replica] Manual sync failed, attempting recovery...");
+          try {
+            if (manager.getState() !== "running") {
+              await manager.start();
+            }
+            if (manager.getState() === "running") {
+              const pool = createDoltPool(config);
+              await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
+                app.log.warn(
+                  { err: tableErr },
+                  "[replica] Failed to create label_definitions before endSync (recovery)",
+                );
+              });
+              app.log.info("[replica] Recovery successful");
+            }
+          } catch (recoveryErr) {
+            app.log.error({ err: recoveryErr }, "[replica] Recovery failed");
+          }
+          throw err;
+        } finally {
+          endSync();
+        }
+      }
+    : null;
+
   // ─── Error Handler ────────────────────────────────────
   app.setErrorHandler((error: FastifyError | AppError, _request, reply) => {
     if (error instanceof AppError) {
@@ -310,6 +369,32 @@ export async function createServer(initialConfig: Config) {
   registerStatsRoutes(app, getConfig);
   registerHealthRoutes(app, getDoltManager, getConfig);
   registerLabelRoutes(app, getConfig);
+
+  // ─── Replica Sync Endpoint ────────────────────────────
+  app.post("/api/sync", async (_request, reply) => {
+    if (!performReplicaSync) {
+      return reply.code(400).send({
+        code: "NOT_APPLICABLE",
+        message: "Replica sync is only available in embedded mode",
+        retryable: false,
+      });
+    }
+
+    try {
+      const result = await performReplicaSync();
+      return reply.code(200).send({
+        ok: true,
+        elapsed_ms: result.elapsed,
+      });
+    } catch (err) {
+      app.log.error({ err }, "[api/sync] Sync failed");
+      return reply.code(500).send({
+        code: "SYNC_FAILED",
+        message: err instanceof Error ? err.message : "Replica sync failed",
+        retryable: true,
+      });
+    }
+  });
 
   // ─── Static File Serving (Production) ─────────────────
   // Serve the built frontend when running from an installed package.

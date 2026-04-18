@@ -156,6 +156,11 @@ export function upsertLabel(data: UpsertLabelRequest): Promise<MutationResponse>
   });
 }
 
+// ─── Sync ──────────────────────────────────────────────
+export function syncReplica(): Promise<{ ok: boolean; elapsed_ms: number }> {
+  return request("/sync", { method: "POST" });
+}
+
 // ─── Health & Stats ─────────────────────────────────────
 export function fetchHealth(): Promise<HealthResponse> {
   return request("/health");

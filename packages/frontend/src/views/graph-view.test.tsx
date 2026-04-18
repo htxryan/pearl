@@ -21,6 +21,7 @@ vi.mock("@/lib/api-client", () => ({
 
 // Mock use-issues hooks
 vi.mock("@/hooks/use-issues", () => ({
+  useSyncReplica: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useIssues: vi.fn(),
   issueKeys: {
     all: ["issues"],
