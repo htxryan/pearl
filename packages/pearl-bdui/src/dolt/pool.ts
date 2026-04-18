@@ -5,49 +5,7 @@ import { logger } from "../logger.js";
 
 let pool: Pool | null = null;
 
-// ─── Sync Barrier ───────────────────────────────────────
-// During replica sync the SQL server is down. Rather than letting
-// reads fail immediately with "pool not initialized", they wait
-// for the sync to finish and then proceed normally.
-let syncBarrier: { promise: Promise<void>; resolve: () => void } | null = null;
-
-/** Signal that a replica sync has started. Reads will wait. Throws if already syncing. */
-export function beginSync(): void {
-  if (syncBarrier) {
-    throw new Error("Sync already in progress");
-  }
-  let resolve!: () => void;
-  const promise = new Promise<void>((r) => {
-    resolve = r;
-  });
-  syncBarrier = { promise, resolve };
-}
-
-/** Check if a sync is currently in progress. */
-export function isSyncing(): boolean {
-  return syncBarrier !== null;
-}
-
-/** Signal that a replica sync has finished. Waiting reads proceed. */
-export function endSync(): void {
-  syncBarrier?.resolve();
-  syncBarrier = null;
-}
-
-/**
- * Wait for an in-progress replica sync to complete.
- * Returns immediately if no sync is in progress.
- */
-export async function awaitSync(timeoutMs = 30_000): Promise<void> {
-  if (!syncBarrier) return;
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(doltUnavailableError("Replica sync timed out")), timeoutMs),
-  );
-  await Promise.race([syncBarrier.promise, timeout]);
-}
-
 export function createDoltPool(config: Config): Pool {
-  // Destroy any existing pool to prevent connection leaks
   if (pool) {
     pool.end().catch((err) => {
       logger.warn({ err }, "Error closing previous pool");
@@ -85,17 +43,10 @@ export async function destroyPool(): Promise<void> {
   }
 }
 
-/**
- * Execute a query with database lock retry logic.
- * Retries up to config.dbLockMaxRetries times on lock errors.
- */
 export async function queryWithRetry<T>(
   config: Config,
   queryFn: (conn: PoolConnection) => Promise<T>,
 ): Promise<T> {
-  // If a replica sync is in progress, wait for it to finish
-  // rather than failing immediately with "pool not initialized".
-  await awaitSync();
   const p = getPool();
 
   for (let attempt = 0; attempt <= config.dbLockMaxRetries; attempt++) {
@@ -132,7 +83,7 @@ export async function queryWithRetry<T>(
 function isLockError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   const errno = (err as { errno?: number }).errno;
-  return errno === 1205 || errno === 1213; // ER_LOCK_WAIT_TIMEOUT, ER_LOCK_DEADLOCK
+  return errno === 1205 || errno === 1213;
 }
 
 function isConnectionError(err: unknown): boolean {

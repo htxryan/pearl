@@ -9,7 +9,7 @@ import type {
 } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { Config } from "../config.js";
-import { findBeadsDir, loadConfig } from "../config.js";
+import { findBeadsDir } from "../config.js";
 import { validationError } from "../errors.js";
 
 export interface MigrationContext {
