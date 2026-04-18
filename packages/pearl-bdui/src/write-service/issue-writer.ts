@@ -1,5 +1,6 @@
 import type { CreateIssueRequest, InvalidationHint, UpdateIssueRequest } from "@pearl/shared";
 import type { Config } from "../config.js";
+import { queryWithRetry } from "../dolt/pool.js";
 import { validationError } from "../errors.js";
 import { runBd } from "./bd-runner.js";
 
@@ -125,19 +126,24 @@ export class IssueWriter {
   }
 
   async delete(id: string): Promise<{ stdout: string; hints: InvalidationHint[] }> {
-    const args: string[] = ["delete", id, "--force"];
+    const hints: InvalidationHint[] = [
+      { entity: "issues", id },
+      { entity: "issues" },
+      { entity: "dependencies" },
+      { entity: "stats" },
+      { entity: "events", id },
+    ];
 
-    const result = await runBd(this.config, args);
+    if (this.config.doltMode === "server") {
+      // Direct SQL — FK CASCADE handles comments, labels, events, dependencies
+      await queryWithRetry(this.config, async (conn) => {
+        await conn.execute("DELETE FROM issues WHERE id = ?", [id]);
+      });
+      return { stdout: JSON.stringify({ deleted: id }), hints };
+    }
 
-    return {
-      stdout: result.stdout,
-      hints: [
-        { entity: "issues", id },
-        { entity: "issues" },
-        { entity: "dependencies" },
-        { entity: "stats" },
-        { entity: "events", id },
-      ],
-    };
+    // Embedded mode: writes must go to the primary via CLI (pool targets the replica)
+    const result = await runBd(this.config, ["delete", id, "--force"]);
+    return { stdout: result.stdout, hints };
   }
 }

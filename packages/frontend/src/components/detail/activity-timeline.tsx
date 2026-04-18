@@ -223,7 +223,10 @@ function formatValue(val: string | null): string {
   if (val.startsWith("{") || val.startsWith("[")) {
     try {
       const parsed = JSON.parse(val);
-      if (Array.isArray(parsed)) return parsed.join(", ");
+      if (Array.isArray(parsed))
+        return parsed
+          .map((el) => (typeof el === "object" && el !== null ? JSON.stringify(el) : String(el)))
+          .join(", ");
       if (typeof parsed === "object" && parsed !== null) {
         return Object.entries(parsed)
           .map(
