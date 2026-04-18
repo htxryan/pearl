@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
 import { KanbanColumn } from "@/components/board/kanban-column";
-import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
+import { FilterBar, SHOW_ALL_FILTERS } from "@/components/issue-table/filter-bar";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useCreateIssue, useIssues, useUpdateIssue } from "@/hooks/use-issues";
@@ -255,7 +255,7 @@ export function BoardView() {
         id: "board-clear-filters",
         label: "Clear all filters",
         group: "Board",
-        handler: () => setFilters(EMPTY_FILTERS),
+        handler: () => setFilters(SHOW_ALL_FILTERS),
       },
     ],
     [setFilters],
@@ -298,7 +298,12 @@ export function BoardView() {
     <div className="flex flex-col h-full">
       {/* Toolbar — same filter bar as list view */}
       <div className="shrink-0 bg-muted/30 px-4 py-3">
-        <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
+        <FilterBar
+          filters={filters}
+          onChange={setFilters}
+          searchInputRef={searchInputRef}
+          hideGroupBy
+        />
         {blockedIds.size > 0 && (
           <div className="mt-2 flex items-center gap-2">
             <button

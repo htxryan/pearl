@@ -93,6 +93,17 @@ export const EMPTY_FILTERS: FilterState = {
   groupBy: null,
 };
 
+export const SHOW_ALL_FILTERS: FilterState = {
+  ...EMPTY_FILTERS,
+  status: [...ISSUE_STATUSES] as IssueStatus[],
+};
+
+export function isShowingAllStatuses(statuses: IssueStatus[]): boolean {
+  if (statuses.length !== ISSUE_STATUSES.length) return false;
+  const set = new Set(statuses);
+  return ISSUE_STATUSES.every((s) => set.has(s));
+}
+
 /** Token pattern: `key:value` or `key:"value with spaces"` */
 const TOKEN_RE = /(\w+):(?:"([^"]*)"|([\S]+))/g;
 

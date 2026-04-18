@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
-import type { FilterState } from "@/components/issue-table/filter-bar";
+import type { FilterState } from "@/lib/query-syntax";
+import { SHOW_ALL_FILTERS } from "@/lib/query-syntax";
 
 export interface FilterPreset {
   id: string;
@@ -63,19 +64,9 @@ function saveToStorage() {
 function defaultPresets(): FilterPreset[] {
   return [
     {
-      id: "preset-my-issues",
-      name: "My Issues",
-      filters: {
-        status: ["open", "in_progress"],
-        priority: [],
-        issue_type: [],
-        assignee: "",
-        search: "",
-        labels: [],
-        dateRanges: [],
-        structural: [],
-        groupBy: null,
-      },
+      id: "preset-all",
+      name: "All Issues",
+      filters: SHOW_ALL_FILTERS,
     },
     {
       id: "preset-blocked",

@@ -5,7 +5,7 @@ import { addToast } from "@/hooks/use-toast";
 import { DATE_RANGE_LABELS, EMPTY_FILTERS, STRUCTURAL_FILTER_LABELS } from "@/lib/query-syntax";
 import { cn } from "@/lib/utils";
 import type { FilterState } from "./filter-bar-types";
-import { GROUP_BY_LABELS } from "./filter-bar-types";
+import { GROUP_BY_LABELS, isShowingAllStatuses } from "./filter-bar-types";
 
 // ─── Constants ────────────────────────────────────────
 
@@ -101,18 +101,19 @@ export function FilterPills({
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      {filters.status.map((s) => (
-        <FilterPill
-          key={`status-${s}`}
-          label={`Status: ${STATUS_LABELS[s]}`}
-          onRemove={() =>
-            setField(
-              "status",
-              filters.status.filter((x) => x !== s),
-            )
-          }
-        />
-      ))}
+      {!isShowingAllStatuses(filters.status) &&
+        filters.status.map((s) => (
+          <FilterPill
+            key={`status-${s}`}
+            label={`Status: ${STATUS_LABELS[s]}`}
+            onRemove={() =>
+              setField(
+                "status",
+                filters.status.filter((x) => x !== s),
+              )
+            }
+          />
+        ))}
       {filters.priority.map((p) => (
         <FilterPill
           key={`priority-${p}`}
@@ -260,7 +261,11 @@ export function PresetDropdown({
     selectedPreset &&
     isUserPreset(selectedPreset.id) &&
     !filtersMatch(selectedPreset.filters, filters);
-  const label = activePreset ? activePreset.name : "Active Issues";
+  const label = activePreset
+    ? activePreset.name
+    : hasActiveFilters(filters)
+      ? "Custom"
+      : "Active Issues";
 
   const handleSaveAs = useCallback(() => {
     if (!newName.trim()) return;
@@ -433,7 +438,7 @@ export function PresetDropdown({
 
 export function hasActiveFilters(filters: FilterState): boolean {
   return (
-    filters.status.length > 0 ||
+    (filters.status.length > 0 && !isShowingAllStatuses(filters.status)) ||
     filters.priority.length > 0 ||
     filters.issue_type.length > 0 ||
     filters.assignee !== "" ||
@@ -449,7 +454,8 @@ export function hasActiveFilters(filters: FilterState): boolean {
 
 export function countActiveFilters(filters: FilterState): number {
   let count = 0;
-  if (filters.status.length > 0) count += filters.status.length;
+  if (filters.status.length > 0 && !isShowingAllStatuses(filters.status))
+    count += filters.status.length;
   if (filters.priority.length > 0) count += filters.priority.length;
   if (filters.issue_type.length > 0) count += filters.issue_type.length;
   if (filters.assignee) count += 1;

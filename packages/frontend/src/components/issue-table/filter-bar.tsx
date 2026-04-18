@@ -25,10 +25,10 @@ import {
   TYPE_LABELS,
 } from "./filter-bar-parts";
 import type { FilterState, GroupByField } from "./filter-bar-types";
-import { EMPTY_FILTERS, GROUP_BY_LABELS } from "./filter-bar-types";
+import { EMPTY_FILTERS, GROUP_BY_LABELS, SHOW_ALL_FILTERS } from "./filter-bar-types";
 
 export type { FilterState, GroupByField };
-export { EMPTY_FILTERS, GROUP_BY_LABELS };
+export { EMPTY_FILTERS, GROUP_BY_LABELS, SHOW_ALL_FILTERS };
 
 const ALL_STATUSES = ISSUE_STATUSES;
 const ALL_PRIORITIES = ISSUE_PRIORITIES;
@@ -38,9 +38,10 @@ interface FilterBarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
+  hideGroupBy?: boolean;
 }
 
-export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps) {
+export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: FilterBarProps) {
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = searchInputRef ?? internalRef;
   const isMobile = useIsMobile();
@@ -230,20 +231,22 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           className="min-w-[120px]"
         />
 
-        {/* Group by with None option */}
-        <CustomSelect<GroupByField | "__none__">
-          value={filters.groupBy}
-          options={groupByOptions}
-          onChange={(value) =>
-            onChange({
-              ...filters,
-              groupBy: value === ("__none__" as string) ? null : (value as GroupByField),
-            })
-          }
-          placeholder="Group by..."
-          aria-label="Group by"
-          className="min-w-[100px]"
-        />
+        {/* Group by with None option — hidden on Board (columns are always by status) */}
+        {!hideGroupBy && (
+          <CustomSelect<GroupByField | "__none__">
+            value={filters.groupBy}
+            options={groupByOptions}
+            onChange={(value) =>
+              onChange({
+                ...filters,
+                groupBy: value === ("__none__" as string) ? null : (value as GroupByField),
+              })
+            }
+            placeholder="Group by..."
+            aria-label="Group by"
+            className="min-w-[100px]"
+          />
+        )}
 
         {/* More filters toggle */}
         {!showMore && (
@@ -296,7 +299,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
         {hasActiveFilters(filters) && (
           <button
             onClick={() => {
-              onChange(EMPTY_FILTERS);
+              onChange(SHOW_ALL_FILTERS);
               setShowMore(false);
             }}
             className={cn(
@@ -350,7 +353,7 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           </button>
           {hasActiveFilters(filters) && (
             <button
-              onClick={() => onChange(EMPTY_FILTERS)}
+              onClick={() => onChange(SHOW_ALL_FILTERS)}
               className="h-9 min-h-[44px] rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               Clear
