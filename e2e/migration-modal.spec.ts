@@ -85,7 +85,7 @@ test.describe("Embedded mode migration modal", () => {
     const modal = page.getByTestId("embedded-mode-modal");
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    await expect(modal.getByText("Pearl-managed")).toBeVisible();
+    await expect(modal.getByRole("button", { name: "Pearl-managed", exact: true })).toBeVisible();
     await expect(modal.getByText("I'll run dolt myself")).toBeVisible();
 
     await expect(modal.getByTestId("migrate-managed-btn")).toBeVisible();
@@ -153,8 +153,8 @@ test.describe("Embedded mode migration modal", () => {
 
     await modal.getByText("I'll run dolt myself").click();
 
-    const codeBlock = modal.locator(".font-mono");
-    await expect(codeBlock.first()).toBeVisible();
-    await expect(codeBlock.first()).toContainText("dolt sql-server");
+    const codeBlock = modal.locator(".font-mono", { hasText: "dolt sql-server" });
+    await expect(codeBlock).toBeVisible();
+    await expect(codeBlock).toContainText("dolt sql-server");
   });
 });

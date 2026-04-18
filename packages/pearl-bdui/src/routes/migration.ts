@@ -205,8 +205,9 @@ async function migrateToPearlManaged(
   }
 
   try {
+    const dbName = basename(config.doltDbPath) || config.doltDatabase;
     await mkdir(managedDataDir, { recursive: true });
-    await cp(config.doltDbPath, managedDataDir, { recursive: true });
+    await cp(config.doltDbPath, resolve(managedDataDir, dbName), { recursive: true });
 
     const metadata = JSON.parse(originalMetadata);
     metadata.dolt_mode = "server";
