@@ -265,6 +265,7 @@ export interface HealthResponse {
   dolt_server: "running" | "starting" | "stopped" | "error";
   uptime_seconds: number;
   version: string;
+  project_prefix?: string;
 }
 
 export interface StatsResponse {

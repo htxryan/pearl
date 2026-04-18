@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useHealth } from "@/hooks/use-issues";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
@@ -162,13 +163,22 @@ function NavItem({
 /** Desktop sidebar — always visible at >= 768px */
 export function Sidebar() {
   const isMobile = useIsMobile();
+  const { data: health } = useHealth();
+  const projectPrefix = health?.project_prefix;
 
   if (isMobile) return null;
 
   return (
     <aside className="flex w-56 shrink-0 flex-col bg-surface-raised border-r border-border">
       <div className="flex h-14 items-center px-4">
-        <span className="text-lg font-semibold tracking-tight">Pearl</span>
+        <div className="flex flex-col">
+          <span className="text-lg font-semibold tracking-tight leading-tight">
+            {projectPrefix ?? "Pearl"}
+          </span>
+          {projectPrefix && (
+            <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
+          )}
+        </div>
       </div>
       <nav className="flex flex-1 flex-col p-2">
         <div className="flex flex-col gap-1">
@@ -205,6 +215,8 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const location = useLocation();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const { data: health } = useHealth();
+  const projectPrefix = health?.project_prefix;
 
   // Focus trap — confines Tab navigation inside the drawer while open
   useFocusTrap(drawerRef, isOpen);
@@ -256,7 +268,14 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
       {/* Drawer panel */}
       <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-background shadow-lg flex flex-col animate-slide-in-left">
         <div className="flex h-14 items-center justify-between px-4">
-          <span className="text-lg font-semibold tracking-tight">Pearl</span>
+          <div className="flex flex-col">
+            <span className="text-lg font-semibold tracking-tight leading-tight">
+              {projectPrefix ?? "Pearl"}
+            </span>
+            {projectPrefix && (
+              <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
