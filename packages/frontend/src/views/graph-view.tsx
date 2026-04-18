@@ -13,7 +13,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { GraphNode, type GraphNodeType } from "@/components/graph/graph-node";
-import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
+import { ACTIVE_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
 import { Button } from "@/components/ui/button";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
@@ -325,7 +325,7 @@ export function GraphView() {
         id: "graph-clear-filters",
         label: "Clear all filters",
         group: "Graph",
-        handler: () => setFiltersRef.current(EMPTY_FILTERS),
+        handler: () => setFiltersRef.current(ACTIVE_FILTERS),
       },
       {
         id: "graph-auto-layout",
@@ -364,7 +364,12 @@ export function GraphView() {
       {/* Toolbar */}
       <div className="shrink-0 bg-muted/30 px-4 py-3">
         <div className={`flex gap-4 ${isMobile ? "flex-col" : "items-center justify-between"}`}>
-          <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
+          <FilterBar
+            filters={filters}
+            onChange={setFilters}
+            searchInputRef={searchInputRef}
+            hideGroupBy
+          />
           <div className="flex items-center gap-2 shrink-0">
             {isOverCap && (
               <span className="text-xs text-muted-foreground">

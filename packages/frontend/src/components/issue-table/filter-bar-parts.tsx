@@ -10,7 +10,7 @@ import {
 } from "@/lib/query-syntax";
 import { cn } from "@/lib/utils";
 import type { FilterState } from "./filter-bar-types";
-import { GROUP_BY_LABELS, isShowingAllStatuses } from "./filter-bar-types";
+import { GROUP_BY_LABELS, isDefaultStatuses, isShowingAllStatuses } from "./filter-bar-types";
 
 // ─── Constants ────────────────────────────────────────
 
@@ -107,6 +107,7 @@ export function FilterPills({
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {!isShowingAllStatuses(filters.status) &&
+        !isDefaultStatuses(filters.status) &&
         filters.status.map((s) => (
           <FilterPill
             key={`status-${s}`}
@@ -444,8 +445,12 @@ export function PresetDropdown({
 }
 
 export function hasActiveFilters(filters: FilterState): boolean {
+  const hasNonDefaultStatus =
+    filters.status.length > 0 &&
+    !isShowingAllStatuses(filters.status) &&
+    !isDefaultStatuses(filters.status);
   return (
-    (filters.status.length > 0 && !isShowingAllStatuses(filters.status)) ||
+    hasNonDefaultStatus ||
     filters.priority.length > 0 ||
     filters.issue_type.length > 0 ||
     filters.assignee !== "" ||
@@ -461,7 +466,11 @@ export function hasActiveFilters(filters: FilterState): boolean {
 
 export function countActiveFilters(filters: FilterState): number {
   let count = 0;
-  if (filters.status.length > 0 && !isShowingAllStatuses(filters.status))
+  if (
+    filters.status.length > 0 &&
+    !isShowingAllStatuses(filters.status) &&
+    !isDefaultStatuses(filters.status)
+  )
     count += filters.status.length;
   if (filters.priority.length > 0) count += filters.priority.length;
   if (filters.issue_type.length > 0) count += filters.issue_type.length;

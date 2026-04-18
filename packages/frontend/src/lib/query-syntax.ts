@@ -116,6 +116,12 @@ export function isShowingAllStatuses(statuses: IssueStatus[]): boolean {
   return ISSUE_STATUSES.every((s) => set.has(s));
 }
 
+export function isDefaultStatuses(statuses: IssueStatus[]): boolean {
+  if (statuses.length !== DEFAULT_ACTIVE_STATUSES.length) return false;
+  const set = new Set(statuses);
+  return DEFAULT_ACTIVE_STATUSES.every((s) => set.has(s));
+}
+
 /** Token pattern: `key:value` or `key:"value with spaces"` */
 const TOKEN_RE = /(\w+):(?:"([^"]*)"|([\S]+))/g;
 

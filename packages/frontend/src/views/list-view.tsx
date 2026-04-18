@@ -13,7 +13,7 @@ import { useNavigate } from "react-router";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
 import { buildColumns } from "@/components/issue-table/columns";
-import { EMPTY_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
+import { ACTIVE_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
 import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table";
 import { IssueCardList } from "@/components/issue-table/issue-card";
 import { IssueTable } from "@/components/issue-table/issue-table";
@@ -303,7 +303,7 @@ export function ListView() {
         id: "list-clear-filters",
         label: "Clear all filters",
         group: "List",
-        handler: () => setFilters(EMPTY_FILTERS),
+        handler: () => setFilters(ACTIVE_FILTERS),
       },
       {
         id: "list-select-all",
