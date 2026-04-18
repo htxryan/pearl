@@ -135,8 +135,10 @@ export class IssueWriter {
     ];
 
     if (this.config.doltMode === "server") {
-      // Direct SQL — FK CASCADE handles comments, labels, events, dependencies
+      // Direct SQL — FK CASCADE handles rows where issue_id = id, but
+      // depends_on_id has no CASCADE, so clean up reverse dependencies first
       await queryWithRetry(this.config, async (conn) => {
+        await conn.execute("DELETE FROM dependencies WHERE depends_on_id = ?", [id]);
         await conn.execute("DELETE FROM issues WHERE id = ?", [id]);
       });
       return { stdout: JSON.stringify({ deleted: id }), hints };
