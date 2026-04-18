@@ -77,7 +77,7 @@ export function SetupView() {
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary">
-            B
+            P
           </div>
           <h1 className="mt-4 text-2xl font-bold text-foreground">Welcome to Pearl</h1>
           <p className="mt-2 text-sm text-muted-foreground">
