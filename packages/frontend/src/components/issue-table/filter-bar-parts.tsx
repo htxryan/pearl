@@ -1,8 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
-import { DATE_RANGE_LABELS, STRUCTURAL_FILTER_LABELS } from "@/lib/query-syntax";
+import { DATE_RANGE_LABELS, EMPTY_FILTERS, STRUCTURAL_FILTER_LABELS } from "@/lib/query-syntax";
 import { cn } from "@/lib/utils";
 import type { FilterState } from "./filter-bar-types";
 import { GROUP_BY_LABELS } from "./filter-bar-types";
@@ -192,99 +192,207 @@ export function FilterPills({
   );
 }
 
-// ─── PresetSelector ───────────────────────────────────
+// ─── Preset Dropdown (Jira-style) ────────────────────
 
-export function PresetSelector({
+function filtersMatch(a: FilterState, b: FilterState): boolean {
+  return JSON.stringify({ ...a, groupBy: null }) === JSON.stringify({ ...b, groupBy: null });
+}
+
+export function PresetDropdown({
   filters,
   onChange,
 }: {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
 }) {
-  const { presets, save: savePreset, remove: removePreset } = useFilterPresets();
-  const [showSaveInput, setShowSaveInput] = useState(false);
-  const [presetName, setPresetName] = useState("");
+  const {
+    presets,
+    save: savePreset,
+    remove: removePreset,
+    update: updatePreset,
+  } = useFilterPresets();
+  const [open, setOpen] = useState(false);
+  const [showSaveAs, setShowSaveAs] = useState(false);
+  const [newName, setNewName] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleSavePreset = useCallback(() => {
-    if (!presetName.trim()) return;
-    savePreset(presetName.trim(), filters);
-    addToast({ message: `Saved view "${presetName.trim()}"`, variant: "success" });
-    setPresetName("");
-    setShowSaveInput(false);
-  }, [presetName, savePreset, filters]);
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setShowSaveAs(false);
+        setNewName("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const activePreset = presets.find((p) => filtersMatch(p.filters, filters));
+  const label = activePreset ? activePreset.name : "All Issues";
+
+  const handleSaveAs = useCallback(() => {
+    if (!newName.trim()) return;
+    savePreset(newName.trim(), filters);
+    addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
+    setNewName("");
+    setShowSaveAs(false);
+    setOpen(false);
+  }, [newName, savePreset, filters]);
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {presets.map((preset) => (
-        <button
-          key={preset.id}
-          onClick={() => onChange(preset.filters)}
-          className="group inline-flex items-center gap-1 h-7 min-h-[44px] sm:min-h-0 rounded-full border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+    <div ref={containerRef} className="relative inline-block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "inline-flex items-center gap-1.5 h-8 rounded border px-3 text-sm font-medium transition-colors",
+          activePreset
+            ? "border-primary/50 bg-primary/5 text-primary hover:border-primary/70"
+            : "border-border text-foreground hover:border-foreground/30",
+        )}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          aria-hidden="true"
         >
-          {preset.name}
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              removePreset(preset.id);
-              addToast({ message: `Removed view "${preset.name}"`, variant: "info" });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                removePreset(preset.id);
-                addToast({ message: `Removed view "${preset.name}"`, variant: "info" });
-              }
-            }}
-            className="hidden group-hover:inline ml-0.5 text-muted-foreground hover:text-destructive"
-            aria-label={`Remove preset ${preset.name}`}
-          >
-            &times;
-          </span>
-        </button>
-      ))}
-      {hasActiveFilters(filters) && !showSaveInput && (
-        <button
-          onClick={() => setShowSaveInput(true)}
-          className="h-7 min-h-[44px] sm:min-h-0 rounded-full border border-dashed border-border px-3 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          <line x1="2" y1="4" x2="14" y2="4" />
+          <line x1="4" y1="8" x2="12" y2="8" />
+          <line x1="6" y1="12" x2="10" y2="12" />
+        </svg>
+        {label}
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className={cn("shrink-0 opacity-50 transition-transform", open && "rotate-180")}
         >
-          + Save view
-        </button>
-      )}
-      {showSaveInput && (
-        <div className="inline-flex items-center gap-1">
-          <input
-            autoFocus
-            value={presetName}
-            onChange={(e) => setPresetName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSavePreset();
-              if (e.key === "Escape") {
-                setShowSaveInput(false);
-                setPresetName("");
-              }
-            }}
-            placeholder="View name..."
-            className="h-7 w-32 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-          />
+          <path d="M3 4.5L6 7.5L9 4.5" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-50 min-w-[220px] rounded-lg border border-border bg-background shadow-lg py-1">
+          {/* All Issues (clear) */}
           <button
-            onClick={handleSavePreset}
-            disabled={!presetName.trim()}
-            className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
-          >
-            Save
-          </button>
-          <button
+            type="button"
             onClick={() => {
-              setShowSaveInput(false);
-              setPresetName("");
+              onChange(EMPTY_FILTERS);
+              setOpen(false);
             }}
-            className="h-7 rounded px-1.5 text-xs text-muted-foreground hover:text-foreground"
+            className={cn(
+              "flex w-full items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent",
+              !activePreset && !hasActiveFilters(filters) && "font-medium",
+            )}
           >
-            &times;
+            All Issues
           </button>
+
+          <div className="my-1 border-t border-border" />
+
+          {/* Built-in + user presets */}
+          {presets.map((preset) => (
+            <div key={preset.id} className="group flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(preset.filters);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex-1 text-left px-3 py-1.5 text-sm hover:bg-accent",
+                  activePreset?.id === preset.id && "font-medium text-primary",
+                )}
+              >
+                {preset.name}
+              </button>
+              {!preset.id.startsWith("preset-") || preset.id.match(/^preset-\d+/) ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removePreset(preset.id);
+                    addToast({ message: `Removed "${preset.name}"`, variant: "info" });
+                  }}
+                  className="hidden group-hover:inline-flex items-center justify-center w-6 h-6 mr-1 text-muted-foreground hover:text-destructive"
+                  aria-label={`Remove ${preset.name}`}
+                >
+                  &times;
+                </button>
+              ) : null}
+            </div>
+          ))}
+
+          {/* Save actions */}
+          {hasActiveFilters(filters) && (
+            <>
+              <div className="my-1 border-t border-border" />
+
+              {activePreset && !filtersMatch(activePreset.filters, filters) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    updatePreset(activePreset.id, filters);
+                    addToast({ message: `Updated "${activePreset.name}"`, variant: "success" });
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-primary hover:bg-accent"
+                >
+                  Save changes to "{activePreset.name}"
+                </button>
+              )}
+
+              {!showSaveAs ? (
+                <button
+                  type="button"
+                  onClick={() => setShowSaveAs(true)}
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent"
+                >
+                  Save as new filter...
+                </button>
+              ) : (
+                <div className="flex items-center gap-1 px-3 py-1.5">
+                  <input
+                    autoFocus
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveAs();
+                      if (e.key === "Escape") {
+                        setShowSaveAs(false);
+                        setNewName("");
+                      }
+                    }}
+                    placeholder="Filter name..."
+                    className="h-7 flex-1 min-w-0 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveAs}
+                    disabled={!newName.trim()}
+                    className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>
@@ -300,7 +408,8 @@ export function hasActiveFilters(filters: FilterState): boolean {
     filters.search !== "" ||
     filters.labels.length > 0 ||
     filters.dateRanges.length > 0 ||
-    filters.structural.length > 0
+    filters.structural.length > 0 ||
+    filters.groupBy !== null
   );
 }
 

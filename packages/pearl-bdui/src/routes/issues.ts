@@ -88,7 +88,7 @@ const DATE_RANGE_VALUES = [
   "created_this_week",
   "created_last_week",
 ];
-const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "is_epic", "no_assignee"];
+const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "not_blocked", "is_epic", "no_assignee"];
 
 const listIssuesQuerySchema = {
   querystring: {
@@ -270,6 +270,9 @@ export function registerIssueRoutes(
             break;
           case "is_blocked":
             sql += ` AND EXISTS (SELECT 1 FROM dependencies d JOIN issues dep ON dep.id = d.depends_on_id WHERE d.issue_id = i.id AND d.type IN ('blocks', 'depends_on') AND dep.status != 'closed')`;
+            break;
+          case "not_blocked":
+            sql += ` AND NOT EXISTS (SELECT 1 FROM dependencies d JOIN issues dep ON dep.id = d.depends_on_id WHERE d.issue_id = i.id AND d.type IN ('blocks', 'depends_on') AND dep.status != 'closed')`;
             break;
           case "is_epic":
             sql += ` AND i.issue_type = 'epic'`;

@@ -20,7 +20,7 @@ import {
   hasActiveFilters,
   MultiSelect,
   PRIORITY_LABELS,
-  PresetSelector,
+  PresetDropdown,
   STATUS_LABELS,
   TYPE_LABELS,
 } from "./filter-bar-parts";
@@ -28,7 +28,6 @@ import type { FilterState, GroupByField } from "./filter-bar-types";
 import { EMPTY_FILTERS, GROUP_BY_LABELS } from "./filter-bar-types";
 
 export type { FilterState, GroupByField };
-// Re-export types and constants so existing consumers don't break
 export { EMPTY_FILTERS, GROUP_BY_LABELS };
 
 const ALL_STATUSES = ISSUE_STATUSES;
@@ -123,7 +122,18 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
     onChangeRef.current({ ...filtersRef.current, labels });
   }, []);
 
+  const [showMore, setShowMore] = useState(
+    () => filters.assignee !== "" || filters.dateRanges.length > 0,
+  );
   const activeCount = countActiveFilters(filters);
+
+  const groupByOptions: { value: GroupByField | "__none__"; label: string }[] = [
+    { value: "__none__" as GroupByField, label: "None" },
+    ...(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => ({
+      value: key,
+      label: GROUP_BY_LABELS[key],
+    })),
+  ];
 
   // Shared filter controls
   const filterControls = (
@@ -187,19 +197,6 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           onChange={(v) => setField("issue_type", v)}
         />
 
-        {/* Assignee */}
-        <input
-          type="text"
-          value={localAssignee}
-          onChange={(e) => handleAssigneeChange(e.target.value)}
-          placeholder="Assignee"
-          className={cn(
-            "h-8 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
-            isMobile ? "w-full min-h-[44px]" : "w-32",
-          )}
-          aria-label="Filter by assignee"
-        />
-
         {/* Labels */}
         <LabelPicker
           selected={filters.labels}
@@ -208,24 +205,6 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           allowCreate={false}
           placeholder="Filter by labels"
           className={isMobile ? "w-full" : "w-48"}
-        />
-
-        {/* Date range */}
-        <CustomSelect<DateRange>
-          value={null}
-          options={DATE_RANGE_OPTIONS.map((opt) => ({
-            value: opt,
-            label: DATE_RANGE_LABELS[opt],
-            disabled: filters.dateRanges.includes(opt),
-          }))}
-          onChange={(value) => {
-            if (!filters.dateRanges.includes(value)) {
-              onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
-            }
-          }}
-          placeholder="Date filter..."
-          aria-label="Filter by date range"
-          className="min-w-[120px]"
         />
 
         {/* Structural filters */}
@@ -246,22 +225,75 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
           className="min-w-[120px]"
         />
 
-        {/* Group by */}
-        <CustomSelect<GroupByField>
+        {/* Group by with None option */}
+        <CustomSelect<GroupByField | "__none__">
           value={filters.groupBy}
-          options={(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => ({
-            value: key,
-            label: GROUP_BY_LABELS[key],
-          }))}
-          onChange={(value) => onChange({ ...filters, groupBy: value })}
+          options={groupByOptions}
+          onChange={(value) =>
+            onChange({
+              ...filters,
+              groupBy: value === ("__none__" as string) ? null : (value as GroupByField),
+            })
+          }
           placeholder="Group by..."
           aria-label="Group by"
           className="min-w-[100px]"
         />
 
+        {/* More filters toggle */}
+        {!showMore && (
+          <button
+            onClick={() => setShowMore(true)}
+            className={cn(
+              "h-8 rounded border border-dashed border-border px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors",
+              isMobile && "min-h-[44px]",
+            )}
+          >
+            More filters
+          </button>
+        )}
+
+        {/* Assignee (hidden by default) */}
+        {showMore && (
+          <input
+            type="text"
+            value={localAssignee}
+            onChange={(e) => handleAssigneeChange(e.target.value)}
+            placeholder="Assignee"
+            className={cn(
+              "h-8 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
+              isMobile ? "w-full min-h-[44px]" : "w-32",
+            )}
+            aria-label="Filter by assignee"
+          />
+        )}
+
+        {/* Date range (hidden by default) */}
+        {showMore && (
+          <CustomSelect<DateRange>
+            value={null}
+            options={DATE_RANGE_OPTIONS.map((opt) => ({
+              value: opt,
+              label: DATE_RANGE_LABELS[opt],
+              disabled: filters.dateRanges.includes(opt),
+            }))}
+            onChange={(value) => {
+              if (!filters.dateRanges.includes(value)) {
+                onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
+              }
+            }}
+            placeholder="Date filter..."
+            aria-label="Filter by date range"
+            className="min-w-[120px]"
+          />
+        )}
+
         {hasActiveFilters(filters) && (
           <button
-            onClick={() => onChange(EMPTY_FILTERS)}
+            onClick={() => {
+              onChange(EMPTY_FILTERS);
+              setShowMore(false);
+            }}
             className={cn(
               "h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
               isMobile && "min-h-[44px]",
@@ -278,8 +310,8 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   if (isMobile) {
     return (
       <div className="flex flex-col gap-2">
-        <PresetSelector filters={filters} onChange={onChange} />
         <div className="flex items-center gap-2">
+          <PresetDropdown filters={filters} onChange={onChange} />
           <button
             onClick={() => setFiltersExpanded((prev) => !prev)}
             className={cn(
@@ -329,7 +361,9 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   // Desktop: always visible
   return (
     <div className="flex flex-col gap-2">
-      <PresetSelector filters={filters} onChange={onChange} />
+      <div className="flex items-center gap-2">
+        <PresetDropdown filters={filters} onChange={onChange} />
+      </div>
       {filterControls}
       <FilterPills filters={filters} setField={setField} />
     </div>

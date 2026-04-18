@@ -165,5 +165,11 @@ export function useFilterPresets() {
     notify();
   }, []);
 
-  return { presets, save, remove, rename };
+  const update = useCallback((id: string, filters: FilterState) => {
+    presets = presets.map((p) => (p.id === id ? { ...p, filters } : p));
+    saveToStorage();
+    notify();
+  }, []);
+
+  return { presets, save, remove, rename, update };
 }

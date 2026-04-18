@@ -43,6 +43,7 @@ const VALID_DATE_RANGES = new Set<string>(DATE_RANGE_OPTIONS);
 export const STRUCTURAL_FILTER_OPTIONS = [
   "has_dependency",
   "is_blocked",
+  "not_blocked",
   "is_epic",
   "no_assignee",
 ] as const;
@@ -50,8 +51,9 @@ export const STRUCTURAL_FILTER_OPTIONS = [
 export type StructuralFilter = (typeof STRUCTURAL_FILTER_OPTIONS)[number];
 
 export const STRUCTURAL_FILTER_LABELS: Record<StructuralFilter, string> = {
-  has_dependency: "Has Dependency",
-  is_blocked: "Is Blocked",
+  has_dependency: "Has Any Dependency",
+  is_blocked: "Is Blocked (Open Deps)",
+  not_blocked: "Not Blocked",
   is_epic: "Is Epic",
   no_assignee: "No Assignee",
 };
@@ -217,8 +219,18 @@ export function parseQuerySyntax(input: string): ParsedQuery {
         if (value === "blocked") {
           result.structural.push("is_blocked");
           consumed = true;
+        } else if (value === "not_blocked" || value === "notblocked") {
+          result.structural.push("not_blocked");
+          consumed = true;
         } else if (value === "epic") {
           result.structural.push("is_epic");
+          consumed = true;
+        }
+        break;
+      }
+      case "not": {
+        if (value === "blocked") {
+          result.structural.push("not_blocked");
           consumed = true;
         }
         break;
