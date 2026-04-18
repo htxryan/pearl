@@ -11,13 +11,21 @@ let pool: Pool | null = null;
 // for the sync to finish and then proceed normally.
 let syncBarrier: { promise: Promise<void>; resolve: () => void } | null = null;
 
-/** Signal that a replica sync has started. Reads will wait. */
+/** Signal that a replica sync has started. Reads will wait. Throws if already syncing. */
 export function beginSync(): void {
+  if (syncBarrier) {
+    throw new Error("Sync already in progress");
+  }
   let resolve!: () => void;
   const promise = new Promise<void>((r) => {
     resolve = r;
   });
   syncBarrier = { promise, resolve };
+}
+
+/** Check if a sync is currently in progress. */
+export function isSyncing(): boolean {
+  return syncBarrier !== null;
 }
 
 /** Signal that a replica sync has finished. Waiting reads proceed. */

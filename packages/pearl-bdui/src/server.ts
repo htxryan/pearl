@@ -115,78 +115,17 @@ export async function createServer(initialConfig: Config) {
   // server directly — no sync hook needed.
   const SYNC_TIMEOUT_MS = 30_000;
 
-  const onAfterWrite = isEmbedded
-    ? async () => {
-        // doltManager is guaranteed non-null when isEmbedded is true
-        // (set in the `if (!isServerMode)` block above).
+  // ─── Replica Sync (shared) ────────────────────────────
+  // Single implementation used by both onAfterWrite and /api/sync.
+  // beginSync() throws if a sync is already in progress, preventing
+  // concurrent syncs from corrupting the barrier.
+  const doReplicaSync = isEmbedded
+    ? async (logPrefix: string): Promise<{ elapsedMs: number }> => {
         const manager = doltManager!;
-
-        app.log.info("[replica] Syncing replica after write...");
+        app.log.info(`${logPrefix} Syncing replica...`);
         const start = Date.now();
-        beginSync();
-        try {
-          await destroyPool();
-          await manager.stop();
 
-          // Guard against cp or start() hanging indefinitely (P2)
-          const syncOp = async () => {
-            await syncReplica(config.doltDbPath, config.replicaPath);
-            await manager.start();
-          };
-          const timeout = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Replica sync timed out")), SYNC_TIMEOUT_MS),
-          );
-          await Promise.race([syncOp(), timeout]);
-
-          if (manager.getState() === "running") {
-            const pool = createDoltPool(config);
-            // Create label_definitions on the replica BEFORE releasing the sync barrier.
-            // Pass pool directly to bypass queryWithRetry/awaitSync deadlock.
-            await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
-              app.log.warn(
-                { err: tableErr },
-                "[replica] Failed to create label_definitions before endSync",
-              );
-            });
-          }
-          app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
-        } catch (err) {
-          // Recovery: ensure the server and pool are restored so reads
-          // don't stay permanently broken (P0).
-          app.log.error({ err }, "[replica] Sync failed, attempting recovery...");
-          try {
-            if (manager.getState() !== "running") {
-              await manager.start();
-            }
-            if (manager.getState() === "running") {
-              const pool = createDoltPool(config);
-              await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
-                app.log.warn(
-                  { err: tableErr },
-                  "[replica] Failed to create label_definitions before endSync (recovery)",
-                );
-              });
-              app.log.info("[replica] Recovery successful");
-            }
-          } catch (recoveryErr) {
-            app.log.error({ err: recoveryErr }, "[replica] Recovery failed");
-          }
-          throw err;
-        } finally {
-          endSync();
-        }
-      }
-    : undefined;
-
-  const writeService = new WriteService(config, onAfterWrite);
-
-  // ─── Replica Sync (reusable) ──────────────────────────
-  // Extracted so both onAfterWrite and the /api/sync endpoint can use it.
-  const performReplicaSync = isEmbedded
-    ? async () => {
-        const manager = doltManager!;
-        app.log.info("[replica] Manual sync requested...");
-        const start = Date.now();
+        // Throws "Sync already in progress" if another sync is running
         beginSync();
         try {
           await destroyPool();
@@ -196,25 +135,30 @@ export async function createServer(initialConfig: Config) {
             await syncReplica(config.doltDbPath, config.replicaPath);
             await manager.start();
           };
-          const timeout = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Replica sync timed out")), SYNC_TIMEOUT_MS),
-          );
-          await Promise.race([syncOp(), timeout]);
+          let timer: ReturnType<typeof setTimeout>;
+          const timeout = new Promise<never>((_, reject) => {
+            timer = setTimeout(() => reject(new Error("Replica sync timed out")), SYNC_TIMEOUT_MS);
+          });
+          try {
+            await Promise.race([syncOp(), timeout]);
+          } finally {
+            clearTimeout(timer!);
+          }
 
           if (manager.getState() === "running") {
             const pool = createDoltPool(config);
             await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
               app.log.warn(
                 { err: tableErr },
-                "[replica] Failed to create label_definitions before endSync",
+                `${logPrefix} Failed to create label_definitions before endSync`,
               );
             });
           }
-          const elapsed = Date.now() - start;
-          app.log.info(`[replica] Manual sync completed in ${elapsed}ms`);
-          return { elapsed };
+          const elapsedMs = Date.now() - start;
+          app.log.info(`${logPrefix} Sync completed in ${elapsedMs}ms`);
+          return { elapsedMs };
         } catch (err) {
-          app.log.error({ err }, "[replica] Manual sync failed, attempting recovery...");
+          app.log.error({ err }, `${logPrefix} Sync failed, attempting recovery...`);
           try {
             if (manager.getState() !== "running") {
               await manager.start();
@@ -224,13 +168,13 @@ export async function createServer(initialConfig: Config) {
               await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
                 app.log.warn(
                   { err: tableErr },
-                  "[replica] Failed to create label_definitions before endSync (recovery)",
+                  `${logPrefix} Failed to create label_definitions before endSync (recovery)`,
                 );
               });
-              app.log.info("[replica] Recovery successful");
+              app.log.info(`${logPrefix} Recovery successful`);
             }
           } catch (recoveryErr) {
-            app.log.error({ err: recoveryErr }, "[replica] Recovery failed");
+            app.log.error({ err: recoveryErr }, `${logPrefix} Recovery failed`);
           }
           throw err;
         } finally {
@@ -238,6 +182,22 @@ export async function createServer(initialConfig: Config) {
         }
       }
     : null;
+
+  const onAfterWrite = doReplicaSync
+    ? async () => {
+        try {
+          await doReplicaSync("[replica]");
+        } catch (err) {
+          if (err instanceof Error && err.message === "Sync already in progress") {
+            app.log.info("[replica] Skipping post-write sync — sync already in progress");
+            return;
+          }
+          throw err;
+        }
+      }
+    : undefined;
+
+  const writeService = new WriteService(config, onAfterWrite);
 
   // ─── Error Handler ────────────────────────────────────
   app.setErrorHandler((error: FastifyError | AppError, _request, reply) => {
@@ -372,7 +332,7 @@ export async function createServer(initialConfig: Config) {
 
   // ─── Replica Sync Endpoint ────────────────────────────
   app.post("/api/sync", async (_request, reply) => {
-    if (!performReplicaSync) {
+    if (!doReplicaSync) {
       return reply.code(400).send({
         code: "NOT_APPLICABLE",
         message: "Replica sync is only available in embedded mode",
@@ -381,12 +341,19 @@ export async function createServer(initialConfig: Config) {
     }
 
     try {
-      const result = await performReplicaSync();
+      const result = await doReplicaSync("[replica]");
       return reply.code(200).send({
         ok: true,
-        elapsed_ms: result.elapsed,
+        elapsed_ms: result.elapsedMs,
       });
     } catch (err) {
+      if (err instanceof Error && err.message === "Sync already in progress") {
+        return reply.code(409).send({
+          code: "SYNC_IN_PROGRESS",
+          message: "A sync operation is already running",
+          retryable: true,
+        });
+      }
       app.log.error({ err }, "[api/sync] Sync failed");
       return reply.code(500).send({
         code: "SYNC_FAILED",

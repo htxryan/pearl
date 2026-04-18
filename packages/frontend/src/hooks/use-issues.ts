@@ -512,7 +512,10 @@ export function useSyncReplica() {
     mutationKey: ["sync"],
     mutationFn: () => api.syncReplica(),
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
+      queryClient.invalidateQueries({ queryKey: statsKeys.all });
+      queryClient.invalidateQueries({ queryKey: dependencyKeys.all });
+      queryClient.invalidateQueries({ queryKey: labelKeys.all });
     },
   });
 }
