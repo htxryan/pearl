@@ -10,11 +10,15 @@ import type {
   Issue,
   IssueListItem,
   LabelWithCount,
+  MigrateRequest,
+  MigrateResponse,
   MutationResponse,
   SetupInitializeRequest,
   SetupInitializeResponse,
   SetupStatusResponse,
   StatsResponse,
+  TestServerRequest,
+  TestServerResponse,
   UpdateIssueRequest,
   UpsertLabelRequest,
 } from "@pearl/shared";
@@ -177,6 +181,21 @@ export function fetchSetupStatus(): Promise<SetupStatusResponse> {
 
 export function initializeSetup(data: SetupInitializeRequest): Promise<SetupInitializeResponse> {
   return request("/setup/initialize", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Migration ─────────────────────────────────────────
+export function testMigrationServer(data: TestServerRequest): Promise<TestServerResponse> {
+  return request("/migration/test-server", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function migrate(data: MigrateRequest): Promise<MigrateResponse> {
+  return request("/migration/migrate", {
     method: "POST",
     body: JSON.stringify(data),
   });

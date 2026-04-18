@@ -12,6 +12,7 @@ import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerIssueRoutes } from "./routes/issues.js";
 import { ensureLabelDefinitionsTable, registerLabelRoutes } from "./routes/labels.js";
+import { registerMigrationRoutes } from "./routes/migration.js";
 import { registerSetupRoutes } from "./routes/setup.js";
 import { registerStatsRoutes } from "./routes/stats.js";
 import { WriteService } from "./write-service/write-service.js";
@@ -329,6 +330,29 @@ export async function createServer(initialConfig: Config) {
   registerStatsRoutes(app, getConfig);
   registerHealthRoutes(app, getDoltManager, getConfig);
   registerLabelRoutes(app, getConfig);
+  registerMigrationRoutes(app, {
+    getConfig,
+    onMigrationComplete: async (newConfig: Config) => {
+      config = newConfig;
+
+      // Stop old embedded mode infrastructure
+      if (doltManager) {
+        await doltManager.stop();
+        doltManager = null;
+      }
+      await destroyPool();
+
+      // Reconnect in server mode
+      app.log.info(
+        `[migration] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
+      );
+      createDoltPool(newConfig);
+      writeService.updateConfig(newConfig);
+      writeService.setAfterWriteHook(undefined);
+
+      app.log.info("[migration] Migration complete, running in server mode");
+    },
+  });
 
   // ─── Replica Sync Endpoint ────────────────────────────
   app.post("/api/sync", async (_request, reply) => {

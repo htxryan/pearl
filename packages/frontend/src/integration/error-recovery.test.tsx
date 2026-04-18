@@ -214,6 +214,7 @@ describe("HealthBanner", () => {
         dolt_server: "stopped",
         uptime_seconds: 100,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -234,6 +235,7 @@ describe("HealthBanner", () => {
         dolt_server: "starting",
         uptime_seconds: 5,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -251,6 +253,7 @@ describe("HealthBanner", () => {
         dolt_server: "error",
         uptime_seconds: 50,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -268,6 +271,7 @@ describe("HealthBanner", () => {
         dolt_server: "running",
         uptime_seconds: 300,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -583,6 +587,7 @@ describe("View degradation during errors", () => {
           dolt_server: "stopped",
           uptime_seconds: 10,
           version: "1.0.0",
+          dolt_mode: "embedded",
         },
         isSuccess: true,
       });

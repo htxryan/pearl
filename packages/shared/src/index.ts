@@ -266,6 +266,39 @@ export interface HealthResponse {
   uptime_seconds: number;
   version: string;
   project_prefix?: string;
+  dolt_mode: "embedded" | "server";
+}
+
+// ─── Migration Types ───────────────────────────────────────
+
+export interface TestServerRequest {
+  host: string;
+  port: number;
+  user?: string;
+  password?: string;
+}
+
+export interface TestServerResponse {
+  ok: boolean;
+  error?: string;
+}
+
+export interface MigrateRequest {
+  target: "managed" | "external";
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  dataDir?: string;
+  force?: boolean;
+}
+
+export interface MigrateResponse {
+  ok: boolean;
+  dolt_mode: "server";
+  dolt_host: string;
+  dolt_port: number;
+  error?: string;
 }
 
 export interface StatsResponse {

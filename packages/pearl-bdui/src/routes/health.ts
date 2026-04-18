@@ -25,6 +25,7 @@ export function registerHealthRoutes(
         uptime_seconds: 0,
         version: VERSION,
         project_prefix: projectPrefix,
+        dolt_mode: config.doltMode,
       };
       return reply.code(200).send(response);
     }
@@ -42,6 +43,7 @@ export function registerHealthRoutes(
         uptime_seconds: 0,
         version: VERSION,
         project_prefix: projectPrefix,
+        dolt_mode: config.doltMode,
       };
       return reply.code(503).send(response);
     }
@@ -64,6 +66,7 @@ export function registerHealthRoutes(
       uptime_seconds: doltManager.getUptime(),
       version: VERSION,
       project_prefix: projectPrefix,
+      dolt_mode: config.doltMode,
     };
 
     const statusCode = status === "healthy" ? 200 : status === "degraded" ? 200 : 503;
@@ -81,6 +84,7 @@ async function serverModeHealth(projectPrefix: string): Promise<HealthResponse> 
       uptime_seconds: 0,
       version: VERSION,
       project_prefix: projectPrefix,
+      dolt_mode: "server",
     };
   } catch {
     return {
@@ -89,6 +93,7 @@ async function serverModeHealth(projectPrefix: string): Promise<HealthResponse> 
       uptime_seconds: 0,
       version: VERSION,
       project_prefix: projectPrefix,
+      dolt_mode: "server",
     };
   }
 }
