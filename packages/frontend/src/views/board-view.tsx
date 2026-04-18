@@ -46,7 +46,7 @@ export function BoardView() {
   // otherwise Closed issues dominate the 100-row API limit.
   const boardFilters = useMemo(() => {
     if (filters.status.length > 0) return filters;
-    return { ...filters, status: ["open", "in_progress", "deferred"] as IssueStatus[] };
+    return { ...filters, status: ["open", "in_progress", "deferred", "blocked"] as IssueStatus[] };
   }, [filters]);
 
   const apiParams = useMemo(() => buildApiParams(boardFilters, sorting), [boardFilters, sorting]);
