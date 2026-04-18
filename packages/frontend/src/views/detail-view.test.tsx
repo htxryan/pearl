@@ -13,6 +13,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(),
   useUpdateIssue: vi.fn(),
   useCloseIssue: vi.fn(),
+  useDeleteIssue: vi.fn(),
   useAddComment: vi.fn(),
   useAddDependency: vi.fn(),
   useRemoveDependency: vi.fn(),
@@ -24,6 +25,7 @@ import {
   useAddDependency,
   useCloseIssue,
   useComments,
+  useDeleteIssue,
   useDependencies,
   useEvents,
   useIssue,
@@ -100,6 +102,7 @@ beforeEach(() => {
   // Setup default mock returns
   (useUpdateIssue as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useCloseIssue as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
+  (useDeleteIssue as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useAddComment as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useAddDependency as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useRemoveDependency as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
@@ -149,8 +152,8 @@ describe("DetailView", () => {
 
     renderWithProviders("pearl-test");
 
-    // Issue ID and title
-    expect(screen.getByText("pearl-test")).toBeDefined();
+    // Issue ID (short form) and title
+    expect(screen.getByText("test")).toBeDefined();
     expect(screen.getByText("Test Issue")).toBeDefined();
 
     // Metadata

@@ -10,6 +10,7 @@ import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { shortId } from "@/lib/format-id";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -359,8 +360,11 @@ export function buildColumns({
     col.accessor("id", {
       header: "ID",
       cell: (info) => (
-        <code className="whitespace-nowrap text-[11px] text-muted-foreground/70">
-          {info.getValue()}
+        <code
+          className="whitespace-nowrap text-[11px] text-muted-foreground/70"
+          title={info.getValue()}
+        >
+          {shortId(info.getValue())}
         </code>
       ),
       size: 140,

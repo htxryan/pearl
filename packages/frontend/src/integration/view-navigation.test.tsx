@@ -72,6 +72,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(() => ({ data: [] })),
   useUpdateIssue: vi.fn(() => mockMutation),
   useCloseIssue: vi.fn(() => mockMutation),
+  useDeleteIssue: vi.fn(() => mockMutation),
   useCreateIssue: vi.fn(() => mockMutation),
   useAddComment: vi.fn(() => mockMutation),
   useAddDependency: vi.fn(() => mockMutation),
@@ -525,8 +526,8 @@ describe("URL routing", () => {
 
     renderApp("/issues/test-001");
 
-    // Detail view shows the issue ID and title
-    expect(screen.getByText("test-001")).toBeInTheDocument();
+    // Detail view shows the short issue ID and title
+    expect(screen.getByText("001")).toBeInTheDocument();
     expect(screen.getByText("Test Issue 1")).toBeInTheDocument();
     // And detail-specific sections
     expect(screen.getByText("Fields")).toBeInTheDocument();

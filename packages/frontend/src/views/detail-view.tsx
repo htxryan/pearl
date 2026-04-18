@@ -21,6 +21,7 @@ import {
   useAddDependency,
   useCloseIssue,
   useComments,
+  useDeleteIssue,
   useDependencies,
   useEvents,
   useIssue,
@@ -31,6 +32,7 @@ import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
+import { shortId } from "@/lib/format-id";
 import {
   DetailErrorView,
   DetailSections,
@@ -119,6 +121,7 @@ function DetailViewContent({ id }: { id: string }) {
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
   const addCommentMutation = useAddComment();
+  const deleteMutation = useDeleteIssue();
   const addDepMutation = useAddDependency();
   const removeDepMutation = useRemoveDependency();
 
@@ -127,6 +130,7 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Confirmation dialog state
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Dirty state for unsaved changes warning
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
@@ -191,6 +195,22 @@ function DetailViewContent({ id }: { id: string }) {
       },
     );
   }, [id, issue, closeMutation.mutate, navigate, backPath, undo, toast]);
+
+  // Delete handler (permanent)
+  const handleDelete = useCallback(() => {
+    deleteMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast.success("Issue deleted.");
+          navigate(backPath);
+        },
+        onError: () => {
+          toast.error("Failed to delete issue. Please try again.");
+        },
+      },
+    );
+  }, [id, deleteMutation.mutate, navigate, backPath, toast]);
 
   // Claim handler
   const handleClaim = useCallback(() => {
@@ -292,7 +312,9 @@ function DetailViewContent({ id }: { id: string }) {
                 {backLabel}
               </button>
               <span className="text-muted-foreground">/</span>
-              <code className="text-muted-foreground">{issue.id}</code>
+              <code className="text-muted-foreground" title={issue.id}>
+                {shortId(issue.id)}
+              </code>
             </nav>
             <StatusBadge status={issue.status} />
             <PriorityIndicator priority={issue.priority} />
@@ -319,6 +341,15 @@ function DetailViewContent({ id }: { id: string }) {
                 </Button>
               </>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleteMutation.isPending}
+              className="text-destructive hover:bg-destructive/10 border-destructive/30"
+            >
+              Delete
+            </Button>
           </div>
         </div>
 
@@ -513,6 +544,19 @@ function DetailViewContent({ id }: { id: string }) {
         description={`Are you sure you want to close "${issue.title}"? This can be undone.`}
         confirmLabel="Close Issue"
         isPending={closeMutation.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onConfirm={() => {
+          setShowDeleteConfirm(false);
+          handleDelete();
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+        title="Delete issue permanently?"
+        description={`This will permanently delete "${issue.title}" and remove all its dependency links. This cannot be undone.`}
+        confirmLabel="Delete Issue"
+        isPending={deleteMutation.isPending}
       />
     </div>
   );

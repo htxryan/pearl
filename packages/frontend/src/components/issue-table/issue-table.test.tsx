@@ -90,8 +90,8 @@ describe("IssueTable", () => {
 
     expect(screen.getByText("Fix login bug")).toBeInTheDocument();
     expect(screen.getByText("Add dashboard view")).toBeInTheDocument();
-    expect(screen.getByText("beads-001")).toBeInTheDocument();
-    expect(screen.getByText("beads-002")).toBeInTheDocument();
+    expect(screen.getByText("001")).toBeInTheDocument();
+    expect(screen.getByText("002")).toBeInTheDocument();
   });
 
   it("renders column headers", () => {

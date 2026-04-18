@@ -106,6 +106,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(() => ({ data: [] })),
   useUpdateIssue: vi.fn(() => mockUpdateMutation),
   useCloseIssue: vi.fn(() => mockCloseMutation),
+  useDeleteIssue: vi.fn(() => baseMutation),
   useCreateIssue: vi.fn(() => mockCreateMutation),
   useAddComment: vi.fn(() => baseMutation),
   useAddDependency: vi.fn(() => baseMutation),
@@ -967,8 +968,8 @@ describe("View composition: List -> Detail -> Back", () => {
     setupIssuesMock(mockIssues);
     renderApp("/issues/test-001");
 
-    // Should show the issue detail
-    expect(screen.getByText("test-001")).toBeInTheDocument();
+    // Should show the issue detail (short ID)
+    expect(screen.getByText("001")).toBeInTheDocument();
     expect(screen.getByText("Open Issue")).toBeInTheDocument();
 
     // Find and click the breadcrumb back link

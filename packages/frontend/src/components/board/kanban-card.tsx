@@ -5,6 +5,7 @@ import { memo } from "react";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { shortId } from "@/lib/format-id";
 import { cn } from "@/lib/utils";
 
 interface KanbanCardProps {
@@ -81,7 +82,9 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isBlocked }
       <div className="pl-3.5 pr-3 py-3">
         {/* Header: ID + Priority + Blocked pill */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground font-mono truncate">{issue.id}</span>
+          <span className="text-xs text-muted-foreground font-mono truncate" title={issue.id}>
+            {shortId(issue.id)}
+          </span>
           <div className="flex items-center gap-1.5">
             {isBlocked && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
@@ -144,7 +147,9 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
       <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusAccentColor[issue.status])} />
       <div className="pl-3.5 pr-3 py-3">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground font-mono truncate">{issue.id}</span>
+          <span className="text-xs text-muted-foreground font-mono truncate" title={issue.id}>
+            {shortId(issue.id)}
+          </span>
           <PriorityIndicator priority={issue.priority} />
         </div>
         <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">{issue.title}</p>
