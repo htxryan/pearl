@@ -125,6 +125,11 @@ export function FilterBar({ filters, onChange, searchInputRef }: FilterBarProps)
   const [showMore, setShowMore] = useState(
     () => filters.assignee !== "" || filters.dateRanges.length > 0,
   );
+  useEffect(() => {
+    if (filters.assignee !== "" || filters.dateRanges.length > 0) {
+      setShowMore(true);
+    }
+  }, [filters.assignee, filters.dateRanges]);
   const activeCount = countActiveFilters(filters);
 
   const groupByOptions: { value: GroupByField | "__none__"; label: string }[] = [

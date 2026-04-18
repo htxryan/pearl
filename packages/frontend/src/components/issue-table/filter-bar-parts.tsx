@@ -194,8 +194,29 @@ export function FilterPills({
 
 // ─── Preset Dropdown (Jira-style) ────────────────────
 
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  const sa = [...a].sort();
+  const sb = [...b].sort();
+  return sa.every((v, i) => v === sb[i]);
+}
+
 function filtersMatch(a: FilterState, b: FilterState): boolean {
-  return JSON.stringify({ ...a, groupBy: null }) === JSON.stringify({ ...b, groupBy: null });
+  return (
+    arraysEqual(a.status, b.status) &&
+    arraysEqual(a.priority, b.priority) &&
+    arraysEqual(a.issue_type, b.issue_type) &&
+    a.assignee === b.assignee &&
+    a.search === b.search &&
+    arraysEqual(a.labels, b.labels) &&
+    arraysEqual(a.dateRanges, b.dateRanges) &&
+    arraysEqual(a.structural, b.structural) &&
+    a.groupBy === b.groupBy
+  );
+}
+
+function isUserPreset(id: string): boolean {
+  return /^preset-\d+$/.test(id);
 }
 
 export function PresetDropdown({
@@ -214,6 +235,10 @@ export function PresetDropdown({
   const [open, setOpen] = useState(false);
   const [showSaveAs, setShowSaveAs] = useState(false);
   const [newName, setNewName] = useState("");
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(() => {
+    const match = presets.find((p) => filtersMatch(p.filters, filters));
+    return match?.id ?? null;
+  });
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -230,7 +255,12 @@ export function PresetDropdown({
   }, [open]);
 
   const activePreset = presets.find((p) => filtersMatch(p.filters, filters));
-  const label = activePreset ? activePreset.name : "All Issues";
+  const selectedPreset = selectedPresetId ? presets.find((p) => p.id === selectedPresetId) : null;
+  const hasUnsavedChanges =
+    selectedPreset &&
+    isUserPreset(selectedPreset.id) &&
+    !filtersMatch(selectedPreset.filters, filters);
+  const label = activePreset ? activePreset.name : "Active Issues";
 
   const handleSaveAs = useCallback(() => {
     if (!newName.trim()) return;
@@ -288,11 +318,12 @@ export function PresetDropdown({
 
       {open && (
         <div className="absolute left-0 top-full mt-1 z-50 min-w-[220px] rounded-lg border border-border bg-background shadow-lg py-1">
-          {/* All Issues (clear) */}
+          {/* Active Issues (clear) */}
           <button
             type="button"
             onClick={() => {
               onChange(EMPTY_FILTERS);
+              setSelectedPresetId(null);
               setOpen(false);
             }}
             className={cn(
@@ -300,7 +331,7 @@ export function PresetDropdown({
               !activePreset && !hasActiveFilters(filters) && "font-medium",
             )}
           >
-            All Issues
+            Active Issues
           </button>
 
           <div className="my-1 border-t border-border" />
@@ -312,6 +343,7 @@ export function PresetDropdown({
                 type="button"
                 onClick={() => {
                   onChange(preset.filters);
+                  setSelectedPresetId(preset.id);
                   setOpen(false);
                 }}
                 className={cn(
@@ -321,7 +353,7 @@ export function PresetDropdown({
               >
                 {preset.name}
               </button>
-              {!preset.id.startsWith("preset-") || preset.id.match(/^preset-\d+/) ? (
+              {isUserPreset(preset.id) ? (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -343,17 +375,17 @@ export function PresetDropdown({
             <>
               <div className="my-1 border-t border-border" />
 
-              {activePreset && !filtersMatch(activePreset.filters, filters) && (
+              {hasUnsavedChanges && selectedPreset && (
                 <button
                   type="button"
                   onClick={() => {
-                    updatePreset(activePreset.id, filters);
-                    addToast({ message: `Updated "${activePreset.name}"`, variant: "success" });
+                    updatePreset(selectedPreset.id, filters);
+                    addToast({ message: `Updated "${selectedPreset.name}"`, variant: "success" });
                     setOpen(false);
                   }}
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-primary hover:bg-accent"
                 >
-                  Save changes to "{activePreset.name}"
+                  Save changes to "{selectedPreset.name}"
                 </button>
               )}
 
