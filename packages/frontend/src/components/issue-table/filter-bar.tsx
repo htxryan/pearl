@@ -33,7 +33,7 @@ import {
 } from "./filter-bar-types";
 
 export type { FilterState, GroupByField };
-export { ACTIVE_FILTERS, EMPTY_FILTERS, GROUP_BY_LABELS };
+export { ACTIVE_FILTERS, EMPTY_FILTERS, GROUP_BY_LABELS, SHOW_ALL_FILTERS };
 
 const ALL_STATUSES = ISSUE_STATUSES;
 const ALL_PRIORITIES = ISSUE_PRIORITIES;

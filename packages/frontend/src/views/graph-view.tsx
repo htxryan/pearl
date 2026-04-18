@@ -13,7 +13,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { GraphNode, type GraphNodeType } from "@/components/graph/graph-node";
-import { ACTIVE_FILTERS, FilterBar } from "@/components/issue-table/filter-bar";
+import { FilterBar, SHOW_ALL_FILTERS } from "@/components/issue-table/filter-bar";
 import { Button } from "@/components/ui/button";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
@@ -325,7 +325,7 @@ export function GraphView() {
         id: "graph-clear-filters",
         label: "Clear all filters",
         group: "Graph",
-        handler: () => setFiltersRef.current(ACTIVE_FILTERS),
+        handler: () => setFiltersRef.current(SHOW_ALL_FILTERS),
       },
       {
         id: "graph-auto-layout",
