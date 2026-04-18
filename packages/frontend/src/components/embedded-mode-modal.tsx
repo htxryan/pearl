@@ -49,10 +49,18 @@ export function EmbeddedModeModal() {
     setState("testing");
     setError("");
     setConnectionOk(false);
+
+    const portNum = Number.parseInt(port, 10);
+    if (!portNum || portNum < 1 || portNum > 65535) {
+      setError("Port must be a number between 1 and 65535");
+      setState("error");
+      return;
+    }
+
     try {
       const result = await api.testMigrationServer({
         host,
-        port: Number.parseInt(port, 10),
+        port: portNum,
       });
       if (result.ok) {
         setConnectionOk(true);
@@ -70,11 +78,19 @@ export function EmbeddedModeModal() {
   const handleExternalMigration = useCallback(async () => {
     setState("migrating");
     setError("");
+
+    const portNum = Number.parseInt(port, 10);
+    if (!portNum || portNum < 1 || portNum > 65535) {
+      setError("Port must be a number between 1 and 65535");
+      setState("error");
+      return;
+    }
+
     try {
       const result = await api.migrate({
         target: "external",
         host,
-        port: Number.parseInt(port, 10),
+        port: portNum,
       });
       if (result.ok) {
         setState("success");
@@ -163,8 +179,13 @@ export function EmbeddedModeModal() {
         {tab === "external" && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Start a dolt sql-server yourself, then enter the connection details:
+              Start a dolt sql-server yourself, then enter the connection details.
             </p>
+            <div className="rounded-lg bg-warning/10 border border-warning/20 p-3 text-xs text-warning-foreground">
+              Data is not automatically migrated to the external server. After migrating, use{" "}
+              <code className="font-mono">dolt push</code> from your original database directory to
+              transfer your data.
+            </div>
             <div className="rounded-lg bg-muted/50 p-3 font-mono text-xs select-all">
               dolt sql-server --host 127.0.0.1 --port 3307
             </div>
@@ -192,10 +213,12 @@ export function EmbeddedModeModal() {
                 </label>
                 <input
                   id="migration-port"
-                  type="text"
+                  type="number"
+                  min={1}
+                  max={65535}
                   value={port}
                   onChange={(e) => {
-                    setPort(e.target.value);
+                    setPort(e.target.value.replace(/\D/g, ""));
                     setConnectionOk(false);
                   }}
                   disabled={isBusy}

@@ -5,6 +5,21 @@ test.describe("Embedded mode migration modal", () => {
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
     });
+
+    await page.route("**/api/health", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: "degraded",
+          dolt_server: "stopped",
+          uptime_seconds: 0,
+          version: "0.1.0",
+          project_prefix: "test",
+          dolt_mode: "embedded",
+        }),
+      });
+    });
   });
 
   test("modal renders when backend reports embedded mode (AC-4)", async ({ page }) => {
@@ -104,6 +119,14 @@ test.describe("Embedded mode migration modal", () => {
   });
 
   test("test connection to unreachable host shows error (AC-8 UI)", async ({ page }) => {
+    await page.route("**/api/migration/test-server", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: false, error: "Connection refused" }),
+      });
+    });
+
     await page.goto("/");
     await page.waitForURL("**/list");
 
@@ -131,7 +154,7 @@ test.describe("Embedded mode migration modal", () => {
     await modal.getByText("I'll run dolt myself").click();
 
     const codeBlock = modal.locator(".font-mono");
-    await expect(codeBlock).toBeVisible();
-    await expect(codeBlock).toContainText("dolt sql-server");
+    await expect(codeBlock.first()).toBeVisible();
+    await expect(codeBlock.first()).toContainText("dolt sql-server");
   });
 });

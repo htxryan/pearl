@@ -85,7 +85,6 @@ const mockCloseMutation = {
 };
 
 vi.mock("@/hooks/use-issues", () => ({
-  useSyncReplica: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useIssues: vi.fn(() => ({
     data: [],
     isLoading: false,

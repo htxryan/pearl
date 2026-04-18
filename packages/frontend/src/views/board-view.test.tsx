@@ -28,7 +28,6 @@ const mockUseUpdateIssue = vi.fn(() => ({
 }));
 
 vi.mock("@/hooks/use-issues", () => ({
-  useSyncReplica: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useIssues: vi.fn(),
   useUpdateIssue: () => mockUseUpdateIssue(),
   useCreateIssue: () => ({ mutate: vi.fn(), isPending: false }),

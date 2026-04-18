@@ -69,6 +69,7 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
 
       const metadataPath = resolve(beadsDir, "metadata.json");
       const originalMetadata = readFileSync(metadataPath, "utf-8");
+      const force = body.force === true;
 
       if (body.target === "managed") {
         const result = await migrateToPearlManaged(
@@ -76,10 +77,22 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
           beadsDir,
           metadataPath,
           originalMetadata,
+          force,
         );
         if (!result.ok) {
           return reply.code(500).send(result);
         }
+
+        const newConfig: Config = {
+          ...config,
+          doltMode: "server",
+          doltHost: result.dolt_host,
+          doltPort: result.dolt_port,
+          pearlManaged: true,
+          doltDataDir: resolve(beadsDir, "doltdb"),
+        };
+        await ctx.onMigrationComplete(newConfig);
+
         return reply.send(result);
       }
 
@@ -109,10 +122,23 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
         body.port,
         body.user || "root",
         body.password || "",
+        force,
       );
       if (!result.ok) {
         return reply.code(500).send(result);
       }
+
+      const newConfig: Config = {
+        ...config,
+        doltMode: "server",
+        doltHost: body.host,
+        doltPort: body.port,
+        doltUser: body.user || "root",
+        doltPassword: body.password || "",
+        pearlManaged: false,
+      };
+      await ctx.onMigrationComplete(newConfig);
+
       return reply.send(result);
     } finally {
       isMigrating = false;
@@ -151,6 +177,7 @@ async function migrateToPearlManaged(
   beadsDir: string,
   metadataPath: string,
   originalMetadata: string,
+  force: boolean,
 ): Promise<MigrateResponse | { ok: false; error: string }> {
   const managedPort = 3307;
   const managedDataDir = resolve(beadsDir, "doltdb");
@@ -158,11 +185,14 @@ async function migrateToPearlManaged(
   if (existsSync(managedDataDir)) {
     const entries = readdirSync(managedDataDir);
     if (entries.length > 0) {
-      return {
-        ok: false,
-        error:
-          "Managed data directory already exists and is not empty. Use force: true to overwrite.",
-      };
+      if (!force) {
+        return {
+          ok: false,
+          error:
+            "Managed data directory already exists and is not empty. Use force: true to overwrite.",
+        };
+      }
+      await rm(managedDataDir, { recursive: true });
     }
   }
 
@@ -194,14 +224,17 @@ async function migrateToPearlManaged(
         detached: true,
       },
     );
-    serverProc.unref();
 
     const ready = await waitForServer("127.0.0.1", managedPort);
     if (!ready) {
-      writeFileSync(metadataPath, originalMetadata);
       serverProc.kill("SIGTERM");
+      writeFileSync(metadataPath, originalMetadata);
+      await rm(managedDataDir, { recursive: true, force: true });
       return { ok: false, error: "Pearl-managed dolt sql-server failed to start" };
     }
+
+    // Kill the temporary bootstrap process — DoltServerManager will take over
+    serverProc.kill("SIGTERM");
 
     return {
       ok: true,
@@ -211,6 +244,7 @@ async function migrateToPearlManaged(
     };
   } catch (err) {
     writeFileSync(metadataPath, originalMetadata);
+    await rm(managedDataDir, { recursive: true, force: true }).catch(() => {});
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Migration failed",
@@ -227,9 +261,15 @@ async function migrateToExternal(
   port: number,
   user: string,
   password: string,
+  force: boolean,
 ): Promise<MigrateResponse | { ok: false; error: string }> {
   try {
     const dbName = basename(config.doltDbPath) || config.doltDatabase;
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(dbName)) {
+      return { ok: false, error: `Invalid database name: ${dbName}` };
+    }
+
     const mysql2 = await import("mysql2/promise");
     const conn = await mysql2.createConnection({
       host,
@@ -248,10 +288,12 @@ async function migrateToExternal(
       ];
       if ((tables as unknown[]).length > 0) {
         await conn.end();
-        return {
-          ok: false,
-          error: `Database '${dbName}' already exists on the target server with tables. Use force: true to overwrite.`,
-        };
+        if (!force) {
+          return {
+            ok: false,
+            error: `Database '${dbName}' already exists on the target server with tables. Use force: true to overwrite.`,
+          };
+        }
       }
     }
     await conn.end();
@@ -265,6 +307,8 @@ async function migrateToExternal(
     delete metadata.pearl_managed;
     delete metadata.dolt_server_host;
     delete metadata.dolt_server_port;
+    metadata._migration_note =
+      "Data was NOT automatically migrated. Use 'dolt push' from the original database directory to push data to this server.";
 
     const tmpPath = `${metadataPath}.tmp`;
     await writeFile(tmpPath, JSON.stringify(metadata, null, 2));

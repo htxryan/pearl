@@ -189,6 +189,26 @@ export async function createServer(initialConfig: Config) {
       }
       await destroyPool();
 
+      if (newConfig.pearlManaged) {
+        const dataDir = newConfig.doltDataDir || newConfig.doltDbPath;
+        app.log.info(`[migration] Starting pearl-managed dolt sql-server on ${dataDir}...`);
+
+        doltManager = new DoltServerManager(newConfig, dataDir);
+        doltManager.onStateChange(async (state) => {
+          app.log.info(`[dolt] Managed server state: ${state}`);
+          if (state === "running") {
+            app.log.info("Managed dolt server recovered, recreating connection pool...");
+            await destroyPool();
+            createDoltPool(newConfig);
+          }
+        });
+
+        await doltManager.start();
+        if (doltManager.getState() !== "running") {
+          app.log.warn("[migration] Pearl-managed dolt sql-server failed to start after migration");
+        }
+      }
+
       app.log.info(
         `[migration] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
       );

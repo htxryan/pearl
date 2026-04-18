@@ -36,6 +36,18 @@ export function registerHealthRoutes(
       return reply.code(statusCode).send(health);
     }
 
+    if (config.doltMode === "embedded") {
+      const response: HealthResponse = {
+        status: "degraded",
+        dolt_server: "stopped",
+        uptime_seconds: 0,
+        version: VERSION,
+        project_prefix: projectPrefix,
+        dolt_mode: "embedded",
+      };
+      return reply.code(200).send(response);
+    }
+
     if (!doltManager) {
       const response: HealthResponse = {
         status: "unhealthy",
@@ -48,7 +60,6 @@ export function registerHealthRoutes(
       return reply.code(503).send(response);
     }
 
-    // Embedded mode: check DoltServerManager state
     const doltState = doltManager.getState();
 
     let status: HealthResponse["status"];

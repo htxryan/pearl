@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // ─── Mocks ─────────────────────────────────────────────
 
 vi.mock("@/hooks/use-issues", () => ({
-  useSyncReplica: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useHealth: vi.fn(),
   useIssues: vi.fn(),
   useUpdateIssue: vi.fn(() => ({

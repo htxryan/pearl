@@ -504,22 +504,6 @@ export function useRemoveDependency() {
   });
 }
 
-// ─── Sync Replica Mutation ──────────────────────────────
-export function useSyncReplica() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationKey: ["sync"],
-    mutationFn: () => api.syncReplica(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: issueKeys.all });
-      queryClient.invalidateQueries({ queryKey: statsKeys.all });
-      queryClient.invalidateQueries({ queryKey: dependencyKeys.all });
-      queryClient.invalidateQueries({ queryKey: labelKeys.all });
-    },
-  });
-}
-
 // ─── Stats Hook ─────────────────────────────────────────
 export function useStats() {
   return useQuery({

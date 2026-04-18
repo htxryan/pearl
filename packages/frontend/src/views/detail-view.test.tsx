@@ -7,7 +7,6 @@ import { DetailView } from "./detail-view";
 
 // Mock the hooks
 vi.mock("@/hooks/use-issues", () => ({
-  useSyncReplica: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useIssue: vi.fn(),
   useComments: vi.fn(),
   useEvents: vi.fn(),
