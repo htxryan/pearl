@@ -461,7 +461,7 @@ export function GraphView() {
             edgeTypes={edgeTypes}
             colorMode={colorMode}
             fitView
-            fitViewOptions={{ padding: 0.2, minZoom: 0.3, maxZoom: 2 }}
+            fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 2 }}
             minZoom={0.3}
             maxZoom={3}
           >

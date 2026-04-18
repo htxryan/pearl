@@ -492,6 +492,61 @@ dialog[open]::backdrop {
   animation: modal-backdrop-enter 200ms ease-out;
 }
 
+/* Syntax highlighting (highlight.js classes, theme-aware) */
+.prose pre code.hljs {
+  background: transparent;
+  padding: 0;
+}
+.hljs {
+  color: var(--color-foreground);
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in {
+  color: var(--color-primary);
+}
+.hljs-string,
+.hljs-attr {
+  color: var(--color-success);
+}
+.hljs-number,
+.hljs-literal {
+  color: var(--color-warning);
+}
+.hljs-comment,
+.hljs-quote {
+  color: var(--color-muted-foreground);
+  font-style: italic;
+}
+.hljs-function .hljs-title,
+.hljs-title.function_,
+.hljs-section {
+  color: var(--color-info);
+}
+.hljs-type,
+.hljs-class .hljs-title {
+  color: var(--color-warning-foreground);
+}
+.dark .hljs-type,
+.dark .hljs-class .hljs-title {
+  color: var(--color-warning);
+}
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--color-danger);
+}
+.hljs-meta {
+  color: var(--color-muted-foreground);
+}
+.hljs-addition {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+.hljs-deletion {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,

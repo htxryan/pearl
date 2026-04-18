@@ -84,7 +84,7 @@ export function GraphControls() {
           variant="outline"
           size="icon"
           className="h-8 w-8"
-          onClick={() => fitView({ padding: 0.2, minZoom: 0.3, maxZoom: 2 })}
+          onClick={() => fitView({ padding: 0.3, minZoom: 0.5, maxZoom: 2 })}
           title="Fit view"
         >
           {"\u2299"}

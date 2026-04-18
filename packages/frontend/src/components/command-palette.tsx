@@ -43,9 +43,16 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  // Fetch issues when search text changes (debounced)
+  // Command mode: ">" prefix shows only commands
+  const isCommandMode = search.startsWith(">");
+  const commandSearch = isCommandMode ? search.slice(1).trim() : "";
+
+  // Fetch issues when search text changes (debounced) — skip in command mode
   useEffect(() => {
-    if (!open) return;
+    if (!open || isCommandMode) {
+      setIssues([]);
+      return;
+    }
 
     const timer = setTimeout(
       async () => {
@@ -71,7 +78,7 @@ export function CommandPalette() {
     ); // No delay for initial load, 200ms debounce for search
 
     return () => clearTimeout(timer);
-  }, [open, search]);
+  }, [open, search, isCommandMode]);
 
   // Group actions by group field (memoized)
   const groups = useMemo(() => {
@@ -92,7 +99,7 @@ export function CommandPalette() {
 
   if (!open && !isMounted) return null;
 
-  const showIssues = issues.length > 0 || isSearching;
+  const showIssues = !isCommandMode && (issues.length > 0 || isSearching);
   const issueHeading = search.trim() ? `Issues matching "${search.trim()}"` : "Recent issues";
 
   const groupHeadingClass =
@@ -145,7 +152,9 @@ export function CommandPalette() {
           </svg>
           <Command.Input
             ref={inputRef}
-            placeholder="Search issues or type a command..."
+            placeholder={
+              isCommandMode ? "Type a command..." : "Search issues or type > for commands..."
+            }
             value={search}
             onValueChange={setSearch}
             className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
@@ -201,9 +210,11 @@ export function CommandPalette() {
 
           {/* Command groups */}
           {[...groups.entries()].map(([group, groupActions]) => {
-            const searchLower = search.trim().toLowerCase();
-            const filtered = searchLower
-              ? groupActions.filter((a) => a.label.toLowerCase().includes(searchLower))
+            const filterText = isCommandMode
+              ? commandSearch.toLowerCase()
+              : search.trim().toLowerCase();
+            const filtered = filterText
+              ? groupActions.filter((a) => a.label.toLowerCase().includes(filterText))
               : groupActions;
             if (filtered.length === 0) return null;
             return (

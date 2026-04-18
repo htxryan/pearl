@@ -41,7 +41,15 @@ export function BoardView() {
 
   // Shared URL filter state (same as List view)
   const { filters, sorting, setFilters } = useUrlFilters();
-  const apiParams = useMemo(() => buildApiParams(filters, sorting), [filters, sorting]);
+
+  // Board defaults to active statuses when no explicit status filter is set,
+  // otherwise Closed issues dominate the 100-row API limit.
+  const boardFilters = useMemo(() => {
+    if (filters.status.length > 0) return filters;
+    return { ...filters, status: ["open", "in_progress", "deferred"] as IssueStatus[] };
+  }, [filters]);
+
+  const apiParams = useMemo(() => buildApiParams(boardFilters, sorting), [boardFilters, sorting]);
 
   // Data fetching — shared cache with List view
   const { data: issues = [], isLoading } = useIssues(apiParams);
@@ -205,6 +213,7 @@ export function BoardView() {
         {
           onSuccess: () => {
             undo.recordStatusChange(issueId, title, oldStatus, targetStatus);
+            toast.success(`Moved "${title}" to ${statusLabel(targetStatus)}`);
           },
         },
       );

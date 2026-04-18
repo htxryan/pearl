@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import Markdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 
@@ -180,7 +181,9 @@ export function MarkdownSection({
             <div className="min-h-[120px] border border-border rounded-lg px-3 py-2">
               {editValue ? (
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <Markdown remarkPlugins={[remarkGfm]}>{editValue}</Markdown>
+                  <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                    {editValue}
+                  </Markdown>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">Nothing to preview.</p>
@@ -214,7 +217,9 @@ export function MarkdownSection({
             }
           }}
         >
-          <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+            {content}
+          </Markdown>
         </div>
       ) : (
         <div

@@ -43,7 +43,7 @@ export const KanbanColumn = memo(function KanbanColumn({
         className={cn(
           "flex flex-col items-center rounded-lg border border-border bg-surface-raised",
           "transition-colors duration-150 w-[48px] min-w-[48px] cursor-pointer select-none",
-          (isOver || isDropTarget) && "border-ring bg-ring/5",
+          (isOver || isDropTarget) && "border-ring ring-2 ring-ring/30 bg-ring/10",
         )}
         onClick={onToggleCollapse}
         role="button"
@@ -71,9 +71,9 @@ export const KanbanColumn = memo(function KanbanColumn({
     <div
       className={cn(
         "flex flex-col rounded-lg border border-border bg-surface-raised",
-        "transition-colors duration-150",
+        "transition-all duration-150",
         mobile ? "w-full" : "min-w-[280px] w-[280px]",
-        (isOver || isDropTarget) && "border-ring bg-ring/5",
+        (isOver || isDropTarget) && "border-ring ring-2 ring-ring/30 bg-ring/10 scale-[1.01]",
       )}
     >
       {/* Column header */}
