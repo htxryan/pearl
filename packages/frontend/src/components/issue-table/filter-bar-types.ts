@@ -5,4 +5,5 @@ export {
   GROUP_BY_LABELS,
   isDefaultStatuses,
   isShowingAllStatuses,
+  SHOW_ALL_FILTERS,
 } from "@/lib/query-syntax";
