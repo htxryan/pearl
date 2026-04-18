@@ -209,7 +209,7 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
           selectedColors={{}}
           onChange={handleLabelsChange}
           allowCreate={false}
-          placeholder="Filter by labels"
+          placeholder="Labels"
           className={isMobile ? "w-full" : "w-48"}
         />
 
