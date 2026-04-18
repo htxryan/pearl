@@ -25,10 +25,10 @@ import {
   TYPE_LABELS,
 } from "./filter-bar-parts";
 import type { FilterState, GroupByField } from "./filter-bar-types";
-import { EMPTY_FILTERS, GROUP_BY_LABELS, SHOW_ALL_FILTERS } from "./filter-bar-types";
+import { EMPTY_FILTERS, GROUP_BY_LABELS } from "./filter-bar-types";
 
 export type { FilterState, GroupByField };
-export { EMPTY_FILTERS, GROUP_BY_LABELS, SHOW_ALL_FILTERS };
+export { EMPTY_FILTERS, GROUP_BY_LABELS };
 
 const ALL_STATUSES = ISSUE_STATUSES;
 const ALL_PRIORITIES = ISSUE_PRIORITIES;

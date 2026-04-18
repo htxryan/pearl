@@ -268,9 +268,11 @@ export function PresetDropdown({
     !filtersMatch(selectedPreset.filters, filters);
   const label = activePreset
     ? activePreset.name
-    : hasActiveFilters(filters)
-      ? "Custom"
-      : "All Issues";
+    : filtersMatch(filters, ACTIVE_FILTERS)
+      ? "Active Issues"
+      : hasActiveFilters(filters)
+        ? "Custom"
+        : "All Issues";
 
   const handleSaveAs = useCallback(() => {
     if (!newName.trim()) return;

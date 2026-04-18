@@ -13,6 +13,7 @@ import type { FilterState, GroupByField } from "@/components/issue-table/filter-
 import {
   DATE_RANGE_OPTIONS,
   type DateRange,
+  DEFAULT_ACTIVE_STATUSES,
   STRUCTURAL_FILTER_OPTIONS,
   type StructuralFilter,
 } from "@/lib/query-syntax";
@@ -37,7 +38,9 @@ const VALID_GROUP_BY = new Set(["status", "priority", "assignee", "issue_type"])
 
 /** Parse URL search params into FilterState + SortingState with validation. */
 function parseFilters(params: URLSearchParams): FilterState {
-  const rawStatus = params.get("status")?.split(",").filter(Boolean) ?? [];
+  const rawStatus = params.has("status")
+    ? params.get("status")!.split(",").filter(Boolean)
+    : [...DEFAULT_ACTIVE_STATUSES];
   const rawPriority = params.get("priority")?.split(",").filter(Boolean).map(Number) ?? [];
   const rawType = params.get("type")?.split(",").filter(Boolean) ?? [];
   const rawLabels = params.get("labels")?.split(",").filter(Boolean) ?? [];
