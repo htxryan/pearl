@@ -12,6 +12,7 @@ import { registerHealthRoutes } from "./routes/health.js";
 import { registerIssueRoutes } from "./routes/issues.js";
 import { ensureLabelDefinitionsTable, registerLabelRoutes } from "./routes/labels.js";
 import { registerMigrationRoutes } from "./routes/migration.js";
+import { registerSettingsRoutes, SettingsEventBus } from "./routes/settings.js";
 import { registerSetupRoutes } from "./routes/setup.js";
 import { registerStatsRoutes } from "./routes/stats.js";
 import { WriteService } from "./write-service/write-service.js";
@@ -178,6 +179,9 @@ export async function createServer(initialConfig: Config) {
   registerStatsRoutes(app, getConfig);
   registerHealthRoutes(app, getDoltManager, getConfig);
   registerLabelRoutes(app, getConfig);
+
+  const settingsEventBus = new SettingsEventBus();
+  registerSettingsRoutes(app, getConfig, settingsEventBus);
   registerMigrationRoutes(app, {
     getConfig,
     onMigrationComplete: async (newConfig: Config) => {
