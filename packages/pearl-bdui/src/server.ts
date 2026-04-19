@@ -264,9 +264,11 @@ export async function createServer(initialConfig: Config) {
     isRefReferenced: async (ref: string) => {
       try {
         const pool = getPool();
-        const [rows] = await pool.execute("SELECT 1 FROM issues WHERE description LIKE ? LIMIT 1", [
-          `%${ref}%`,
-        ]);
+        const escaped = ref.replace(/[%_\\]/g, "\\$&");
+        const [rows] = await pool.execute(
+          "SELECT 1 FROM issues WHERE description LIKE ? ESCAPE '\\\\' LIMIT 1",
+          [`%${escaped}%`],
+        );
         return (rows as unknown[]).length > 0;
       } catch {
         return true;

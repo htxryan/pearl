@@ -317,6 +317,16 @@ export function registerAttachmentRoutes(
         });
       }
 
+      const normalizedFile = normalize(filePath);
+      const normalizedBase = normalize(baseDir);
+      if (!normalizedFile.startsWith(normalizedBase + sep) || containsTraversal(filePath)) {
+        return reply.code(400).send({
+          code: "BAD_REF",
+          message: "Resolved path escapes the attachment directory",
+          retryable: false,
+        });
+      }
+
       const ext = filePath.split(".").pop() || "";
       const contentType = EXT_TO_MIME[ext] || "application/octet-stream";
       const fileContent = await readFile(filePath);

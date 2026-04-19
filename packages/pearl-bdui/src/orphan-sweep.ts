@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { readdir, stat, unlink } from "node:fs/promises";
-import { basename, resolve } from "node:path";
+import { basename, normalize, resolve, sep } from "node:path";
 import type { LocalScope, Settings } from "@pearl/shared";
 import { isRef } from "@pearl/shared";
 
@@ -130,12 +130,14 @@ export class OrphanSweep {
 
 async function collectAttachmentFiles(baseDir: string): Promise<string[]> {
   const files: string[] = [];
+  const normalizedBase = normalize(resolve(baseDir));
   const entries = await readdir(baseDir, { recursive: true });
   for (const entry of entries) {
     const name = typeof entry === "string" ? entry.split("/").pop()! : entry;
     if (name.endsWith(".tmp")) continue;
     if (!name.includes(".")) continue;
     const fullPath = resolve(baseDir, typeof entry === "string" ? entry : entry);
+    if (!normalize(fullPath).startsWith(normalizedBase + sep)) continue;
     try {
       const s = await stat(fullPath);
       if (s.isFile()) files.push(fullPath);
