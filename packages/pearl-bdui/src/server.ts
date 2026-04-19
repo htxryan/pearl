@@ -7,6 +7,7 @@ import type { Config } from "./config.js";
 import { createDoltPool, destroyPool } from "./dolt/pool.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { AppError } from "./errors.js";
+import { createScrubSerializer } from "./log-scrub.js";
 import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
@@ -48,6 +49,7 @@ export async function createServer(initialConfig: Config) {
   const app = Fastify({
     logger: {
       level: process.env.LOG_LEVEL || "info",
+      serializers: createScrubSerializer(),
       ...(process.env.NODE_ENV === "production"
         ? {}
         : {

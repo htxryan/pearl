@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { basename, dirname, normalize, resolve } from "node:path";
+import { basename, dirname, normalize, relative, resolve, sep } from "node:path";
 import Busboy from "@fastify/busboy";
 import type { LocalScope, Ref, Settings } from "@pearl/shared";
 import { createRef } from "@pearl/shared";
@@ -63,7 +63,6 @@ async function atomicWrite(filePath: string, data: Buffer): Promise<void> {
 
 interface ParsedMultipart {
   fileBuffer: Buffer;
-  declaredMime: string;
 }
 
 function parseMultipart(
@@ -77,7 +76,6 @@ function parseMultipart(
     });
 
     let fileBuffer: Buffer | null = null;
-    let declaredMime = "";
     let fileTruncated = false;
 
     bb.on("file", (_fieldname: string, stream: NodeJS.ReadableStream, _info: unknown) => {
@@ -91,12 +89,6 @@ function parseMultipart(
       });
     });
 
-    bb.on("field", (name: string, value: string) => {
-      if (name === "declaredMime") {
-        declaredMime = value;
-      }
-    });
-
     bb.on("close", () => {
       if (fileTruncated) {
         reject(new Error("FILE_TOO_LARGE"));
@@ -106,7 +98,7 @@ function parseMultipart(
         reject(new Error("NO_FILE"));
         return;
       }
-      resolve({ fileBuffer, declaredMime });
+      resolve({ fileBuffer });
     });
 
     bb.on("error", reject);
@@ -209,14 +201,15 @@ export function registerAttachmentRoutes(
 
     // Path-traversal guard (X2)
     const normalizedPath = normalize(filePath);
+    const projectId = basename(projectRoot);
     const normalizedDir = normalize(
       scope === "project"
         ? (settings.attachments.local.projectPathOverride ??
             resolve(projectRoot, ".pearl", "attachments"))
         : (settings.attachments.local.userPathOverride ??
-            resolve(homedir(), ".pearl", "attachments")),
+            resolve(homedir(), ".pearl", "attachments", projectId)),
     );
-    if (!normalizedPath.startsWith(normalizedDir) || containsTraversal(filePath)) {
+    if (!normalizedPath.startsWith(normalizedDir + sep) || containsTraversal(filePath)) {
       return reply.code(422).send({
         code: "PATH_TRAVERSAL",
         message: "Resolved path escapes the attachment directory",
@@ -224,11 +217,12 @@ export function registerAttachmentRoutes(
       });
     }
 
+    const relPath = relative(normalizedDir, filePath);
+
     // Content-addressed dedup
     if (existsSync(filePath)) {
       const existingBytes = await readFile(filePath);
       if (existingBytes.equals(fileBuffer)) {
-        const relPath = filePath.replace(`${projectRoot}/`, "");
         return reply.code(200).send({
           ref,
           scope,
@@ -238,12 +232,16 @@ export function registerAttachmentRoutes(
           mime: sniffedMime,
         });
       }
+      return reply.code(409).send({
+        code: "HASH_COLLISION",
+        message: "A different file already exists with the same content hash",
+        retryable: false,
+      });
     }
 
     // Atomic write (UCA-14)
     await atomicWrite(filePath, fileBuffer);
 
-    const relPath = filePath.replace(`${projectRoot}/`, "");
     return reply.code(201).send({
       ref,
       scope,

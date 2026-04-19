@@ -1,5 +1,3 @@
-import type { FastifyInstance } from "fastify";
-
 const BLOCK_DATA_RE =
   /(<!--\s*pearl-attachment:v\d+:[0-9a-f]{12}\s*\n(?:[^\n]*\n)*?)(data:\s*)([A-Za-z0-9+/=]{32,})((?:\n[^\n]*)*?\n-->)/g;
 
@@ -26,17 +24,20 @@ export function scrubBase64(text: string): string {
   return result;
 }
 
-function scrubValue(value: unknown): unknown {
+function scrubValue(value: unknown, seen?: WeakSet<object>): unknown {
   if (typeof value === "string" && value.length > 512) {
     return scrubBase64(value);
   }
   if (value && typeof value === "object" && !Buffer.isBuffer(value)) {
+    const visited = seen ?? new WeakSet();
+    if (visited.has(value as object)) return "[Circular]";
+    visited.add(value as object);
     if (Array.isArray(value)) {
-      return value.map(scrubValue);
+      return value.map((v) => scrubValue(v, visited));
     }
     const result: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) {
-      result[k] = scrubValue(v);
+      result[k] = scrubValue(v, visited);
     }
     return result;
   }
@@ -52,15 +53,4 @@ export function createScrubSerializer() {
       return scrubValue(res) as Record<string, unknown>;
     },
   };
-}
-
-export function registerLogScrubHook(app: FastifyInstance): void {
-  app.addHook("onRequest", async (request) => {
-    if (request.headers["content-type"]?.includes("multipart/form-data")) {
-      const rawBody = (request as unknown as Record<string, unknown>).rawBody;
-      if (typeof rawBody === "string" && rawBody.length > 512) {
-        (request as unknown as Record<string, unknown>).rawBody = scrubBase64(rawBody);
-      }
-    }
-  });
 }
