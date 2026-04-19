@@ -29,6 +29,21 @@ tasks:
     cmds:
       - task --list
 
+  # --- Setup ---
+
+  setup:
+    desc: Set up the repo for rh-dev-kit usage (symlink rh namespace under .claude/)
+    cmds:
+      - |
+        set -euo pipefail
+        for kind in agents commands skills; do
+          mkdir -p ".claude/$kind"
+          target=".claude/$kind/rh"
+          rm -rf "$target"
+          ln -s "../../.rh-dev-kit/.claude/$kind" "$target"
+          echo "linked $target -> $(readlink "$target")"
+        done
+
   # --- Loop Monitoring ---
 
   loop:watch:
