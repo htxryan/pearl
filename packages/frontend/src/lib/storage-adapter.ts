@@ -90,7 +90,14 @@ export class LocalStorageAdapter implements StorageAdapter {
     };
   }
 
-  async load(_block: AttachmentBlock): Promise<Blob> {
-    throw new Error("LocalStorageAdapter.load() is not implemented (Epic 6)");
+  async load(block: AttachmentBlock): Promise<Blob> {
+    if (block.type !== "local") {
+      throw new Error(`LocalStorageAdapter cannot load block of type "${block.type}"`);
+    }
+    const response = await fetch(`${this.baseUrl}/api/attachments/${block.ref}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load attachment ref=${block.ref} (${response.status})`);
+    }
+    return response.blob();
   }
 }

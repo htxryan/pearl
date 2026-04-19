@@ -44,7 +44,7 @@ function splitTextNode(text: string, pillCounter: { value: number }): MdastNode[
 function walkAndReplace(nodes: MdastNode[], pillCounter: { value: number }): MdastNode[] {
   const result: MdastNode[] = [];
   for (const node of nodes) {
-    if (node.type === "text" && node.value && new RegExp(PILL_RE.source).test(node.value)) {
+    if (node.type === "text" && node.value && PILL_RE.test(node.value)) {
       result.push(...splitTextNode(node.value, pillCounter));
     } else if (node.children) {
       node.children = walkAndReplace(node.children, pillCounter);

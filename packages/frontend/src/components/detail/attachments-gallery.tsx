@@ -62,7 +62,7 @@ function GalleryGrid({
                 height: `${ROW_HEIGHT}px`,
                 top: `${virtualRow.start}px`,
               }}
-              role="group"
+              role="presentation"
             >
               {rowRefs.map((ref) => (
                 <GalleryThumbnail key={ref} ref_={ref} onClick={onThumbnailClick} />
@@ -125,7 +125,6 @@ function GalleryThumbnail({ ref_, onClick }: { ref_: string; onClick?: (ref: str
       type="button"
       onClick={handleClick}
       className="flex-1 min-w-0 rounded-md border border-border bg-muted/30 overflow-hidden cursor-pointer hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
-      role="gridcell"
       aria-label={`Attachment ${ref_.slice(0, 8)}`}
     >
       {!isVisible || status === "loading" ? (

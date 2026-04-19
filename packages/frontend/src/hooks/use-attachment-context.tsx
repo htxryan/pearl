@@ -54,17 +54,20 @@ export function AttachmentProvider({
   const [blobCache, setBlobCache] = useState<Map<string, BlobState>>(new Map());
   const objectUrlsRef = useRef<Map<string, string>>(new Map());
   const pendingRef = useRef(new Set<string>());
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     const urls = objectUrlsRef.current;
     return () => {
+      mountedRef.current = false;
       for (const url of urls.values()) {
         URL.revokeObjectURL(url);
       }
     };
   }, []);
 
-  // Clean up removed refs when allBlocks changes
+  // When allBlocks changes, retry refs that previously failed due to missing blocks
   useEffect(() => {
     const currentRefs = new Set(allBlocks.keys());
     const staleUrls: string[] = [];
@@ -79,7 +82,35 @@ export function AttachmentProvider({
       URL.revokeObjectURL(url);
     }
 
-    pendingRef.current = new Set([...pendingRef.current].filter((r) => currentRefs.has(r)));
+    // Clear pending refs for removed blocks
+    for (const ref of pendingRef.current) {
+      if (!currentRefs.has(ref)) {
+        pendingRef.current.delete(ref);
+      }
+    }
+
+    // Clear error entries for refs whose blocks are now available so useAttachmentBlob re-triggers
+    const refsToRetry: string[] = [];
+    setBlobCache((prev) => {
+      let changed = false;
+      const next = new Map(prev);
+      for (const [ref, state] of prev) {
+        if (!currentRefs.has(ref)) {
+          next.delete(ref);
+          changed = true;
+        } else if (state.status === "error" && allBlocks.has(ref)) {
+          next.delete(ref);
+          refsToRetry.push(ref);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+
+    // Clean up pending tracking for retried refs (outside updater to avoid side effects)
+    for (const ref of refsToRetry) {
+      pendingRef.current.delete(ref);
+    }
   }, [allBlocks]);
 
   const loadBlob = useCallback(
@@ -91,11 +122,13 @@ export function AttachmentProvider({
           next.set(ref, { status: "error", error: "No attachment block found" });
           return next;
         });
+        pendingRef.current.delete(ref);
         return;
       }
 
       try {
         const blob = await resolvedAdapter.load(block);
+        if (!mountedRef.current) return;
         const objectUrl = URL.createObjectURL(blob);
         objectUrlsRef.current.set(ref, objectUrl);
         setBlobCache((prev) => {
@@ -104,6 +137,7 @@ export function AttachmentProvider({
           return next;
         });
       } catch (err) {
+        if (!mountedRef.current) return;
         setBlobCache((prev) => {
           const next = new Map(prev);
           next.set(ref, {
@@ -112,6 +146,7 @@ export function AttachmentProvider({
           });
           return next;
         });
+        pendingRef.current.delete(ref);
       }
     },
     [allBlocks, resolvedAdapter],
@@ -162,6 +197,8 @@ export function useAttachmentClick(): ((ref: string) => void) | undefined {
 
 export function useAllAttachmentRefs(): { ref: string; block: AttachmentBlock }[] {
   const ctx = useContext(AttachmentContext);
-  if (!ctx) return [];
-  return Array.from(ctx.blocks.entries()).map(([ref, block]) => ({ ref, block }));
+  return useMemo(() => {
+    if (!ctx) return [];
+    return Array.from(ctx.blocks.entries()).map(([ref, block]) => ({ ref, block }));
+  }, [ctx?.blocks]);
 }

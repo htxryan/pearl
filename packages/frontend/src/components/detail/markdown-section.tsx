@@ -1,9 +1,11 @@
-import { useCallback, useRef, useState } from "react";
+import { hasAttachmentSyntax, parseField } from "@pearl/shared";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { Button } from "@/components/ui/button";
+import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
 const remarkPluginsPipeline = [remarkGfm, remarkAttachmentPills];
@@ -188,21 +190,7 @@ export function MarkdownSection({
               autoFocus
             />
           ) : (
-            <div className="min-h-[120px] border border-border rounded-lg px-3 py-2">
-              {editValue ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <Markdown
-                    remarkPlugins={remarkPluginsPipeline}
-                    rehypePlugins={rehypePluginsPipeline}
-                    components={markdownComponents}
-                  >
-                    {editValue}
-                  </Markdown>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">Nothing to preview.</p>
-              )}
-            </div>
+            <PreviewPane text={editValue} />
           )}
 
           <div className="flex items-center gap-2">
@@ -261,6 +249,40 @@ export function MarkdownSection({
       )}
     </section>
   );
+}
+
+function PreviewPane({ text }: { text: string }) {
+  const parsedFields = useMemo(() => {
+    if (!text || !hasAttachmentSyntax(text)) return [];
+    try {
+      return [parseField(text)];
+    } catch {
+      return [];
+    }
+  }, [text]);
+
+  const content = (
+    <div className="min-h-[120px] border border-border rounded-lg px-3 py-2">
+      {text ? (
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+          <Markdown
+            remarkPlugins={remarkPluginsPipeline}
+            rehypePlugins={rehypePluginsPipeline}
+            components={markdownComponents}
+          >
+            {text}
+          </Markdown>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground italic">Nothing to preview.</p>
+      )}
+    </div>
+  );
+
+  if (parsedFields.length > 0) {
+    return <AttachmentProvider parsedFields={parsedFields}>{content}</AttachmentProvider>;
+  }
+  return content;
 }
 
 function ToolbarButton({

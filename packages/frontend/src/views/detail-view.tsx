@@ -1,5 +1,11 @@
-import type { IssueStatus, LabelColor } from "@pearl/shared";
-import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
+import type { IssueStatus, LabelColor, ParsedField } from "@pearl/shared";
+import {
+  hasAttachmentSyntax,
+  ISSUE_PRIORITIES,
+  ISSUE_TYPES,
+  parseField,
+  SETTABLE_STATUSES,
+} from "@pearl/shared";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
@@ -125,12 +131,36 @@ function DetailViewContent({ id }: { id: string }) {
   const designParsed = useParseField(issue?.design);
   const acceptanceParsed = useParseField(issue?.acceptance_criteria);
   const notesParsed = useParseField(issue?.notes);
+  const commentParsedFields = useMemo(() => {
+    const results: ParsedField[] = [];
+    for (const comment of comments) {
+      if (comment.text && hasAttachmentSyntax(comment.text)) {
+        try {
+          results.push(parseField(comment.text));
+        } catch {
+          // skip unparseable comments
+        }
+      }
+    }
+    return results;
+  }, [comments]);
+
   const parsedFields = useMemo(
     () =>
-      [descParsed.parsed, designParsed.parsed, acceptanceParsed.parsed, notesParsed.parsed].filter(
-        (p): p is NonNullable<typeof p> => p !== null,
-      ),
-    [descParsed.parsed, designParsed.parsed, acceptanceParsed.parsed, notesParsed.parsed],
+      [
+        descParsed.parsed,
+        designParsed.parsed,
+        acceptanceParsed.parsed,
+        notesParsed.parsed,
+        ...commentParsedFields,
+      ].filter((p): p is NonNullable<typeof p> => p !== null),
+    [
+      descParsed.parsed,
+      designParsed.parsed,
+      acceptanceParsed.parsed,
+      notesParsed.parsed,
+      commentParsedFields,
+    ],
   );
 
   // Mutations

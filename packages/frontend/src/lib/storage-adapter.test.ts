@@ -158,7 +158,20 @@ describe("LocalStorageAdapter", () => {
   });
 
   describe("load", () => {
-    it("throws (not implemented until Epic 6)", async () => {
+    it("rejects inline blocks", async () => {
+      const ref = createRef("a1b2c3d4e5f6");
+      const inlineBlock = {
+        type: "inline" as const,
+        ref,
+        mime: "image/webp",
+        data: "AAAA",
+      };
+      await expect(adapter.load(inlineBlock)).rejects.toThrow(
+        'LocalStorageAdapter cannot load block of type "inline"',
+      );
+    });
+
+    it("fetches blob from server for local blocks", async () => {
       const ref = createRef("a1b2c3d4e5f6");
       const localBlock = {
         type: "local" as const,
@@ -168,7 +181,35 @@ describe("LocalStorageAdapter", () => {
         path: "attachments/test.webp",
         sha256: "a".repeat(64),
       };
-      await expect(adapter.load(localBlock)).rejects.toThrow("Epic 6");
+      const mockBlob = new Blob(["test"], { type: "image/webp" });
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: () => Promise.resolve(mockBlob),
+      });
+
+      const result = await adapter.load(localBlock);
+      expect(result).toBe(mockBlob);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        "http://localhost:3000/api/attachments/a1b2c3d4e5f6",
+      );
+    });
+
+    it("throws on fetch failure", async () => {
+      const ref = createRef("a1b2c3d4e5f6");
+      const localBlock = {
+        type: "local" as const,
+        ref,
+        mime: "image/webp",
+        scope: "project" as const,
+        path: "attachments/test.webp",
+        sha256: "a".repeat(64),
+      };
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+
+      await expect(adapter.load(localBlock)).rejects.toThrow("Failed to load attachment");
     });
   });
 });
