@@ -1,5 +1,4 @@
-import type { AttachmentBlock } from "@pearl/shared";
-import { hasAttachmentSyntax, parseField, serializeField } from "@pearl/shared";
+import { hasAttachmentSyntax, parseField } from "@pearl/shared";
 import { useCallback, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
@@ -11,6 +10,7 @@ import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { extractImageFiles, type UploadResult, useImageUpload } from "@/hooks/use-image-upload";
+import { insertAttachments } from "@/lib/insert-attachments";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
 const remarkPluginsPipeline = [remarkGfm, remarkAttachmentPills];
@@ -67,31 +67,6 @@ function insertLinePrefix(
     textarea.focus();
     textarea.setSelectionRange(selectionStart + prefix.length, selectionStart + prefix.length);
   });
-}
-
-function insertAttachments(
-  currentText: string,
-  cursorPos: number,
-  newBlocks: Array<{ block: AttachmentBlock; altText: string }>,
-): string {
-  const parsed = currentText ? parseField(currentText) : { prose: "", blocks: new Map() };
-  const proseEnd = parsed.prose.length;
-  const insertPos = Math.min(cursorPos, proseEnd);
-
-  let pillText = "";
-  for (const { block, altText } of newBlocks) {
-    const pill = `[img:${block.ref}]`;
-    pillText += altText ? `${altText}: ${pill}\n` : `${pill}\n`;
-  }
-
-  const newProse =
-    parsed.prose.slice(0, insertPos) +
-    (insertPos > 0 && parsed.prose[insertPos - 1] !== "\n" ? "\n" : "") +
-    pillText +
-    parsed.prose.slice(insertPos);
-
-  const allBlocks = [...parsed.blocks.values(), ...newBlocks.map((b) => b.block)];
-  return serializeField(newProse, allBlocks);
 }
 
 export function MarkdownSection({

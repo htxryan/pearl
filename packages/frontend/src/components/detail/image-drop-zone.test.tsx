@@ -99,10 +99,10 @@ describe("ImageDropZone", () => {
     const zone = screen.getByText("Editor").parentElement!;
 
     const event = createDragEvent("drop", [textFile]);
-    event.dataTransfer.items = Object.assign(
+    (event.dataTransfer as Record<string, unknown>).items = Object.assign(
       [{ kind: "file", type: "text/plain", getAsFile: () => textFile }],
       { length: 1 },
-    ) as unknown as DataTransferItemList;
+    );
 
     fireEvent.drop(zone, event);
     expect(onDrop).not.toHaveBeenCalled();

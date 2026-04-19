@@ -1,5 +1,4 @@
-import type { AttachmentBlock, Comment } from "@pearl/shared";
-import { parseField, serializeField } from "@pearl/shared";
+import type { Comment } from "@pearl/shared";
 import { useCallback, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,6 +9,7 @@ import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { extractImageFiles, type UploadResult, useImageUpload } from "@/hooks/use-image-upload";
+import { insertAttachments } from "@/lib/insert-attachments";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
 const commentRemarkPlugins = [remarkGfm, remarkAttachmentPills];
@@ -29,31 +29,6 @@ interface CommentThreadProps {
 interface PendingAltText {
   results: Array<UploadResult & { altText?: string }>;
   currentIndex: number;
-}
-
-function insertAttachments(
-  currentText: string,
-  cursorPos: number,
-  newBlocks: Array<{ block: AttachmentBlock; altText: string }>,
-): string {
-  const parsed = currentText ? parseField(currentText) : { prose: "", blocks: new Map() };
-  const proseEnd = parsed.prose.length;
-  const insertPos = Math.min(cursorPos, proseEnd);
-
-  let pillText = "";
-  for (const { block, altText } of newBlocks) {
-    const pill = `[img:${block.ref}]`;
-    pillText += altText ? `${altText}: ${pill}\n` : `${pill}\n`;
-  }
-
-  const newProse =
-    parsed.prose.slice(0, insertPos) +
-    (insertPos > 0 && parsed.prose[insertPos - 1] !== "\n" ? "\n" : "") +
-    pillText +
-    parsed.prose.slice(insertPos);
-
-  const allBlocks = [...parsed.blocks.values(), ...newBlocks.map((b) => b.block)];
-  return serializeField(newProse, allBlocks);
 }
 
 export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentThreadProps) {
