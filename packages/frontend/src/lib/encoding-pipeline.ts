@@ -85,7 +85,7 @@ function stripExif(buffer: ArrayBuffer): ArrayBuffer {
 // ─── SHA-256 Ref ────────────────────────────────────────────
 
 async function computeRef(bytes: Uint8Array): Promise<{ sha256Full: string; ref: Ref }> {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes as ArrayBufferView<ArrayBuffer>);
   const hashArray = new Uint8Array(hashBuffer);
   const sha256Full = Array.from(hashArray)
     .map((b) => b.toString(16).padStart(2, "0"))
