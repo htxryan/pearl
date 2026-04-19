@@ -351,3 +351,28 @@ export const ISSUE_LIST_FIELDS = [
 ] as const;
 
 export type IssueListField = (typeof ISSUE_LIST_FIELDS)[number];
+
+// ─── Attachment Types & Functions ───────────────────────────
+
+export type {
+  AttachmentBlock,
+  InlineAttachment,
+  LocalAttachment,
+  ParsedField,
+  PillReference,
+  Ref,
+} from "./attachment-syntax.js";
+
+export {
+  createRef,
+  disambiguateRefs,
+  extractBlocks,
+  extractPills,
+  hasAttachmentSyntax,
+  isRef,
+  PILL_RE,
+  parseField,
+  parseFieldAsync,
+  SUPPORTED_VERSIONS,
+  serializeField,
+} from "./attachment-syntax.js";

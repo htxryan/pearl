@@ -1,37 +1,24 @@
-/**
- * Pearl Attachment Syntax — Unit Tests
- *
- * Collision probability analysis (birthday problem):
- *   Hash space: 12 hex chars = 48 bits = 2^48 = 281,474,976,710,656 possible values
- *   Number of items: n = 10,000 attachments
- *   Formula: P ≈ 1 - e^(-n² / (2 * H))
- *     P ≈ 1 - e^(-10000² / (2 * 2^48))
- *     P ≈ 1 - e^(-100000000 / 562949953421312)
- *     P ≈ 1 - e^(-1.776e-7)
- *     P ≈ 1.776e-7
- *     P ≈ 1.78 × 10⁻⁷
- *   Result: P ≈ 1.78e-7 ≤ 1e-6 ✓
- *
- *   With 10,000 attachments in a 48-bit space, the collision probability
- *   is approximately 0.0000178% — well below the 1-in-a-million threshold.
- */
-
 import { describe, expect, it } from "vitest";
 import {
   type AttachmentBlock,
+  createRef,
+  disambiguateRefs,
   extractBlocks,
   extractPills,
+  hasAttachmentSyntax,
   type InlineAttachment,
+  isRef,
   type LocalAttachment,
-  parse,
-  type SerializeInput,
-  serialize,
+  parseField,
+  parseFieldAsync,
+  type Ref,
+  serializeField,
 } from "./attachment-syntax.js";
 
 // ─── Test fixtures ──────────────────────────────────────────
 
-const SAMPLE_REF_1 = "a1b2c3d4e5f6";
-const SAMPLE_REF_2 = "f6e5d4c3b2a1";
+const SAMPLE_REF_1 = "a1b2c3d4e5f6" as Ref;
+const SAMPLE_REF_2 = "f6e5d4c3b2a1" as Ref;
 const SAMPLE_BASE64 = "UklGRh4AAABXRUJQVlA4IBIAAAAwAQCdASoBAAEAAkA4JZQCdAEO/hepAA==";
 const SAMPLE_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
@@ -65,6 +52,34 @@ function makeLocalBlockText(
   return `<!-- pearl-attachment:v1:${ref}\ntype: local\nmime: ${mime}\nscope: ${scope}\npath: ${path}\nsha256: ${sha256}\n-->`;
 }
 
+// ─── Ref type ──────────────────────────────────────────────
+
+describe("Ref", () => {
+  it("isRef accepts valid 12-hex-char strings", () => {
+    expect(isRef("a1b2c3d4e5f6")).toBe(true);
+    expect(isRef("000000000000")).toBe(true);
+    expect(isRef("ffffffffffff")).toBe(true);
+  });
+
+  it("isRef rejects invalid strings", () => {
+    expect(isRef("abc123")).toBe(false); // too short
+    expect(isRef("A1B2C3D4E5F6")).toBe(false); // uppercase
+    expect(isRef("a1b2c3d4e5f6a")).toBe(false); // too long
+    expect(isRef("g1b2c3d4e5f6")).toBe(false); // non-hex
+    expect(isRef("")).toBe(false);
+  });
+
+  it("createRef returns branded Ref for valid input", () => {
+    const ref = createRef("a1b2c3d4e5f6");
+    expect(ref).toBe("a1b2c3d4e5f6");
+  });
+
+  it("createRef throws for invalid input", () => {
+    expect(() => createRef("short")).toThrow("Invalid ref");
+    expect(() => createRef("UPPERCASE123")).toThrow("Invalid ref");
+  });
+});
+
 // ─── extractPills ───────────────────────────────────────────
 
 describe("extractPills", () => {
@@ -91,12 +106,12 @@ describe("extractPills", () => {
   });
 
   it("ignores malformed pills (wrong ref length)", () => {
-    const pills = extractPills("[img:abc123]"); // Too short
+    const pills = extractPills("[img:abc123]");
     expect(pills).toHaveLength(0);
   });
 
   it("ignores pills with uppercase hex", () => {
-    const pills = extractPills("[img:A1B2C3D4E5F6]"); // Uppercase not matched
+    const pills = extractPills("[img:A1B2C3D4E5F6]");
     expect(pills).toHaveLength(0);
   });
 });
@@ -154,7 +169,6 @@ describe("extractBlocks", () => {
   });
 
   it("skips blocks with missing required fields", () => {
-    // Missing "data" field for inline type
     const text = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: inline\nmime: image/webp\n-->`;
     const blocks = extractBlocks(text);
     expect(blocks).toHaveLength(0);
@@ -212,23 +226,20 @@ describe("extractBlocks", () => {
   });
 });
 
-// ─── parse ──────────────────────────────────────────────────
+// ─── parseField ─────────────────────────────────────────────
 
-describe("parse", () => {
+describe("parseField", () => {
   it("parses a field with one inline attachment", () => {
     const prose = `Screenshot: [img:${SAMPLE_REF_1}]`;
     const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
     const text = `${prose}\n\n${block}`;
 
-    const result = parse(text);
+    const result = parseField(text);
     expect(result.prose).toBe(prose);
-    expect(result.pills).toHaveLength(1);
-    expect(result.pills[0].ref).toBe(SAMPLE_REF_1);
-    expect(result.blocks).toHaveLength(1);
-    expect(result.matched.size).toBe(1);
-    expect(result.matched.get(SAMPLE_REF_1)?.type).toBe("inline");
-    expect(result.unmatchedPills).toHaveLength(0);
-    expect(result.unmatchedBlocks).toHaveLength(0);
+    expect(result.refsInProse).toEqual([SAMPLE_REF_1]);
+    expect(result.blocks.size).toBe(1);
+    expect(result.blocks.get(SAMPLE_REF_1)?.type).toBe("inline");
+    expect(result.broken).toHaveLength(0);
   });
 
   it("parses a field with multiple attachments (mix of inline and local)", () => {
@@ -245,43 +256,40 @@ describe("parse", () => {
     ].join("\n\n");
     const text = `${prose}\n\n${blocks}`;
 
-    const result = parse(text);
+    const result = parseField(text);
     expect(result.prose).toBe(prose);
-    expect(result.pills).toHaveLength(2);
-    expect(result.blocks).toHaveLength(2);
-    expect(result.matched.size).toBe(2);
-    expect(result.matched.get(SAMPLE_REF_1)?.type).toBe("inline");
-    expect(result.matched.get(SAMPLE_REF_2)?.type).toBe("local");
-    expect(result.unmatchedPills).toHaveLength(0);
-    expect(result.unmatchedBlocks).toHaveLength(0);
+    expect(result.refsInProse).toHaveLength(2);
+    expect(result.blocks.size).toBe(2);
+    expect(result.blocks.get(SAMPLE_REF_1)?.type).toBe("inline");
+    expect(result.blocks.get(SAMPLE_REF_2)?.type).toBe("local");
+    expect(result.broken).toHaveLength(0);
   });
 
-  it("reports unmatched pills (pill with no data block)", () => {
+  it("reports refs in prose that have no matching data block", () => {
     const prose = `Image: [img:${SAMPLE_REF_1}]`;
-    const result = parse(prose);
-    expect(result.pills).toHaveLength(1);
-    expect(result.blocks).toHaveLength(0);
-    expect(result.unmatchedPills).toEqual([SAMPLE_REF_1]);
+    const result = parseField(prose);
+    expect(result.refsInProse).toEqual([SAMPLE_REF_1]);
+    expect(result.blocks.size).toBe(0);
   });
 
-  it("reports unmatched blocks (data block with no pill)", () => {
+  it("parses blocks without matching pills", () => {
     const prose = "No images here.";
     const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
     const text = `${prose}\n\n${block}`;
 
-    const result = parse(text);
-    expect(result.pills).toHaveLength(0);
-    expect(result.blocks).toHaveLength(1);
-    expect(result.unmatchedBlocks).toEqual([SAMPLE_REF_1]);
+    const result = parseField(text);
+    expect(result.refsInProse).toHaveLength(0);
+    expect(result.blocks.size).toBe(1);
+    expect(result.blocks.has(SAMPLE_REF_1)).toBe(true);
   });
 
   it("parses field with no attachments (passthrough)", () => {
     const text = "Just a plain description with no images.";
-    const result = parse(text);
+    const result = parseField(text);
     expect(result.prose).toBe(text);
-    expect(result.pills).toHaveLength(0);
-    expect(result.blocks).toHaveLength(0);
-    expect(result.matched.size).toBe(0);
+    expect(result.refsInProse).toHaveLength(0);
+    expect(result.blocks.size).toBe(0);
+    expect(result.broken).toHaveLength(0);
   });
 
   it("handles CRLF line endings throughout", () => {
@@ -289,123 +297,419 @@ describe("parse", () => {
     const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\r\ntype: inline\r\nmime: image/webp\r\ndata: ${SAMPLE_BASE64}\r\n-->`;
     const text = `${prose}\r\n\r\n${block}`;
 
-    const result = parse(text);
+    const result = parseField(text);
     expect(result.prose).toBe(prose);
-    expect(result.pills).toHaveLength(1);
-    expect(result.blocks).toHaveLength(1);
-    expect(result.matched.size).toBe(1);
+    expect(result.refsInProse).toHaveLength(1);
+    expect(result.blocks.size).toBe(1);
   });
 
-  it("strips block markup from prose when no blank-line separator", () => {
+  it("reports interleaved blocks as broken (UCA-9)", () => {
     const prose = `Image: [img:${SAMPLE_REF_1}]`;
     const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
     const text = `${prose}\n${block}`;
 
-    const result = parse(text);
-    expect(result.blocks).toHaveLength(1);
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(0);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].ref).toBe(SAMPLE_REF_1);
+    expect(result.broken[0].reason).toContain("interleaved");
     expect(result.prose).not.toContain("pearl-attachment");
     expect(result.prose).toContain(`[img:${SAMPLE_REF_1}]`);
   });
 
-  it("gracefully handles malformed data blocks mixed with valid ones", () => {
+  it("reports malformed blocks in broken[] with reason (U4)", () => {
     const prose = `Good: [img:${SAMPLE_REF_1}] Bad: [img:${SAMPLE_REF_2}]`;
     const goodBlock = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
-    // Malformed: missing data field
     const badBlock = `<!-- pearl-attachment:v1:${SAMPLE_REF_2}\ntype: inline\nmime: image/webp\n-->`;
     const text = `${prose}\n\n${goodBlock}\n\n${badBlock}`;
 
-    const result = parse(text);
-    expect(result.blocks).toHaveLength(1); // Only the good one
-    expect(result.matched.size).toBe(1);
-    expect(result.unmatchedPills).toEqual([SAMPLE_REF_2]);
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(1);
+    expect(result.blocks.has(SAMPLE_REF_1)).toBe(true);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].ref).toBe(SAMPLE_REF_2);
+    expect(result.broken[0].reason).toContain("data");
+  });
+
+  it("reports unknown version blocks in broken[] (U4)", () => {
+    const prose = `Image: [img:${SAMPLE_REF_1}]`;
+    const block = `<!-- pearl-attachment:v2:${SAMPLE_REF_1}\ntype: inline\nmime: image/webp\ndata: ${SAMPLE_BASE64}\n-->`;
+    const text = `${prose}\n\n${block}`;
+
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(0);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("unsupported version");
+  });
+
+  it("never throws on any input (U4)", () => {
+    const inputs = [
+      "",
+      "plain text",
+      "<!-- not a pearl block -->",
+      "<!-- pearl-attachment:v1:short\n-->",
+      `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\n-->`,
+      "<!-- pearl-attachment:v99:a1b2c3d4e5f6\ngarbage\n-->",
+      "\0\x01\x02\x03",
+      "\n\n\n",
+    ];
+    for (const input of inputs) {
+      expect(() => parseField(input)).not.toThrow();
+    }
+  });
+
+  it("does not corrupt prose when invalid blocks are present (X5)", () => {
+    const prose = "Important text with **markdown** and `code`.";
+    const badBlock = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: inline\nmime: image/webp\n-->`;
+    const text = `${prose}\n\n${badBlock}`;
+
+    const result = parseField(text);
+    expect(result.prose).toBe(prose);
   });
 });
 
-// ─── serialize ──────────────────────────────────────────────
+// ─── serializeField ─────────────────────────────────────────
 
-describe("serialize", () => {
+describe("serializeField", () => {
   it("serializes prose with no blocks", () => {
-    const input: SerializeInput = {
-      prose: "Just text, no images.",
-      blocks: [],
-    };
-    expect(serialize(input)).toBe("Just text, no images.");
+    expect(serializeField("Just text, no images.", [])).toBe("Just text, no images.");
   });
 
   it("serializes prose with an inline block", () => {
-    const input: SerializeInput = {
-      prose: `Screenshot: [img:${SAMPLE_REF_1}]`,
-      blocks: [INLINE_BLOCK],
-    };
-    const output = serialize(input);
+    const output = serializeField(`Screenshot: [img:${SAMPLE_REF_1}]`, [INLINE_BLOCK]);
     expect(output).toContain(`[img:${SAMPLE_REF_1}]`);
     expect(output).toContain("<!-- pearl-attachment:v1:");
     expect(output).toContain(`data: ${SAMPLE_BASE64}`);
-    // Verify blank-line separation
     expect(output).toContain(`]\n\n<!-- pearl-attachment`);
   });
 
   it("serializes prose with a local block", () => {
-    const input: SerializeInput = {
-      prose: `Diagram: [img:${SAMPLE_REF_2}]`,
-      blocks: [LOCAL_BLOCK],
-    };
-    const output = serialize(input);
+    const output = serializeField(`Diagram: [img:${SAMPLE_REF_2}]`, [LOCAL_BLOCK]);
     expect(output).toContain("type: local");
-    expect(output).toContain(`scope: project`);
-    expect(output).toContain(`path: attachments/2026/04/a1b2c3d4.webp`);
+    expect(output).toContain("scope: project");
+    expect(output).toContain("path: attachments/2026/04/a1b2c3d4.webp");
     expect(output).toContain(`sha256: ${SAMPLE_SHA256}`);
   });
 
   it("serializes multiple blocks separated by blank lines", () => {
-    const input: SerializeInput = {
-      prose: `A: [img:${SAMPLE_REF_1}] B: [img:${SAMPLE_REF_2}]`,
-      blocks: [INLINE_BLOCK, LOCAL_BLOCK],
-    };
-    const output = serialize(input);
-    // Two blocks should be separated by blank line
+    const output = serializeField(`A: [img:${SAMPLE_REF_1}] B: [img:${SAMPLE_REF_2}]`, [
+      INLINE_BLOCK,
+      LOCAL_BLOCK,
+    ]);
     const blockParts = output.split("-->");
-    expect(blockParts.length).toBeGreaterThanOrEqual(3); // prose + 2 blocks + trailing
+    expect(blockParts.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("trims trailing newlines from prose before appending blocks (U10)", () => {
+    const output = serializeField(`Text with trailing newlines\n\n\n`, [INLINE_BLOCK]);
+    expect(output).toMatch(/newlines\n\n<!-- pearl-attachment/);
   });
 });
 
 // ─── Round-trip identity ────────────────────────────────────
 
 describe("round-trip", () => {
-  it("serialize → parse → serialize produces identical output", () => {
-    const input: SerializeInput = {
-      prose: `Here is image A [img:${SAMPLE_REF_1}] and image B [img:${SAMPLE_REF_2}].`,
-      blocks: [INLINE_BLOCK, LOCAL_BLOCK],
-    };
+  it("serialize → parse → serialize produces identical output (U5)", () => {
+    const prose = `Here is image A [img:${SAMPLE_REF_1}] and image B [img:${SAMPLE_REF_2}].`;
+    const serialized1 = serializeField(prose, [INLINE_BLOCK, LOCAL_BLOCK]);
+    const parsed = parseField(serialized1);
 
-    const serialized1 = serialize(input);
-    const parsed = parse(serialized1);
-
-    // Re-serialize from parsed result
-    const input2: SerializeInput = {
-      prose: parsed.prose,
-      blocks: parsed.blocks,
-    };
-    const serialized2 = serialize(input2);
-
+    const serialized2 = serializeField(parsed.prose, [...parsed.blocks.values()]);
     expect(serialized2).toBe(serialized1);
   });
 
-  it("parse → serialize → parse produces identical structure", () => {
+  it("parse → serialize → parse produces identical structure (U5)", () => {
     const prose = `Screenshot: [img:${SAMPLE_REF_1}]`;
     const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
     const original = `${prose}\n\n${block}`;
 
-    const parsed1 = parse(original);
-    const reserialized = serialize({
-      prose: parsed1.prose,
-      blocks: parsed1.blocks,
-    });
-    const parsed2 = parse(reserialized);
+    const parsed1 = parseField(original);
+    const reserialized = serializeField(parsed1.prose, [...parsed1.blocks.values()]);
+    const parsed2 = parseField(reserialized);
 
     expect(parsed2.prose).toBe(parsed1.prose);
-    expect(parsed2.pills).toEqual(parsed1.pills);
-    expect(parsed2.blocks).toEqual(parsed1.blocks);
+    expect(parsed2.refsInProse).toEqual(parsed1.refsInProse);
+    expect([...parsed2.blocks.entries()]).toEqual([...parsed1.blocks.entries()]);
+  });
+});
+
+// ─── parseFieldAsync (U12) ──────────────────────────────────
+
+describe("parseFieldAsync", () => {
+  it("returns a Promise that resolves to ParsedField for small inputs (sync path)", async () => {
+    const prose = `Screenshot: [img:${SAMPLE_REF_1}]`;
+    const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
+    const text = `${prose}\n\n${block}`;
+
+    const result = await parseFieldAsync(text);
+    expect(result.prose).toBe(prose);
+    expect(result.refsInProse).toEqual([SAMPLE_REF_1]);
+    expect(result.blocks.size).toBe(1);
+    expect(result.broken).toHaveLength(0);
+  });
+
+  it("matches parseField output exactly for sync path", async () => {
+    const text = `Image [img:${SAMPLE_REF_1}]\n\n${makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64)}`;
+    const syncResult = parseField(text);
+    const asyncResult = await parseFieldAsync(text);
+
+    expect(asyncResult.prose).toBe(syncResult.prose);
+    expect(asyncResult.refsInProse).toEqual(syncResult.refsInProse);
+    expect([...asyncResult.blocks.entries()]).toEqual([...syncResult.blocks.entries()]);
+    expect(asyncResult.broken).toEqual(syncResult.broken);
+  });
+
+  it("handles empty input", async () => {
+    const result = await parseFieldAsync("");
+    expect(result.prose).toBe("");
+    expect(result.blocks.size).toBe(0);
+  });
+});
+
+// ─── hasAttachmentSyntax ────────────────────────────────────
+
+describe("hasAttachmentSyntax", () => {
+  it("returns true for text with pill references", () => {
+    expect(hasAttachmentSyntax(`See [img:${SAMPLE_REF_1}] here`)).toBe(true);
+  });
+
+  it("returns true for text with data blocks", () => {
+    const text = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
+    expect(hasAttachmentSyntax(text)).toBe(true);
+  });
+
+  it("returns true for text with both pills and blocks", () => {
+    const text = `[img:${SAMPLE_REF_1}]\n\n${makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64)}`;
+    expect(hasAttachmentSyntax(text)).toBe(true);
+  });
+
+  it("returns false for plain text", () => {
+    expect(hasAttachmentSyntax("Just plain text")).toBe(false);
+  });
+
+  it("returns false for similar-looking but invalid syntax", () => {
+    expect(hasAttachmentSyntax("[img:short]")).toBe(false);
+    expect(hasAttachmentSyntax("[img:UPPERCASEHEX]")).toBe(false);
+  });
+
+  it("returns true for block-only (no pills)", () => {
+    expect(hasAttachmentSyntax("<!-- pearl-attachment:v1:abc -->")).toBe(true);
+  });
+
+  it("returns false for empty string", () => {
+    expect(hasAttachmentSyntax("")).toBe(false);
+  });
+});
+
+// ─── disambiguateRefs (X3) ──────────────────────────────────
+
+describe("disambiguateRefs", () => {
+  it("returns blocks unchanged when all refs are unique", () => {
+    const result = disambiguateRefs([INLINE_BLOCK, LOCAL_BLOCK]);
+    expect(result).toHaveLength(2);
+    expect(result[0].ref).toBe(SAMPLE_REF_1);
+    expect(result[1].ref).toBe(SAMPLE_REF_2);
+  });
+
+  it("disambiguates duplicate refs deterministically", () => {
+    const dup1: InlineAttachment = { ...INLINE_BLOCK };
+    const dup2: InlineAttachment = {
+      ...INLINE_BLOCK,
+      data: "different_data",
+    };
+    const result = disambiguateRefs([dup1, dup2]);
+    expect(result).toHaveLength(2);
+    expect(result[0].ref).toBe(SAMPLE_REF_1);
+    expect(result[1].ref).not.toBe(SAMPLE_REF_1);
+    expect(result[1].ref).toHaveLength(12);
+  });
+
+  it("produces stable results across calls", () => {
+    const dup1: InlineAttachment = { ...INLINE_BLOCK };
+    const dup2: InlineAttachment = {
+      ...INLINE_BLOCK,
+      data: "different_data",
+    };
+    const result1 = disambiguateRefs([dup1, dup2]);
+    const result2 = disambiguateRefs([dup1, dup2]);
+    expect(result1[0].ref).toBe(result2[0].ref);
+    expect(result1[1].ref).toBe(result2[1].ref);
+  });
+
+  it("handles triple collision", () => {
+    const blocks: InlineAttachment[] = [
+      { ...INLINE_BLOCK, data: "data1" },
+      { ...INLINE_BLOCK, data: "data2" },
+      { ...INLINE_BLOCK, data: "data3" },
+    ];
+    const result = disambiguateRefs(blocks);
+    const refs = result.map((b) => b.ref);
+    const unique = new Set(refs);
+    expect(unique.size).toBe(3);
+  });
+
+  it("returns empty array for empty input", () => {
+    expect(disambiguateRefs([])).toEqual([]);
+  });
+});
+
+// ─── Round-trip fuzz test (AC-4) ────────────────────────────
+
+describe("round-trip fuzz", () => {
+  function randomHex(len: number): string {
+    return Array.from({ length: len }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+  }
+
+  function randomRef(): Ref {
+    return randomHex(12) as Ref;
+  }
+
+  function randomBlock(ref: Ref): AttachmentBlock {
+    if (Math.random() < 0.5) {
+      return {
+        type: "inline",
+        ref,
+        mime: "image/webp",
+        data: btoa(randomHex(20)),
+      };
+    }
+    return {
+      type: "local",
+      ref,
+      mime: "image/png",
+      scope: Math.random() < 0.5 ? "project" : "user",
+      path: `attachments/${randomHex(8)}.png`,
+      sha256: randomHex(64),
+    };
+  }
+
+  it("random fields survive serialize → parse → serialize (100 iterations)", () => {
+    for (let i = 0; i < 100; i++) {
+      const numBlocks = Math.floor(Math.random() * 4) + 1;
+      const blocks: AttachmentBlock[] = [];
+      const proseFragments: string[] = ["Prose start."];
+
+      for (let j = 0; j < numBlocks; j++) {
+        const ref = randomRef();
+        blocks.push(randomBlock(ref));
+        proseFragments.push(`See [img:${ref}] here.`);
+      }
+
+      const prose = proseFragments.join(" ");
+      const serialized1 = serializeField(prose, blocks);
+      const parsed = parseField(serialized1);
+      const serialized2 = serializeField(parsed.prose, [...parsed.blocks.values()]);
+
+      expect(serialized2).toBe(serialized1);
+    }
+  });
+});
+
+// ─── Edge cases for coverage ────────────────────────────────
+
+describe("edge cases", () => {
+  it("parseField handles text starting with block comment (no prose)", () => {
+    const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
+    const result = parseField(block);
+    expect(result.prose).toBe("");
+    expect(result.blocks.size).toBe(1);
+  });
+
+  it("parseField handles scope: user in local blocks", () => {
+    const block = makeLocalBlockText(
+      SAMPLE_REF_2,
+      "image/webp",
+      "user",
+      "attachments/img.webp",
+      SAMPLE_SHA256,
+    );
+    const text = `Image [img:${SAMPLE_REF_2}]\n\n${block}`;
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(1);
+    const local = result.blocks.get(SAMPLE_REF_2) as LocalAttachment;
+    expect(local.scope).toBe("user");
+  });
+
+  it("parseField reports invalid scope in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\nscope: global\npath: img.webp\nsha256: ${SAMPLE_SHA256}\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(0);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("invalid scope");
+  });
+
+  it("parseField reports missing scope in local block", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\npath: img.webp\nsha256: ${SAMPLE_SHA256}\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("scope");
+  });
+
+  it("parseField reports missing path in local block", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\nscope: project\nsha256: ${SAMPLE_SHA256}\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("path");
+  });
+
+  it("parseField reports unknown block type in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: remote\nmime: image/webp\nurl: https://example.com\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("unknown block type");
+  });
+
+  it("parseField reports missing type in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\nmime: image/webp\ndata: abc\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("missing type");
+  });
+
+  it("parseField reports missing mime in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: inline\ndata: abc\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("missing mime");
+  });
+
+  it("parseField reports invalid mime in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: inline\nmime: not valid\ndata: abc\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("invalid mime");
+  });
+
+  it("parseField reports invalid sha256 in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\nscope: project\npath: img.webp\nsha256: badhash\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("invalid sha256");
+  });
+
+  it("parseField reports path traversal in broken[]", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\nscope: project\npath: ../../etc/passwd\nsha256: ${SAMPLE_SHA256}\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("path traversal");
+  });
+
+  it("serializeField handles blocks with user scope", () => {
+    const block: LocalAttachment = {
+      ...LOCAL_BLOCK,
+      scope: "user",
+    };
+    const output = serializeField("Prose", [block]);
+    expect(output).toContain("scope: user");
   });
 });
 
@@ -414,20 +718,9 @@ describe("round-trip", () => {
 describe("collision probability", () => {
   it("birthday problem: P(collision) for 10k items in 48-bit space is ≤ 1e-6", () => {
     const n = 10_000;
-    const H = 2 ** 48; // 281,474,976,710,656
+    const H = 2 ** 48;
     const P = 1 - Math.exp(-(n * n) / (2 * H));
-
-    console.log("=== Collision Probability Analysis ===");
-    console.log(`Hash space: 12 hex chars = 48 bits = 2^48 = ${H.toLocaleString()} values`);
-    console.log(`Number of items: ${n.toLocaleString()}`);
-    console.log(`Formula: P ≈ 1 - e^(-n²/(2*H))`);
-    console.log(`P ≈ 1 - e^(-${(n * n).toLocaleString()} / ${(2 * H).toLocaleString()})`);
-    console.log(`P ≈ ${P.toExponential(4)}`);
-    console.log(`Threshold: 1e-6 = ${(1e-6).toExponential(4)}`);
-    console.log(`P ≤ 1e-6? ${P <= 1e-6 ? "YES ✓" : "NO ✗"}`);
-    console.log("======================================");
-
     expect(P).toBeLessThanOrEqual(1e-6);
-    expect(P).toBeGreaterThan(0); // Sanity: it's not zero
+    expect(P).toBeGreaterThan(0);
   });
 });

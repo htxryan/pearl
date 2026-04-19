@@ -1,112 +1,69 @@
-/**
- * Pearl Attachment Syntax — Parser & Serializer
- *
- * Inline pill reference (appears in prose):
- *   [img:<ref>]
- * where <ref> is 12 hex chars of SHA-256 (e.g., a1b2c3d4e5f6).
- *
- * Data blocks are HTML comments placed at the END of the field,
- * separated by a blank line:
- *
- * Inline-base64 form:
- *   <!-- pearl-attachment:v1:<ref>
- *   type: inline
- *   mime: image/webp
- *   data: UklGRh4AAABXRUJQVlA4...
- *   -->
- *
- * Local-filesystem form:
- *   <!-- pearl-attachment:v1:<ref>
- *   type: local
- *   mime: image/webp
- *   scope: project
- *   path: attachments/2026/04/a1b2c3d4.webp
- *   sha256: <full-hash>
- *   -->
- */
+// Pearl Attachment Syntax — Parser & Serializer (v1)
 
 // ─── Types ──────────────────────────────────────────────────
 
-/** A 12-hex-char reference extracted from a pill */
+export type Ref = string & { __brand: "Ref12" };
+
+export function createRef(hex: string): Ref {
+  if (!isRef(hex)) {
+    throw new Error(`Invalid ref: expected 12 lowercase hex chars, got "${hex}"`);
+  }
+  return hex;
+}
+
+export function isRef(value: string): value is Ref {
+  return /^[0-9a-f]{12}$/.test(value);
+}
+
 export interface PillReference {
-  /** The 12-hex-char ref (lowercase) */
-  ref: string;
-  /** Byte offset in the source text where `[img:` starts */
+  ref: Ref;
   start: number;
-  /** Byte offset in the source text after the closing `]` */
   end: number;
 }
 
-/** Base fields common to all attachment data blocks */
 interface AttachmentBlockBase {
-  /** The 12-hex-char ref matching a pill */
-  ref: string;
-  /** MIME type, e.g. "image/webp" */
+  ref: Ref;
   mime: string;
 }
 
-/** Inline-base64 attachment */
 export interface InlineAttachment extends AttachmentBlockBase {
   type: "inline";
-  /** Base64-encoded image data */
   data: string;
 }
 
-/** Local-filesystem attachment */
 export interface LocalAttachment extends AttachmentBlockBase {
   type: "local";
-  /** Scope qualifier, e.g. "project" */
-  scope: string;
-  /** Relative path to the file */
+  scope: "project" | "user";
   path: string;
-  /** Full SHA-256 hash of the file */
   sha256: string;
 }
 
 export type AttachmentBlock = InlineAttachment | LocalAttachment;
 
-/** Parsed result of a field containing Pearl attachment syntax */
-export interface ParsedAttachments {
-  /** The prose portion of the text (before data blocks) */
+export interface ParsedField {
   prose: string;
-  /** All [img:<ref>] pills found in the prose, in order */
-  pills: PillReference[];
-  /** All parsed data blocks */
-  blocks: AttachmentBlock[];
-  /** Pills matched to their blocks by ref */
-  matched: Map<string, AttachmentBlock>;
-  /** Pill refs that have no matching data block */
-  unmatchedPills: string[];
-  /** Block refs that have no matching pill */
-  unmatchedBlocks: string[];
-}
-
-/** Input for the serializer: prose text + attachment metadata */
-export interface SerializeInput {
-  /** The prose text, which should already contain [img:<ref>] pills inline */
-  prose: string;
-  /** Attachment blocks to serialize at the end */
-  blocks: AttachmentBlock[];
+  blocks: Map<Ref, AttachmentBlock>;
+  refsInProse: Ref[];
+  broken: Array<{ ref: Ref; reason: string }>;
 }
 
 // ─── Constants ──────────────────────────────────────────────
 
-const REF_PATTERN = "[0-9a-f]{12}";
-const SUPPORTED_VERSIONS = new Set(["v1"]);
+export const PILL_RE = /\[img:([0-9a-f]{12})\]/g;
+const BLOCK_RE_SOURCE = "<!--\\s*pearl-attachment:(v\\d+):([0-9a-f]{12})[ \\t]*\\n([\\s\\S]*?)-->";
+export const SUPPORTED_VERSIONS = new Set(["v1"]);
 const MIME_PATTERN = /^[\w+.-]+\/[\w+.-]+$/;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
+const VALID_SCOPES = new Set<string>(["project", "user"]);
 
 // ─── Parser ─────────────────────────────────────────────────
 
-/**
- * Extract all [img:<ref>] pill references from text.
- */
 export function extractPills(text: string): PillReference[] {
   const pills: PillReference[] = [];
-  const regex = new RegExp(`\\[img:(${REF_PATTERN})\\]`, "g");
+  const regex = new RegExp(PILL_RE.source, "g");
   for (const match of text.matchAll(regex)) {
     pills.push({
-      ref: match[1],
+      ref: match[1] as Ref,
       start: match.index,
       end: match.index + match[0].length,
     });
@@ -114,13 +71,11 @@ export function extractPills(text: string): PillReference[] {
   return pills;
 }
 
-/**
- * Parse a single data block body (the lines between the header and `-->`).
- * Returns null if the block is malformed or uses an unsupported version.
- */
-function parseBlockBody(version: string, ref: string, bodyLines: string[]): AttachmentBlock | null {
+type BlockParseResult = { ok: true; block: AttachmentBlock } | { ok: false; reason: string };
+
+function parseBlockBody(version: string, ref: Ref, bodyLines: string[]): BlockParseResult {
   if (!SUPPORTED_VERSIONS.has(version)) {
-    return null; // Graceful skip for unknown versions
+    return { ok: false, reason: `unsupported version: ${version}` };
   }
 
   const fields = new Map<string, string>();
@@ -129,144 +84,144 @@ function parseBlockBody(version: string, ref: string, bodyLines: string[]): Atta
     if (colonIdx === -1) continue;
     const key = line.slice(0, colonIdx).trim();
     const value = line.slice(colonIdx + 1).trim();
-    if (key && value) {
-      fields.set(key, value);
-    }
+    if (key && value) fields.set(key, value);
   }
 
   const type = fields.get("type");
   const mime = fields.get("mime");
 
-  if (!type || !mime) return null;
-  if (!MIME_PATTERN.test(mime)) return null;
+  if (!type) return { ok: false, reason: "missing type field" };
+  if (!mime) return { ok: false, reason: "missing mime field" };
+  if (!MIME_PATTERN.test(mime)) return { ok: false, reason: `invalid mime: ${mime}` };
 
   if (type === "inline") {
     const data = fields.get("data");
-    if (!data) return null;
-    return { type: "inline", ref, mime, data };
+    if (!data) return { ok: false, reason: "inline block missing data field" };
+    return { ok: true, block: { type: "inline", ref, mime, data } };
   }
 
   if (type === "local") {
     const scope = fields.get("scope");
     const path = fields.get("path");
     const sha256 = fields.get("sha256");
-    if (!scope || !path || !sha256) return null;
-    if (!SHA256_PATTERN.test(sha256)) return null;
-    if (/(?:^|\/)\.\.(?:\/|$)/.test(path)) return null;
-    return { type: "local", ref, mime, scope, path, sha256 };
+    if (!scope) return { ok: false, reason: "local block missing scope field" };
+    if (!VALID_SCOPES.has(scope)) return { ok: false, reason: `invalid scope: ${scope}` };
+    if (!path) return { ok: false, reason: "local block missing path field" };
+    if (!sha256) return { ok: false, reason: "local block missing sha256 field" };
+    if (!SHA256_PATTERN.test(sha256)) return { ok: false, reason: `invalid sha256: ${sha256}` };
+    if (/(?:^|\/)\.\.(?:\/|$)/.test(path))
+      return { ok: false, reason: `path traversal rejected: ${path}` };
+    return {
+      ok: true,
+      block: {
+        type: "local",
+        ref,
+        mime,
+        scope: scope as "project" | "user",
+        path,
+        sha256,
+      },
+    };
   }
 
-  return null; // Unknown type
+  return { ok: false, reason: `unknown block type: ${type}` };
 }
 
-/**
- * Extract all data blocks from the text. Data blocks are HTML comments
- * matching the pattern `<!-- pearl-attachment:v1:<ref> ... -->`.
- */
-export function extractBlocks(text: string): AttachmentBlock[] {
-  const normalized = text.replace(/\r\n/g, "\n");
-  const blocks: AttachmentBlock[] = [];
-  const commentRegex = /<!--\s*pearl-attachment:(v\d+):([0-9a-f]{12})[ \t]*\n([\s\S]*?)-->/g;
+type ExtractedBlockResult =
+  | { ok: true; block: AttachmentBlock }
+  | { ok: false; ref: Ref; reason: string };
+
+function extractBlocksWithBroken(text: string): ExtractedBlockResult[] {
+  const results: ExtractedBlockResult[] = [];
+  const regex = new RegExp(BLOCK_RE_SOURCE, "g");
   let match: RegExpExecArray | null;
-  while ((match = commentRegex.exec(normalized)) !== null) {
+  while ((match = regex.exec(text)) !== null) {
     const version = match[1];
-    const ref = match[2];
+    const ref = match[2] as Ref;
     const body = match[3];
     const bodyLines = body
       .split("\n")
       .map((l) => l.trim())
       .filter((l) => l.length > 0);
-    const block = parseBlockBody(version, ref, bodyLines);
-    if (block) {
-      blocks.push(block);
+    const result = parseBlockBody(version, ref, bodyLines);
+    if (result.ok) {
+      results.push({ ok: true, block: result.block });
+    } else {
+      results.push({ ok: false, ref, reason: result.reason });
     }
   }
-  return blocks;
+  return results;
 }
 
-/**
- * Split text into prose (before data blocks) and data-block region.
- * Data blocks are expected at the END of the field, separated by a blank line.
- */
-function splitProseAndBlocks(text: string): { prose: string; blockRegion: string } {
+export function extractBlocks(text: string): AttachmentBlock[] {
+  const normalized = text.replace(/\r\n/g, "\n");
+  return extractBlocksWithBroken(normalized)
+    .filter((r): r is { ok: true; block: AttachmentBlock } => r.ok)
+    .map((r) => r.block);
+}
+
+function splitProseAndTrailing(text: string): { prose: string; trailing: string } | null {
   if (/^<!--\s*pearl-attachment:/.test(text)) {
-    return { prose: "", blockRegion: text };
+    return { prose: "", trailing: text };
   }
   const firstBlockIdx = text.search(/\n\n<!--\s*pearl-attachment:/);
-  if (firstBlockIdx === -1) {
-    return { prose: text, blockRegion: "" };
-  }
+  if (firstBlockIdx === -1) return null;
   return {
     prose: text.slice(0, firstBlockIdx),
-    blockRegion: text.slice(firstBlockIdx),
+    trailing: text.slice(firstBlockIdx),
   };
 }
 
-/**
- * Parse a field value containing Pearl attachment syntax.
- * Extracts pills, data blocks, and matches them by ref.
- */
-export function parse(text: string): ParsedAttachments {
+export function parseField(text: string): ParsedField {
   const normalized = text.replace(/\r\n/g, "\n");
-  let { prose, blockRegion } = splitProseAndBlocks(normalized);
-  let blocks: AttachmentBlock[];
+  const broken: Array<{ ref: Ref; reason: string }> = [];
+  const blocks = new Map<Ref, AttachmentBlock>();
 
-  if (blockRegion) {
-    blocks = extractBlocks(blockRegion);
+  const split = splitProseAndTrailing(normalized);
+  let prose: string;
+
+  if (split) {
+    prose = split.prose;
+    for (const result of extractBlocksWithBroken(split.trailing)) {
+      if (result.ok) {
+        blocks.set(result.block.ref, result.block);
+      } else {
+        broken.push({ ref: result.ref, reason: result.reason });
+      }
+    }
   } else {
-    blocks = extractBlocks(normalized);
-    if (blocks.length > 0) {
+    // No trailing region found — check for interleaved blocks (UCA-9)
+    const blockRegex = new RegExp(BLOCK_RE_SOURCE, "g");
+    const hasBlocks = blockRegex.test(normalized);
+
+    if (hasBlocks) {
+      // Blocks are interleaved with prose — reject them as broken
+      const regex = new RegExp(BLOCK_RE_SOURCE, "g");
+      let match: RegExpExecArray | null;
+      while ((match = regex.exec(normalized)) !== null) {
+        const ref = match[2] as Ref;
+        broken.push({
+          ref,
+          reason: "block interleaved with prose (not in trailing region)",
+        });
+      }
+      // Strip block markup from prose
       prose = normalized
         .replace(/\n*<!--\s*pearl-attachment:v\d+:[0-9a-f]{12}[ \t]*\n[\s\S]*?-->/g, "")
         .trimEnd();
+    } else {
+      prose = normalized;
     }
   }
 
   const pills = extractPills(prose);
+  const refsInProse = pills.map((p) => p.ref);
 
-  // Build a map of ref → block for matching
-  const blockByRef = new Map<string, AttachmentBlock>();
-  for (const block of blocks) {
-    blockByRef.set(block.ref, block);
-  }
-
-  // Match pills to blocks
-  const matched = new Map<string, AttachmentBlock>();
-  const unmatchedPills: string[] = [];
-  const matchedRefs = new Set<string>();
-
-  for (const pill of pills) {
-    const block = blockByRef.get(pill.ref);
-    if (block) {
-      matched.set(pill.ref, block);
-      matchedRefs.add(pill.ref);
-    } else {
-      unmatchedPills.push(pill.ref);
-    }
-  }
-
-  const unmatchedBlocks: string[] = [];
-  for (const block of blocks) {
-    if (!matchedRefs.has(block.ref)) {
-      unmatchedBlocks.push(block.ref);
-    }
-  }
-
-  return {
-    prose,
-    pills,
-    blocks,
-    matched,
-    unmatchedPills,
-    unmatchedBlocks,
-  };
+  return { prose, blocks, refsInProse, broken };
 }
 
 // ─── Serializer ─────────────────────────────────────────────
 
-/**
- * Serialize a single attachment block to its canonical HTML comment form.
- */
 function serializeBlock(block: AttachmentBlock): string {
   const lines: string[] = [];
   lines.push(`<!-- pearl-attachment:v1:${block.ref}`);
@@ -285,17 +240,74 @@ function serializeBlock(block: AttachmentBlock): string {
   return lines.join("\n");
 }
 
-/**
- * Serialize prose + attachment blocks into canonical Pearl attachment syntax.
- * Pills should already be inline in the prose.
- * Data blocks are appended at the end, separated by a blank line.
- */
-export function serialize(input: SerializeInput): string {
-  if (input.blocks.length === 0) {
-    return input.prose;
+export function serializeField(prose: string, blocks: AttachmentBlock[]): string {
+  if (blocks.length === 0) return prose;
+  const serialized = blocks.map(serializeBlock);
+  const trimmedProse = prose.replace(/\n+$/, "");
+  return `${trimmedProse}\n\n${serialized.join("\n\n")}`;
+}
+
+// ─── Async Worker Wrapper (U12) ─────────────────────────────
+
+const WORKER_THRESHOLD = 256 * 1024;
+
+export async function parseFieldAsync(text: string): Promise<ParsedField> {
+  if (text.length < WORKER_THRESHOLD || typeof Worker === "undefined") {
+    return parseField(text);
   }
 
-  const serializedBlocks = input.blocks.map(serializeBlock);
-  const trimmedProse = input.prose.replace(/\n+$/, "");
-  return `${trimmedProse}\n\n${serializedBlocks.join("\n\n")}`;
+  /* v8 ignore start -- Worker branch only runs in browser; tested via E2E */
+  const worker = new Worker(new URL("./attachment-worker.js", import.meta.url), { type: "module" });
+
+  return new Promise<ParsedField>((resolve, reject) => {
+    worker.onmessage = (e: MessageEvent) => {
+      const data = e.data;
+      resolve({
+        prose: data.prose,
+        blocks:
+          data.blocks instanceof Map ? data.blocks : new Map(Object.entries(data.blocks ?? {})),
+        refsInProse: data.refsInProse,
+        broken: data.broken,
+      } as ParsedField);
+      worker.terminate();
+    };
+    worker.onerror = (e) => {
+      reject(new Error(`Attachment worker error: ${e.message}`));
+      worker.terminate();
+    };
+    worker.postMessage(text);
+  });
+  /* v8 ignore stop */
+}
+
+// ─── Fast Predicate ─────────────────────────────────────────
+
+const QUICK_PILL_RE = /\[img:[0-9a-f]{12}\]/;
+const QUICK_BLOCK_RE = /<!--\s*pearl-attachment:/;
+
+export function hasAttachmentSyntax(text: string): boolean {
+  return QUICK_PILL_RE.test(text) || QUICK_BLOCK_RE.test(text);
+}
+
+// ─── Collision Disambiguator (X3) ───────────────────────────
+
+export function disambiguateRefs(blocks: AttachmentBlock[]): AttachmentBlock[] {
+  const seen = new Map<string, number>();
+  const result: AttachmentBlock[] = [];
+
+  for (const block of blocks) {
+    const baseRef = block.ref as string;
+    const count = seen.get(baseRef) ?? 0;
+    seen.set(baseRef, count + 1);
+
+    if (count === 0) {
+      result.push(block);
+    } else {
+      const suffix = count.toString(16).padStart(2, "0");
+      const newRef = (baseRef.slice(0, 10) + suffix) as Ref;
+      result.push({ ...block, ref: newRef });
+    }
+  }
+
+  return result;
 }

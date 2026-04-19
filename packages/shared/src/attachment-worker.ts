@@ -1,0 +1,11 @@
+// Web Worker entry point for off-main-thread field parsing.
+// Usage: new Worker(new URL('@pearl/shared/attachment-worker', import.meta.url), { type: 'module' })
+
+import { parseField } from "./attachment-syntax.js";
+
+declare const self: Worker;
+
+self.onmessage = (e: MessageEvent<string>) => {
+  const result = parseField(e.data);
+  self.postMessage(result);
+};
