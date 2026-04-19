@@ -81,19 +81,18 @@ export class OrphanSweep {
 
         const files = await collectAttachmentFiles(baseDir);
 
-        for (const filePath of files) {
+        for (const file of files) {
           result.scanned++;
 
           try {
-            const fileStat = await stat(filePath);
-            const ageMs = now - fileStat.mtimeMs;
+            const ageMs = now - file.mtimeMs;
 
             if (ageMs < graceMs) {
               result.skippedYoung++;
               continue;
             }
 
-            const fileName = basename(filePath);
+            const fileName = basename(file.path);
             const ref = fileName.split(".")[0];
             if (!isRef(ref)) continue;
 
@@ -103,12 +102,12 @@ export class OrphanSweep {
               continue;
             }
 
-            await unlink(filePath);
+            await unlink(file.path);
             result.deleted++;
           } catch (err) {
             if ((err as NodeJS.ErrnoException).code === "ENOENT") continue;
             result.errors++;
-            this.deps.logger.warn(`[sweep] Error processing ${filePath}: ${err}`);
+            this.deps.logger.warn(`[sweep] Error processing ${file.path}: ${err}`);
           }
         }
       }
@@ -128,19 +127,24 @@ export class OrphanSweep {
   }
 }
 
-async function collectAttachmentFiles(baseDir: string): Promise<string[]> {
-  const files: string[] = [];
+interface AttachmentFile {
+  path: string;
+  mtimeMs: number;
+}
+
+async function collectAttachmentFiles(baseDir: string): Promise<AttachmentFile[]> {
+  const files: AttachmentFile[] = [];
   const normalizedBase = normalize(resolve(baseDir));
   const entries = await readdir(baseDir, { recursive: true });
   for (const entry of entries) {
-    const name = typeof entry === "string" ? entry.split("/").pop()! : entry;
+    const name = basename(entry as string);
     if (name.endsWith(".tmp")) continue;
     if (!name.includes(".")) continue;
-    const fullPath = resolve(baseDir, typeof entry === "string" ? entry : entry);
+    const fullPath = resolve(baseDir, entry as string);
     if (!normalize(fullPath).startsWith(normalizedBase + sep)) continue;
     try {
       const s = await stat(fullPath);
-      if (s.isFile()) files.push(fullPath);
+      if (s.isFile()) files.push({ path: fullPath, mtimeMs: s.mtimeMs });
     } catch {
       // skip unreadable entries
     }

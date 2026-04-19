@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
+import { createReadStream, existsSync } from "node:fs";
+import { mkdir, readdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, normalize, relative, resolve, sep } from "node:path";
 import Busboy from "@fastify/busboy";
@@ -50,9 +50,9 @@ async function findAttachmentByRef(baseDir: string, ref: string): Promise<string
   const prefix = `${ref}.`;
   const entries = await readdir(baseDir, { recursive: true });
   for (const entry of entries) {
-    const name = typeof entry === "string" ? entry.split("/").pop()! : entry;
+    const name = basename(entry as string);
     if (name.startsWith(prefix) && !name.endsWith(".tmp")) {
-      return resolve(baseDir, typeof entry === "string" ? entry : entry);
+      return resolve(baseDir, entry as string);
     }
   }
   return null;
@@ -71,19 +71,7 @@ function resolveAttachmentDir(scope: LocalScope, projectRoot: string, settings: 
   const now = new Date();
   const yyyy = String(now.getFullYear());
   const mm = String(now.getMonth() + 1).padStart(2, "0");
-
-  if (scope === "project") {
-    const base =
-      settings.attachments.local.projectPathOverride ??
-      resolve(projectRoot, ".pearl", "attachments");
-    return resolve(base, yyyy, mm);
-  }
-
-  const projectId = basename(projectRoot);
-  const base =
-    settings.attachments.local.userPathOverride ??
-    resolve(homedir(), ".pearl", "attachments", projectId);
-  return resolve(base, yyyy, mm);
+  return resolve(resolveAttachmentBase(scope, projectRoot, settings), yyyy, mm);
 }
 
 async function atomicWrite(filePath: string, data: Buffer): Promise<void> {
@@ -319,7 +307,7 @@ export function registerAttachmentRoutes(
 
       const normalizedFile = normalize(filePath);
       const normalizedBase = normalize(baseDir);
-      if (!normalizedFile.startsWith(normalizedBase + sep) || containsTraversal(filePath)) {
+      if (!normalizedFile.startsWith(normalizedBase + sep)) {
         return reply.code(400).send({
           code: "BAD_REF",
           message: "Resolved path escapes the attachment directory",
@@ -329,13 +317,15 @@ export function registerAttachmentRoutes(
 
       const ext = filePath.split(".").pop() || "";
       const contentType = EXT_TO_MIME[ext] || "application/octet-stream";
-      const fileContent = await readFile(filePath);
+      const fileStat = await stat(filePath);
+      const stream = createReadStream(filePath);
 
       return reply
         .code(200)
         .header("Content-Type", contentType)
+        .header("Content-Length", fileStat.size)
         .header("Cache-Control", "private, max-age=31536000, immutable")
-        .send(fileContent);
+        .send(stream);
     });
   });
 }

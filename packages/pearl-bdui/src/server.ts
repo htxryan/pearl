@@ -265,9 +265,10 @@ export async function createServer(initialConfig: Config) {
       try {
         const pool = getPool();
         const escaped = ref.replace(/[%_\\]/g, "\\$&");
+        const pattern = `%${escaped}%`;
         const [rows] = await pool.execute(
-          "SELECT 1 FROM issues WHERE description LIKE ? ESCAPE '\\\\' LIMIT 1",
-          [`%${escaped}%`],
+          "SELECT 1 FROM issues WHERE description LIKE ? ESCAPE '\\\\' OR notes LIKE ? ESCAPE '\\\\' OR design LIKE ? ESCAPE '\\\\' OR acceptance_criteria LIKE ? ESCAPE '\\\\' LIMIT 1",
+          [pattern, pattern, pattern, pattern],
         );
         return (rows as unknown[]).length > 0;
       } catch {
