@@ -110,145 +110,147 @@ export function registerAttachmentRoutes(
   app: FastifyInstance,
   settingsEventBus: SettingsEventBus,
 ): void {
-  const beadsDir = findBeadsDir(process.cwd());
-  const projectRoot = beadsDir ? dirname(beadsDir) : process.cwd();
+  app.register(async (plugin) => {
+    const beadsDir = findBeadsDir(process.cwd());
+    const projectRoot = beadsDir ? dirname(beadsDir) : process.cwd();
 
-  let cachedSettings: Settings | null = null;
-  settingsEventBus.on((s) => {
-    cachedSettings = s;
-  });
+    let cachedSettings: Settings | null = null;
+    settingsEventBus.on((s) => {
+      cachedSettings = s;
+    });
 
-  const logger: SettingsLogger = {
-    warn(msg: string) {
-      app.log.warn(msg);
-    },
-  };
+    const logger: SettingsLogger = {
+      warn(msg: string) {
+        plugin.log.warn(msg);
+      },
+    };
 
-  async function getSettings(): Promise<Settings> {
-    if (cachedSettings) return cachedSettings;
-    cachedSettings = await loadSettings(projectRoot, logger);
-    return cachedSettings;
-  }
+    async function getSettings(): Promise<Settings> {
+      if (cachedSettings) return cachedSettings;
+      cachedSettings = await loadSettings(projectRoot, logger);
+      return cachedSettings;
+    }
 
-  app.addContentTypeParser(
-    "multipart/form-data",
-    (_req: unknown, _payload: unknown, done: (err: null) => void) => {
-      done(null);
-    },
-  );
+    plugin.addContentTypeParser(
+      "multipart/form-data",
+      (_req: unknown, _payload: unknown, done: (err: null) => void) => {
+        done(null);
+      },
+    );
 
-  app.post("/api/attachments", async (request, reply) => {
-    let parsed: ParsedMultipart;
-    try {
-      parsed = await parseMultipart(request.raw, MAX_FILE_SIZE);
-    } catch (err) {
-      const message = (err as Error).message;
-      if (message === "FILE_TOO_LARGE") {
-        return reply.code(413).send({
-          code: "TOO_LARGE",
-          limit: MAX_FILE_SIZE,
-          message: `File exceeds maximum size of ${MAX_FILE_SIZE} bytes`,
-          retryable: false,
-        });
-      }
-      if (message === "NO_FILE") {
+    plugin.post("/api/attachments", async (request, reply) => {
+      let parsed: ParsedMultipart;
+      try {
+        parsed = await parseMultipart(request.raw, MAX_FILE_SIZE);
+      } catch (err) {
+        const message = (err as Error).message;
+        if (message === "FILE_TOO_LARGE") {
+          return reply.code(413).send({
+            code: "TOO_LARGE",
+            limit: MAX_FILE_SIZE,
+            message: `File exceeds maximum size of ${MAX_FILE_SIZE} bytes`,
+            retryable: false,
+          });
+        }
+        if (message === "NO_FILE") {
+          return reply.code(400).send({
+            code: "VALIDATION_ERROR",
+            message: "No file uploaded",
+            retryable: false,
+          });
+        }
         return reply.code(400).send({
           code: "VALIDATION_ERROR",
-          message: "No file uploaded",
+          message: "Failed to parse multipart body",
           retryable: false,
         });
       }
-      return reply.code(400).send({
-        code: "VALIDATION_ERROR",
-        message: "Failed to parse multipart body",
-        retryable: false,
-      });
-    }
 
-    const { fileBuffer } = parsed;
-    const settings = await getSettings();
+      const { fileBuffer } = parsed;
+      const settings = await getSettings();
 
-    if (fileBuffer.byteLength > settings.attachments.encoding.maxBytes) {
-      return reply.code(413).send({
-        code: "TOO_LARGE",
-        limit: settings.attachments.encoding.maxBytes,
-        message: `File exceeds configured maxBytes limit of ${settings.attachments.encoding.maxBytes}`,
-        retryable: false,
-      });
-    }
-
-    // Magic-byte MIME sniff — never trust client-declared MIME (X6, UCA-13)
-    const { fileTypeFromBuffer } = await import("file-type");
-    const detected = await fileTypeFromBuffer(fileBuffer);
-    const sniffedMime = detected?.mime ?? "application/octet-stream";
-
-    if (!ALLOWED_MIMES.has(sniffedMime)) {
-      return reply.code(415).send({
-        code: "MIME_MISMATCH",
-        sniffed: sniffedMime,
-        message: `Detected MIME type "${sniffedMime}" is not a supported image format`,
-        retryable: false,
-      });
-    }
-
-    // Server-side ref computation (E3a)
-    const { sha256Full, ref } = computeSha256(fileBuffer);
-    const ext = MIME_TO_EXT[sniffedMime] || "bin";
-    const scope = settings.attachments.local.scope;
-
-    const attachmentDir = resolveAttachmentDir(scope, projectRoot, settings);
-    const filePath = resolve(attachmentDir, `${ref}.${ext}`);
-
-    // Path-traversal guard (X2)
-    const normalizedPath = normalize(filePath);
-    const projectId = basename(projectRoot);
-    const normalizedDir = normalize(
-      scope === "project"
-        ? (settings.attachments.local.projectPathOverride ??
-            resolve(projectRoot, ".pearl", "attachments"))
-        : (settings.attachments.local.userPathOverride ??
-            resolve(homedir(), ".pearl", "attachments", projectId)),
-    );
-    if (!normalizedPath.startsWith(normalizedDir + sep) || containsTraversal(filePath)) {
-      return reply.code(422).send({
-        code: "PATH_TRAVERSAL",
-        message: "Resolved path escapes the attachment directory",
-        retryable: false,
-      });
-    }
-
-    const relPath = relative(normalizedDir, filePath);
-
-    // Content-addressed dedup
-    if (existsSync(filePath)) {
-      const existingBytes = await readFile(filePath);
-      if (existingBytes.equals(fileBuffer)) {
-        return reply.code(200).send({
-          ref,
-          scope,
-          path: relPath,
-          sha256: sha256Full,
-          bytes: fileBuffer.byteLength,
-          mime: sniffedMime,
+      if (fileBuffer.byteLength > settings.attachments.encoding.maxBytes) {
+        return reply.code(413).send({
+          code: "TOO_LARGE",
+          limit: settings.attachments.encoding.maxBytes,
+          message: `File exceeds configured maxBytes limit of ${settings.attachments.encoding.maxBytes}`,
+          retryable: false,
         });
       }
-      return reply.code(409).send({
-        code: "HASH_COLLISION",
-        message: "A different file already exists with the same content hash",
-        retryable: false,
+
+      // Magic-byte MIME sniff — never trust client-declared MIME (X6, UCA-13)
+      const { fileTypeFromBuffer } = await import("file-type");
+      const detected = await fileTypeFromBuffer(fileBuffer);
+      const sniffedMime = detected?.mime ?? "application/octet-stream";
+
+      if (!ALLOWED_MIMES.has(sniffedMime)) {
+        return reply.code(415).send({
+          code: "MIME_MISMATCH",
+          sniffed: sniffedMime,
+          message: `Detected MIME type "${sniffedMime}" is not a supported image format`,
+          retryable: false,
+        });
+      }
+
+      // Server-side ref computation (E3a)
+      const { sha256Full, ref } = computeSha256(fileBuffer);
+      const ext = MIME_TO_EXT[sniffedMime] || "bin";
+      const scope = settings.attachments.local.scope;
+
+      const attachmentDir = resolveAttachmentDir(scope, projectRoot, settings);
+      const filePath = resolve(attachmentDir, `${ref}.${ext}`);
+
+      // Path-traversal guard (X2)
+      const normalizedPath = normalize(filePath);
+      const projectId = basename(projectRoot);
+      const normalizedDir = normalize(
+        scope === "project"
+          ? (settings.attachments.local.projectPathOverride ??
+              resolve(projectRoot, ".pearl", "attachments"))
+          : (settings.attachments.local.userPathOverride ??
+              resolve(homedir(), ".pearl", "attachments", projectId)),
+      );
+      if (!normalizedPath.startsWith(normalizedDir + sep) || containsTraversal(filePath)) {
+        return reply.code(422).send({
+          code: "PATH_TRAVERSAL",
+          message: "Resolved path escapes the attachment directory",
+          retryable: false,
+        });
+      }
+
+      const relPath = relative(projectRoot, filePath);
+
+      // Content-addressed dedup
+      if (existsSync(filePath)) {
+        const existingBytes = await readFile(filePath);
+        if (existingBytes.equals(fileBuffer)) {
+          return reply.code(200).send({
+            ref,
+            scope,
+            path: relPath,
+            sha256: sha256Full,
+            bytes: fileBuffer.byteLength,
+            mime: sniffedMime,
+          });
+        }
+        return reply.code(409).send({
+          code: "HASH_COLLISION",
+          message: "A different file already exists with the same content hash",
+          retryable: false,
+        });
+      }
+
+      // Atomic write (UCA-14)
+      await atomicWrite(filePath, fileBuffer);
+
+      return reply.code(201).send({
+        ref,
+        scope,
+        path: relPath,
+        sha256: sha256Full,
+        bytes: fileBuffer.byteLength,
+        mime: sniffedMime,
       });
-    }
-
-    // Atomic write (UCA-14)
-    await atomicWrite(filePath, fileBuffer);
-
-    return reply.code(201).send({
-      ref,
-      scope,
-      path: relPath,
-      sha256: sha256Full,
-      bytes: fileBuffer.byteLength,
-      mime: sniffedMime,
     });
   });
 }
