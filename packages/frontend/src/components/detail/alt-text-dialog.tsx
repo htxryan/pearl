@@ -21,7 +21,7 @@ export function AltTextDialog({ isOpen, fileName, onSubmit, onSkip }: AltTextDia
     } else {
       dialogRef.current?.close();
     }
-  }, [isOpen]);
+  }, [isOpen, fileName]);
 
   if (!isOpen) return null;
 

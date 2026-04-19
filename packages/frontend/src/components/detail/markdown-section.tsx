@@ -116,8 +116,10 @@ export function MarkdownSection({
   const handleAltTextSubmit = useCallback(
     (altText: string) => {
       if (!altTextState) return;
-      const updated = { ...altTextState };
-      updated.results[updated.currentIndex].altText = altText;
+      const updatedResults = altTextState.results.map((r, i) =>
+        i === altTextState.currentIndex ? { ...r, altText } : r,
+      );
+      const updated = { ...altTextState, results: updatedResults };
       const nextIndex = updated.currentIndex + 1;
       if (nextIndex >= updated.results.length) {
         finishAltTextAndInsert(updated);
@@ -130,8 +132,10 @@ export function MarkdownSection({
 
   const handleAltTextSkip = useCallback(() => {
     if (!altTextState) return;
-    const updated = { ...altTextState };
-    updated.results[updated.currentIndex].altText = "";
+    const updatedResults = altTextState.results.map((r, i) =>
+      i === altTextState.currentIndex ? { ...r, altText: "" } : r,
+    );
+    const updated = { ...altTextState, results: updatedResults };
     const nextIndex = updated.currentIndex + 1;
     if (nextIndex >= updated.results.length) {
       finishAltTextAndInsert(updated);
@@ -142,7 +146,7 @@ export function MarkdownSection({
 
   const processFiles = useCallback(
     async (files: File[]) => {
-      if (files.length === 0) return;
+      if (files.length === 0 || isUploading) return;
       cursorPosRef.current = textareaRef.current?.selectionStart ?? editValue.length;
 
       const { results } = await uploadFiles(files);
@@ -153,7 +157,7 @@ export function MarkdownSection({
         currentIndex: 0,
       });
     },
-    [uploadFiles, editValue.length],
+    [uploadFiles, editValue.length, isUploading],
   );
 
   const handlePaste = useCallback(
@@ -281,7 +285,7 @@ export function MarkdownSection({
                   &equiv;
                 </ToolbarButton>
                 <div className="w-px h-4 bg-border mx-1" />
-                <ToolbarButton label="Attach image" onClick={handleFilePick}>
+                <ToolbarButton label="Attach image" onClick={handleFilePick} disabled={isUploading}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
@@ -308,6 +312,7 @@ export function MarkdownSection({
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 onPaste={handlePaste}
+                readOnly={isUploading}
                 className="w-full min-h-[120px] text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring resize-y font-mono"
                 autoFocus
               />
@@ -440,18 +445,21 @@ function PreviewPane({ text }: { text: string }) {
 function ToolbarButton({
   label,
   onClick,
+  disabled,
   children,
 }: {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       title={label}
-      className="h-7 w-7 flex items-center justify-center rounded text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+      className="h-7 w-7 flex items-center justify-center rounded text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
     >
       {children}
     </button>

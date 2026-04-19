@@ -65,8 +65,13 @@ export function useImageUpload(): UseImageUploadReturn {
   const [lastErrors, setLastErrors] = useState<UploadError[]>([]);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  const uploadingRef = useRef(false);
 
   const uploadFiles = useCallback(async (files: File[]) => {
+    if (uploadingRef.current) {
+      return { results: [], errors: [] };
+    }
+
     const currentSettings = settingsRef.current;
     if (!currentSettings) {
       const err: UploadError[] = [
@@ -79,6 +84,7 @@ export function useImageUpload(): UseImageUploadReturn {
     const adapter = createAdapter(currentSettings);
     const policy = createPolicy(currentSettings);
 
+    uploadingRef.current = true;
     setIsUploading(true);
     setProgress({ total: files.length, completed: 0 });
     setLastErrors([]);
@@ -97,6 +103,7 @@ export function useImageUpload(): UseImageUploadReturn {
       setProgress({ total: files.length, completed: results.length + errors.length });
     }
 
+    uploadingRef.current = false;
     setIsUploading(false);
     setProgress(null);
     if (errors.length > 0) setLastErrors(errors);

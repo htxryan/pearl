@@ -72,8 +72,10 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
   const handleAltTextSubmit = useCallback(
     (altText: string) => {
       if (!altTextState) return;
-      const updated = { ...altTextState };
-      updated.results[updated.currentIndex].altText = altText;
+      const updatedResults = altTextState.results.map((r, i) =>
+        i === altTextState.currentIndex ? { ...r, altText } : r,
+      );
+      const updated = { ...altTextState, results: updatedResults };
       const nextIndex = updated.currentIndex + 1;
       if (nextIndex >= updated.results.length) {
         finishAltTextAndInsert(updated);
@@ -86,8 +88,10 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
 
   const handleAltTextSkip = useCallback(() => {
     if (!altTextState) return;
-    const updated = { ...altTextState };
-    updated.results[updated.currentIndex].altText = "";
+    const updatedResults = altTextState.results.map((r, i) =>
+      i === altTextState.currentIndex ? { ...r, altText: "" } : r,
+    );
+    const updated = { ...altTextState, results: updatedResults };
     const nextIndex = updated.currentIndex + 1;
     if (nextIndex >= updated.results.length) {
       finishAltTextAndInsert(updated);
@@ -98,7 +102,7 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
 
   const processFiles = useCallback(
     async (files: File[]) => {
-      if (files.length === 0) return;
+      if (files.length === 0 || isUploading) return;
       cursorPosRef.current = textareaRef.current?.selectionStart ?? newComment.length;
 
       const { results } = await uploadFiles(files);
@@ -109,7 +113,7 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
         currentIndex: 0,
       });
     },
-    [uploadFiles, newComment.length],
+    [uploadFiles, newComment.length, isUploading],
   );
 
   const handlePaste = useCallback(
@@ -189,6 +193,7 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onPaste={handlePaste}
+            readOnly={isUploading}
             placeholder="Add a comment..."
             className="w-full min-h-[80px] text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring resize-y"
             onKeyDown={(e) => {
@@ -216,8 +221,9 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
             <button
               type="button"
               onClick={handleFilePick}
+              disabled={isUploading}
               title="Attach image"
-              className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="h-6 w-6 flex items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

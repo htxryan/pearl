@@ -12,8 +12,8 @@ export function UploadErrors({ errors, onDismiss }: UploadErrorsProps) {
     <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3" role="alert">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          {errors.map((err) => (
-            <p key={`${err.fileName}-${err.message}`} className="text-xs text-destructive">
+          {errors.map((err, i) => (
+            <p key={`${err.fileName}-${err.message}-${i}`} className="text-xs text-destructive">
               {err.fileName ? `${err.fileName}: ` : ""}
               {err.message}
             </p>
