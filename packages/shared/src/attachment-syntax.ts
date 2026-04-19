@@ -93,7 +93,6 @@ export interface SerializeInput {
 
 const REF_PATTERN = "[0-9a-f]{12}";
 const PILL_REGEX = new RegExp(`\\[img:(${REF_PATTERN})\\]`, "g");
-const BLOCK_HEADER_REGEX = new RegExp(`^<!-- pearl-attachment:(v\\d+):(${REF_PATTERN})$`, "m");
 const SUPPORTED_VERSIONS = new Set(["v1"]);
 
 // ─── Parser ─────────────────────────────────────────────────
