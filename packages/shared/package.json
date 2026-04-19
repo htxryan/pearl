@@ -17,6 +17,7 @@
     "test": "echo 'no tests yet'"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.4"
   }
 }
