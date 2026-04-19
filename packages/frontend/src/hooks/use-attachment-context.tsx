@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import type { StorageAdapter } from "@/lib/storage-adapter";
-import { InlineStorageAdapter } from "@/lib/storage-adapter";
+import { InlineStorageAdapter, LocalStorageAdapter } from "@/lib/storage-adapter";
 
 interface BlobState {
   status: "loading" | "loaded" | "error";
@@ -39,7 +39,19 @@ export function AttachmentProvider({
   onPillClick,
   children,
 }: AttachmentProviderProps) {
-  const resolvedAdapter = useMemo(() => adapter ?? new InlineStorageAdapter(), [adapter]);
+  const inlineAdapter = useMemo(() => new InlineStorageAdapter(), []);
+  const localAdapter = useMemo(() => new LocalStorageAdapter(), []);
+  const resolvedAdapter = useMemo(
+    () =>
+      adapter ??
+      ({
+        mode: "mixed" as const,
+        store: (encoded) => inlineAdapter.store(encoded),
+        load: (block) =>
+          block.type === "local" ? localAdapter.load(block) : inlineAdapter.load(block),
+      } as unknown as StorageAdapter),
+    [adapter, inlineAdapter, localAdapter],
+  );
 
   const allBlocks = useMemo(() => {
     const merged = new Map<string, AttachmentBlock>();
