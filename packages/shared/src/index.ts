@@ -381,7 +381,17 @@ export interface Settings {
   attachments: AttachmentSettings;
 }
 
-export const DEFAULT_SETTINGS: Settings = {
+function deepFreeze<T extends object>(obj: T): T {
+  Object.freeze(obj);
+  for (const value of Object.values(obj)) {
+    if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
+      deepFreeze(value as object);
+    }
+  }
+  return obj;
+}
+
+export const DEFAULT_SETTINGS: Settings = deepFreeze({
   version: 1,
   attachments: {
     storageMode: "local",
@@ -397,7 +407,7 @@ export const DEFAULT_SETTINGS: Settings = {
       stripExif: true,
     },
   },
-};
+});
 
 // ─── Attachment Types & Functions ───────────────────────────
 

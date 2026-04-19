@@ -187,16 +187,8 @@ export function AttachmentSettings() {
   }, [draft, updateMutation]);
 
   const handleReset = useCallback(() => {
-    const defaults = structuredClone(DEFAULT_SETTINGS);
-    setDraft(defaults);
-    updateMutation.mutate(defaults, {
-      onSuccess: (response) => {
-        if (response.data) {
-          setDraft(structuredClone(response.data));
-        }
-      },
-    });
-  }, [updateMutation]);
+    setDraft(structuredClone(DEFAULT_SETTINGS));
+  }, []);
 
   if (isLoading || !draft) {
     return <div className="animate-pulse text-sm text-muted-foreground">Loading settings...</div>;

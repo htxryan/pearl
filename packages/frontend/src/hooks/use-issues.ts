@@ -19,6 +19,7 @@ import * as api from "@/lib/api-client";
 import { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys } from "./issue-keys";
 import { labelKeys } from "./use-labels";
 import { notifyCommentAdded } from "./use-notifications";
+import { settingsKeys } from "./use-settings";
 
 export { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys };
 
@@ -56,6 +57,9 @@ function invalidateFromHints(
         break;
       case "labels":
         queryClient.invalidateQueries({ queryKey: labelKeys.all });
+        break;
+      case "settings":
+        queryClient.invalidateQueries({ queryKey: settingsKeys.all });
         break;
     }
   }

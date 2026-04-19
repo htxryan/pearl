@@ -34,5 +34,5 @@ blob-report/
 docs/proof/**/*.png
 .beads/__replica__/
 
-# Pearl attachment files (local storage mode)
-.pearl/attachments/
+# Pearl settings and attachment files (may contain local paths)
+.pearl/

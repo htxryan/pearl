@@ -1,9 +1,6 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { resolve } from "node:path";
 import type { Settings } from "@pearl/shared";
 import { DEFAULT_SETTINGS } from "@pearl/shared";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { SettingsEventBus } from "./settings.js";
 
 describe("SettingsEventBus", () => {
@@ -43,31 +40,11 @@ describe("SettingsEventBus", () => {
   });
 });
 
-describe("Settings route validation schema", () => {
-  it("rejects invalid storageMode at schema level", () => {
-    const invalid: Record<string, unknown> = {
-      version: 1,
-      attachments: {
-        storageMode: "cloud",
-        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
-        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048, stripExif: true },
-      },
-    };
-    expect(invalid.attachments).toBeDefined();
-    expect((invalid.attachments as Record<string, unknown>).storageMode).toBe("cloud");
-  });
-
-  it("valid settings structure passes type check", () => {
-    const valid: Settings = {
-      version: 1,
-      attachments: {
-        storageMode: "inline",
-        local: { scope: "user", projectPathOverride: null, userPathOverride: "/abs" },
-        encoding: { format: "webp", maxBytes: 512000, maxDimension: 1024, stripExif: true },
-      },
-    };
-    expect(valid.version).toBe(1);
-    expect(valid.attachments.storageMode).toBe("inline");
+describe("Settings type invariants", () => {
+  it("DEFAULT_SETTINGS is frozen and cannot be mutated", () => {
+    expect(Object.isFrozen(DEFAULT_SETTINGS)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_SETTINGS.attachments)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_SETTINGS.attachments.encoding)).toBe(true);
   });
 
   it("stripExif must be true in Settings type", () => {

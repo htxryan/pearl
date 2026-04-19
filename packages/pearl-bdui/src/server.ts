@@ -140,7 +140,7 @@ export async function createServer(initialConfig: Config) {
       url.startsWith("/api/health") ||
       url.startsWith("/api/migration") ||
       url.startsWith("/api/setup") ||
-      url.startsWith("/api/settings")
+      (url.startsWith("/api/settings") && request.method === "GET")
     )
       return;
     if (url.startsWith("/api/") && request.method !== "GET") {
@@ -182,7 +182,7 @@ export async function createServer(initialConfig: Config) {
   registerLabelRoutes(app, getConfig);
 
   const settingsEventBus = new SettingsEventBus();
-  registerSettingsRoutes(app, getConfig, settingsEventBus);
+  registerSettingsRoutes(app, settingsEventBus);
   registerMigrationRoutes(app, {
     getConfig,
     onMigrationComplete: async (newConfig: Config) => {

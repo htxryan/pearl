@@ -1,6 +1,7 @@
+import { dirname } from "node:path";
 import type { Settings } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
-import type { Config } from "../config.js";
+import { findBeadsDir } from "../config.js";
 import { validationError } from "../errors.js";
 import { loadSettings, type SettingsLogger, saveSettings } from "../settings-loader.js";
 
@@ -20,8 +21,8 @@ const updateSettingsSchema = {
             required: ["scope", "projectPathOverride", "userPathOverride"],
             properties: {
               scope: { type: "string", enum: ["project", "user"] },
-              projectPathOverride: { type: ["string", "null"] },
-              userPathOverride: { type: ["string", "null"] },
+              projectPathOverride: { type: ["string", "null"], maxLength: 1024 },
+              userPathOverride: { type: ["string", "null"], maxLength: 1024 },
             },
             additionalProperties: false,
           },
@@ -63,12 +64,9 @@ export class SettingsEventBus {
   }
 }
 
-export function registerSettingsRoutes(
-  app: FastifyInstance,
-  getConfig: () => Config,
-  eventBus: SettingsEventBus,
-): void {
-  const projectRoot = process.cwd();
+export function registerSettingsRoutes(app: FastifyInstance, eventBus: SettingsEventBus): void {
+  const beadsDir = findBeadsDir(process.cwd());
+  const projectRoot = beadsDir ? dirname(beadsDir) : process.cwd();
 
   const logger: SettingsLogger = {
     warn(msg: string) {
@@ -86,6 +84,18 @@ export function registerSettingsRoutes(
 
     if (body.attachments.encoding.stripExif !== true) {
       throw validationError("stripExif must be true (mandatory invariant)");
+    }
+
+    for (const field of ["projectPathOverride", "userPathOverride"] as const) {
+      const value = body.attachments.local[field];
+      if (typeof value === "string") {
+        if (value.length > 1024) {
+          throw validationError(`${field} exceeds maximum length of 1024 characters`);
+        }
+        if (value.split(/[/\\]/).includes("..")) {
+          throw validationError(`${field} must not contain path traversal segments`);
+        }
+      }
     }
 
     await saveSettings(projectRoot, body);

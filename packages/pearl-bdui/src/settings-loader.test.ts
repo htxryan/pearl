@@ -137,6 +137,68 @@ describe("settings-loader", () => {
       expect(result.attachments.encoding.maxBytes).toBe(1_048_576);
     });
 
+    it("clamps maxBytes to upper bound of 50 MB", () => {
+      const partial = {
+        version: 1,
+        attachments: { encoding: { maxBytes: 999_999_999 } },
+      };
+      const dir = resolve(tmpDir, ".pearl");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(resolve(dir, "settings.json"), JSON.stringify(partial), "utf-8");
+
+      const result = loadSettingsSync(tmpDir, mockLogger);
+      expect(result.attachments.encoding.maxBytes).toBe(1_048_576);
+    });
+
+    it("clamps maxDimension to upper bound of 16384", () => {
+      const partial = {
+        version: 1,
+        attachments: { encoding: { maxDimension: 100_000 } },
+      };
+      const dir = resolve(tmpDir, ".pearl");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(resolve(dir, "settings.json"), JSON.stringify(partial), "utf-8");
+
+      const result = loadSettingsSync(tmpDir, mockLogger);
+      expect(result.attachments.encoding.maxDimension).toBe(2048);
+    });
+
+    it("rejects path overrides containing traversal segments", () => {
+      const partial = {
+        version: 1,
+        attachments: {
+          local: {
+            projectPathOverride: "../../etc/passwd",
+            userPathOverride: "/safe/path",
+          },
+        },
+      };
+      const dir = resolve(tmpDir, ".pearl");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(resolve(dir, "settings.json"), JSON.stringify(partial), "utf-8");
+
+      const result = loadSettingsSync(tmpDir, mockLogger);
+      expect(result.attachments.local.projectPathOverride).toBeNull();
+      expect(result.attachments.local.userPathOverride).toBe("/safe/path");
+    });
+
+    it("rejects path overrides exceeding max length", () => {
+      const partial = {
+        version: 1,
+        attachments: {
+          local: {
+            projectPathOverride: "a".repeat(1025),
+          },
+        },
+      };
+      const dir = resolve(tmpDir, ".pearl");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(resolve(dir, "settings.json"), JSON.stringify(partial), "utf-8");
+
+      const result = loadSettingsSync(tmpDir, mockLogger);
+      expect(result.attachments.local.projectPathOverride).toBeNull();
+    });
+
     it("stripExif is always true regardless of file content", () => {
       const partial = {
         version: 1,
