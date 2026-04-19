@@ -55,7 +55,8 @@ async function atomicWrite(filePath: string, data: Buffer): Promise<void> {
   const dir = dirname(filePath);
   await mkdir(dir, { recursive: true });
 
-  const tmpPath = `${filePath}.${process.pid}.tmp`;
+  const suffix = `${process.pid}.${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  const tmpPath = `${filePath}.${suffix}.tmp`;
   await writeFile(tmpPath, data, { flush: true });
   await rename(tmpPath, filePath);
 }
