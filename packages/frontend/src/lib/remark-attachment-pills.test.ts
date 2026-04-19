@@ -39,8 +39,8 @@ describe("remarkAttachmentPills", () => {
 
     const children = tree.children[0].children;
     expect(children).toHaveLength(3);
-    expect(children[0].data.hProperties["data-index"]).toBe(1);
-    expect(children[2].data.hProperties["data-index"]).toBe(2);
+    expect((children[0] as any).data.hProperties["data-index"]).toBe(1);
+    expect((children[2] as any).data.hProperties["data-index"]).toBe(2);
   });
 
   it("leaves text without pills unchanged", () => {

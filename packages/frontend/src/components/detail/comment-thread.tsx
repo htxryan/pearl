@@ -1,7 +1,16 @@
 import type { Comment } from "@pearl/shared";
 import { useState } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
+import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
+
+// biome-ignore lint/suspicious/noExplicitAny: react-markdown components typing
+const commentComponents: Record<string, React.ComponentType<any>> = {
+  "attachment-pill": AttachmentPill,
+};
 
 interface CommentThreadProps {
   comments: Comment[];
@@ -46,7 +55,14 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
                 <span className="text-sm font-medium">{comment.author}</span>
                 <RelativeTime iso={comment.created_at} className="text-xs text-muted-foreground" />
               </div>
-              <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <Markdown
+                  remarkPlugins={[remarkGfm, remarkAttachmentPills]}
+                  components={commentComponents}
+                >
+                  {comment.text}
+                </Markdown>
+              </div>
             </div>
           ))}
         </div>
