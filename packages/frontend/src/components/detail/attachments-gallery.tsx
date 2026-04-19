@@ -46,7 +46,7 @@ function GalleryGrid({
     <div
       ref={parentRef}
       className="max-h-[480px] overflow-auto rounded-lg border border-border"
-      role="grid"
+      role="list"
       aria-label="Attachment thumbnails"
     >
       <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
@@ -62,7 +62,7 @@ function GalleryGrid({
                 height: `${ROW_HEIGHT}px`,
                 top: `${virtualRow.start}px`,
               }}
-              role="row"
+              role="group"
             >
               {rowRefs.map((ref) => (
                 <GalleryThumbnail key={ref} ref_={ref} onClick={onThumbnailClick} />
@@ -106,7 +106,7 @@ function GalleryThumbnail({ ref_, onClick }: { ref_: string; onClick?: (ref: str
     return (
       <div
         className="flex-1 min-w-0 rounded-md border border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center gap-1 p-2"
-        role="gridcell"
+        role="listitem"
       >
         <BrokenImageIcon />
         <span className="text-xs text-destructive font-mono truncate max-w-full">

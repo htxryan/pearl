@@ -56,13 +56,18 @@ function AttachmentPillSkeleton({ index }: { index: number }) {
   );
 }
 
+function truncate(s: string, max: number): string {
+  return s.length <= max ? s : `${s.slice(0, max)}…`;
+}
+
 function AttachmentPillBroken({ ref_, reason }: { ref_: string; reason: string }) {
+  const safeReason = truncate(reason, 80);
   return (
     <span
       className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-xs font-medium align-baseline"
       role="img"
-      aria-label={`Broken attachment ${ref_}: ${reason}`}
-      title={reason}
+      aria-label={`Broken attachment ${ref_.slice(0, 12)}: ${safeReason}`}
+      title={safeReason}
     >
       <BrokenIcon />
       <span className="font-mono">{ref_.slice(0, 8)}</span>

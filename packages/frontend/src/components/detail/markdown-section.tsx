@@ -6,7 +6,10 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { Button } from "@/components/ui/button";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- react-markdown components typing
+const remarkPluginsPipeline = [remarkGfm, remarkAttachmentPills];
+const rehypePluginsPipeline = [rehypeHighlight];
+
+// biome-ignore lint/suspicious/noExplicitAny: react-markdown components typing
 const markdownComponents: Record<string, React.ComponentType<any>> = {
   "attachment-pill": AttachmentPill,
 };
@@ -189,8 +192,8 @@ export function MarkdownSection({
               {editValue ? (
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   <Markdown
-                    remarkPlugins={[remarkGfm, remarkAttachmentPills]}
-                    rehypePlugins={[rehypeHighlight]}
+                    remarkPlugins={remarkPluginsPipeline}
+                    rehypePlugins={rehypePluginsPipeline}
                     components={markdownComponents}
                   >
                     {editValue}
@@ -229,8 +232,8 @@ export function MarkdownSection({
           }}
         >
           <Markdown
-            remarkPlugins={[remarkGfm, remarkAttachmentPills]}
-            rehypePlugins={[rehypeHighlight]}
+            remarkPlugins={remarkPluginsPipeline}
+            rehypePlugins={rehypePluginsPipeline}
             components={markdownComponents}
           >
             {content}

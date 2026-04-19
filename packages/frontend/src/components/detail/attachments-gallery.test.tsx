@@ -60,7 +60,7 @@ describe("AttachmentsGallery", () => {
     render(<AttachmentsGallery />);
 
     expect(screen.getByText("Attachments (2)")).toBeInTheDocument();
-    expect(screen.getByRole("grid")).toBeInTheDocument();
+    expect(screen.getByRole("list")).toBeInTheDocument();
   });
 
   it("shows broken placeholder for failed attachments", () => {
@@ -96,7 +96,7 @@ describe("AttachmentsGallery", () => {
 
     render(<AttachmentsGallery />);
 
-    const grid = screen.getByRole("grid");
+    const grid = screen.getByRole("list");
     expect(grid).toBeInTheDocument();
     const button = grid.querySelector('button[aria-label="Attachment a1b2c3d4"]');
     expect(button).toBeInTheDocument();

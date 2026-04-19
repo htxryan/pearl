@@ -19,7 +19,8 @@ interface BlobState {
 
 interface AttachmentContextValue {
   blocks: Map<string, AttachmentBlock>;
-  getBlob: (ref: string) => BlobState;
+  getCached: (ref: string) => BlobState | undefined;
+  requestLoad: (ref: string) => void;
   onPillClick?: (ref: string) => void;
 }
 
@@ -51,15 +52,35 @@ export function AttachmentProvider({
   }, [parsedFields]);
 
   const [blobCache, setBlobCache] = useState<Map<string, BlobState>>(new Map());
-  const objectUrlsRef = useRef<string[]>([]);
+  const objectUrlsRef = useRef<Map<string, string>>(new Map());
+  const pendingRef = useRef(new Set<string>());
 
   useEffect(() => {
+    const urls = objectUrlsRef.current;
     return () => {
-      for (const url of objectUrlsRef.current) {
+      for (const url of urls.values()) {
         URL.revokeObjectURL(url);
       }
     };
   }, []);
+
+  // Clean up removed refs when allBlocks changes
+  useEffect(() => {
+    const currentRefs = new Set(allBlocks.keys());
+    const staleUrls: string[] = [];
+
+    for (const [ref, url] of objectUrlsRef.current) {
+      if (!currentRefs.has(ref)) {
+        staleUrls.push(url);
+        objectUrlsRef.current.delete(ref);
+      }
+    }
+    for (const url of staleUrls) {
+      URL.revokeObjectURL(url);
+    }
+
+    pendingRef.current = new Set([...pendingRef.current].filter((r) => currentRefs.has(r)));
+  }, [allBlocks]);
 
   const loadBlob = useCallback(
     async (ref: string) => {
@@ -73,16 +94,10 @@ export function AttachmentProvider({
         return;
       }
 
-      setBlobCache((prev) => {
-        const next = new Map(prev);
-        next.set(ref, { status: "loading" });
-        return next;
-      });
-
       try {
         const blob = await resolvedAdapter.load(block);
         const objectUrl = URL.createObjectURL(blob);
-        objectUrlsRef.current.push(objectUrl);
+        objectUrlsRef.current.set(ref, objectUrl);
         setBlobCache((prev) => {
           const next = new Map(prev);
           next.set(ref, { status: "loaded", objectUrl });
@@ -102,38 +117,42 @@ export function AttachmentProvider({
     [allBlocks, resolvedAdapter],
   );
 
-  const loadedRefsRef = useRef(new Set<string>());
-
-  const getBlob = useCallback(
-    (ref: string): BlobState => {
-      const cached = blobCache.get(ref);
-      if (cached) return cached;
-
-      if (!loadedRefsRef.current.has(ref)) {
-        loadedRefsRef.current.add(ref);
-        loadBlob(ref);
-      }
-
-      return { status: "loading" };
+  const requestLoad = useCallback(
+    (ref: string) => {
+      if (pendingRef.current.has(ref)) return;
+      pendingRef.current.add(ref);
+      loadBlob(ref);
     },
-    [blobCache, loadBlob],
+    [loadBlob],
+  );
+
+  const getCached = useCallback(
+    (ref: string): BlobState | undefined => blobCache.get(ref),
+    [blobCache],
   );
 
   const value = useMemo(
-    () => ({ blocks: allBlocks, getBlob, onPillClick }),
-    [allBlocks, getBlob, onPillClick],
+    () => ({ blocks: allBlocks, getCached, requestLoad, onPillClick }),
+    [allBlocks, getCached, requestLoad, onPillClick],
   );
 
   return <AttachmentContext.Provider value={value}>{children}</AttachmentContext.Provider>;
 }
 
-const EMPTY_BLOB: BlobState = { status: "loading" };
-const NO_BLOCK_BLOB: BlobState = { status: "error", error: "No attachment context" };
+const LOADING_BLOB: BlobState = { status: "loading" };
+const NO_CTX_BLOB: BlobState = { status: "error", error: "No attachment context" };
 
 export function useAttachmentBlob(ref: string): BlobState {
   const ctx = useContext(AttachmentContext);
-  if (!ctx) return NO_BLOCK_BLOB;
-  return ctx.getBlob(ref) ?? EMPTY_BLOB;
+
+  useEffect(() => {
+    if (ctx && !ctx.getCached(ref)) {
+      ctx.requestLoad(ref);
+    }
+  }, [ctx, ref]);
+
+  if (!ctx) return NO_CTX_BLOB;
+  return ctx.getCached(ref) ?? LOADING_BLOB;
 }
 
 export function useAttachmentClick(): ((ref: string) => void) | undefined {

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
+const commentRemarkPlugins = [remarkGfm, remarkAttachmentPills];
+
 // biome-ignore lint/suspicious/noExplicitAny: react-markdown components typing
 const commentComponents: Record<string, React.ComponentType<any>> = {
   "attachment-pill": AttachmentPill,
@@ -56,10 +58,7 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
                 <RelativeTime iso={comment.created_at} className="text-xs text-muted-foreground" />
               </div>
               <div className="prose prose-sm dark:prose-invert max-w-none">
-                <Markdown
-                  remarkPlugins={[remarkGfm, remarkAttachmentPills]}
-                  components={commentComponents}
-                >
+                <Markdown remarkPlugins={commentRemarkPlugins} components={commentComponents}>
                   {comment.text}
                 </Markdown>
               </div>

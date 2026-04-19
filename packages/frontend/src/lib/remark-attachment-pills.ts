@@ -7,13 +7,12 @@ interface MdastNode {
   data?: Record<string, unknown>;
 }
 
-const PILL_RE_GLOBAL = new RegExp(PILL_RE.source, "g");
-
 function splitTextNode(text: string, pillCounter: { value: number }): MdastNode[] {
   const nodes: MdastNode[] = [];
   let lastIndex = 0;
+  const re = new RegExp(PILL_RE.source, "g");
 
-  for (const match of text.matchAll(PILL_RE_GLOBAL)) {
+  for (const match of text.matchAll(re)) {
     const ref = match[1];
     const matchStart = match.index;
     const matchEnd = matchStart + match[0].length;
@@ -45,8 +44,7 @@ function splitTextNode(text: string, pillCounter: { value: number }): MdastNode[
 function walkAndReplace(nodes: MdastNode[], pillCounter: { value: number }): MdastNode[] {
   const result: MdastNode[] = [];
   for (const node of nodes) {
-    if (node.type === "text" && node.value && PILL_RE_GLOBAL.test(node.value)) {
-      PILL_RE_GLOBAL.lastIndex = 0;
+    if (node.type === "text" && node.value && new RegExp(PILL_RE.source).test(node.value)) {
       result.push(...splitTextNode(node.value, pillCounter));
     } else if (node.children) {
       node.children = walkAndReplace(node.children, pillCounter);
