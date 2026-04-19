@@ -464,6 +464,18 @@ describe("parseFieldAsync", () => {
     expect(result.prose).toBe("");
     expect(result.blocks.size).toBe(0);
   });
+
+  it("handles 1MB field via sync fallback (AC-8 smoke test)", async () => {
+    const padding = "x".repeat(1024 * 1024);
+    const ref = "abcdef012345" as Ref;
+    const block = makeInlineBlockText(ref, "image/webp", SAMPLE_BASE64);
+    const text = `${padding} [img:${ref}]\n\n${block}`;
+
+    const result = await parseFieldAsync(text);
+    expect(result.refsInProse).toEqual([ref]);
+    expect(result.blocks.size).toBe(1);
+    expect(result.broken).toHaveLength(0);
+  });
 });
 
 // ─── hasAttachmentSyntax ────────────────────────────────────
@@ -550,6 +562,14 @@ describe("disambiguateRefs", () => {
 
   it("returns empty array for empty input", () => {
     expect(disambiguateRefs([])).toEqual([]);
+  });
+
+  it("throws on overflow (>255 collisions)", () => {
+    const blocks: InlineAttachment[] = Array.from({ length: 257 }, (_, i) => ({
+      ...INLINE_BLOCK,
+      data: `data${i}`,
+    }));
+    expect(() => disambiguateRefs(blocks)).toThrow("Too many collisions");
   });
 });
 

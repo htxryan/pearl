@@ -49,7 +49,7 @@ export interface ParsedField {
 
 // ─── Constants ──────────────────────────────────────────────
 
-export const PILL_RE = /\[img:([0-9a-f]{12})\]/g;
+export const PILL_RE = /\[img:([0-9a-f]{12})\]/;
 const BLOCK_RE_SOURCE = "<!--\\s*pearl-attachment:(v\\d+):([0-9a-f]{12})[ \\t]*\\n([\\s\\S]*?)-->";
 export const SUPPORTED_VERSIONS = new Set(["v1"]);
 const MIME_PATTERN = /^[\w+.-]+\/[\w+.-]+$/;
@@ -302,6 +302,8 @@ export function disambiguateRefs(blocks: AttachmentBlock[]): AttachmentBlock[] {
 
     if (count === 0) {
       result.push(block);
+    } else if (count > 0xff) {
+      throw new Error(`Too many collisions for ref ${baseRef} (max 255)`);
     } else {
       const suffix = count.toString(16).padStart(2, "0");
       const newRef = (baseRef.slice(0, 10) + suffix) as Ref;
