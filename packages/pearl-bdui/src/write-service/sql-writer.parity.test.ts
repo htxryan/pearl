@@ -322,7 +322,7 @@ const x = 42;
         depRemove: [],
       };
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         await truncateAllTables(ctx);
         await destroyPool();
         createDoltPool(config);
@@ -362,8 +362,9 @@ const x = 42;
 
       for (const [op, times] of Object.entries(timings)) {
         const sorted = times.sort((a, b) => a - b);
-        const p99 = sorted[Math.ceil(sorted.length * 0.99) - 1];
-        expect(p99, `${op} p99 should be <100ms, got ${p99.toFixed(1)}ms`).toBeLessThan(100);
+        const maxIdx = sorted.length - 1;
+        const worst = sorted[maxIdx];
+        expect(worst, `${op} max should be <100ms, got ${worst.toFixed(1)}ms`).toBeLessThan(100);
       }
     });
   });

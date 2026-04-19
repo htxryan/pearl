@@ -25,6 +25,7 @@ const PARITY_FIELDS: Record<string, Set<string>> = {
     "priority",
     "issue_type",
     "estimated_minutes",
+    "due_at",
     "ephemeral",
     "pinned",
     "is_template",
@@ -244,6 +245,12 @@ export function normalizeRow(row: Record<string, unknown>, table: string): Norma
       continue;
     }
 
+    // Timestamp fields: normalize to presence check only
+    if (key === "due_at") {
+      normalized[key] = value != null ? "<<TIMESTAMP>>" : null;
+      continue;
+    }
+
     // Normalize null vs empty string
     if (value === null || value === undefined) {
       normalized[key] = "";
@@ -383,25 +390,36 @@ export async function assertTablesParity(
   }
 }
 
+// Event types that are known to differ between SQL and CLI paths.
+// SQL emits granular events (commented, dependency_added/removed);
+// CLI uses different event patterns (label_added, or no event at all).
+// These are documented divergences, not bugs.
+const SQL_ONLY_EVENTS = new Set(["commented", "dependency_added", "dependency_removed"]);
+const CLI_ONLY_EVENTS = new Set(["label_added"]);
+const EVENT_ALIASES: Record<string, string> = { status_changed: "claimed" };
+
 function assertEventsParity(
   sqlRows: Record<string, unknown>[],
   cliRows: Record<string, unknown>[],
   expect: typeof import("vitest")["expect"],
 ): void {
-  // Map to canonical event types: CLI uses 'claimed', SQL uses 'status_changed' for claim
-  const canonicalize = (et: string) => et;
+  const canonicalize = (et: string) => EVENT_ALIASES[et] || et;
+  const sqlTypes = new Set(sqlRows.map((r) => canonicalize(r.event_type as string)));
+  const cliTypes = new Set(cliRows.map((r) => canonicalize(r.event_type as string)));
 
-  const sqlTypes = sqlRows.map((r) => canonicalize(r.event_type as string)).sort();
-  const cliTypes = cliRows.map((r) => canonicalize(r.event_type as string)).sort();
+  expect(sqlTypes.size, "SQL path should produce events").toBeGreaterThan(0);
+  expect(cliTypes.size, "CLI path should produce events").toBeGreaterThan(0);
 
-  // Both paths should produce events — verify non-empty
-  expect(sqlTypes.length, "SQL path should produce events").toBeGreaterThan(0);
-  expect(cliTypes.length, "CLI path should produce events").toBeGreaterThan(0);
+  // Shared event types (excluding known path-specific ones) should match
+  const sqlShared = [...sqlTypes].filter((t) => !SQL_ONLY_EVENTS.has(t));
+  const cliShared = [...cliTypes].filter((t) => !CLI_ONLY_EVENTS.has(t));
 
-  // Core event types should match (created, closed exist in both)
-  const sqlCoreTypes = new Set(sqlTypes.filter((t) => ["created", "closed"].includes(t)));
-  const cliCoreTypes = new Set(cliTypes.filter((t) => ["created", "closed"].includes(t)));
-  expect(sqlCoreTypes, "core event types").toEqual(cliCoreTypes);
+  for (const t of sqlShared) {
+    expect(cliShared.includes(t), `CLI missing shared event type '${t}'`).toBe(true);
+  }
+  for (const t of cliShared) {
+    expect(sqlShared.includes(t), `SQL missing shared event type '${t}'`).toBe(true);
+  }
 }
 
 async function waitForServer(proc: ChildProcess, timeoutMs = 15000): Promise<void> {
