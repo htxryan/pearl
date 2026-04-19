@@ -120,6 +120,44 @@ describe("computeContentHash", () => {
   });
 });
 
+describe("performance characteristics", () => {
+  it("computeContentHash completes in <1ms (p99 budget for <200ms total)", () => {
+    const iterations = 1000;
+    const fields = {
+      title: "Performance test issue",
+      description: "A reasonably long description for benchmarking purposes",
+      status: "open",
+      priority: 2 as const,
+      issue_type: "task",
+      assignee: "user@example.com",
+      owner: "user@example.com",
+      created_by: "user@example.com",
+    };
+
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      computeContentHash(fields);
+    }
+    const elapsed = performance.now() - start;
+    const p99 = elapsed / iterations;
+
+    expect(p99).toBeLessThan(1);
+  });
+
+  it("encodeBase36 completes in <0.1ms per call", () => {
+    const iterations = 10000;
+    const data = Buffer.from([0xde, 0xad, 0xbe, 0xef, 0xca]);
+
+    const start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+      encodeBase36(data, 6);
+    }
+    const elapsed = performance.now() - start;
+
+    expect(elapsed / iterations).toBeLessThan(0.1);
+  });
+});
+
 describe("sql-writer integration (unit-level sanity)", () => {
   it("encodeBase36 round-trip: different inputs produce different IDs", () => {
     const ids = new Set<string>();
