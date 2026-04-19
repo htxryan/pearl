@@ -1,4 +1,4 @@
-import type { AttachmentBlock, InlineAttachment, Ref } from "@pearl/shared";
+import type { AttachmentBlock, InlineAttachment } from "@pearl/shared";
 import type { EncodedImage } from "./encoding-pipeline";
 
 // ─── Port Interface ─────────────────────────────────────────
@@ -6,7 +6,7 @@ import type { EncodedImage } from "./encoding-pipeline";
 export interface StorageAdapter {
   mode: "inline" | "local";
   store(encoded: EncodedImage): Promise<AttachmentBlock>;
-  load(ref: Ref, block: AttachmentBlock): Promise<Blob>;
+  load(block: AttachmentBlock): Promise<Blob>;
 }
 
 // ─── Inline Adapter ─────────────────────────────────────────
@@ -23,7 +23,7 @@ export class InlineStorageAdapter implements StorageAdapter {
     };
   }
 
-  async load(_ref: Ref, block: AttachmentBlock): Promise<Blob> {
+  async load(block: AttachmentBlock): Promise<Blob> {
     if (block.type !== "inline") {
       throw new Error(`InlineStorageAdapter cannot load block of type "${block.type}"`);
     }
@@ -34,9 +34,4 @@ export class InlineStorageAdapter implements StorageAdapter {
     }
     return new Blob([bytes], { type: block.mime });
   }
-}
-
-// UCA-5/6: Factory that snapshots settings at creation time
-export function createInlineAdapter(): InlineStorageAdapter {
-  return new InlineStorageAdapter();
 }

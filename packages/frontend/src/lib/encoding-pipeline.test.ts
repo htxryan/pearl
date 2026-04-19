@@ -251,6 +251,48 @@ describe("encoding-pipeline", () => {
       const result = new Uint8Array(stripExif(TINY_WEBP.buffer));
       expect(result).toEqual(TINY_WEBP);
     });
+
+    it("handles buffer shorter than 2 bytes", () => {
+      const single = new Uint8Array([0xff]);
+      const result = new Uint8Array(stripExif(single.buffer));
+      expect(result).toEqual(single);
+    });
+
+    it("handles empty buffer", () => {
+      const empty = new Uint8Array([]);
+      const result = new Uint8Array(stripExif(empty.buffer));
+      expect(result.length).toBe(0);
+    });
+
+    it("handles malformed JPEG with zero segmentLength (no infinite loop)", () => {
+      // JPEG SOI + marker with segmentLength = 0 (invalid, should not loop)
+      const malformed = new Uint8Array([
+        0xff,
+        0xd8, // SOI
+        0xff,
+        0xe0, // APP0 marker
+        0x00,
+        0x00, // segmentLength = 0 (invalid)
+      ]);
+      const result = new Uint8Array(stripExif(malformed.buffer));
+      // Should not hang — just bail out
+      expect(result[0]).toBe(0xff);
+      expect(result[1]).toBe(0xd8);
+    });
+
+    it("handles JPEG with segmentLength exceeding buffer", () => {
+      const truncated = new Uint8Array([
+        0xff,
+        0xd8, // SOI
+        0xff,
+        0xe0, // APP0 marker
+        0xff,
+        0xff, // segmentLength = 65535 (exceeds buffer)
+      ]);
+      const result = new Uint8Array(stripExif(truncated.buffer));
+      expect(result[0]).toBe(0xff);
+      expect(result[1]).toBe(0xd8);
+    });
   });
 
   describe("ref computation (UCA-1: EXIF stripped before ref)", () => {

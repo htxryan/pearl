@@ -15,7 +15,7 @@ export interface EncodedImage {
 export class EncodingError extends Error {
   constructor(
     message: string,
-    public readonly code: "E7_MAX_BYTES" | "X1_MAX_DIMENSION" | "DECODE_FAILED",
+    public readonly code: "E7_MAX_BYTES" | "DECODE_FAILED",
   ) {
     super(message);
     this.name = "EncodingError";
@@ -59,7 +59,9 @@ function stripExif(buffer: ArrayBuffer): ArrayBuffer {
 
     if (offset + 3 >= view.byteLength) break;
     const segmentLength = view.getUint16(offset + 2);
+    if (segmentLength < 2) break;
     const segmentEnd = offset + 2 + segmentLength;
+    if (segmentEnd > view.byteLength) break;
 
     // Drop APP1 (EXIF/XMP) and APP2 (ICC that may contain EXIF)
     if (marker === 0xe1 || marker === 0xe2) {
@@ -158,11 +160,12 @@ export async function encodeImage(file: File, policy: EncodingSettings): Promise
 }
 
 function uint8ArrayToBase64(bytes: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  const CHUNK = 8192;
+  const parts: string[] = [];
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    parts.push(String.fromCharCode(...bytes.subarray(i, i + CHUNK)));
   }
-  return btoa(binary);
+  return btoa(parts.join(""));
 }
 
 export { computeRef as _computeRefForTesting, stripExif as _stripExifForTesting };
