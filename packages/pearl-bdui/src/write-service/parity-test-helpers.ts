@@ -117,6 +117,23 @@ export async function setupParityInfra(): Promise<ParityContext> {
     connectionLimit: 5,
   });
 
+  // Ensure has_attachments column exists (Pearl-only, not in bd CLI schema)
+  for (const pool of [sqlPool, cliPool]) {
+    const conn = await pool.getConnection();
+    try {
+      const [cols] = await conn.query(
+        `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'issues' AND COLUMN_NAME = 'has_attachments'
+         LIMIT 1`,
+      );
+      if ((cols as unknown[]).length === 0) {
+        await conn.query("ALTER TABLE issues ADD COLUMN `has_attachments` TINYINT(1) DEFAULT 0");
+      }
+    } finally {
+      conn.release();
+    }
+  }
+
   return { doltProcess, dataDir, cliWorkDir, adminPool, sqlPool, cliPool };
 }
 

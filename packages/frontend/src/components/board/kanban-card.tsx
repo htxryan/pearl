@@ -91,6 +91,20 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isBlocked }
                 Blocked
               </span>
             )}
+            {issue.has_attachments && (
+              <svg
+                className="h-3.5 w-3.5 text-muted-foreground"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-label="Has attachments"
+              >
+                <rect x="2" y="3" width="12" height="10" rx="1.5" />
+                <circle cx="5.5" cy="6.5" r="1" />
+                <path d="M2 11l3-3 2.5 2.5L11 7l3 3" />
+              </svg>
+            )}
             <PriorityIndicator priority={issue.priority} />
           </div>
         </div>

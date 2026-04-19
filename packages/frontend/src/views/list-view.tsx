@@ -108,7 +108,7 @@ export function ListView() {
   // Table state
   const [columnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>(
     "beads:col-visibility",
-    {},
+    { has_attachments: false },
   );
   const [columnOrder, setColumnOrder] = usePersistedState<ColumnOrderState>("beads:col-order", []);
   const [columnSizing, setColumnSizing] = usePersistedState<ColumnSizingState>(

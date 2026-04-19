@@ -563,5 +563,39 @@ export function buildColumns({
       size: 160,
       enableSorting: false,
     }),
+    col.accessor("has_attachments", {
+      id: "has_attachments",
+      header: () => (
+        <svg
+          className="h-4 w-4 text-muted-foreground"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          aria-label="Attachments"
+        >
+          <rect x="2" y="3" width="12" height="10" rx="1.5" />
+          <circle cx="5.5" cy="6.5" r="1" />
+          <path d="M2 11l3-3 2.5 2.5L11 7l3 3" />
+        </svg>
+      ),
+      cell: (info) =>
+        info.getValue() ? (
+          <svg
+            className="h-4 w-4 text-muted-foreground"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            aria-label="Has attachments"
+          >
+            <rect x="2" y="3" width="12" height="10" rx="1.5" />
+            <circle cx="5.5" cy="6.5" r="1" />
+            <path d="M2 11l3-3 2.5 2.5L11 7l3 3" />
+          </svg>
+        ) : null,
+      size: 40,
+      enableSorting: false,
+    }),
   ];
 }
