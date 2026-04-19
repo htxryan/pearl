@@ -5,6 +5,7 @@ import {
   useAttachmentBlob,
   useAttachmentCacheCheck,
 } from "@/hooks/use-attachment-context";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface LightboxProps {
   activeRef: string | null;
@@ -15,11 +16,12 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
   const allRefs = useAllAttachmentRefs();
   const refs = useMemo(() => allRefs.map((a) => a.ref), [allRefs]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const triggerRef = useRef<Element | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const checkCache = useAttachmentCacheCheck();
 
   const isOpen = activeRef !== null && refs.length > 0;
+
+  useFocusTrap(dialogRef, isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -28,16 +30,10 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
   }, [activeRef, refs, isOpen]);
 
   useEffect(() => {
-    if (isOpen) {
-      triggerRef.current = document.activeElement;
-      requestAnimationFrame(() => {
-        dialogRef.current?.focus();
-      });
-    }
+    if (!isOpen) return;
+    document.body.style.overflow = "hidden";
     return () => {
-      if (triggerRef.current instanceof HTMLElement) {
-        triggerRef.current.focus();
-      }
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -73,15 +69,25 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
           break;
         case "Home":
           e.preventDefault();
-          setCurrentIndex(0);
+          setCurrentIndex((prev) => {
+            for (let i = 0; i < refs.length; i++) {
+              if (checkCache(refs[i]) !== "error") return i;
+            }
+            return prev;
+          });
           break;
         case "End":
           e.preventDefault();
-          setCurrentIndex(refs.length - 1);
+          setCurrentIndex((prev) => {
+            for (let i = refs.length - 1; i >= 0; i--) {
+              if (checkCache(refs[i]) !== "error") return i;
+            }
+            return prev;
+          });
           break;
       }
     },
-    [onClose, navigateBy, refs.length],
+    [onClose, navigateBy, refs, checkCache],
   );
 
   const handleBackdropClick = useCallback(

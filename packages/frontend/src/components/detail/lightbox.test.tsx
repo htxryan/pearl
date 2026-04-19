@@ -231,12 +231,14 @@ describe("Lightbox", () => {
     button.textContent = "trigger";
     document.body.appendChild(button);
     button.focus();
+    expect(document.activeElement).toBe(button);
 
     const onClose = vi.fn();
     const { unmount } = render(<Lightbox activeRef="ref000000000" onClose={onClose} />);
 
+    expect(document.activeElement).not.toBe(button);
+
     unmount();
-    button.focus();
     expect(document.activeElement).toBe(button);
     document.body.removeChild(button);
   });
@@ -273,5 +275,38 @@ describe("Lightbox", () => {
     const prevBtn = screen.getByRole("button", { name: "Previous image" });
     fireEvent.click(prevBtn);
     expect(screen.getByText("2 of 3")).toBeInTheDocument();
+  });
+
+  it("Home key skips broken images", () => {
+    mockUseAllRefs.mockReturnValue(makeRefs(4));
+    setupBlobs(["error", "loaded", "loaded", "loaded"]);
+
+    render(<Lightbox activeRef="ref000000003" onClose={vi.fn()} />);
+    expect(screen.getByText("4 of 4")).toBeInTheDocument();
+
+    pressKey("Home");
+    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+  });
+
+  it("End key skips broken images", () => {
+    mockUseAllRefs.mockReturnValue(makeRefs(4));
+    setupBlobs(["loaded", "loaded", "loaded", "error"]);
+
+    render(<Lightbox activeRef="ref000000000" onClose={vi.fn()} />);
+    expect(screen.getByText("1 of 4")).toBeInTheDocument();
+
+    pressKey("End");
+    expect(screen.getByText("3 of 4")).toBeInTheDocument();
+  });
+
+  it("locks body scroll while open", () => {
+    mockUseAllRefs.mockReturnValue(makeRefs(1));
+    setupBlobs(["loaded"]);
+
+    const { unmount } = render(<Lightbox activeRef="ref000000000" onClose={vi.fn()} />);
+    expect(document.body.style.overflow).toBe("hidden");
+
+    unmount();
+    expect(document.body.style.overflow).toBe("");
   });
 });
