@@ -197,10 +197,11 @@ export function useUpdateIssue() {
         queryKey: issueKeys.lists(),
       });
 
+      const touchesAttachmentField = ATTACHMENT_HOST_FIELDS.some((f) => f in data);
+
       // Optimistic update on detail
       if (previousDetail) {
         const merged = { ...previousDetail, ...data, updated_at: new Date().toISOString() };
-        const touchesAttachmentField = ATTACHMENT_HOST_FIELDS.some((f) => f in data);
         if (touchesAttachmentField) {
           merged.has_attachments = ATTACHMENT_HOST_FIELDS.some((f) => {
             const val = merged[f as keyof typeof merged];
@@ -215,9 +216,17 @@ export function useUpdateIssue() {
         if (!list) continue;
         queryClient.setQueryData<IssueListItem[]>(
           queryKey,
-          list.map((item) =>
-            item.id === id ? { ...item, ...data, updated_at: new Date().toISOString() } : item,
-          ),
+          list.map((item) => {
+            if (item.id !== id) return item;
+            const merged = { ...item, ...data, updated_at: new Date().toISOString() };
+            if (touchesAttachmentField) {
+              merged.has_attachments = ATTACHMENT_HOST_FIELDS.some((f) => {
+                const val = merged[f as keyof typeof merged];
+                return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
+              });
+            }
+            return merged;
+          }),
         );
       }
 
