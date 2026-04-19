@@ -6,7 +6,7 @@ import { logger } from "../logger.js";
 import { runBd } from "./bd-runner.js";
 import { sqlCloseIssue, sqlCreateIssue, sqlUpdateIssue, type WriterResult } from "./sql-writer.js";
 
-function parseCliOutput(stdout: string): unknown {
+export function parseCliOutput(stdout: string): unknown {
   try {
     return JSON.parse(stdout);
   } catch {
@@ -105,8 +105,15 @@ export class IssueWriter {
 
     if (this.config.doltMode === "server") {
       await queryWithRetry(this.config, async (conn) => {
-        await conn.execute("DELETE FROM dependencies WHERE depends_on_id = ?", [id]);
-        await conn.execute("DELETE FROM issues WHERE id = ?", [id]);
+        await conn.beginTransaction();
+        try {
+          await conn.execute("DELETE FROM dependencies WHERE depends_on_id = ?", [id]);
+          await conn.execute("DELETE FROM issues WHERE id = ?", [id]);
+          await conn.commit();
+        } catch (err) {
+          await conn.rollback();
+          throw err;
+        }
       });
       return { data: { deleted: id }, hints };
     }

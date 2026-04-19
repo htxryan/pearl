@@ -121,7 +121,7 @@ describe("computeContentHash", () => {
 });
 
 describe("performance characteristics", () => {
-  it("computeContentHash completes in <1ms (p99 budget for <200ms total)", () => {
+  it("computeContentHash mean completes in <1ms per call", () => {
     const iterations = 1000;
     const fields = {
       title: "Performance test issue",
@@ -139,9 +139,9 @@ describe("performance characteristics", () => {
       computeContentHash(fields);
     }
     const elapsed = performance.now() - start;
-    const p99 = elapsed / iterations;
+    const mean = elapsed / iterations;
 
-    expect(p99).toBeLessThan(1);
+    expect(mean).toBeLessThan(1);
   });
 
   it("encodeBase36 completes in <0.1ms per call", () => {

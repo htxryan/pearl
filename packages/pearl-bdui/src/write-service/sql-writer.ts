@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { hostname } from "node:os";
 import type { CreateIssueRequest, InvalidationHint, UpdateIssueRequest } from "@pearl/shared";
 import type { PoolConnection } from "mysql2/promise";
@@ -62,7 +62,7 @@ async function generateHashId(
   const baseLength = computeAdaptiveLength(numIssues);
 
   const creator = ACTOR;
-  const timestamp = Date.now() * 1_000_000;
+  const timestamp = (BigInt(Date.now()) * 1_000_000n).toString();
 
   for (let length = baseLength; length <= 8; length++) {
     const numBytes = hashBytesForLength(length);
@@ -82,13 +82,17 @@ async function generateHashId(
   }
 
   const fallbackHash = createHash("sha256")
-    .update(`${title}|${Date.now()}|${Math.random()}`)
+    .update(`${title}|${Date.now()}|${randomBytes(8).toString("hex")}`)
     .digest();
   return `${prefix}-${encodeBase36(fallbackHash.subarray(0, 5), 8)}`;
 }
 
 async function generateCounterId(conn: PoolConnection, prefix: string): Promise<string> {
-  await conn.execute("UPDATE issue_counter SET last_id = last_id + 1 WHERE prefix = ?", [prefix]);
+  await conn.execute(
+    `INSERT INTO issue_counter (prefix, last_id) VALUES (?, 1)
+     ON DUPLICATE KEY UPDATE last_id = last_id + 1`,
+    [prefix],
+  );
   const [rows] = await conn.execute("SELECT last_id FROM issue_counter WHERE prefix = ?", [prefix]);
   const lastId = (rows as Array<{ last_id: number }>)[0].last_id;
   return `${prefix}-${lastId}`;
@@ -341,9 +345,10 @@ export async function sqlUpdateIssue(
       }
       const current = (rows as Record<string, unknown>[])[0];
 
-      if (req.claim) {
-        req.assignee = ACTOR;
-        if (!req.status) req.status = "in_progress";
+      const updates = { ...req };
+      if (updates.claim) {
+        updates.assignee = ACTOR;
+        if (!updates.status) updates.status = "in_progress";
       }
 
       const setClauses: string[] = [];
@@ -363,18 +368,18 @@ export async function sqlUpdateIssue(
       ];
 
       for (const [col, key] of fieldMap) {
-        if (req[key] !== undefined) {
+        if (updates[key] !== undefined) {
           setClauses.push(`${col} = ?`);
-          setValues.push((req[key] as string | number | boolean | null) ?? null);
+          setValues.push((updates[key] as string | number | boolean | null) ?? null);
         }
       }
 
-      if (req.due !== undefined) {
+      if (updates.due !== undefined) {
         setClauses.push("due_at = ?");
-        setValues.push(req.due ? new Date(req.due) : null);
+        setValues.push(updates.due ? new Date(updates.due) : null);
       }
 
-      if (req.status === "closed" && current.status !== "closed") {
+      if (updates.status === "closed" && current.status !== "closed") {
         setClauses.push("closed_at = ?");
         setValues.push(new Date());
       }
@@ -391,8 +396,9 @@ export async function sqlUpdateIssue(
       // Recompute content hash from merged state
       const merged: Record<string, unknown> = { ...current };
       for (const [col, key] of fieldMap) {
-        if (req[key] !== undefined) merged[col] = req[key];
+        if (updates[key] !== undefined) merged[col] = updates[key];
       }
+      if (updates.due !== undefined) merged.due_at = updates.due;
 
       const newHash = computeContentHash({
         title: merged.title as string,
@@ -410,21 +416,21 @@ export async function sqlUpdateIssue(
 
       await conn.execute("UPDATE issues SET content_hash = ? WHERE id = ?", [newHash, id]);
 
-      if (req.labels !== undefined) {
+      if (updates.labels !== undefined) {
         await conn.execute("DELETE FROM labels WHERE issue_id = ?", [id]);
-        for (const label of req.labels) {
+        for (const label of updates.labels) {
           await conn.execute("INSERT INTO labels (issue_id, label) VALUES (?, ?)", [id, label]);
         }
       }
 
       let eventType: string;
-      if (req.status === "closed" && current.status !== "closed") {
+      if (updates.status === "closed" && current.status !== "closed") {
         eventType = "closed";
-      } else if (current.status === "closed" && req.status && req.status !== "closed") {
+      } else if (current.status === "closed" && updates.status && updates.status !== "closed") {
         eventType = "reopened";
-      } else if (req.status && req.status !== current.status) {
+      } else if (updates.status && updates.status !== current.status) {
         eventType = "status_changed";
-      } else if (req.claim) {
+      } else if (updates.claim) {
         eventType = "claimed";
       } else {
         eventType = "updated";
@@ -432,8 +438,10 @@ export async function sqlUpdateIssue(
 
       const changes: Record<string, unknown> = {};
       for (const [col, key] of fieldMap) {
-        if (req[key] !== undefined) changes[col] = req[key];
+        if (updates[key] !== undefined) changes[col] = updates[key];
       }
+      if (updates.labels !== undefined) changes.labels = updates.labels;
+      if (updates.due !== undefined) changes.due = updates.due;
 
       await conn.execute(
         `INSERT INTO events (issue_id, event_type, actor, old_value, new_value, created_at)
@@ -468,6 +476,12 @@ export async function sqlCloseIssue(
   return queryWithRetry(config, async (conn) => {
     await conn.beginTransaction();
     try {
+      const [rows] = await conn.execute("SELECT * FROM issues WHERE id = ?", [id]);
+      if ((rows as unknown[]).length === 0) {
+        throw notFoundError("Issue", id);
+      }
+      const current = (rows as Record<string, unknown>[])[0];
+
       const now = new Date();
 
       await conn.execute(
@@ -476,10 +490,25 @@ export async function sqlCloseIssue(
         [now, now, reason || null, id],
       );
 
+      const newHash = computeContentHash({
+        title: current.title as string,
+        description: current.description as string,
+        design: current.design as string,
+        acceptance_criteria: current.acceptance_criteria as string,
+        notes: current.notes as string,
+        status: "closed",
+        priority: current.priority as number,
+        issue_type: current.issue_type as string,
+        assignee: current.assignee as string,
+        owner: current.owner as string,
+        created_by: current.created_by as string,
+      });
+      await conn.execute("UPDATE issues SET content_hash = ? WHERE id = ?", [newHash, id]);
+
       await conn.execute(
         `INSERT INTO events (issue_id, event_type, actor, old_value, new_value, created_at)
-         VALUES (?, 'closed', ?, '', ?, ?)`,
-        [id, ACTOR, reason || "", now],
+         VALUES (?, 'closed', ?, ?, ?, ?)`,
+        [id, ACTOR, JSON.stringify({ status: current.status }), reason || "", now],
       );
 
       await conn.commit();
@@ -511,6 +540,11 @@ export async function sqlAddComment(
   return queryWithRetry(config, async (conn) => {
     await conn.beginTransaction();
     try {
+      const [rows] = await conn.execute("SELECT id FROM issues WHERE id = ?", [issueId]);
+      if ((rows as unknown[]).length === 0) {
+        throw notFoundError("Issue", issueId);
+      }
+
       const now = new Date();
       const author = ACTOR;
 
@@ -550,21 +584,44 @@ export async function sqlAddDependency(
   dependsOnId: string,
 ): Promise<WriterResult> {
   return queryWithRetry(config, async (conn) => {
-    await conn.execute(
-      `INSERT INTO dependencies (issue_id, depends_on_id, type, created_by)
-       VALUES (?, ?, 'blocks', ?)`,
-      [issueId, dependsOnId, ACTOR],
-    );
+    await conn.beginTransaction();
+    try {
+      const [issueRows] = await conn.execute("SELECT id FROM issues WHERE id IN (?, ?)", [
+        issueId,
+        dependsOnId,
+      ]);
+      const foundIds = new Set((issueRows as Array<{ id: string }>).map((r) => r.id));
+      if (!foundIds.has(issueId)) throw notFoundError("Issue", issueId);
+      if (!foundIds.has(dependsOnId)) throw notFoundError("Issue", dependsOnId);
 
-    return {
-      data: { issue_id: issueId, depends_on_id: dependsOnId, type: "blocks" },
-      hints: [
-        { entity: "dependencies" as const },
-        { entity: "issues" as const, id: issueId },
-        { entity: "issues" as const, id: dependsOnId },
-        { entity: "events" as const, id: issueId },
-      ],
-    };
+      await conn.execute(
+        `INSERT IGNORE INTO dependencies (issue_id, depends_on_id, type, created_by)
+         VALUES (?, ?, 'blocks', ?)`,
+        [issueId, dependsOnId, ACTOR],
+      );
+
+      const now = new Date();
+      await conn.execute(
+        `INSERT INTO events (issue_id, event_type, actor, old_value, new_value, created_at)
+         VALUES (?, 'dependency_added', ?, '', ?, ?)`,
+        [issueId, ACTOR, dependsOnId, now],
+      );
+
+      await conn.commit();
+
+      return {
+        data: { issue_id: issueId, depends_on_id: dependsOnId, type: "blocks" },
+        hints: [
+          { entity: "dependencies" as const },
+          { entity: "issues" as const, id: issueId },
+          { entity: "issues" as const, id: dependsOnId },
+          { entity: "events" as const, id: issueId },
+        ],
+      };
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    }
   });
 }
 
@@ -576,19 +633,34 @@ export async function sqlRemoveDependency(
   dependsOnId: string,
 ): Promise<WriterResult> {
   return queryWithRetry(config, async (conn) => {
-    await conn.execute("DELETE FROM dependencies WHERE issue_id = ? AND depends_on_id = ?", [
-      issueId,
-      dependsOnId,
-    ]);
+    await conn.beginTransaction();
+    try {
+      await conn.execute("DELETE FROM dependencies WHERE issue_id = ? AND depends_on_id = ?", [
+        issueId,
+        dependsOnId,
+      ]);
 
-    return {
-      data: { removed: true, issue_id: issueId, depends_on_id: dependsOnId },
-      hints: [
-        { entity: "dependencies" as const },
-        { entity: "issues" as const, id: issueId },
-        { entity: "issues" as const, id: dependsOnId },
-        { entity: "events" as const, id: issueId },
-      ],
-    };
+      const now = new Date();
+      await conn.execute(
+        `INSERT INTO events (issue_id, event_type, actor, old_value, new_value, created_at)
+         VALUES (?, 'dependency_removed', ?, ?, '', ?)`,
+        [issueId, ACTOR, dependsOnId, now],
+      );
+
+      await conn.commit();
+
+      return {
+        data: { removed: true, issue_id: issueId, depends_on_id: dependsOnId },
+        hints: [
+          { entity: "dependencies" as const },
+          { entity: "issues" as const, id: issueId },
+          { entity: "issues" as const, id: dependsOnId },
+          { entity: "events" as const, id: issueId },
+        ],
+      };
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    }
   });
 }
