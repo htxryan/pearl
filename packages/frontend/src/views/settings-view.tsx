@@ -1,3 +1,4 @@
+import { AttachmentSettings } from "@/components/attachment-settings";
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { SettingsSection } from "@/components/settings-section";
 import { ThemePicker } from "@/components/theme-picker";
@@ -12,6 +13,13 @@ export function SettingsView() {
         description="Choose a theme for the interface. Changes apply immediately."
       >
         <ThemePicker />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Attachments"
+        description="Configure how image attachments are stored and processed."
+      >
+        <AttachmentSettings />
       </SettingsSection>
 
       <SettingsSection

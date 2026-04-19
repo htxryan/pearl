@@ -13,6 +13,7 @@ import type {
   MigrateRequest,
   MigrateResponse,
   MutationResponse,
+  Settings,
   SetupInitializeRequest,
   SetupInitializeResponse,
   SetupStatusResponse,
@@ -157,6 +158,18 @@ export function fetchLabels(): Promise<LabelWithCount[]> {
 export function upsertLabel(data: UpsertLabelRequest): Promise<MutationResponse> {
   return request("/labels", {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Settings ──────────────────────────────────────────
+export function fetchSettings(): Promise<Settings> {
+  return request("/settings");
+}
+
+export function updateSettings(data: Settings): Promise<MutationResponse<Settings>> {
+  return request("/settings", {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }

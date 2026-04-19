@@ -35,6 +35,26 @@ vi.mock("@/lib/api-client", () => ({
   fetchStats: vi.fn().mockResolvedValue({}),
   fetchHealth: vi.fn().mockResolvedValue({}),
   fetchAllDependencies: vi.fn().mockResolvedValue([]),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048, stripExif: true },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048, stripExif: true },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
 vi.mock("@/hooks/use-notifications", () => ({
