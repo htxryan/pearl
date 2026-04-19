@@ -12,10 +12,6 @@ import { DependencyWriter } from "./dependency-writer.js";
 import { IssueWriter } from "./issue-writer.js";
 import { WriteQueue } from "./queue.js";
 
-/**
- * Facade for all write operations.
- * All writes are serialized through a single queue (STPA H2).
- */
 export class WriteService {
   private queue = new WriteQueue();
   issues: IssueWriter;
@@ -30,14 +26,12 @@ export class WriteService {
     this.onAfterWrite = onAfterWrite;
   }
 
-  /** Update config for all writers (called after setup completes). */
   updateConfig(newConfig: Config): void {
     this.issues = new IssueWriter(newConfig);
     this.dependencies = new DependencyWriter(newConfig);
     this.comments = new CommentWriter(newConfig);
   }
 
-  /** Replace the after-write hook (e.g., remove embedded sync for server mode). */
   setAfterWriteHook(hook: (() => Promise<void>) | undefined): void {
     this.onAfterWrite = hook;
   }
@@ -48,7 +42,7 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
@@ -60,7 +54,7 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
@@ -72,7 +66,7 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
@@ -84,7 +78,7 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
@@ -96,7 +90,7 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
@@ -108,7 +102,7 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
@@ -120,16 +114,12 @@ export class WriteService {
       await this.syncAfterWrite();
       return {
         success: true,
-        data: tryParseJson(result.stdout),
+        data: result.data,
         invalidationHints: result.hints,
       };
     });
   }
 
-  /**
-   * Sync the read replica after a successful write.
-   * Non-fatal: log errors but don't fail the write response.
-   */
   private async syncAfterWrite(): Promise<void> {
     if (!this.onAfterWrite) return;
     try {
@@ -141,14 +131,5 @@ export class WriteService {
 
   get pendingWrites(): number {
     return this.queue.pending;
-  }
-}
-
-function tryParseJson(str: string): unknown {
-  try {
-    return JSON.parse(str);
-  } catch {
-    logger.warn({ output: str.slice(0, 200) }, "bd returned non-JSON output");
-    return { raw: str };
   }
 }
