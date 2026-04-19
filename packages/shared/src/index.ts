@@ -242,7 +242,7 @@ export interface MutationResponse<T = unknown> {
 }
 
 export interface InvalidationHint {
-  entity: "issues" | "dependencies" | "comments" | "events" | "stats" | "labels";
+  entity: "issues" | "dependencies" | "comments" | "events" | "stats" | "labels" | "settings";
   id?: string;
 }
 
@@ -351,6 +351,53 @@ export const ISSUE_LIST_FIELDS = [
 ] as const;
 
 export type IssueListField = (typeof ISSUE_LIST_FIELDS)[number];
+
+// ─── Settings Types ─────────────────────────────────────────
+
+export type StorageMode = "inline" | "local";
+export type LocalScope = "project" | "user";
+
+export interface LocalStorageSettings {
+  scope: LocalScope;
+  projectPathOverride: string | null;
+  userPathOverride: string | null;
+}
+
+export interface EncodingSettings {
+  format: "webp";
+  maxBytes: number;
+  maxDimension: number;
+  stripExif: true;
+}
+
+export interface AttachmentSettings {
+  storageMode: StorageMode;
+  local: LocalStorageSettings;
+  encoding: EncodingSettings;
+}
+
+export interface Settings {
+  version: 1;
+  attachments: AttachmentSettings;
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+  version: 1,
+  attachments: {
+    storageMode: "local",
+    local: {
+      scope: "project",
+      projectPathOverride: null,
+      userPathOverride: null,
+    },
+    encoding: {
+      format: "webp",
+      maxBytes: 1_048_576,
+      maxDimension: 2048,
+      stripExif: true,
+    },
+  },
+};
 
 // ─── Attachment Types & Functions ───────────────────────────
 
