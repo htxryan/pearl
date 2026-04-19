@@ -3,6 +3,7 @@ import { createReadStream, existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, normalize, relative, resolve, sep } from "node:path";
+import { Readable } from "node:stream";
 import Busboy from "@fastify/busboy";
 import type { LocalScope, Ref, Settings } from "@pearl/shared";
 import { createRef, isRef } from "@pearl/shared";
@@ -89,12 +90,13 @@ interface ParsedMultipart {
 }
 
 function parseMultipart(
-  req: import("node:http").IncomingMessage,
+  headers: Record<string, string | string[] | undefined>,
+  body: Buffer,
   limit: number,
 ): Promise<ParsedMultipart> {
   return new Promise((resolve, reject) => {
     const bb = Busboy({
-      headers: req.headers as import("@fastify/busboy").BusboyHeaders,
+      headers: headers as import("@fastify/busboy").BusboyHeaders,
       limits: { fileSize: limit, files: 1 },
     });
 
@@ -112,7 +114,7 @@ function parseMultipart(
       });
     });
 
-    bb.on("close", () => {
+    const onDone = () => {
       if (fileTruncated) {
         reject(new Error("FILE_TOO_LARGE"));
         return;
@@ -122,10 +124,11 @@ function parseMultipart(
         return;
       }
       resolve({ fileBuffer });
-    });
-
+    };
+    bb.on("finish", onDone);
+    bb.on("close", onDone);
     bb.on("error", reject);
-    req.pipe(bb);
+    Readable.from(body).pipe(bb);
   });
 }
 
@@ -154,17 +157,22 @@ export function registerAttachmentRoutes(
       return cachedSettings;
     }
 
-    plugin.addContentTypeParser(
-      "multipart/form-data",
-      (_req: unknown, _payload: unknown, done: (err: null) => void) => {
-        done(null);
-      },
-    );
-
     plugin.post("/api/attachments", async (request, reply) => {
       let parsed: ParsedMultipart;
       try {
-        parsed = await parseMultipart(request.raw, MAX_FILE_SIZE);
+        const body = request.body as Buffer;
+        if (!body || !Buffer.isBuffer(body)) {
+          return reply.code(400).send({
+            code: "VALIDATION_ERROR",
+            message: "Missing or invalid multipart body",
+            retryable: false,
+          });
+        }
+        parsed = await parseMultipart(
+          request.headers as Record<string, string | string[] | undefined>,
+          body,
+          MAX_FILE_SIZE,
+        );
       } catch (err) {
         const message = (err as Error).message;
         if (message === "FILE_TOO_LARGE") {

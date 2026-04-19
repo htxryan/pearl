@@ -120,6 +120,15 @@ export async function createServer(initialConfig: Config) {
     },
   );
 
+  // Multipart parser for /api/attachments upload (busboy parses from buffer in handler)
+  app.addContentTypeParser(
+    "multipart/form-data",
+    { parseAs: "buffer", bodyLimit: 10 * 1024 * 1024 },
+    (_req, body, done) => {
+      done(null, body);
+    },
+  );
+
   // ─── Setup Mode Guard ─────────────────────────────────
   let setupMode = config.needsSetup;
 
