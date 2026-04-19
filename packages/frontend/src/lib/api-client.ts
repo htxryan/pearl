@@ -30,7 +30,8 @@ class ApiClientError extends Error {
     public status: number,
     public apiError: ApiError,
   ) {
-    super(apiError.message);
+    const raw = apiError as ApiError & { error?: string };
+    super(apiError.message || raw.error || `Request failed with status ${status}`);
     this.name = "ApiClientError";
   }
 }

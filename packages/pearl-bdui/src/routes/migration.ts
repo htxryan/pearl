@@ -11,7 +11,7 @@ import type {
 import type { FastifyInstance } from "fastify";
 import type { Config } from "../config.js";
 import { findBeadsDir } from "../config.js";
-import { validationError } from "../errors.js";
+import { internalError, validationError } from "../errors.js";
 
 export interface MigrationContext {
   getConfig: () => Config;
@@ -45,27 +45,18 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
     }
 
     if (config.doltMode !== "embedded") {
-      return reply.code(400).send({
-        ok: false,
-        error: "Migration is only available in embedded mode",
-      });
+      throw validationError("Migration is only available in embedded mode");
     }
 
     if (isMigrating) {
-      return reply.code(409).send({
-        ok: false,
-        error: "Migration already in progress",
-      });
+      throw validationError("Migration already in progress");
     }
 
     isMigrating = true;
     try {
       const beadsDir = findBeadsDir(process.cwd());
       if (!beadsDir) {
-        return reply.code(500).send({
-          ok: false,
-          error: "No .beads directory found",
-        });
+        throw internalError("No .beads directory found");
       }
 
       const metadataPath = resolve(beadsDir, "metadata.json");
@@ -81,7 +72,7 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
           force,
         );
         if (!result.ok) {
-          return reply.code(500).send(result);
+          throw internalError(result.error || "Migration failed");
         }
 
         const newConfig: Config = {
@@ -108,10 +99,7 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
         body.password || "",
       );
       if (!connResult.ok) {
-        return reply.code(400).send({
-          ok: false,
-          error: `Cannot connect to server: ${connResult.error}`,
-        });
+        throw validationError(`Cannot connect to server: ${connResult.error}`);
       }
 
       const result = await migrateToExternal(
@@ -126,7 +114,7 @@ export function registerMigrationRoutes(app: FastifyInstance, ctx: MigrationCont
         force,
       );
       if (!result.ok) {
-        return reply.code(500).send(result);
+        throw internalError(result.error || "Migration failed");
       }
 
       const newConfig: Config = {
