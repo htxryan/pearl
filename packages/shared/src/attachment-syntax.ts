@@ -109,7 +109,7 @@ function parseBlockBody(version: string, ref: Ref, bodyLines: string[]): BlockPa
     if (!path) return { ok: false, reason: "local block missing path field" };
     if (!sha256) return { ok: false, reason: "local block missing sha256 field" };
     if (!SHA256_PATTERN.test(sha256)) return { ok: false, reason: `invalid sha256: ${sha256}` };
-    if (/(?:^|\/)\.\.(?:\/|$)/.test(path))
+    if (/(?:^|[\\/])\.\.(?:[\\/]|$)/.test(path))
       return { ok: false, reason: `path traversal rejected: ${path}` };
     return {
       ok: true,
@@ -184,31 +184,31 @@ export function parseField(text: string): ParsedField {
     prose = split.prose;
     for (const result of extractBlocksWithBroken(split.trailing)) {
       if (result.ok) {
-        blocks.set(result.block.ref, result.block);
+        const ref = result.block.ref;
+        if (blocks.has(ref)) {
+          broken.push({ ref, reason: "duplicate ref (earlier block kept)" });
+        } else {
+          blocks.set(ref, result.block);
+        }
       } else {
         broken.push({ ref: result.ref, reason: result.reason });
       }
     }
   } else {
     // No trailing region found — check for interleaved blocks (UCA-9)
-    const blockRegex = new RegExp(BLOCK_RE_SOURCE, "g");
-    const hasBlocks = blockRegex.test(normalized);
-
+    const regex = new RegExp(BLOCK_RE_SOURCE, "g");
+    let match: RegExpExecArray | null;
+    let hasBlocks = false;
+    while ((match = regex.exec(normalized)) !== null) {
+      hasBlocks = true;
+      const ref = match[2] as Ref;
+      broken.push({
+        ref,
+        reason: "block interleaved with prose (not in trailing region)",
+      });
+    }
     if (hasBlocks) {
-      // Blocks are interleaved with prose — reject them as broken
-      const regex = new RegExp(BLOCK_RE_SOURCE, "g");
-      let match: RegExpExecArray | null;
-      while ((match = regex.exec(normalized)) !== null) {
-        const ref = match[2] as Ref;
-        broken.push({
-          ref,
-          reason: "block interleaved with prose (not in trailing region)",
-        });
-      }
-      // Strip block markup from prose
-      prose = normalized
-        .replace(/\n*<!--\s*pearl-attachment:v\d+:[0-9a-f]{12}[ \t]*\n[\s\S]*?-->/g, "")
-        .trimEnd();
+      prose = normalized.replace(new RegExp(`\\n*${BLOCK_RE_SOURCE}`, "g"), "").trimEnd();
     } else {
       prose = normalized;
     }
@@ -222,6 +222,12 @@ export function parseField(text: string): ParsedField {
 
 // ─── Serializer ─────────────────────────────────────────────
 
+function assertNoCommentClose(value: string, field: string): void {
+  if (value.includes("-->")) {
+    throw new Error(`"${field}" contains "-->" which would corrupt the attachment block`);
+  }
+}
+
 function serializeBlock(block: AttachmentBlock): string {
   const lines: string[] = [];
   lines.push(`<!-- pearl-attachment:v1:${block.ref}`);
@@ -229,8 +235,10 @@ function serializeBlock(block: AttachmentBlock): string {
   lines.push(`mime: ${block.mime}`);
 
   if (block.type === "inline") {
+    assertNoCommentClose(block.data, "data");
     lines.push(`data: ${block.data}`);
   } else {
+    assertNoCommentClose(block.path, "path");
     lines.push(`scope: ${block.scope}`);
     lines.push(`path: ${block.path}`);
     lines.push(`sha256: ${block.sha256}`);
@@ -262,10 +270,14 @@ export async function parseFieldAsync(text: string): Promise<ParsedField> {
   return new Promise<ParsedField>((resolve, reject) => {
     worker.onmessage = (e: MessageEvent) => {
       const data = e.data;
+      if (data.error) {
+        reject(new Error(`Attachment worker error: ${data.error}`));
+        worker.terminate();
+        return;
+      }
       resolve({
         prose: data.prose,
-        blocks:
-          data.blocks instanceof Map ? data.blocks : new Map(Object.entries(data.blocks ?? {})),
+        blocks: data.blocks instanceof Map ? data.blocks : new Map<Ref, AttachmentBlock>(),
         refsInProse: data.refsInProse,
         broken: data.broken,
       } as ParsedField);
@@ -292,22 +304,37 @@ export function hasAttachmentSyntax(text: string): boolean {
 // ─── Collision Disambiguator (X3) ───────────────────────────
 
 export function disambiguateRefs(blocks: AttachmentBlock[]): AttachmentBlock[] {
-  const seen = new Map<string, number>();
+  const dupeCount = new Map<string, number>();
+  const allocated = new Set<string>();
   const result: AttachmentBlock[] = [];
 
   for (const block of blocks) {
+    allocated.add(block.ref as string);
+  }
+
+  for (const block of blocks) {
     const baseRef = block.ref as string;
-    const count = seen.get(baseRef) ?? 0;
-    seen.set(baseRef, count + 1);
+    const count = dupeCount.get(baseRef) ?? 0;
+    dupeCount.set(baseRef, count + 1);
 
     if (count === 0) {
       result.push(block);
-    } else if (count > 0xff) {
-      throw new Error(`Too many collisions for ref ${baseRef} (max 255)`);
     } else {
-      const suffix = count.toString(16).padStart(2, "0");
-      const newRef = (baseRef.slice(0, 10) + suffix) as Ref;
-      result.push({ ...block, ref: newRef });
+      let candidate: string | undefined;
+      for (let i = count; i <= 0xff; i++) {
+        const suffix = i.toString(16).padStart(2, "0");
+        const try_ref = baseRef.slice(0, 10) + suffix;
+        if (!allocated.has(try_ref)) {
+          candidate = try_ref;
+          dupeCount.set(baseRef, i);
+          break;
+        }
+      }
+      if (!candidate) {
+        throw new Error(`Too many collisions for ref ${baseRef} (max 255)`);
+      }
+      allocated.add(candidate);
+      result.push({ ...block, ref: candidate as Ref });
     }
   }
 

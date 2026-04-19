@@ -571,6 +571,21 @@ describe("disambiguateRefs", () => {
     }));
     expect(() => disambiguateRefs(blocks)).toThrow("Too many collisions");
   });
+
+  it("avoids secondary collision with existing ref", () => {
+    const baseRef = "a1b2c3d4e500" as Ref;
+    const collisionTarget = "a1b2c3d4e501" as Ref;
+    const blocks: InlineAttachment[] = [
+      { ...INLINE_BLOCK, ref: baseRef, data: "data1" },
+      { ...INLINE_BLOCK, ref: baseRef, data: "data2" },
+      { ...INLINE_BLOCK, ref: collisionTarget, data: "data3" },
+    ];
+    const result = disambiguateRefs(blocks);
+    const refs = result.map((b) => b.ref);
+    const unique = new Set(refs);
+    expect(unique.size).toBe(3);
+    expect(refs).toContain(collisionTarget);
+  });
 });
 
 // ─── Round-trip fuzz test (AC-4) ────────────────────────────
@@ -717,6 +732,41 @@ describe("edge cases", () => {
 
   it("parseField reports path traversal in broken[]", () => {
     const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\nscope: project\npath: ../../etc/passwd\nsha256: ${SAMPLE_SHA256}\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("path traversal");
+  });
+
+  it("serializeField throws if inline data contains -->", () => {
+    const block: InlineAttachment = {
+      ...INLINE_BLOCK,
+      data: "abc-->def",
+    };
+    expect(() => serializeField("Prose", [block])).toThrow('contains "-->"');
+  });
+
+  it("serializeField throws if local path contains -->", () => {
+    const block: LocalAttachment = {
+      ...LOCAL_BLOCK,
+      path: "attachments/-->evil.webp",
+    };
+    expect(() => serializeField("Prose", [block])).toThrow('contains "-->"');
+  });
+
+  it("parseField reports duplicate refs in broken[]", () => {
+    const block1 = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
+    const block2 = makeInlineBlockText(SAMPLE_REF_1, "image/png", SAMPLE_BASE64);
+    const text = `Prose\n\n${block1}\n\n${block2}`;
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(1);
+    expect(result.blocks.get(SAMPLE_REF_1)?.mime).toBe("image/webp");
+    expect(result.broken).toHaveLength(1);
+    expect(result.broken[0].reason).toContain("duplicate ref");
+  });
+
+  it("rejects backslash path traversal in local blocks", () => {
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: local\nmime: image/webp\nscope: project\npath: ..\\..\\etc\\passwd\nsha256: ${SAMPLE_SHA256}\n-->`;
     const text = `Text\n\n${block}`;
     const result = parseField(text);
     expect(result.broken).toHaveLength(1);

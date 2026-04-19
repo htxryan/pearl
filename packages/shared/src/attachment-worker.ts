@@ -6,6 +6,10 @@ import { parseField } from "./attachment-syntax.js";
 declare const self: Worker;
 
 self.onmessage = (e: MessageEvent<string>) => {
-  const result = parseField(e.data);
-  self.postMessage(result);
+  try {
+    const result = parseField(e.data);
+    self.postMessage(result);
+  } catch (err) {
+    self.postMessage({ error: err instanceof Error ? err.message : String(err) });
+  }
 };
