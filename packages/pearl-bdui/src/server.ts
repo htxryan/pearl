@@ -4,11 +4,13 @@ import { fileURLToPath } from "node:url";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyError } from "fastify";
 import type { Config } from "./config.js";
-import { createDoltPool, destroyPool } from "./dolt/pool.js";
+import { findBeadsDir } from "./config.js";
+import { createDoltPool, destroyPool, getPool } from "./dolt/pool.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { AppError } from "./errors.js";
 import { createScrubSerializer } from "./log-scrub.js";
-import { registerAttachmentRoutes } from "./routes/attachments.js";
+import { OrphanSweep } from "./orphan-sweep.js";
+import { registerAttachmentRoutes, resolveAttachmentBase } from "./routes/attachments.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerIssueRoutes } from "./routes/issues.js";
@@ -17,6 +19,7 @@ import { registerMigrationRoutes } from "./routes/migration.js";
 import { registerSettingsRoutes, SettingsEventBus } from "./routes/settings.js";
 import { registerSetupRoutes } from "./routes/setup.js";
 import { registerStatsRoutes } from "./routes/stats.js";
+import { loadSettings } from "./settings-loader.js";
 import { WriteService } from "./write-service/write-service.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -250,6 +253,32 @@ export async function createServer(initialConfig: Config) {
     });
   }
 
+  // ─── Orphan Sweep ─────────────────────────────────────
+  const beadsDir = findBeadsDir(process.cwd());
+  const projectRoot = beadsDir ? dirname(beadsDir) : process.cwd();
+
+  const orphanSweep = new OrphanSweep({
+    resolveAttachmentBase,
+    projectRoot,
+    getSettings: () => loadSettings(projectRoot),
+    isRefReferenced: async (ref: string) => {
+      try {
+        const pool = getPool();
+        const [rows] = await pool.execute("SELECT 1 FROM issues WHERE description LIKE ? LIMIT 1", [
+          `%${ref}%`,
+        ]);
+        return (rows as unknown[]).length > 0;
+      } catch {
+        return true;
+      }
+    },
+    logger: {
+      info: (msg: string) => app.log.info(msg),
+      warn: (msg: string) => app.log.warn(msg),
+      error: (msg: string) => app.log.error(msg),
+    },
+  });
+
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {
     if (config.needsSetup) {
@@ -298,10 +327,16 @@ export async function createServer(initialConfig: Config) {
     }
 
     initialStartupDone = true;
+
+    if (config.doltMode === "server") {
+      const settings = await loadSettings(projectRoot);
+      orphanSweep.start(settings.attachments.sweep.intervalSeconds);
+    }
   };
 
   const shutdown = async () => {
     app.log.info("Shutting down...");
+    orphanSweep.stop();
     await destroyPool();
 
     if (doltManager) {
@@ -309,5 +344,5 @@ export async function createServer(initialConfig: Config) {
     }
   };
 
-  return { app, startup, shutdown, doltManager };
+  return { app, startup, shutdown, doltManager, orphanSweep };
 }

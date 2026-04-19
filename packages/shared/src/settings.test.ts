@@ -31,6 +31,11 @@ describe("Settings schema", () => {
     expect(DEFAULT_SETTINGS.attachments.encoding.maxDimension).toBe(2048);
   });
 
+  it("DEFAULT_SETTINGS has sweep defaults", () => {
+    expect(DEFAULT_SETTINGS.attachments.sweep.graceSeconds).toBe(3600);
+    expect(DEFAULT_SETTINGS.attachments.sweep.intervalSeconds).toBe(600);
+  });
+
   it("Settings type satisfies the spec schema", () => {
     const settings: Settings = {
       version: 1,
@@ -45,6 +50,10 @@ describe("Settings schema", () => {
           format: "webp",
           maxBytes: 512_000,
           maxDimension: 1024,
+        },
+        sweep: {
+          graceSeconds: 7200,
+          intervalSeconds: 300,
         },
       },
     };

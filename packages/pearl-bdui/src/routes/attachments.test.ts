@@ -10,6 +10,8 @@ import {
   _atomicWriteForTesting as atomicWrite,
   _computeSha256ForTesting as computeSha256,
   _containsTraversalForTesting as containsTraversal,
+  _findAttachmentByRefForTesting as findAttachmentByRef,
+  resolveAttachmentBase,
   _resolveAttachmentDirForTesting as resolveAttachmentDir,
 } from "./attachments.js";
 
@@ -177,6 +179,86 @@ describe("magic-byte MIME sniff", () => {
     expect(
       ["image/webp", "image/png", "image/jpeg", "image/gif", "image/avif"].includes(mime),
     ).toBe(false);
+  });
+});
+
+// ─── Unit: resolveAttachmentBase ─────────────────────────────
+
+describe("resolveAttachmentBase", () => {
+  const projectRoot = "/projects/my-project";
+  const settings: Settings = structuredClone(DEFAULT_SETTINGS);
+
+  it("returns project base without YYYY/MM", () => {
+    const base = resolveAttachmentBase("project", projectRoot, settings);
+    expect(base).toBe(resolve(projectRoot, ".pearl", "attachments"));
+    expect(base).not.toMatch(/\d{4}\/\d{2}$/);
+  });
+
+  it("returns user base without YYYY/MM", () => {
+    const base = resolveAttachmentBase("user", projectRoot, settings);
+    expect(base).toBe(resolve(homedir(), ".pearl", "attachments", "my-project"));
+  });
+
+  it("respects projectPathOverride", () => {
+    const s = structuredClone(DEFAULT_SETTINGS);
+    s.attachments.local.projectPathOverride = "/custom/base";
+    expect(resolveAttachmentBase("project", projectRoot, s)).toBe("/custom/base");
+  });
+
+  it("respects userPathOverride", () => {
+    const s = structuredClone(DEFAULT_SETTINGS);
+    s.attachments.local.userPathOverride = "/custom/user";
+    expect(resolveAttachmentBase("user", projectRoot, s)).toBe("/custom/user");
+  });
+});
+
+// ─── Unit: findAttachmentByRef ───────────────────────────────
+
+describe("findAttachmentByRef", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = join(tmpdir(), `pearl-find-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    await mkdir(tmpDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("finds file in YYYY/MM subdirectory", async () => {
+    const subdir = join(tmpDir, "2026", "04");
+    mkdirSync(subdir, { recursive: true });
+    writeFileSync(join(subdir, "a1b2c3d4e5f6.webp"), WEBP_BYTES);
+
+    const result = await findAttachmentByRef(tmpDir, "a1b2c3d4e5f6");
+    expect(result).toBe(resolve(subdir, "a1b2c3d4e5f6.webp"));
+  });
+
+  it("returns null for non-existent ref", async () => {
+    const result = await findAttachmentByRef(tmpDir, "000000000000");
+    expect(result).toBeNull();
+  });
+
+  it("returns null for non-existent base directory", async () => {
+    const result = await findAttachmentByRef("/nonexistent/path", "a1b2c3d4e5f6");
+    expect(result).toBeNull();
+  });
+
+  it("ignores .tmp files", async () => {
+    writeFileSync(join(tmpDir, "a1b2c3d4e5f6.webp.123.tmp"), WEBP_BYTES);
+
+    const result = await findAttachmentByRef(tmpDir, "a1b2c3d4e5f6");
+    expect(result).toBeNull();
+  });
+
+  it("finds files with different extensions", async () => {
+    const subdir = join(tmpDir, "2026", "03");
+    mkdirSync(subdir, { recursive: true });
+    writeFileSync(join(subdir, "f6e5d4c3b2a1.png"), PNG_BYTES);
+
+    const result = await findAttachmentByRef(tmpDir, "f6e5d4c3b2a1");
+    expect(result).toBe(resolve(subdir, "f6e5d4c3b2a1.png"));
   });
 });
 

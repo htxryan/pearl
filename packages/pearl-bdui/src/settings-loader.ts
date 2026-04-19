@@ -67,6 +67,16 @@ function deepMergeSettings(partial: Record<string, unknown>): Settings {
     }
   }
 
+  const sweep = attachments.sweep as Record<string, unknown> | undefined;
+  if (sweep && typeof sweep === "object") {
+    if (typeof sweep.graceSeconds === "number" && sweep.graceSeconds >= 60) {
+      defaults.attachments.sweep.graceSeconds = sweep.graceSeconds;
+    }
+    if (typeof sweep.intervalSeconds === "number" && sweep.intervalSeconds >= 60) {
+      defaults.attachments.sweep.intervalSeconds = sweep.intervalSeconds;
+    }
+  }
+
   return defaults;
 }
 

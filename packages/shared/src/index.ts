@@ -369,10 +369,16 @@ export interface EncodingSettings {
   maxDimension: number;
 }
 
+export interface SweepSettings {
+  graceSeconds: number;
+  intervalSeconds: number;
+}
+
 export interface AttachmentSettings {
   storageMode: StorageMode;
   local: LocalStorageSettings;
   encoding: EncodingSettings;
+  sweep: SweepSettings;
 }
 
 export interface Settings {
@@ -403,6 +409,10 @@ export const DEFAULT_SETTINGS: Settings = deepFreeze({
       format: "webp",
       maxBytes: 1_048_576,
       maxDimension: 2048,
+    },
+    sweep: {
+      graceSeconds: 3600,
+      intervalSeconds: 600,
     },
   },
 });

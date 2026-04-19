@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, normalize, relative, resolve, sep } from "node:path";
 import Busboy from "@fastify/busboy";
 import type { LocalScope, Ref, Settings } from "@pearl/shared";
-import { createRef } from "@pearl/shared";
+import { createRef, isRef } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import { findBeadsDir } from "../config.js";
 import { loadSettings, type SettingsLogger } from "../settings-loader.js";
@@ -22,6 +22,41 @@ const MIME_TO_EXT: Record<string, string> = {
   "image/gif": "gif",
   "image/avif": "avif",
 };
+
+const EXT_TO_MIME: Record<string, string> = {
+  webp: "image/webp",
+  png: "image/png",
+  jpg: "image/jpeg",
+  gif: "image/gif",
+  avif: "image/avif",
+};
+
+function resolveAttachmentBase(scope: LocalScope, projectRoot: string, settings: Settings): string {
+  if (scope === "project") {
+    return (
+      settings.attachments.local.projectPathOverride ??
+      resolve(projectRoot, ".pearl", "attachments")
+    );
+  }
+  const projectId = basename(projectRoot);
+  return (
+    settings.attachments.local.userPathOverride ??
+    resolve(homedir(), ".pearl", "attachments", projectId)
+  );
+}
+
+async function findAttachmentByRef(baseDir: string, ref: string): Promise<string | null> {
+  if (!existsSync(baseDir)) return null;
+  const prefix = `${ref}.`;
+  const entries = await readdir(baseDir, { recursive: true });
+  for (const entry of entries) {
+    const name = typeof entry === "string" ? entry.split("/").pop()! : entry;
+    if (name.startsWith(prefix) && !name.endsWith(".tmp")) {
+      return resolve(baseDir, typeof entry === "string" ? entry : entry);
+    }
+  }
+  return null;
+}
 
 function containsTraversal(p: string): boolean {
   return p.split(/[/\\]/).includes("..");
@@ -252,6 +287,46 @@ export function registerAttachmentRoutes(
         mime: sniffedMime,
       });
     });
+
+    plugin.get("/api/attachments/:ref", async (request, reply) => {
+      const { ref } = request.params as { ref: string };
+
+      if (!isRef(ref)) {
+        return reply.code(400).send({
+          code: "BAD_REF",
+          message: "ref must be exactly 12 lowercase hex characters",
+          retryable: false,
+        });
+      }
+
+      const settings = await getSettings();
+      const queryScope = (request.query as { scope?: string }).scope;
+      const scope: LocalScope =
+        queryScope === "user" || queryScope === "project"
+          ? queryScope
+          : settings.attachments.local.scope;
+
+      const baseDir = resolveAttachmentBase(scope, projectRoot, settings);
+      const filePath = await findAttachmentByRef(baseDir, ref);
+
+      if (!filePath) {
+        return reply.code(404).send({
+          code: "MISSING",
+          message: "Attachment file not found",
+          retryable: false,
+        });
+      }
+
+      const ext = filePath.split(".").pop() || "";
+      const contentType = EXT_TO_MIME[ext] || "application/octet-stream";
+      const fileContent = await readFile(filePath);
+
+      return reply
+        .code(200)
+        .header("Content-Type", contentType)
+        .header("Cache-Control", "private, max-age=31536000, immutable")
+        .send(fileContent);
+    });
   });
 }
 
@@ -259,5 +334,7 @@ export {
   atomicWrite as _atomicWriteForTesting,
   computeSha256 as _computeSha256ForTesting,
   containsTraversal as _containsTraversalForTesting,
+  findAttachmentByRef as _findAttachmentByRefForTesting,
+  resolveAttachmentBase,
   resolveAttachmentDir as _resolveAttachmentDirForTesting,
 };
