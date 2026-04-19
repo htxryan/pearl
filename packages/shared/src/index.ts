@@ -69,6 +69,7 @@ export interface Issue {
   spec_id: string | null;
   pinned: boolean;
   is_template: boolean;
+  has_attachments: boolean;
   labels: string[];
   /** Map of label name → palette color key (from label_definitions) */
   labelColors: Record<string, LabelColor>;

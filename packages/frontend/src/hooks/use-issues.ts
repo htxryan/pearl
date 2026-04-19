@@ -8,6 +8,7 @@ import type {
   IssueListItem,
   UpdateIssueRequest,
 } from "@pearl/shared";
+import { ATTACHMENT_HOST_FIELDS, hasAttachmentSyntax } from "@pearl/shared";
 import {
   type QueryClient,
   useIsMutating,
@@ -149,7 +150,7 @@ export function useCreateIssue() {
         updated_at: new Date().toISOString(),
         due_at: data.due ?? null,
         pinned: false,
-        has_attachments: false,
+        has_attachments: Boolean(data.description && hasAttachmentSyntax(data.description)),
         labels: data.labels ?? [],
         labelColors: {},
       };
@@ -198,11 +199,15 @@ export function useUpdateIssue() {
 
       // Optimistic update on detail
       if (previousDetail) {
-        queryClient.setQueryData<Issue>(issueKeys.detail(id), {
-          ...previousDetail,
-          ...data,
-          updated_at: new Date().toISOString(),
-        });
+        const merged = { ...previousDetail, ...data, updated_at: new Date().toISOString() };
+        const touchesAttachmentField = ATTACHMENT_HOST_FIELDS.some((f) => f in data);
+        if (touchesAttachmentField) {
+          merged.has_attachments = ATTACHMENT_HOST_FIELDS.some((f) => {
+            const val = merged[f as keyof typeof merged];
+            return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
+          });
+        }
+        queryClient.setQueryData<Issue>(issueKeys.detail(id), merged);
       }
 
       // Optimistic update on list items

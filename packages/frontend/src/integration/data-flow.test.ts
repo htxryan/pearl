@@ -108,6 +108,7 @@ function makeIssue(overrides: Partial<Issue> = {}): Issue {
     spec_id: null,
     pinned: false,
     is_template: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
     metadata: {},

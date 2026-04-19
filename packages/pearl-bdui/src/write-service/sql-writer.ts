@@ -9,7 +9,7 @@ import { notFoundError } from "../errors.js";
 
 const ACTOR = hostname();
 
-function computeHasAttachments(fields: Record<string, unknown>): boolean {
+export function computeHasAttachments(fields: Record<string, unknown>): boolean {
   return ATTACHMENT_HOST_FIELDS.some((f) => {
     const val = fields[f];
     return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);

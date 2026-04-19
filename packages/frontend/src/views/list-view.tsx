@@ -106,9 +106,14 @@ export function ListView() {
   }, [quickAddTitle, createMutation, toast, navigate]);
 
   // Table state
-  const [columnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>(
+  const COL_VIS_DEFAULTS: VisibilityState = useMemo(() => ({ has_attachments: false }), []);
+  const [rawColumnVisibility, setColumnVisibility] = usePersistedState<VisibilityState>(
     "beads:col-visibility",
-    { has_attachments: false },
+    COL_VIS_DEFAULTS,
+  );
+  const columnVisibility = useMemo(
+    () => ({ ...COL_VIS_DEFAULTS, ...rawColumnVisibility }),
+    [COL_VIS_DEFAULTS, rawColumnVisibility],
   );
   const [columnOrder, setColumnOrder] = usePersistedState<ColumnOrderState>("beads:col-order", []);
   const [columnSizing, setColumnSizing] = usePersistedState<ColumnSizingState>(

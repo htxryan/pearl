@@ -5,12 +5,13 @@ import type {
   Priority,
   UpdateIssueRequest,
 } from "@pearl/shared";
-import { ATTACHMENT_HOST_FIELDS, hasAttachmentSyntax, ISSUE_LIST_FIELDS } from "@pearl/shared";
+import { ISSUE_LIST_FIELDS } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { RowDataPacket } from "mysql2";
 import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
 import { notFoundError, validationError } from "../errors.js";
+import { computeHasAttachments } from "../write-service/sql-writer.js";
 import type { WriteService } from "../write-service/write-service.js";
 import { fetchLabelColors } from "./labels.js";
 
@@ -140,7 +141,10 @@ const addCommentSchema = {
   },
 } as const;
 
-export async function ensureHasAttachmentsColumn(getConfig: () => Config): Promise<void> {
+export async function ensureHasAttachmentsColumn(
+  getConfig: () => Config,
+  log?: { warn: (obj: unknown, msg: string) => void },
+): Promise<void> {
   try {
     await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
@@ -152,8 +156,8 @@ export async function ensureHasAttachmentsColumn(getConfig: () => Config): Promi
         await conn.query(`ALTER TABLE issues ADD COLUMN \`has_attachments\` TINYINT(1) DEFAULT 0`);
       }
     });
-  } catch {
-    // May fail in setup mode (no DB yet) — column will be created with the table
+  } catch (err) {
+    log?.warn({ err }, "ensureHasAttachmentsColumn failed — column may not exist yet");
   }
 }
 
@@ -163,7 +167,7 @@ export function registerIssueRoutes(
   writeService: WriteService,
 ): void {
   app.addHook("onReady", async () => {
-    await ensureHasAttachmentsColumn(getConfig);
+    await ensureHasAttachmentsColumn(getConfig, app.log);
   });
   // GET /api/issues — list with filtering, sorting, column projection
   app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
@@ -347,11 +351,12 @@ export function registerIssueRoutes(
       return rows;
     });
 
-    // Ensure all issues have labels and labelColors initialized
+    // Ensure all issues have labels/labelColors initialized and coerce TINYINT→boolean
     const issueRows = issues as RowDataPacket[];
     for (const issue of issueRows) {
       issue.labels = [];
       issue.labelColors = {};
+      issue.has_attachments = Boolean(issue.has_attachments);
     }
     if (issueRows.length > 0 && validFields.includes("id")) {
       const ids = issueRows.map((r) => r.id);
@@ -409,15 +414,10 @@ export function registerIssueRoutes(
     }
 
     // Reconcile has_attachments (E4a: recover from external bd CLI edits).
-    // Intentionally bypasses WriteService — this is a derived-field correction,
-    // not a user mutation, so no event is logged.
-    const computed = ATTACHMENT_HOST_FIELDS.some((f) => {
-      const val = issue[f];
-      return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
-    });
+    const computed = computeHasAttachments(issue);
     const stored = Boolean(issue.has_attachments);
     if (computed !== stored) {
-      issue.has_attachments = computed ? 1 : 0;
+      issue.has_attachments = computed;
       queryWithRetry(getConfig(), async (conn) => {
         await conn.execute("UPDATE issues SET has_attachments = ? WHERE id = ?", [
           computed ? 1 : 0,
@@ -426,6 +426,8 @@ export function registerIssueRoutes(
       }).catch((err) => {
         request.log.warn({ err, issueId: id }, "has_attachments reconciliation failed");
       });
+    } else {
+      issue.has_attachments = stored;
     }
 
     // Fetch labels

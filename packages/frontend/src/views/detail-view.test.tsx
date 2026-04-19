@@ -56,6 +56,7 @@ const mockIssue: Issue = {
   spec_id: null,
   pinned: false,
   is_template: false,
+  has_attachments: false,
   labels: ["frontend", "v1"],
   labelColors: {},
   metadata: {},

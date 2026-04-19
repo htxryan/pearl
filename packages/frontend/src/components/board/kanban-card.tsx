@@ -152,7 +152,10 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
           <span className="text-xs text-muted-foreground font-mono truncate" title={issue.id}>
             {shortId(issue.id)}
           </span>
-          <PriorityIndicator priority={issue.priority} />
+          <div className="flex items-center gap-1.5">
+            {issue.has_attachments && <AttachmentIcon className="h-3.5 w-3.5" />}
+            <PriorityIndicator priority={issue.priority} />
+          </div>
         </div>
         <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">{issue.title}</p>
         <div className="flex items-center justify-between gap-2">
