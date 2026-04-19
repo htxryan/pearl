@@ -27,7 +27,12 @@ export class InlineStorageAdapter implements StorageAdapter {
     if (block.type !== "inline") {
       throw new Error(`InlineStorageAdapter cannot load block of type "${block.type}"`);
     }
-    const binary = atob(block.data);
+    let binary: string;
+    try {
+      binary = atob(block.data);
+    } catch {
+      throw new Error(`Failed to decode base64 for attachment ref=${block.ref}`);
+    }
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);

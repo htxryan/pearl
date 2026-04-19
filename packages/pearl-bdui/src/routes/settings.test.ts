@@ -46,9 +46,4 @@ describe("Settings type invariants", () => {
     expect(Object.isFrozen(DEFAULT_SETTINGS.attachments)).toBe(true);
     expect(Object.isFrozen(DEFAULT_SETTINGS.attachments.encoding)).toBe(true);
   });
-
-  it("stripExif must be true in Settings type", () => {
-    const settings: Settings = structuredClone(DEFAULT_SETTINGS);
-    expect(settings.attachments.encoding.stripExif).toBe(true);
-  });
 });

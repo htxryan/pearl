@@ -86,4 +86,24 @@ describe("scrubAttachmentData", () => {
     const input = "data: abc123";
     expect(scrubAttachmentData(input)).toBe(input);
   });
+
+  it("scrubs inline data URIs with MIME type", () => {
+    const base64 = "A".repeat(200);
+    const input = `"data:image/webp;base64,${base64}"`;
+    const result = scrubAttachmentData(input);
+    expect(result).not.toContain(base64);
+    expect(result).toContain("<redacted");
+  });
+
+  it("does not scrub bare base64 strings without MIME-typed data URI", () => {
+    const hash = "a".repeat(64);
+    const input = `"data: ${hash}"`;
+    expect(scrubAttachmentData(input)).toBe(input);
+  });
+
+  it("does not scrub SHA-256 hashes or JWTs", () => {
+    const sha = "a1b2c3d4".repeat(8);
+    const input = `hash: ${sha}`;
+    expect(scrubAttachmentData(input)).toBe(input);
+  });
 });

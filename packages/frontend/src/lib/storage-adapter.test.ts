@@ -63,6 +63,18 @@ describe("InlineStorageAdapter", () => {
         'InlineStorageAdapter cannot load block of type "local"',
       );
     });
+
+    it("throws contextual error on malformed base64", async () => {
+      const ref = createRef("bad0da1a00be");
+      const badBlock: InlineAttachment = {
+        type: "inline",
+        ref,
+        mime: "image/webp",
+        data: "not!valid!base64!!!",
+      };
+
+      await expect(adapter.load(badBlock)).rejects.toThrow(/ref=bad0da1a00be/);
+    });
   });
 
   describe("store/load round-trip", () => {

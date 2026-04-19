@@ -367,7 +367,6 @@ export interface EncodingSettings {
   format: "webp";
   maxBytes: number;
   maxDimension: number;
-  stripExif: true;
 }
 
 export interface AttachmentSettings {
@@ -404,7 +403,6 @@ export const DEFAULT_SETTINGS: Settings = deepFreeze({
       format: "webp",
       maxBytes: 1_048_576,
       maxDimension: 2048,
-      stripExif: true,
     },
   },
 });

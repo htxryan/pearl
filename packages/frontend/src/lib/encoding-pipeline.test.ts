@@ -98,7 +98,8 @@ import {
 
 describe("encoding-pipeline", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
+    mockDrawImage.mockReset();
     mockGetContext.mockReturnValue({ drawImage: mockDrawImage });
     mockConvertToBlob.mockResolvedValue(makeWebpBlob());
     (globalThis.createImageBitmap as ReturnType<typeof vi.fn>).mockResolvedValue(
@@ -110,7 +111,6 @@ describe("encoding-pipeline", () => {
     format: "webp" as const,
     maxBytes: 1_048_576,
     maxDimension: 2048,
-    stripExif: true as const,
   };
 
   describe("encodeImage", () => {
@@ -166,17 +166,12 @@ describe("encoding-pipeline", () => {
       mockConvertToBlob.mockResolvedValue(makeWebpBlob(bigBytes));
 
       const file = new File([bigBytes], "big.png", { type: "image/png" });
-      await expect(encodeImage(file, { ...defaultPolicy, maxBytes: 1_000_000 })).rejects.toThrow(
-        EncodingError,
-      );
-
-      try {
-        await encodeImage(file, { ...defaultPolicy, maxBytes: 1_000_000 });
-      } catch (err) {
-        expect(err).toBeInstanceOf(EncodingError);
-        expect((err as EncodingError).code).toBe("E7_MAX_BYTES");
-        expect((err as EncodingError).message).toContain("maxBytes");
-      }
+      const rejection = encodeImage(file, { ...defaultPolicy, maxBytes: 1_000_000 });
+      await expect(rejection).rejects.toThrow(EncodingError);
+      await expect(rejection).rejects.toMatchObject({
+        code: "E7_MAX_BYTES",
+        message: expect.stringContaining("maxBytes"),
+      });
     });
 
     it("throws DECODE_FAILED when canvas context unavailable", async () => {
@@ -186,9 +181,31 @@ describe("encoding-pipeline", () => {
       await expect(encodeImage(file, defaultPolicy)).rejects.toThrow(EncodingError);
     });
 
+    it("throws DECODE_FAILED when createImageBitmap fails", async () => {
+      (globalThis.createImageBitmap as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new DOMException("Invalid image"),
+      );
+
+      const file = new File([new Uint8Array([0, 0])], "bad.png", { type: "image/png" });
+      await expect(encodeImage(file, defaultPolicy)).rejects.toThrow(EncodingError);
+      await expect(encodeImage(file, defaultPolicy)).rejects.toMatchObject({
+        code: "DECODE_FAILED",
+      });
+    });
+
     it("closes ImageBitmap after use", async () => {
       const file = new File([TINY_WEBP], "test.png", { type: "image/png" });
       await encodeImage(file, defaultPolicy);
+      expect(mockClose).toHaveBeenCalled();
+    });
+
+    it("closes ImageBitmap even when drawImage throws", async () => {
+      mockDrawImage.mockImplementation(() => {
+        throw new Error("drawImage failed");
+      });
+
+      const file = new File([TINY_WEBP], "test.png", { type: "image/png" });
+      await expect(encodeImage(file, defaultPolicy)).rejects.toThrow();
       expect(mockClose).toHaveBeenCalled();
     });
   });

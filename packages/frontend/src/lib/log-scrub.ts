@@ -1,7 +1,8 @@
 const BLOCK_DATA_RE =
   /(<!--\s*pearl-attachment:v\d+:[0-9a-f]{12}\s*\n(?:[^\n]*\n)*?)(data:\s*)([A-Za-z0-9+/=]{32,})((?:\n[^\n]*)*?\n-->)/g;
 
-const BASE64_INLINE_RE = /(["']?)data:\s*([A-Za-z0-9+/=]{64,})\1/g;
+// Matches data URIs with MIME type (e.g. data:image/webp;base64,...)
+const BASE64_INLINE_RE = /(["']?)data:[a-zA-Z]+\/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+/=]{64,})\1/g;
 
 export function scrubAttachmentData(text: string): string {
   let result = text.replace(BLOCK_DATA_RE, (_match, prefix, dataKey, base64, suffix) => {

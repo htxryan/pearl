@@ -76,7 +76,6 @@ describe("settings-loader", () => {
             format: "webp",
             maxBytes: 512000,
             maxDimension: 1024,
-            stripExif: true,
           },
         },
       };
@@ -108,7 +107,7 @@ describe("settings-loader", () => {
       expect(result.attachments.storageMode).toBe("inline");
       expect(result.attachments.local.scope).toBe("project");
       expect(result.attachments.encoding.maxBytes).toBe(1_048_576);
-      expect(result.attachments.encoding.stripExif).toBe(true);
+      expect(result.attachments.encoding.maxDimension).toBe(2048);
     });
 
     it("ignores invalid storageMode values", () => {
@@ -197,19 +196,6 @@ describe("settings-loader", () => {
 
       const result = loadSettingsSync(tmpDir, mockLogger);
       expect(result.attachments.local.projectPathOverride).toBeNull();
-    });
-
-    it("stripExif is always true regardless of file content", () => {
-      const partial = {
-        version: 1,
-        attachments: { encoding: { stripExif: false } },
-      };
-      const dir = resolve(tmpDir, ".pearl");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(resolve(dir, "settings.json"), JSON.stringify(partial), "utf-8");
-
-      const result = loadSettingsSync(tmpDir, mockLogger);
-      expect(result.attachments.encoding.stripExif).toBe(true);
     });
   });
 

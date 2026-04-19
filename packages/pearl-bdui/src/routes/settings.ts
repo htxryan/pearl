@@ -28,12 +28,11 @@ const updateSettingsSchema = {
           },
           encoding: {
             type: "object",
-            required: ["format", "maxBytes", "maxDimension", "stripExif"],
+            required: ["format", "maxBytes", "maxDimension"],
             properties: {
               format: { type: "string", const: "webp" },
               maxBytes: { type: "number", exclusiveMinimum: 0, maximum: 52_428_800 },
               maxDimension: { type: "number", exclusiveMinimum: 0, maximum: 16_384 },
-              stripExif: { type: "boolean", const: true },
             },
             additionalProperties: false,
           },
@@ -81,10 +80,6 @@ export function registerSettingsRoutes(app: FastifyInstance, eventBus: SettingsE
 
   app.put("/api/settings", { schema: updateSettingsSchema }, async (request, reply) => {
     const body = request.body as Settings;
-
-    if (body.attachments.encoding.stripExif !== true) {
-      throw validationError("stripExif must be true (mandatory invariant)");
-    }
 
     for (const field of ["projectPathOverride", "userPathOverride"] as const) {
       const value = body.attachments.local[field];

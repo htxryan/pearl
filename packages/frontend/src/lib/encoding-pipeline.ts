@@ -1,5 +1,11 @@
-import type { EncodingSettings, Ref } from "@pearl/shared";
+import type { Ref } from "@pearl/shared";
 import { createRef } from "@pearl/shared";
+
+export interface EncodingPolicy {
+  format: "webp";
+  maxBytes: number;
+  maxDimension: number;
+}
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -63,7 +69,8 @@ function stripExif(buffer: ArrayBuffer): ArrayBuffer {
     const segmentEnd = offset + 2 + segmentLength;
     if (segmentEnd > view.byteLength) break;
 
-    // Drop APP1 (EXIF/XMP) and APP2 (ICC that may contain EXIF)
+    // Drop APP1 (EXIF/XMP) and APP2 (ICC that may leak EXIF via embedded profiles;
+    // trade-off: wide-gamut color profiles are lost, acceptable for attachment thumbnails)
     if (marker === 0xe1 || marker === 0xe2) {
       offset = segmentEnd;
       continue;
@@ -87,7 +94,7 @@ function stripExif(buffer: ArrayBuffer): ArrayBuffer {
 // ─── SHA-256 Ref ────────────────────────────────────────────
 
 async function computeRef(bytes: Uint8Array): Promise<{ sha256Full: string; ref: Ref }> {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes as ArrayBufferView<ArrayBuffer>);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes.buffer as ArrayBuffer);
   const hashArray = new Uint8Array(hashBuffer);
   const sha256Full = Array.from(hashArray)
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -102,24 +109,31 @@ async function decodeAndResize(
   file: File,
   maxDimension: number,
 ): Promise<{ canvas: OffscreenCanvas; w: number; h: number }> {
-  const bitmap = await createImageBitmap(file);
-  let { width: w, height: h } = bitmap;
-
-  if (w > maxDimension || h > maxDimension) {
-    const scale = maxDimension / Math.max(w, h);
-    w = Math.round(w * scale);
-    h = Math.round(h * scale);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new EncodingError("Failed to decode image", "DECODE_FAILED");
   }
+  try {
+    let { width: w, height: h } = bitmap;
 
-  const canvas = new OffscreenCanvas(w, h);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
+    if (w > maxDimension || h > maxDimension) {
+      const scale = maxDimension / Math.max(w, h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    const canvas = new OffscreenCanvas(w, h);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new EncodingError("Failed to get 2d context from OffscreenCanvas", "DECODE_FAILED");
+    }
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    return { canvas, w, h };
+  } finally {
     bitmap.close();
-    throw new EncodingError("Failed to get 2d context from OffscreenCanvas", "DECODE_FAILED");
   }
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close();
-  return { canvas, w, h };
 }
 
 async function transcodeToWebp(canvas: OffscreenCanvas): Promise<ArrayBuffer> {
@@ -129,11 +143,12 @@ async function transcodeToWebp(canvas: OffscreenCanvas): Promise<ArrayBuffer> {
 
 // ─── Public API ─────────────────────────────────────────────
 
-export async function encodeImage(file: File, policy: EncodingSettings): Promise<EncodedImage> {
+export async function encodeImage(file: File, policy: EncodingPolicy): Promise<EncodedImage> {
   const { canvas, w, h } = await decodeAndResize(file, policy.maxDimension);
   const webpBuffer = await transcodeToWebp(canvas);
 
-  // UCA-1: EXIF strip MUST happen BEFORE ref computation
+  // canvas.convertToBlob strips metadata for WebP; stripExif is defense-in-depth
+  // for JPEG magic bytes (no-op on WebP, active if pipeline ever outputs JPEG)
   const strippedBuffer = stripExif(webpBuffer);
   const bytes = new Uint8Array(strippedBuffer);
 

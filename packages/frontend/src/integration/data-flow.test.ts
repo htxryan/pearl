@@ -40,7 +40,7 @@ vi.mock("@/lib/api-client", () => ({
     attachments: {
       storageMode: "local",
       local: { scope: "project", projectPathOverride: null, userPathOverride: null },
-      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048, stripExif: true },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
     },
   }),
   updateSettings: vi.fn().mockResolvedValue({
@@ -50,7 +50,7 @@ vi.mock("@/lib/api-client", () => ({
       attachments: {
         storageMode: "local",
         local: { scope: "project", projectPathOverride: null, userPathOverride: null },
-        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048, stripExif: true },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
       },
     },
     invalidationHints: [{ entity: "settings" }],
