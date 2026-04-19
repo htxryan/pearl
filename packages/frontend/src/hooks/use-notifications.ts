@@ -348,7 +348,7 @@ export function useNotificationPoller() {
   const initializedRef = useRef(Object.keys(snapshotRef.current).length > 0);
 
   const { data: issues } = useQuery<IssueListItem[]>({
-    queryKey: issueKeys.list(),
+    queryKey: [...issueKeys.all, "notifications"],
     queryFn: async () => {
       const result = await fetchIssues();
       return result ?? [];

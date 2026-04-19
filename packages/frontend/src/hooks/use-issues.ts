@@ -517,7 +517,7 @@ export function useHealth() {
   return useQuery({
     queryKey: healthKeys.all,
     queryFn: api.fetchHealth,
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
     retry: 0,
   });
 }
