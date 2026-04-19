@@ -1,15 +1,32 @@
-import { type ChildProcess, execSync, spawn } from "node:child_process";
+import { type ChildProcess, execFileSync, execSync, spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
+import { createServer } from "node:net";
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import { createPool, type Pool } from "mysql2/promise";
 import type { Config } from "../config.js";
 
-export const TEST_PORT = 33070;
+export let TEST_PORT = 33070;
 export const TEST_HOST = "127.0.0.1";
 export const TEST_USER = "root";
 export const ACTOR = hostname();
 export const ISSUE_PREFIX = "test";
+
+async function findEphemeralPort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const srv = createServer();
+    srv.listen(0, TEST_HOST, () => {
+      const addr = srv.address();
+      if (addr && typeof addr === "object") {
+        const port = addr.port;
+        srv.close(() => resolve(port));
+      } else {
+        srv.close(() => reject(new Error("Failed to get ephemeral port")));
+      }
+    });
+    srv.on("error", reject);
+  });
+}
 
 const TABLES_TO_COMPARE = ["issues", "events", "labels", "dependencies", "comments"] as const;
 
@@ -55,10 +72,7 @@ export function isDoltAvailable(): boolean {
 }
 
 export async function setupParityInfra(): Promise<ParityContext> {
-  try {
-    execSync(`lsof -ti:${TEST_PORT} | xargs kill -9 2>/dev/null || true`, { stdio: "ignore" });
-  } catch {}
-  await new Promise((r) => setTimeout(r, 500));
+  TEST_PORT = await findEphemeralPort();
 
   const dataDir = mkdtempSync(join(tmpdir(), "parity-dolt-"));
   const cliWorkDir = mkdtempSync(join(tmpdir(), "parity-cli-"));
@@ -107,38 +121,36 @@ export async function setupParityInfra(): Promise<ParityContext> {
 }
 
 function initBdProject(workDir: string, dbName: string): void {
-  execSync("git init -q", { cwd: workDir, stdio: "ignore" });
-  execSync('git config user.name "Test" && git config user.email "test@test.com"', {
-    cwd: workDir,
-    stdio: "ignore",
-    shell: "/bin/bash",
-  });
+  execFileSync("git", ["init", "-q"], { cwd: workDir, stdio: "ignore" });
+  execFileSync("git", ["config", "user.name", "Test"], { cwd: workDir, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "test@test.com"], { cwd: workDir, stdio: "ignore" });
 
-  const args = [
+  execFileSync(
     "bd",
-    "init",
-    "--server",
-    "--server-host",
-    TEST_HOST,
-    "--server-port",
-    String(TEST_PORT),
-    "--server-user",
-    TEST_USER,
-    "--database",
-    dbName,
-    "--prefix",
-    ISSUE_PREFIX,
-    "--non-interactive",
-    "--skip-agents",
-    "--skip-hooks",
-    "--quiet",
-  ];
-
-  execSync(args.join(" "), {
-    cwd: workDir,
-    timeout: 30000,
-    env: { ...process.env, BEADS_ACTOR: ACTOR, BD_NON_INTERACTIVE: "1" },
-  });
+    [
+      "init",
+      "--server",
+      "--server-host",
+      TEST_HOST,
+      "--server-port",
+      String(TEST_PORT),
+      "--server-user",
+      TEST_USER,
+      "--database",
+      dbName,
+      "--prefix",
+      ISSUE_PREFIX,
+      "--non-interactive",
+      "--skip-agents",
+      "--skip-hooks",
+      "--quiet",
+    ],
+    {
+      cwd: workDir,
+      timeout: 30000,
+      env: { ...process.env, BEADS_ACTOR: ACTOR, BD_NON_INTERACTIVE: "1" },
+    },
+  );
 }
 
 export async function teardownParityInfra(ctx: ParityContext): Promise<void> {
@@ -174,10 +186,12 @@ export async function truncateAllTables(ctx: ParityContext): Promise<void> {
         await conn.query(`DELETE FROM \`${table}\``);
       }
       await conn.query("SET FOREIGN_KEY_CHECKS=1");
-      await conn.query(
-        `REPLACE INTO config (\`key\`, value) VALUES ('issue_prefix', '${ISSUE_PREFIX}')`,
-      );
+      await conn.execute("REPLACE INTO config (`key`, value) VALUES ('issue_prefix', ?)", [
+        ISSUE_PREFIX,
+      ]);
       await conn.query("REPLACE INTO config (`key`, value) VALUES ('issue_id_mode', 'counter')");
+      await conn.query("CALL dolt_add('-A')");
+      await conn.query("CALL dolt_commit('-m', 'truncate tables for test reset', '--allow-empty')");
     }
   } finally {
     conn.release();
@@ -240,12 +254,7 @@ export function normalizeRow(row: Record<string, unknown>, table: string): Norma
   for (const key of fields) {
     const value = row[key];
 
-    if (key === "old_value" || key === "new_value") {
-      normalized[key] = normalizeEventPayload(value as string | null);
-      continue;
-    }
-
-    // Timestamp fields: normalize to presence check only
+    // bd CLI truncates due_at to day precision; SQL stores full timestamp
     if (key === "due_at") {
       normalized[key] = value != null ? "<<TIMESTAMP>>" : null;
       continue;
@@ -426,7 +435,17 @@ async function waitForServer(proc: ChildProcess, timeoutMs = 15000): Promise<voi
   const start = Date.now();
   const { createConnection } = await import("mysql2/promise");
 
+  let procExited = false;
+  let exitCode: number | null = null;
+  proc.once("exit", (code) => {
+    procExited = true;
+    exitCode = code;
+  });
+
   while (Date.now() - start < timeoutMs) {
+    if (procExited) {
+      throw new Error(`Dolt server exited early with code ${exitCode}`);
+    }
     try {
       const conn = await createConnection({
         host: TEST_HOST,
