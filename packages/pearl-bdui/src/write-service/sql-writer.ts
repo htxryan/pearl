@@ -1,12 +1,22 @@
 import { createHash, randomBytes } from "node:crypto";
 import { hostname } from "node:os";
 import type { CreateIssueRequest, InvalidationHint, UpdateIssueRequest } from "@pearl/shared";
+import { hasAttachmentSyntax } from "@pearl/shared";
 import type { PoolConnection } from "mysql2/promise";
 import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
 import { notFoundError } from "../errors.js";
 
 const ACTOR = hostname();
+
+const HOST_FIELDS = ["description", "design", "acceptance_criteria", "notes"] as const;
+
+function computeHasAttachments(fields: Record<string, unknown>): boolean {
+  return HOST_FIELDS.some((f) => {
+    const val = fields[f];
+    return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
+  });
+}
 
 // ─── Base36 Encoding (matches Go idgen.EncodeBase36) ───
 
@@ -258,12 +268,15 @@ export async function sqlCreateIssue(
         owner: ACTOR,
       });
 
+      const hasAttach = computeHasAttachments({ description: req.description || "" });
+
       await conn.execute(
         `INSERT INTO issues (
           id, title, description, design, acceptance_criteria, notes,
           status, priority, issue_type, assignee, owner, created_by,
-          created_at, updated_at, content_hash, estimated_minutes, due_at
-        ) VALUES (?, ?, ?, '', '', '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          created_at, updated_at, content_hash, estimated_minutes, due_at,
+          has_attachments
+        ) VALUES (?, ?, ?, '', '', '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           req.title,
@@ -279,6 +292,7 @@ export async function sqlCreateIssue(
           contentHash,
           req.estimated_minutes ?? null,
           req.due ? new Date(req.due) : null,
+          hasAttach ? 1 : 0,
         ],
       );
 
@@ -414,7 +428,12 @@ export async function sqlUpdateIssue(
         created_by: merged.created_by as string,
       });
 
-      await conn.execute("UPDATE issues SET content_hash = ? WHERE id = ?", [newHash, id]);
+      const hasAttach = computeHasAttachments(merged);
+      await conn.execute("UPDATE issues SET content_hash = ?, has_attachments = ? WHERE id = ?", [
+        newHash,
+        hasAttach ? 1 : 0,
+        id,
+      ]);
 
       if (updates.labels !== undefined) {
         await conn.execute("DELETE FROM labels WHERE issue_id = ?", [id]);

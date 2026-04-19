@@ -88,6 +88,7 @@ export interface IssueListItem {
   updated_at: string;
   due_at: string | null;
   pinned: boolean;
+  has_attachments: boolean;
   labels: string[];
   /** Map of label name → palette color key (from label_definitions) */
   labelColors: Record<string, LabelColor>;
@@ -348,6 +349,7 @@ export const ISSUE_LIST_FIELDS = [
   "updated_at",
   "due_at",
   "pinned",
+  "has_attachments",
 ] as const;
 
 export type IssueListField = (typeof ISSUE_LIST_FIELDS)[number];

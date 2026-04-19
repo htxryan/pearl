@@ -149,6 +149,7 @@ export function useCreateIssue() {
         updated_at: new Date().toISOString(),
         due_at: data.due ?? null,
         pinned: false,
+        has_attachments: false,
         labels: data.labels ?? [],
         labelColors: {},
       };

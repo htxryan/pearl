@@ -24,6 +24,7 @@ function makeIssue(overrides: Partial<IssueListItem> = {}): IssueListItem {
     updated_at: "2026-01-16T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
     ...overrides,

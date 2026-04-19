@@ -5,7 +5,7 @@ import type {
   Priority,
   UpdateIssueRequest,
 } from "@pearl/shared";
-import { ISSUE_LIST_FIELDS } from "@pearl/shared";
+import { hasAttachmentSyntax, ISSUE_LIST_FIELDS } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { RowDataPacket } from "mysql2";
 import type { Config } from "../config.js";
@@ -140,11 +140,31 @@ const addCommentSchema = {
   },
 } as const;
 
+export async function ensureHasAttachmentsColumn(getConfig: () => Config): Promise<void> {
+  try {
+    await queryWithRetry(getConfig(), async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_NAME = 'issues' AND COLUMN_NAME = 'has_attachments'
+         LIMIT 1`,
+      );
+      if ((rows as unknown[]).length === 0) {
+        await conn.query(`ALTER TABLE issues ADD COLUMN \`has_attachments\` TINYINT(1) DEFAULT 0`);
+      }
+    });
+  } catch {
+    // May fail in setup mode (no DB yet) — column will be created with the table
+  }
+}
+
 export function registerIssueRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
   writeService: WriteService,
 ): void {
+  app.addHook("onReady", async () => {
+    await ensureHasAttachmentsColumn(getConfig);
+  });
   // GET /api/issues — list with filtering, sorting, column projection
   app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
     const query = request.query as Record<string, string | undefined>;
@@ -386,6 +406,23 @@ export function registerIssueRoutes(
 
     if (!issue) {
       throw notFoundError("Issue", id);
+    }
+
+    // Reconcile has_attachments (E4a: recover from external bd CLI edits)
+    const hostFields = ["description", "design", "acceptance_criteria", "notes"] as const;
+    const computed = hostFields.some((f) => {
+      const val = issue[f];
+      return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
+    });
+    const stored = Boolean(issue.has_attachments);
+    if (computed !== stored) {
+      issue.has_attachments = computed ? 1 : 0;
+      queryWithRetry(getConfig(), async (conn) => {
+        await conn.execute("UPDATE issues SET has_attachments = ? WHERE id = ?", [
+          computed ? 1 : 0,
+          id,
+        ]);
+      }).catch(() => {});
     }
 
     // Fetch labels
