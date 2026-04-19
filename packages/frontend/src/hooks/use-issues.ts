@@ -69,8 +69,7 @@ export function useIssues(params?: URLSearchParams) {
   return useQuery<IssueListItem[]>({
     queryKey: issueKeys.list(params),
     queryFn: () => api.fetchIssues(params),
-    // STPA H1: Suppress polling while mutations are pending
-    refetchInterval: pendingIssueMutations + pendingDepMutations > 0 ? false : 2000,
+    refetchInterval: pendingIssueMutations + pendingDepMutations > 0 ? false : 10_000,
   });
 }
 
@@ -509,7 +508,7 @@ export function useStats() {
   return useQuery({
     queryKey: statsKeys.all,
     queryFn: api.fetchStats,
-    refetchInterval: 30000,
+    refetchInterval: 60_000,
   });
 }
 
@@ -518,7 +517,7 @@ export function useHealth() {
   return useQuery({
     queryKey: healthKeys.all,
     queryFn: api.fetchHealth,
-    refetchInterval: 5000,
+    refetchInterval: 30_000,
     retry: 0,
   });
 }

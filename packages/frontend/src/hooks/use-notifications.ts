@@ -348,13 +348,13 @@ export function useNotificationPoller() {
   const initializedRef = useRef(Object.keys(snapshotRef.current).length > 0);
 
   const { data: issues } = useQuery<IssueListItem[]>({
-    queryKey: issueKeys.lists(),
+    queryKey: issueKeys.list(),
     queryFn: async () => {
       const result = await fetchIssues();
       return result ?? [];
     },
-    refetchInterval: 10_000, // Poll every 10 seconds
-    staleTime: 5_000,
+    refetchInterval: 30_000,
+    staleTime: 10_000,
   });
 
   useEffect(() => {

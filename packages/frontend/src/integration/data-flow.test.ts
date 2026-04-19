@@ -173,7 +173,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
     (api.fetchIssues as Mock).mockResolvedValue([]);
   });
 
-  it("sets refetchInterval to 2000 when no mutations are pending", async () => {
+  it("sets refetchInterval to 10000 when no mutations are pending", async () => {
     const { queryClient, wrapper } = createWrapper();
 
     const { result } = renderHook(() => useIssues(), { wrapper });
@@ -187,11 +187,10 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
       queryKey: issueKeys.list(),
     });
     expect(queryState).toBeDefined();
-    // The refetchInterval on the observer should be 2000 when no mutations are pending
     const observers = queryState!.observers;
     expect(observers.length).toBeGreaterThan(0);
     const observerOptions = observers[0].options;
-    expect(observerOptions.refetchInterval).toBe(2000);
+    expect(observerOptions.refetchInterval).toBe(10_000);
   });
 
   it("suppresses polling when an issue mutation is pending", async () => {
@@ -254,7 +253,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
 
     await waitFor(() => {
       const qs = queryClient.getQueryCache().find({ queryKey: issueKeys.list() });
-      expect(qs!.observers[0].options.refetchInterval).toBe(2000);
+      expect(qs!.observers[0].options.refetchInterval).toBe(10_000);
     });
   });
 
@@ -308,7 +307,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
 
     await waitFor(() => {
       const qs = queryClient.getQueryCache().find({ queryKey: issueKeys.list() });
-      expect(qs!.observers[0].options.refetchInterval).toBe(2000);
+      expect(qs!.observers[0].options.refetchInterval).toBe(10_000);
     });
   });
 });

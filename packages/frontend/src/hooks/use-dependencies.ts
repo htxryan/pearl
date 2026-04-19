@@ -10,7 +10,6 @@ export function useAllDependencies() {
   return useQuery<Dependency[]>({
     queryKey: dependencyKeys.all,
     queryFn: () => api.fetchAllDependencies(),
-    // Suppress polling while mutations are pending
-    refetchInterval: pendingMutations > 0 ? false : 2000,
+    refetchInterval: pendingMutations > 0 ? false : 10_000,
   });
 }
