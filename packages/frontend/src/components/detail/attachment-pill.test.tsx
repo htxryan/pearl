@@ -4,6 +4,7 @@ import { AttachmentPill } from "./attachment-pill";
 
 vi.mock("@/hooks/use-attachment-context", () => ({
   useAttachmentBlob: vi.fn(),
+  useAttachmentClick: vi.fn().mockReturnValue(undefined),
 }));
 
 import { useAttachmentBlob } from "@/hooks/use-attachment-context";

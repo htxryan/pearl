@@ -1,4 +1,4 @@
-import { useAttachmentBlob } from "@/hooks/use-attachment-context";
+import { useAttachmentBlob, useAttachmentClick } from "@/hooks/use-attachment-context";
 
 export type AttachmentPillStatus = "loading" | "loaded" | "error";
 
@@ -11,6 +11,7 @@ export function AttachmentPill(props: AttachmentPillProps) {
   const ref = props["data-ref"];
   const index = props["data-index"];
   const { status, objectUrl, error } = useAttachmentBlob(ref);
+  const handleClick = useAttachmentClick();
 
   if (status === "loading") {
     return <AttachmentPillSkeleton index={index} />;
@@ -27,6 +28,7 @@ export function AttachmentPill(props: AttachmentPillProps) {
       aria-label={`Attachment ${index}`}
       data-ref={ref}
       data-index={index}
+      onClick={() => handleClick?.(ref)}
     >
       {objectUrl ? (
         <img

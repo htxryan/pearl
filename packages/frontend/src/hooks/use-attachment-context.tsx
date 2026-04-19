@@ -195,6 +195,13 @@ export function useAttachmentClick(): ((ref: string) => void) | undefined {
   return ctx?.onPillClick;
 }
 
+export function useAttachmentCacheCheck(): (
+  ref: string,
+) => "loading" | "loaded" | "error" | undefined {
+  const ctx = useContext(AttachmentContext);
+  return useCallback((ref: string) => ctx?.getCached(ref)?.status, [ctx]);
+}
+
 export function useAllAttachmentRefs(): { ref: string; block: AttachmentBlock }[] {
   const ctx = useContext(AttachmentContext);
   return useMemo(() => {

@@ -13,6 +13,7 @@ import { AttachmentsGallery } from "@/components/detail/attachments-gallery";
 import { CommentThread } from "@/components/detail/comment-thread";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
+import { Lightbox } from "@/components/detail/lightbox";
 import { MarkdownSection } from "@/components/detail/markdown-section";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -177,6 +178,9 @@ function DetailViewContent({ id }: { id: string }) {
   // Confirmation dialog state
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Lightbox state
+  const [lightboxRef, setLightboxRef] = useState<string | null>(null);
 
   // Dirty state for unsaved changes warning
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
@@ -346,7 +350,7 @@ function DetailViewContent({ id }: { id: string }) {
   }
 
   return (
-    <AttachmentProvider parsedFields={parsedFields}>
+    <AttachmentProvider parsedFields={parsedFields} onPillClick={setLightboxRef}>
       <div className="flex flex-col h-full overflow-hidden">
         {/* Header bar */}
         <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
@@ -556,7 +560,7 @@ function DetailViewContent({ id }: { id: string }) {
               title="Attachments"
               hasContent={parsedFields.some((p) => p.blocks.size > 0)}
             >
-              <AttachmentsGallery />
+              <AttachmentsGallery onThumbnailClick={setLightboxRef} />
             </CollapsibleSection>
 
             {/* Dependencies */}
@@ -615,6 +619,7 @@ function DetailViewContent({ id }: { id: string }) {
           isPending={deleteMutation.isPending}
         />
       </div>
+      <Lightbox activeRef={lightboxRef} onClose={() => setLightboxRef(null)} />
     </AttachmentProvider>
   );
 }
