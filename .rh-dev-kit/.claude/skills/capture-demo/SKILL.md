@@ -189,6 +189,28 @@ if (!inDetail) return;
 ### 7. When debugging, write a diagnostic script first
 Before re-recording, a diagnostic script that screenshots after every action reveals exactly where things fail without watching video.
 
+### 8. Command palette options are `[role="option"]`, not `<li>`
+The palette is built on cmdk, which renders options as `<div role="option">`. Selectors using `<li>` silently miss them:
+```js
+// WRONG: page.locator('li', { hasText: 'Theme: Solarized Light' }).first()
+// RIGHT:
+page.locator('[role="option"]', { hasText: 'Theme: Solarized Light' }).first()
+```
+
+### 9. The command palette searches labels, not groups
+Commands are registered with labels like `Theme: Monokai` grouped under a heading like `Switch Theme`. Typing the group heading returns `No results found`. Type the label prefix (or enough characters to rank the command above any issue-title matches — e.g., `Theme: Sol` beats `Theme`).
+
+### 10. `scrollIntoViewIfNeeded` before `moveTo` + click on long pages
+Playwright's `moveTo` uses the bounding-box center. If the target is offscreen, the coordinates point to empty space and the click silently no-ops — no error, no state change. The failure is invisible in stdout; only frame-level validation catches it.
+```js
+// WRONG (silently fails when card is below the fold):
+await moveTo(hcCard); await sleep(800); await hcCard.click();
+// RIGHT:
+await hcCard.scrollIntoViewIfNeeded();
+await sleep(500);
+await moveTo(hcCard); await sleep(800); await hcCard.click();
+```
+
 ## Important Notes
 
 - ALWAYS stop servers you started before finishing (prevents Dolt lock issues)
