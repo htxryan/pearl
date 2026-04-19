@@ -22,6 +22,9 @@ export function insertAttachments(
     pillText +
     parsed.prose.slice(insertPos);
 
-  const allBlocks = [...parsed.blocks.values(), ...newBlocks.map((b) => b.block)];
-  return serializeField(newProse, allBlocks);
+  const deduped = new Map(parsed.blocks);
+  for (const { block } of newBlocks) {
+    deduped.set(block.ref, block);
+  }
+  return serializeField(newProse, [...deduped.values()]);
 }

@@ -16,7 +16,9 @@ export function AltTextDialog({ isOpen, fileName, onSubmit, onSkip }: AltTextDia
   useEffect(() => {
     if (isOpen) {
       setValue("");
-      dialogRef.current?.showModal();
+      if (dialogRef.current && !dialogRef.current.open) {
+        dialogRef.current.showModal();
+      }
       requestAnimationFrame(() => inputRef.current?.focus());
     } else {
       dialogRef.current?.close();

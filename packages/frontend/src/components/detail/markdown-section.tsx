@@ -164,8 +164,13 @@ export function MarkdownSection({
     (e: React.ClipboardEvent) => {
       const files = extractImageFiles(e.clipboardData.items);
       if (files.length > 0) {
-        e.preventDefault();
-        processFiles(files);
+        const hasText = e.clipboardData.types.includes("text/plain");
+        if (!hasText) {
+          e.preventDefault();
+          processFiles(files);
+        } else {
+          setTimeout(() => processFiles(files), 0);
+        }
       }
     },
     [processFiles],
