@@ -2,7 +2,14 @@ import { useCallback, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { Button } from "@/components/ui/button";
+import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- react-markdown components typing
+const markdownComponents: Record<string, React.ComponentType<any>> = {
+  "attachment-pill": AttachmentPill,
+};
 
 interface MarkdownSectionProps {
   title: string;
@@ -181,7 +188,11 @@ export function MarkdownSection({
             <div className="min-h-[120px] border border-border rounded-lg px-3 py-2">
               {editValue ? (
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                  <Markdown
+                    remarkPlugins={[remarkGfm, remarkAttachmentPills]}
+                    rehypePlugins={[rehypeHighlight]}
+                    components={markdownComponents}
+                  >
                     {editValue}
                   </Markdown>
                 </div>
@@ -217,7 +228,11 @@ export function MarkdownSection({
             }
           }}
         >
-          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+          <Markdown
+            remarkPlugins={[remarkGfm, remarkAttachmentPills]}
+            rehypePlugins={[rehypeHighlight]}
+            components={markdownComponents}
+          >
             {content}
           </Markdown>
         </div>
