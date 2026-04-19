@@ -79,12 +79,21 @@ function parseBlockBody(version: string, ref: Ref, bodyLines: string[]): BlockPa
   }
 
   const fields = new Map<string, string>();
+  let lastKey: string | undefined;
   for (const line of bodyLines) {
     const colonIdx = line.indexOf(":");
-    if (colonIdx === -1) continue;
+    if (colonIdx === -1) {
+      if (lastKey) {
+        fields.set(lastKey, `${fields.get(lastKey)}${line}`);
+      }
+      continue;
+    }
     const key = line.slice(0, colonIdx).trim();
     const value = line.slice(colonIdx + 1).trim();
-    if (key && value) fields.set(key, value);
+    if (key && value) {
+      fields.set(key, value);
+      lastKey = key;
+    }
   }
 
   const type = fields.get("type");
@@ -259,6 +268,16 @@ export function serializeField(prose: string, blocks: AttachmentBlock[]): string
 
 const WORKER_THRESHOLD = 256 * 1024;
 
+function hydrateBlocksMap(raw: unknown): Map<Ref, AttachmentBlock> {
+  if (raw instanceof Map) return raw;
+  if (raw && typeof raw === "object") {
+    return new Map<Ref, AttachmentBlock>(
+      Object.entries(raw).map(([k, v]) => [k as Ref, v as AttachmentBlock]),
+    );
+  }
+  return new Map<Ref, AttachmentBlock>();
+}
+
 export async function parseFieldAsync(text: string): Promise<ParsedField> {
   if (text.length < WORKER_THRESHOLD || typeof Worker === "undefined") {
     return parseField(text);
@@ -277,7 +296,7 @@ export async function parseFieldAsync(text: string): Promise<ParsedField> {
       }
       resolve({
         prose: data.prose,
-        blocks: data.blocks instanceof Map ? data.blocks : new Map<Ref, AttachmentBlock>(),
+        blocks: hydrateBlocksMap(data.blocks),
         refsInProse: data.refsInProse,
         broken: data.broken,
       } as ParsedField);

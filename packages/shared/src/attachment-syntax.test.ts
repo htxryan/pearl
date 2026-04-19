@@ -773,6 +773,17 @@ describe("edge cases", () => {
     expect(result.broken[0].reason).toContain("path traversal");
   });
 
+  it("parseBlockBody handles multi-line base64 data (no truncation)", () => {
+    const line1 = SAMPLE_BASE64.slice(0, 20);
+    const line2 = SAMPLE_BASE64.slice(20);
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: inline\nmime: image/webp\ndata: ${line1}\n${line2}\n-->`;
+    const text = `Text\n\n${block}`;
+    const result = parseField(text);
+    expect(result.blocks.size).toBe(1);
+    const inline = result.blocks.get(SAMPLE_REF_1) as InlineAttachment;
+    expect(inline.data).toBe(`${line1}${line2}`);
+  });
+
   it("serializeField handles blocks with user scope", () => {
     const block: LocalAttachment = {
       ...LOCAL_BLOCK,
