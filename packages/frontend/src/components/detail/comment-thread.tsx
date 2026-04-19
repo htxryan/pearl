@@ -103,7 +103,8 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
   const processFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0 || isUploading) return;
-      cursorPosRef.current = textareaRef.current?.selectionStart ?? newComment.length;
+      cursorPosRef.current =
+        textareaRef.current?.selectionStart ?? textareaRef.current?.value?.length ?? 0;
 
       const { results } = await uploadFiles(files);
       if (results.length === 0) return;
@@ -113,7 +114,7 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
         currentIndex: 0,
       });
     },
-    [uploadFiles, newComment.length, isUploading],
+    [uploadFiles, isUploading],
   );
 
   const handlePaste = useCallback(

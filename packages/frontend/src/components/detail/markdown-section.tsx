@@ -147,7 +147,8 @@ export function MarkdownSection({
   const processFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0 || isUploading) return;
-      cursorPosRef.current = textareaRef.current?.selectionStart ?? editValue.length;
+      cursorPosRef.current =
+        textareaRef.current?.selectionStart ?? textareaRef.current?.value?.length ?? 0;
 
       const { results } = await uploadFiles(files);
       if (results.length === 0) return;
@@ -157,7 +158,7 @@ export function MarkdownSection({
         currentIndex: 0,
       });
     },
-    [uploadFiles, editValue.length, isUploading],
+    [uploadFiles, isUploading],
   );
 
   const handlePaste = useCallback(

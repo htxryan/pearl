@@ -92,20 +92,22 @@ export function useImageUpload(): UseImageUploadReturn {
     const results: UploadResult[] = [];
     const errors: UploadError[] = [];
 
-    for (const file of files) {
-      try {
-        const encoded = await encodeImage(file, policy);
-        const block = await adapter.store(encoded);
-        results.push({ block, fileName: file.name });
-      } catch (err) {
-        errors.push({ fileName: file.name, message: formatError(err) });
+    try {
+      for (const file of files) {
+        try {
+          const encoded = await encodeImage(file, policy);
+          const block = await adapter.store(encoded);
+          results.push({ block, fileName: file.name });
+        } catch (err) {
+          errors.push({ fileName: file.name, message: formatError(err) });
+        }
+        setProgress({ total: files.length, completed: results.length + errors.length });
       }
-      setProgress({ total: files.length, completed: results.length + errors.length });
+    } finally {
+      uploadingRef.current = false;
+      setIsUploading(false);
+      setProgress(null);
     }
-
-    uploadingRef.current = false;
-    setIsUploading(false);
-    setProgress(null);
     if (errors.length > 0) setLastErrors(errors);
 
     return { results, errors };

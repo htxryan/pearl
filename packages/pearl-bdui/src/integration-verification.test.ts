@@ -28,7 +28,7 @@ const WEBP_BYTES = Buffer.from(
 
 function makeSweepDeps(overrides: Partial<SweepDeps> = {}): SweepDeps {
   return {
-    resolveAttachmentBase: (scope: LocalScope, projectRoot: string) =>
+    resolveAttachmentBase: (scope: LocalScope, projectRoot: string, _settings: Settings) =>
       scope === "project"
         ? resolve(projectRoot, ".pearl", "attachments")
         : resolve(projectRoot, ".pearl", "user-attachments"),
@@ -91,7 +91,10 @@ describe("Contract: Epic 5 <-> Epic 6 — Orphan sweep lifecycle", () => {
     const filePath = writeTestFile(ref, "webp", 0);
     expect(existsSync(filePath)).toBe(true);
 
-    // Step 2: Mark as referenced — sweep skips it
+    // Step 2: Age past grace period + mark as referenced — sweep skips it
+    const oldTimeReferenced = new Date(Date.now() - 120 * 1000);
+    utimesSync(filePath, oldTimeReferenced, oldTimeReferenced);
+
     const sweepReferenced = new OrphanSweep(
       makeSweepDeps({
         projectRoot: tmpDir,
@@ -105,11 +108,13 @@ describe("Contract: Epic 5 <-> Epic 6 — Orphan sweep lifecycle", () => {
     );
 
     const result1 = await sweepReferenced.runOnce();
-    expect(result1.skippedYoung).toBe(1);
+    expect(result1.skippedReferenced).toBe(1);
+    expect(result1.skippedYoung).toBe(0);
     expect(result1.deleted).toBe(0);
     expect(existsSync(filePath)).toBe(true);
 
-    // Step 3: Mark as unreferenced but young — sweep skips it (grace period)
+    // Step 3: Reset to young + mark as unreferenced — sweep skips it (grace period)
+    utimesSync(filePath, new Date(), new Date());
     const sweepUnrefYoung = new OrphanSweep(
       makeSweepDeps({
         projectRoot: tmpDir,
@@ -300,7 +305,7 @@ describe("Contract: Failure injection #4 — Path traversal rejection", () => {
   });
 
   describe("resolveAttachmentBase scope override safety", () => {
-    it("resolveAttachmentBase uses override path verbatim (no traversal in path itself)", () => {
+    it("resolveAttachmentBase returns override path when configured", () => {
       const settings = structuredClone(DEFAULT_SETTINGS);
       settings.attachments.local.projectPathOverride = "/safe/custom/path";
       const base = resolveAttachmentBase("project", "/projects/test", settings);
