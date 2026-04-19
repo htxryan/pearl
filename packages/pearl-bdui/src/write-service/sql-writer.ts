@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { hostname } from "node:os";
 import type { CreateIssueRequest, InvalidationHint, UpdateIssueRequest } from "@pearl/shared";
-import { hasAttachmentSyntax } from "@pearl/shared";
+import { ATTACHMENT_HOST_FIELDS, hasAttachmentSyntax } from "@pearl/shared";
 import type { PoolConnection } from "mysql2/promise";
 import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
@@ -9,10 +9,8 @@ import { notFoundError } from "../errors.js";
 
 const ACTOR = hostname();
 
-const HOST_FIELDS = ["description", "design", "acceptance_criteria", "notes"] as const;
-
 function computeHasAttachments(fields: Record<string, unknown>): boolean {
-  return HOST_FIELDS.some((f) => {
+  return ATTACHMENT_HOST_FIELDS.some((f) => {
     const val = fields[f];
     return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
   });

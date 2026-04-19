@@ -354,6 +354,14 @@ export const ISSUE_LIST_FIELDS = [
 
 export type IssueListField = (typeof ISSUE_LIST_FIELDS)[number];
 
+/** Fields that can contain attachment syntax (pills + data blocks) */
+export const ATTACHMENT_HOST_FIELDS = [
+  "description",
+  "design",
+  "acceptance_criteria",
+  "notes",
+] as const;
+
 // ─── Settings Types ─────────────────────────────────────────
 
 export type StorageMode = "inline" | "local";

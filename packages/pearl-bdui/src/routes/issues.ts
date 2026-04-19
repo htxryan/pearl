@@ -5,7 +5,7 @@ import type {
   Priority,
   UpdateIssueRequest,
 } from "@pearl/shared";
-import { hasAttachmentSyntax, ISSUE_LIST_FIELDS } from "@pearl/shared";
+import { ATTACHMENT_HOST_FIELDS, hasAttachmentSyntax, ISSUE_LIST_FIELDS } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { RowDataPacket } from "mysql2";
 import type { Config } from "../config.js";
@@ -145,7 +145,7 @@ export async function ensureHasAttachmentsColumn(getConfig: () => Config): Promi
     await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-         WHERE TABLE_NAME = 'issues' AND COLUMN_NAME = 'has_attachments'
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'issues' AND COLUMN_NAME = 'has_attachments'
          LIMIT 1`,
       );
       if ((rows as unknown[]).length === 0) {
@@ -408,9 +408,10 @@ export function registerIssueRoutes(
       throw notFoundError("Issue", id);
     }
 
-    // Reconcile has_attachments (E4a: recover from external bd CLI edits)
-    const hostFields = ["description", "design", "acceptance_criteria", "notes"] as const;
-    const computed = hostFields.some((f) => {
+    // Reconcile has_attachments (E4a: recover from external bd CLI edits).
+    // Intentionally bypasses WriteService — this is a derived-field correction,
+    // not a user mutation, so no event is logged.
+    const computed = ATTACHMENT_HOST_FIELDS.some((f) => {
       const val = issue[f];
       return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
     });
@@ -422,7 +423,9 @@ export function registerIssueRoutes(
           computed ? 1 : 0,
           id,
         ]);
-      }).catch(() => {});
+      }).catch((err) => {
+        request.log.warn({ err, issueId: id }, "has_attachments reconciliation failed");
+      });
     }
 
     // Fetch labels
