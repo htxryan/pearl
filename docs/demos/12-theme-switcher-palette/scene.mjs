@@ -10,11 +10,18 @@ export default async function scene({ page, cap, helpers }) {
   cap.mark('Command Palette \u2014 Switch Theme for quick access');
   await page.keyboard.press('Meta+k');
   await sleep(1000);
-  await page.keyboard.type('Switch Theme', { delay: 60 });
+  // Theme commands are labeled "Theme: <name>" (grouped under "Switch Theme").
+  // Just typing "Theme" surfaces issues whose titles contain the word and
+  // buries the commands; "Theme: Sol" is specific enough to rank the command
+  // entries first.
+  await page.keyboard.type('Theme: Sol', { delay: 60 });
   await sleep(3000);
 
   cap.mark('Solarized Light \u2014 Warm, readable light palette');
-  const solarizedOption = page.locator('li', { hasText: 'Solarized Light' }).first();
+  // cmdk renders options as [role="option"], not <li>.
+  const solarizedOption = page
+    .locator('[role="option"]', { hasText: 'Theme: Solarized Light' })
+    .first();
   if (await solarizedOption.isVisible({ timeout: 2000 }).catch(() => false)) {
     await moveTo(solarizedOption);
     await sleep(800);
