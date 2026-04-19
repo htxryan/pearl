@@ -210,11 +210,13 @@ async function resetState(page, meta) {
 }
 
 export async function runScene({ id, folder, scene, meta }) {
+  const step = (msg) => console.log(`  · ${msg}`);
   const rawDir = path.join(folder, '_raw');
   fs.rmSync(rawDir, { recursive: true, force: true });
   fs.mkdirSync(rawDir, { recursive: true });
 
   const viewport = meta.viewport ?? { width: 1440, height: 900 };
+  step('launch browser');
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport,
@@ -224,15 +226,22 @@ export async function runScene({ id, folder, scene, meta }) {
   const cap = new CaptionTracker();
 
   const startPath = meta.startPath ?? '/list';
+  step(`goto ${startPath}`);
   await page.goto(`${BASE_URL}${startPath}`);
+  step('reset state');
   await resetState(page, meta);
+  step('reload');
   await page.reload();
-  await page.waitForLoadState('networkidle').catch(() => {});
+  // Don't wait for 'networkidle' — vite HMR websocket + react-query polling
+  // keep the connection "busy" indefinitely. Wait for 'load' instead.
+  await page.waitForLoadState('load').catch(() => {});
   await sleep(800);
+  step('inject overlays');
   await injectOverlays(page);
   await page.mouse.move(720, 450);
   await sleep(1000);
 
+  step('run scene');
   const helpers = makeHelpers(page);
   let sceneError = null;
   try {
@@ -242,8 +251,11 @@ export async function runScene({ id, folder, scene, meta }) {
     console.error(`Scene "${id}" threw:`, e.message);
   }
 
+  step('close page');
   await page.close();
+  step('close context (flushes video)');
   await context.close();
+  step('close browser');
   await browser.close();
 
   const files = fs.readdirSync(rawDir).filter((f) => f.endsWith('.webm'));
