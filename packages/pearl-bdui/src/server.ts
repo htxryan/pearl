@@ -7,6 +7,7 @@ import type { Config } from "./config.js";
 import { createDoltPool, destroyPool } from "./dolt/pool.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { AppError } from "./errors.js";
+import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerIssueRoutes } from "./routes/issues.js";
@@ -183,6 +184,7 @@ export async function createServer(initialConfig: Config) {
 
   const settingsEventBus = new SettingsEventBus();
   registerSettingsRoutes(app, settingsEventBus);
+  registerAttachmentRoutes(app, settingsEventBus);
   registerMigrationRoutes(app, {
     getConfig,
     onMigrationComplete: async (newConfig: Config) => {
