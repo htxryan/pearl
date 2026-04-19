@@ -92,7 +92,7 @@ export async function createServer(initialConfig: Config) {
   // ─── CORS ─────────────────────────────────────────────
   app.addHook("onRequest", async (request, reply) => {
     reply.header("Access-Control-Allow-Origin", "*");
-    reply.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    reply.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
     reply.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
     if (request.method === "OPTIONS") {
@@ -139,7 +139,8 @@ export async function createServer(initialConfig: Config) {
     if (
       url.startsWith("/api/health") ||
       url.startsWith("/api/migration") ||
-      url.startsWith("/api/setup")
+      url.startsWith("/api/setup") ||
+      url.startsWith("/api/settings")
     )
       return;
     if (url.startsWith("/api/") && request.method !== "GET") {

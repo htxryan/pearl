@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Settings } from "@pearl/shared";
 import { DEFAULT_SETTINGS } from "@pearl/shared";
@@ -90,9 +90,9 @@ export async function loadSettings(
 
 export async function saveSettings(projectRoot: string, settings: Settings): Promise<void> {
   const dir = resolve(projectRoot, SETTINGS_DIR);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  mkdirSync(dir, { recursive: true });
   const filePath = settingsFilePath(projectRoot);
-  writeFileSync(filePath, `${JSON.stringify(settings, null, 2)}\n`, "utf-8");
+  const tmpPath = `${filePath}.tmp`;
+  writeFileSync(tmpPath, `${JSON.stringify(settings, null, 2)}\n`, "utf-8");
+  renameSync(tmpPath, filePath);
 }

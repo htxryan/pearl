@@ -23,7 +23,6 @@ export function useUpdateSettings() {
       if (response.data) {
         queryClient.setQueryData(settingsKeys.all, response.data);
       }
-      queryClient.invalidateQueries({ queryKey: settingsKeys.all });
     },
   });
 }

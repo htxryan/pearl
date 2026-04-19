@@ -30,8 +30,8 @@ const updateSettingsSchema = {
             required: ["format", "maxBytes", "maxDimension", "stripExif"],
             properties: {
               format: { type: "string", const: "webp" },
-              maxBytes: { type: "number", exclusiveMinimum: 0 },
-              maxDimension: { type: "number", exclusiveMinimum: 0 },
+              maxBytes: { type: "number", exclusiveMinimum: 0, maximum: 52_428_800 },
+              maxDimension: { type: "number", exclusiveMinimum: 0, maximum: 16_384 },
               stripExif: { type: "boolean", const: true },
             },
             additionalProperties: false,
