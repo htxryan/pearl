@@ -188,6 +188,22 @@ describe("computeRef", () => {
 });
 
 // ---------------------------------------------------------------------------
+// fullSha256
+// ---------------------------------------------------------------------------
+
+describe("fullSha256", () => {
+  it("returns a 64-character hex string", () => {
+    const hash = fullSha256(Buffer.from("hello"));
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("matches the leading 12 chars from computeRef", () => {
+    const bytes = Buffer.from("consistency check");
+    expect(fullSha256(bytes).slice(0, 12)).toBe(computeRef(bytes));
+  });
+});
+
+// ---------------------------------------------------------------------------
 // generateLocalDataBlock
 // ---------------------------------------------------------------------------
 

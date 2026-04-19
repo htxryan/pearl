@@ -177,6 +177,39 @@ describe("extractBlocks", () => {
     const blocks = extractBlocks(text);
     expect(blocks).toHaveLength(0);
   });
+
+  it("handles CRLF line endings", () => {
+    const text = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\r\ntype: inline\r\nmime: image/webp\r\ndata: ${SAMPLE_BASE64}\r\n-->`;
+    const blocks = extractBlocks(text);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].ref).toBe(SAMPLE_REF_1);
+    expect((blocks[0] as InlineAttachment).data).toBe(SAMPLE_BASE64);
+  });
+
+  it("tolerates trailing whitespace after ref", () => {
+    const text = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}  \ntype: inline\nmime: image/webp\ndata: ${SAMPLE_BASE64}\n-->`;
+    const blocks = extractBlocks(text);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].ref).toBe(SAMPLE_REF_1);
+  });
+
+  it("rejects invalid MIME types", () => {
+    const text = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\ntype: inline\nmime: not a valid mime\ndata: ${SAMPLE_BASE64}\n-->`;
+    const blocks = extractBlocks(text);
+    expect(blocks).toHaveLength(0);
+  });
+
+  it("rejects invalid sha256 in local blocks", () => {
+    const text = `<!-- pearl-attachment:v1:${SAMPLE_REF_2}\ntype: local\nmime: image/webp\nscope: project\npath: attachments/img.webp\nsha256: not-a-hash\n-->`;
+    const blocks = extractBlocks(text);
+    expect(blocks).toHaveLength(0);
+  });
+
+  it("rejects path traversal in local blocks", () => {
+    const text = `<!-- pearl-attachment:v1:${SAMPLE_REF_2}\ntype: local\nmime: image/webp\nscope: project\npath: ../../../etc/passwd\nsha256: ${SAMPLE_SHA256}\n-->`;
+    const blocks = extractBlocks(text);
+    expect(blocks).toHaveLength(0);
+  });
 });
 
 // ─── parse ──────────────────────────────────────────────────
@@ -249,6 +282,29 @@ describe("parse", () => {
     expect(result.pills).toHaveLength(0);
     expect(result.blocks).toHaveLength(0);
     expect(result.matched.size).toBe(0);
+  });
+
+  it("handles CRLF line endings throughout", () => {
+    const prose = `Screenshot: [img:${SAMPLE_REF_1}]`;
+    const block = `<!-- pearl-attachment:v1:${SAMPLE_REF_1}\r\ntype: inline\r\nmime: image/webp\r\ndata: ${SAMPLE_BASE64}\r\n-->`;
+    const text = `${prose}\r\n\r\n${block}`;
+
+    const result = parse(text);
+    expect(result.prose).toBe(prose);
+    expect(result.pills).toHaveLength(1);
+    expect(result.blocks).toHaveLength(1);
+    expect(result.matched.size).toBe(1);
+  });
+
+  it("strips block markup from prose when no blank-line separator", () => {
+    const prose = `Image: [img:${SAMPLE_REF_1}]`;
+    const block = makeInlineBlockText(SAMPLE_REF_1, "image/webp", SAMPLE_BASE64);
+    const text = `${prose}\n${block}`;
+
+    const result = parse(text);
+    expect(result.blocks).toHaveLength(1);
+    expect(result.prose).not.toContain("pearl-attachment");
+    expect(result.prose).toContain(`[img:${SAMPLE_REF_1}]`);
   });
 
   it("gracefully handles malformed data blocks mixed with valid ones", () => {

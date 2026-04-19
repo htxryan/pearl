@@ -177,6 +177,7 @@ function mimeToExtension(mime: string): string {
     "image/webp": "webp",
     "image/png": "png",
     "image/jpeg": "jpg",
+    "image/jpg": "jpg",
     "image/gif": "gif",
     "image/svg+xml": "svg",
   };

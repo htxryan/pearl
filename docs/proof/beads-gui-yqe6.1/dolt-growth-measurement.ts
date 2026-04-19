@@ -14,12 +14,12 @@
 
 import { execSync } from "node:child_process";
 import { randomBytes, createHash } from "node:crypto";
-import { writeFileSync, unlinkSync } from "node:fs";
+import { writeFileSync, unlinkSync, statSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const BEADS_DIR = "/Users/redhale/src/pearl/.beads";
-const WORKING_DIR = "/Users/redhale/src/pearl";
+const WORKING_DIR = process.cwd();
+const BEADS_DIR = join(WORKING_DIR, ".beads");
 const NUM_ATTACHMENTS = 10;
 const BLOB_SIZE_BYTES = 4 * 1024; // 4KB each — fits in TEXT column
 const NUM_EDITS = 20;
@@ -31,15 +31,19 @@ const TARGET_BLOB_SIZE_BYTES = 100 * 1024; // 100KB each — the real-world targ
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getBeadsSizeBytes(): number {
-  // Use find + stat to sum actual file sizes (byte-accurate on macOS)
-  const output = execSync(
-    `find "${BEADS_DIR}" -type f -exec stat -f "%z" {} +`,
-    { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 },
-  );
-  return output
-    .trim()
-    .split(/\s+/)
-    .reduce((sum, s) => sum + (parseInt(s, 10) || 0), 0);
+  let total = 0;
+  function walk(dir: string): void {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.isFile()) {
+        total += statSync(full).size;
+      }
+    }
+  }
+  walk(BEADS_DIR);
+  return total;
 }
 
 function generateAttachment(): { ref: string; base64Data: string } {

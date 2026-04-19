@@ -92,8 +92,9 @@ export interface SerializeInput {
 // ─── Constants ──────────────────────────────────────────────
 
 const REF_PATTERN = "[0-9a-f]{12}";
-const PILL_REGEX = new RegExp(`\\[img:(${REF_PATTERN})\\]`, "g");
 const SUPPORTED_VERSIONS = new Set(["v1"]);
+const MIME_PATTERN = /^[\w+.-]+\/[\w+.-]+$/;
+const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 
 // ─── Parser ─────────────────────────────────────────────────
 
@@ -102,10 +103,8 @@ const SUPPORTED_VERSIONS = new Set(["v1"]);
  */
 export function extractPills(text: string): PillReference[] {
   const pills: PillReference[] = [];
-  let match: RegExpExecArray | null;
-  // Reset lastIndex for safety
-  PILL_REGEX.lastIndex = 0;
-  while ((match = PILL_REGEX.exec(text)) !== null) {
+  const regex = new RegExp(`\\[img:(${REF_PATTERN})\\]`, "g");
+  for (const match of text.matchAll(regex)) {
     pills.push({
       ref: match[1],
       start: match.index,
@@ -138,7 +137,8 @@ function parseBlockBody(version: string, ref: string, bodyLines: string[]): Atta
   const type = fields.get("type");
   const mime = fields.get("mime");
 
-  if (!type || !mime) return null; // Required fields missing
+  if (!type || !mime) return null;
+  if (!MIME_PATTERN.test(mime)) return null;
 
   if (type === "inline") {
     const data = fields.get("data");
@@ -151,6 +151,8 @@ function parseBlockBody(version: string, ref: string, bodyLines: string[]): Atta
     const path = fields.get("path");
     const sha256 = fields.get("sha256");
     if (!scope || !path || !sha256) return null;
+    if (!SHA256_PATTERN.test(sha256)) return null;
+    if (/(?:^|\/)\.\.(?:\/|$)/.test(path)) return null;
     return { type: "local", ref, mime, scope, path, sha256 };
   }
 
@@ -162,11 +164,11 @@ function parseBlockBody(version: string, ref: string, bodyLines: string[]): Atta
  * matching the pattern `<!-- pearl-attachment:v1:<ref> ... -->`.
  */
 export function extractBlocks(text: string): AttachmentBlock[] {
+  const normalized = text.replace(/\r\n/g, "\n");
   const blocks: AttachmentBlock[] = [];
-  // Match entire HTML comment blocks
-  const commentRegex = /<!--\s*pearl-attachment:(v\d+):([0-9a-f]{12})\n([\s\S]*?)-->/g;
+  const commentRegex = /<!--\s*pearl-attachment:(v\d+):([0-9a-f]{12})[ \t]*\n([\s\S]*?)-->/g;
   let match: RegExpExecArray | null;
-  while ((match = commentRegex.exec(text)) !== null) {
+  while ((match = commentRegex.exec(normalized)) !== null) {
     const version = match[1];
     const ref = match[2];
     const body = match[3];
@@ -184,10 +186,12 @@ export function extractBlocks(text: string): AttachmentBlock[] {
 
 /**
  * Split text into prose (before data blocks) and data-block region.
- * Data blocks are at the END of the field, separated by a blank line.
+ * Data blocks are expected at the END of the field, separated by a blank line.
  */
 function splitProseAndBlocks(text: string): { prose: string; blockRegion: string } {
-  // Find the first pearl-attachment comment, working backwards from end
+  if (/^<!--\s*pearl-attachment:/.test(text)) {
+    return { prose: "", blockRegion: text };
+  }
   const firstBlockIdx = text.search(/\n\n<!--\s*pearl-attachment:/);
   if (firstBlockIdx === -1) {
     return { prose: text, blockRegion: "" };
@@ -203,9 +207,22 @@ function splitProseAndBlocks(text: string): { prose: string; blockRegion: string
  * Extracts pills, data blocks, and matches them by ref.
  */
 export function parse(text: string): ParsedAttachments {
-  const { prose, blockRegion } = splitProseAndBlocks(text);
+  const normalized = text.replace(/\r\n/g, "\n");
+  let { prose, blockRegion } = splitProseAndBlocks(normalized);
+  let blocks: AttachmentBlock[];
+
+  if (blockRegion) {
+    blocks = extractBlocks(blockRegion);
+  } else {
+    blocks = extractBlocks(normalized);
+    if (blocks.length > 0) {
+      prose = normalized
+        .replace(/\n*<!--\s*pearl-attachment:v\d+:[0-9a-f]{12}[ \t]*\n[\s\S]*?-->/g, "")
+        .trimEnd();
+    }
+  }
+
   const pills = extractPills(prose);
-  const blocks = extractBlocks(blockRegion || text);
 
   // Build a map of ref → block for matching
   const blockByRef = new Map<string, AttachmentBlock>();
@@ -279,5 +296,6 @@ export function serialize(input: SerializeInput): string {
   }
 
   const serializedBlocks = input.blocks.map(serializeBlock);
-  return `${input.prose}\n\n${serializedBlocks.join("\n\n")}`;
+  const trimmedProse = input.prose.replace(/\n+$/, "");
+  return `${trimmedProse}\n\n${serializedBlocks.join("\n\n")}`;
 }
