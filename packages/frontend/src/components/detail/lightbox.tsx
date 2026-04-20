@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { toggleKeyboardHelp } from "@/components/keyboard-help";
 import {
   useAllAttachmentRefs,
   useAttachmentBlob,
   useAttachmentCacheCheck,
+  useAttachmentSourceLabel,
 } from "@/hooks/use-attachment-context";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 
@@ -85,6 +87,14 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
             return prev;
           });
           break;
+        case "?":
+        case "/":
+          // Shift+/ produces "?"; allow plain "/" as a fallback
+          if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
+            e.preventDefault();
+            toggleKeyboardHelp();
+          }
+          break;
       }
     },
     [onClose, navigateBy, refs, checkCache],
@@ -147,9 +157,12 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
             <ChevronLeftIcon />
           </button>
 
-          <span className="text-sm text-white font-medium tabular-nums select-none">
-            {currentIndex + 1} of {refs.length}
-          </span>
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-sm text-white font-medium tabular-nums select-none">
+              {currentIndex + 1} of {refs.length}
+            </span>
+            <LightboxSourceTag ref_={currentRef} />
+          </div>
 
           <button
             type="button"
@@ -160,6 +173,23 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
             <ChevronRightIcon />
           </button>
         </div>
+
+        {/* Keyboard hint footer — subtle, discoverable */}
+        <div className="flex items-center gap-2 text-[11px] text-white/60 select-none">
+          <Kbd>←</Kbd>
+          <Kbd>→</Kbd>
+          <span>navigate</span>
+          <span className="opacity-40">·</span>
+          <Kbd>Home</Kbd>
+          <Kbd>End</Kbd>
+          <span>jump</span>
+          <span className="opacity-40">·</span>
+          <Kbd>Esc</Kbd>
+          <span>close</span>
+          <span className="opacity-40">·</span>
+          <Kbd>?</Kbd>
+          <span>all shortcuts</span>
+        </div>
       </div>
 
       {/* Screen reader announcement */}
@@ -168,6 +198,27 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
       </div>
     </div>,
     document.body,
+  );
+}
+
+function LightboxSourceTag({ ref_ }: { ref_: string }) {
+  const sourceLabel = useAttachmentSourceLabel(ref_);
+  if (!sourceLabel) return null;
+  return (
+    <span
+      className="text-[11px] text-white/70 tracking-wide select-none"
+      aria-label={`Attachment source: ${sourceLabel}`}
+    >
+      from {sourceLabel}
+    </span>
+  );
+}
+
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="inline-flex items-center justify-center min-w-[1.3em] h-[1.3em] px-1 rounded border border-white/25 bg-white/10 text-white/85 text-[10px] font-mono leading-none">
+      {children}
+    </kbd>
   );
 }
 

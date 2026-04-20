@@ -133,11 +133,16 @@ function DetailViewContent({ id }: { id: string }) {
   const acceptanceParsed = useParseField(issue?.acceptance_criteria);
   const notesParsed = useParseField(issue?.notes);
   const commentParsedFields = useMemo(() => {
-    const results: ParsedField[] = [];
+    const results: { parsed: ParsedField; sourceLabel: string }[] = [];
+    let commentIdx = 0;
     for (const comment of comments) {
+      commentIdx++;
       if (comment.text && hasAttachmentSyntax(comment.text)) {
         try {
-          results.push(parseField(comment.text));
+          results.push({
+            parsed: parseField(comment.text),
+            sourceLabel: `Comment #${commentIdx}`,
+          });
         } catch {
           // skip unparseable comments
         }
@@ -146,23 +151,23 @@ function DetailViewContent({ id }: { id: string }) {
     return results;
   }, [comments]);
 
-  const parsedFields = useMemo(
-    () =>
-      [
-        descParsed.parsed,
-        designParsed.parsed,
-        acceptanceParsed.parsed,
-        notesParsed.parsed,
-        ...commentParsedFields,
-      ].filter((p): p is NonNullable<typeof p> => p !== null),
-    [
-      descParsed.parsed,
-      designParsed.parsed,
-      acceptanceParsed.parsed,
-      notesParsed.parsed,
-      commentParsedFields,
-    ],
-  );
+  const parsedFields = useMemo(() => {
+    const labeled: { parsed: ParsedField; sourceLabel: string }[] = [];
+    if (descParsed.parsed) labeled.push({ parsed: descParsed.parsed, sourceLabel: "Description" });
+    if (designParsed.parsed)
+      labeled.push({ parsed: designParsed.parsed, sourceLabel: "Design Notes" });
+    if (acceptanceParsed.parsed)
+      labeled.push({ parsed: acceptanceParsed.parsed, sourceLabel: "Acceptance Criteria" });
+    if (notesParsed.parsed) labeled.push({ parsed: notesParsed.parsed, sourceLabel: "Notes" });
+    labeled.push(...commentParsedFields);
+    return labeled;
+  }, [
+    descParsed.parsed,
+    designParsed.parsed,
+    acceptanceParsed.parsed,
+    notesParsed.parsed,
+    commentParsedFields,
+  ]);
 
   // Mutations
   const updateMutation = useUpdateIssue();
@@ -558,7 +563,7 @@ function DetailViewContent({ id }: { id: string }) {
             {/* Attachments Gallery */}
             <CollapsibleSection
               title="Attachments"
-              hasContent={parsedFields.some((p) => p.blocks.size > 0)}
+              hasContent={parsedFields.some((p) => p.parsed.blocks.size > 0)}
             >
               <AttachmentsGallery onThumbnailClick={setLightboxRef} />
             </CollapsibleSection>

@@ -1,6 +1,10 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAllAttachmentRefs, useAttachmentBlob } from "@/hooks/use-attachment-context";
+import {
+  useAllAttachmentRefs,
+  useAttachmentBlob,
+  useAttachmentSourceLabel,
+} from "@/hooks/use-attachment-context";
 
 interface AttachmentsGalleryProps {
   onThumbnailClick?: (ref: string) => void;
@@ -83,6 +87,7 @@ function GalleryGrid({
 
 function GalleryThumbnail({ ref_, onClick }: { ref_: string; onClick?: (ref: string) => void }) {
   const { status, objectUrl, error } = useAttachmentBlob(ref_);
+  const sourceLabel = useAttachmentSourceLabel(ref_);
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef<HTMLButtonElement>(null);
 
@@ -139,7 +144,11 @@ function GalleryThumbnail({ ref_, onClick }: { ref_: string; onClick?: (ref: str
         <>
           <img
             src={objectUrl}
-            alt={`Attachment ${ref_.slice(0, 8)}`}
+            alt={
+              sourceLabel
+                ? `Attachment ${ref_.slice(0, 8)} from ${sourceLabel}`
+                : `Attachment ${ref_.slice(0, 8)}`
+            }
             className="h-full w-full object-cover transition-[transform,opacity] duration-300 motion-reduce:transition-none group-hover:scale-[1.03]"
             loading="lazy"
           />
@@ -148,6 +157,15 @@ function GalleryThumbnail({ ref_, onClick }: { ref_: string; onClick?: (ref: str
             className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 motion-reduce:transition-none"
             aria-hidden="true"
           />
+          {/* Subtle source-field badge — always visible */}
+          {sourceLabel && (
+            <span
+              className="absolute top-2 left-2 rounded-full bg-black/55 backdrop-blur-sm text-white/95 px-2 py-0.5 text-[10px] font-medium tracking-wide shadow-sm ring-1 ring-white/10"
+              aria-hidden="true"
+            >
+              {sourceLabel}
+            </span>
+          )}
           <span
             className="absolute bottom-2 right-2 rounded-full bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 motion-reduce:transition-none"
             aria-hidden="true"

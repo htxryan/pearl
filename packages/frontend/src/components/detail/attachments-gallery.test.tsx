@@ -5,6 +5,7 @@ import { AttachmentsGallery } from "./attachments-gallery";
 vi.mock("@/hooks/use-attachment-context", () => ({
   useAllAttachmentRefs: vi.fn(),
   useAttachmentBlob: vi.fn(),
+  useAttachmentSourceLabel: vi.fn(() => undefined),
 }));
 
 vi.mock("@tanstack/react-virtual", () => ({

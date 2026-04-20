@@ -6,6 +6,11 @@ vi.mock("@/hooks/use-attachment-context", () => ({
   useAttachmentBlob: vi.fn(),
   useAllAttachmentRefs: vi.fn(),
   useAttachmentCacheCheck: vi.fn(),
+  useAttachmentSourceLabel: vi.fn(() => undefined),
+}));
+
+vi.mock("@/components/keyboard-help", () => ({
+  toggleKeyboardHelp: vi.fn(),
 }));
 
 import {
