@@ -24,23 +24,28 @@ export function AttachmentPill(props: AttachmentPillProps) {
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-medium cursor-pointer hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors align-baseline"
+      className="group inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium cursor-pointer hover:bg-primary/15 hover:shadow-sm hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all duration-150 motion-reduce:transition-none motion-reduce:hover:translate-y-0 align-baseline"
       aria-label={`Attachment ${index}`}
       data-ref={ref}
       data-index={index}
-      onClick={() => handleClick?.(ref)}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleClick?.(ref);
+      }}
     >
       {objectUrl ? (
         <img
           src={objectUrl}
           alt=""
-          className="h-4 w-4 rounded-sm object-cover"
+          className="h-5 w-5 rounded-full object-cover ring-1 ring-primary/20 group-hover:ring-primary/40 transition-[box-shadow]"
           aria-hidden="true"
         />
       ) : (
-        <ImageIcon />
+        <span className="h-5 w-5 rounded-full bg-primary/15 flex items-center justify-center">
+          <ImageIcon />
+        </span>
       )}
-      <span>{index}</span>
+      <span className="tabular-nums">{index}</span>
     </button>
   );
 }
