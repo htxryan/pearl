@@ -46,10 +46,10 @@ function scrubValue(value: unknown, seen?: WeakSet<object>): unknown {
 
 export function createScrubSerializer() {
   return {
-    req(req: Record<string, unknown>): Record<string, unknown> {
+    req(req: unknown): Record<string, unknown> {
       return scrubValue(req) as Record<string, unknown>;
     },
-    res(res: Record<string, unknown>): Record<string, unknown> {
+    res(res: unknown): Record<string, unknown> {
       return scrubValue(res) as Record<string, unknown>;
     },
   };
