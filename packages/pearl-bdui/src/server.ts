@@ -13,7 +13,7 @@ import { OrphanSweep } from "./orphan-sweep.js";
 import { registerAttachmentRoutes, resolveAttachmentBase } from "./routes/attachments.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
-import { registerIssueRoutes } from "./routes/issues.js";
+import { ensureHasAttachmentsColumn, registerIssueRoutes } from "./routes/issues.js";
 import { ensureLabelDefinitionsTable, registerLabelRoutes } from "./routes/labels.js";
 import { registerMigrationRoutes } from "./routes/migration.js";
 import { registerSettingsRoutes, SettingsEventBus } from "./routes/settings.js";
@@ -221,18 +221,27 @@ export async function createServer(initialConfig: Config) {
             app.log.info("Managed dolt server recovered, recreating connection pool...");
             await destroyPool();
             createDoltPool(newConfig);
+            await ensureHasAttachmentsColumn(getConfig, app.log);
           }
         });
 
         await doltManager.start();
         if (doltManager.getState() !== "running") {
           app.log.warn("[migration] Pearl-managed dolt sql-server failed to start after migration");
+        } else {
+          // Pool is created by the onStateChange handler above; run schema
+          // migrations now that the pool is alive. This is the first moment a
+          // fresh bd-initialized DB can pick up pearl-bdui's `has_attachments`
+          // column — `onReady` already fired while we were still in embedded
+          // mode with no pool.
+          await ensureHasAttachmentsColumn(getConfig, app.log);
         }
       } else {
         app.log.info(
           `[migration] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
         );
         createDoltPool(newConfig);
+        await ensureHasAttachmentsColumn(getConfig, app.log);
       }
 
       writeService.updateConfig(newConfig);
@@ -320,6 +329,7 @@ export async function createServer(initialConfig: Config) {
           app.log.info("Managed dolt server recovered, recreating connection pool...");
           await destroyPool();
           createDoltPool(config);
+          await ensureHasAttachmentsColumn(getConfig, app.log);
         }
       });
 
@@ -341,6 +351,11 @@ export async function createServer(initialConfig: Config) {
     initialStartupDone = true;
 
     if (config.doltMode === "server") {
+      // Run any deferred schema migrations now that the pool is up. The
+      // `onReady` hook fires before startup(), so a freshly-initialized DB
+      // needs this second pass to pick up pearl-bdui's schema additions.
+      await ensureHasAttachmentsColumn(getConfig, app.log);
+
       const settings = await loadSettings(projectRoot);
       orphanSweep.start(settings.attachments.sweep.intervalSeconds);
     }
