@@ -53,6 +53,13 @@ export async function queryWithRetry<T>(
     let conn: PoolConnection | null = null;
     try {
       conn = await p.getConnection();
+      // Dolt pins each connection to the working-set snapshot at its last
+      // transaction boundary. Without this ROLLBACK, pooled connections
+      // return stale reads when another session (e.g. bd CLI, or a sibling
+      // pool connection's COMMIT) advances the head between checkouts.
+      // ROLLBACK is a safe no-op if no transaction is open and it forces
+      // the connection to refresh its view before the caller's queries.
+      await conn.query("ROLLBACK");
       const result = await queryFn(conn);
       return result;
     } catch (err: unknown) {
