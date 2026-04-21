@@ -47,10 +47,17 @@ export interface Config {
 }
 
 export function loadConfig(): Config {
-  const cwd = process.cwd();
+  // When BEADS_DB_PATH is set, anchor metadata discovery to its project root
+  // (e.g. sample-project/.beads/embeddeddolt/<db>/ → sample-project/) instead
+  // of process.cwd(). This matters when the server is spawned via `pnpm
+  // --filter`, which forces cwd into the package directory and causes the
+  // walk to find a repo-root .beads/ before the intended project's.
+  const searchDir = process.env.BEADS_DB_PATH
+    ? resolve(process.env.BEADS_DB_PATH, "..", "..", "..")
+    : process.cwd();
 
   // Check if .beads/ directory exists anywhere up the tree
-  const needsSetup = !findBeadsDir(cwd);
+  const needsSetup = !findBeadsDir(searchDir);
 
   // In setup mode, return safe defaults — no Dolt paths or host validation
   if (needsSetup) {
@@ -60,7 +67,7 @@ export function loadConfig(): Config {
       doltMode: "embedded",
       doltHost: "127.0.0.1",
       doltPort: 3307,
-      doltDbPath: cwd,
+      doltDbPath: searchDir,
       replicaPath: "",
       bdPath: process.env.BD_PATH || "bd",
       doltPath: process.env.DOLT_PATH || "dolt",
@@ -79,10 +86,10 @@ export function loadConfig(): Config {
   }
 
   // Auto-discover the .beads database path
-  const doltDbPath = process.env.BEADS_DB_PATH || findBeadsDbPath(cwd);
+  const doltDbPath = process.env.BEADS_DB_PATH || findBeadsDbPath(searchDir);
 
   // Read .beads/metadata.json for mode detection
-  const metadata = readBeadsMetadata(cwd);
+  const metadata = readBeadsMetadata(searchDir);
   const doltMode: DoltMode = metadata?.dolt_mode === "server" ? "server" : "embedded";
 
   let doltHost: string;
