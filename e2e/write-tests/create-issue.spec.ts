@@ -13,8 +13,9 @@ test.describe("Create Issue", () => {
       await quickAdd.fill(title);
       await quickAdd.press("Enter");
 
-      // Input should clear on successful creation
-      await expect(quickAdd).toHaveValue("", { timeout: 15_000 });
+      // On success, the view navigates to the new issue's detail page.
+      await page.waitForURL(/\/issues\/[^/]+$/, { timeout: 15_000 });
+      await expect(page.locator("h1", { hasText: title })).toBeVisible({ timeout: 5_000 });
     });
 
     test("quick-add input clears after successful creation", async ({ seededPage: page }) => {
@@ -23,8 +24,11 @@ test.describe("Create Issue", () => {
       await quickAdd.fill(title);
       await quickAdd.press("Enter");
 
-      // Input should clear
-      await expect(quickAdd).toHaveValue("", { timeout: 5_000 });
+      // Navigates to detail on success; going back to list should show an
+      // empty quick-add input.
+      await page.waitForURL(/\/issues\/[^/]+$/, { timeout: 15_000 });
+      await page.goto("/list");
+      await expect(page.getByLabel("Quick add issue")).toHaveValue("", { timeout: 5_000 });
     });
 
     test("quick-add with empty title does nothing", async ({ seededPage: page }) => {
@@ -44,7 +48,7 @@ test.describe("Create Issue", () => {
       await page.keyboard.press(CMD_K);
 
       // The command palette input has a specific placeholder
-      const cmdInput = page.getByPlaceholder("Search issues or type a command...");
+      const cmdInput = page.getByPlaceholder("Search issues or type > for commands...");
       await expect(cmdInput).toBeVisible({ timeout: 5_000 });
 
       // Search for Create Issue action
@@ -75,13 +79,13 @@ test.describe("Create Issue", () => {
       const descInput = dialog.locator("#create-desc");
       await descInput.fill("Created by E2E write test");
 
-      // Select type
-      const typeSelect = dialog.locator("#create-type");
-      await typeSelect.selectOption("bug");
+      // Select type (CustomSelect: open + click option)
+      await dialog.getByRole("combobox", { name: "Issue type" }).click();
+      await page.getByRole("option", { name: /^bug$/i }).first().click();
 
       // Select priority
-      const prioritySelect = dialog.locator("#create-priority");
-      await prioritySelect.selectOption("1");
+      await dialog.getByRole("combobox", { name: "Priority" }).click();
+      await page.getByRole("option", { name: /^P1$/ }).first().click();
 
       // Fill assignee
       const assigneeInput = dialog.locator("#create-assignee");

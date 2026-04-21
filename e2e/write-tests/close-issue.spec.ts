@@ -1,6 +1,9 @@
 import { expect, navigateToIssue, test } from "./fixtures";
 
-const API_BASE = "http://127.0.0.1:3456";
+// Use relative URLs; page.request resolves them via playwright's baseURL,
+// which goes through the frontend Vite proxy to whichever backend port is
+// configured for this run (3456 in CI, alt ports locally).
+const API_BASE = "";
 
 test.describe("Close Issue", () => {
   // Use an open issue that we can close — P3 task with no critical dependencies
