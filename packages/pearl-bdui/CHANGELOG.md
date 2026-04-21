@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.11.0...pearl-bdui-v0.11.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* **server:** run schema ensurer after pool is up (fresh bd-init OOB) ([#30](https://github.com/htxryan/pearl/issues/30)) ([dc3cb23](https://github.com/htxryan/pearl/commit/dc3cb23897488a9ac653be48c730ea30fcb043ba))
+
 ## [0.11.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.10.1...pearl-bdui-v0.11.0) (2026-04-21)
 
 
