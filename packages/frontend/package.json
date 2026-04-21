@@ -34,7 +34,7 @@
     "remark-gfm": "^4.0.1",
     "highlight.js": "^11.11.1",
     "rehype-highlight": "^7.0.2",
-    "tailwind-merge": "^2.5.0"
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
