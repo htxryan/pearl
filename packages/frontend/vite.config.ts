@@ -3,10 +3,11 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-const port = 5173;
+const port = Number(process.env.VITE_PORT ?? 5173);
+const backendPort = process.env.PEARL_BACKEND_PORT ?? "3456";
 const proxy = {
   "/api": {
-    target: "http://127.0.0.1:3456",
+    target: `http://127.0.0.1:${backendPort}`,
     changeOrigin: true,
   },
 };
