@@ -5,6 +5,7 @@ import {
   toggleCommandPalette,
   useCommandPaletteActions,
 } from "@/hooks/use-command-palette";
+import { EmbeddedModeProvider, useEmbeddedModeDetection } from "@/hooks/use-embedded-mode";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useNotificationPoller } from "@/hooks/use-notifications";
 import { useRouteAnnouncer } from "@/hooks/use-route-announcer";
@@ -13,6 +14,7 @@ import { undoLast, useCanUndo } from "@/hooks/use-undo";
 import { getAllThemes } from "@/themes";
 import { CommandPalette } from "./command-palette";
 import { CreateIssueDialog } from "./detail/create-issue-dialog";
+import { EmbeddedModeModal } from "./embedded-mode-modal";
 import { Header } from "./header";
 import { HealthBanner } from "./health-banner";
 import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
@@ -28,6 +30,7 @@ export function AppShell() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const canUndo = useCanUndo();
   const { setTheme } = useTheme();
+  const { isEmbedded, showModal } = useEmbeddedModeDetection();
 
   // Start polling for notification changes
   useNotificationPoller();
@@ -153,42 +156,48 @@ export function AppShell() {
   const announcerRef = useRouteAnnouncer();
 
   return (
-    <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
-      {/* Skip to content link */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("main-content")?.focus();
-        }}
-      >
-        Skip to content
-      </a>
-      {/* Route change announcer for screen readers */}
-      <div
-        ref={announcerRef}
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      />
-      <Sidebar />
-      <MobileDrawer isOpen={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <HealthBanner />
-        <Header mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />} />
-        <OnboardingBanner />
-        <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
-          <PageTransition>
-            <Outlet />
-          </PageTransition>
-        </main>
+    <EmbeddedModeProvider value={isEmbedded}>
+      <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
+        {showModal && <EmbeddedModeModal />}
+        {/* Skip to content link */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("main-content")?.focus();
+          }}
+        >
+          Skip to content
+        </a>
+        {/* Route change announcer for screen readers */}
+        <div
+          ref={announcerRef}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        />
+        <Sidebar />
+        <MobileDrawer isOpen={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <HealthBanner />
+          <Header
+            mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />}
+            onCreateIssue={openCreateDialog}
+          />
+          <OnboardingBanner />
+          <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
+          </main>
+        </div>
+        <CommandPalette />
+        <CreateIssueDialog isOpen={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
+        <KeyboardHelpOverlay />
+        <ToastContainer />
       </div>
-      <CommandPalette />
-      <CreateIssueDialog isOpen={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
-      <KeyboardHelpOverlay />
-      <ToastContainer />
-    </div>
+    </EmbeddedModeProvider>
   );
 }

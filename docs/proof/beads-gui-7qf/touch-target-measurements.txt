@@ -1,0 +1,13 @@
+=== Touch Target Measurements (beads-gui-7qf) ===
+Captured: 2026-04-18T09:01:58.878Z
+Viewport: 375x812px
+Minimum target: 44x44px (WCAG 2.5.5 / iOS HIG)
+
+Hamburger (menu button): 44x44px  [PASS 44x44]
+Header notification bell: 44x44px  [PASS 44x44]
+Filters toggle button: 89x44px  [PASS 44x44]
+Issue card (tap target): 351x101px  [PASS 44x44]
+Drawer nav link "List": 272x46px  [PASS 44x44]
+Drawer nav link "Board": 272x46px  [PASS 44x44]
+Drawer nav link "Graph": 272x46px  [PASS 44x44]
+Drawer nav link "Settings": 272x46px  [PASS 44x44]

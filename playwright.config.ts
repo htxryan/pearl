@@ -49,7 +49,13 @@ export default defineConfig({
     {
       name: "chromium",
       testDir: "./e2e",
-      testIgnore: ["**/write-tests/**", "**/*-proof.spec.ts"],
+      testIgnore: [
+        "**/write-tests/**",
+        "**/*-proof.spec.ts",
+        // 7qf proof-gaps fixture targets beads-gui-7qf, which only exists in
+        // the author's dev DB — not in sample_project. Excluded from CI.
+        "**/7qf-proof-gaps.spec.ts",
+      ],
       use: { ...devices["Desktop Chrome"] },
       workers: process.env.CI ? 4 : 2,
     },

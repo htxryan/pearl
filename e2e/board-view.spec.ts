@@ -17,7 +17,6 @@ test.describe("Board View", () => {
     await expect(board.getByText("Open")).toBeVisible();
     await expect(board.getByText("In Progress")).toBeVisible();
     await expect(board.getByText("Closed")).toBeVisible();
-    await expect(board.getByText("Blocked")).toBeVisible();
     await expect(board.getByText("Deferred")).toBeVisible();
   });
 

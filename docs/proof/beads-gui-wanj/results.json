@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-04-18T20:10:52.445Z",
+  "bead": "beads-gui-wanj",
+  "bug": "migrateToPearlManaged copied embedded DB contents directly into doltdb/ instead of doltdb/<dbName>/, so dolt sql-server exposed DB as 'doltdb' rather than original name ('migrtest'). All post-migration queries failed with 'database not found: migrtest'.",
+  "fix_file": "packages/pearl-bdui/src/routes/migration.ts",
+  "test_project": "/tmp/pearl-migration-test/",
+  "results": [
+    {
+      "name": "precheck-embedded",
+      "pass": true,
+      "details": "dolt_mode=embedded status=degraded"
+    },
+    {
+      "name": "AC-4",
+      "pass": true,
+      "details": "modal visible in 81ms (<2s threshold)"
+    },
+    {
+      "name": "ui-external-tab",
+      "pass": true,
+      "details": "rendered external migration form"
+    },
+    {
+      "name": "AC-5",
+      "pass": true,
+      "details": "modal dismissed in 2664ms (reloads=1)"
+    },
+    {
+      "name": "REQ-E4",
+      "pass": true,
+      "details": "hard reload fired (1x)"
+    },
+    {
+      "name": "AC-1",
+      "pass": true,
+      "details": "dolt_mode=server status=healthy"
+    },
+    {
+      "name": "AC-7-api",
+      "pass": true,
+      "details": "api returned 3 issues: [\"Sample: Login page bug\",\"Sample: Dark mode toggle\",\"Sample: Refactor auth\"]"
+    },
+    {
+      "name": "AC-7-ui",
+      "pass": true,
+      "details": "ui renders 3/3 sample titles"
+    },
+    {
+      "name": "AC-3",
+      "pass": true,
+      "details": "metadata: mode=server host=127.0.0.1 port=3307 managed=true"
+    }
+  ],
+  "passed": 9,
+  "failed": 0
+}

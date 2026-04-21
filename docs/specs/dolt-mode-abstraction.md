@@ -1,27 +1,27 @@
 # Dolt Mode Abstraction — System Specification
 
+> **Note**: Embedded mode has been deprecated. See [ADR-006](../adr/006-deprecate-embedded-mode.md).
+> Pearl now requires a Dolt SQL server (pearl-managed or external).
+
 ## Problem Statement
 
 The beads-gui backend has a critical production bug: all write operations fail because the backend's Dolt SQL server and the `bd` CLI both compete for an exclusive embedded lock on the same database directory. This makes the app read-only in practice.
 
 ## Solution
 
-Abstract the Dolt backend into two modes — **embedded** (with a read replica to avoid lock conflicts) and **server** (connecting to a standalone Dolt SQL server). The backend auto-detects the mode from `.beads/metadata.json` and configures itself accordingly.
+~~Abstract the Dolt backend into two modes — **embedded** (with a read replica to avoid lock conflicts) and **server** (connecting to a standalone Dolt SQL server).~~
+
+**Current**: Pearl requires a Dolt SQL server. Two paths are available:
+- **Pearl-managed**: Pearl spawns and supervises a `dolt sql-server` process.
+- **External**: User runs their own Dolt SQL server and provides host/port.
+
+When `dolt_mode: "embedded"` is detected in metadata.json, the frontend shows a blocking migration modal.
 
 ## Architecture
 
-### Embedded Mode (default, single-user)
+### Server Mode (default)
 ```
-WRITE: API → WriteQueue → bd CLI → PRIMARY DB (exclusive, uncontested)
-                              ↓ (post-write sync)
-                         stop SQL server → cp primary → replica → restart
-
-READ:  API → MySQL pool → Dolt SQL Server → REPLICA DB (separate copy)
-```
-
-### Server Mode (multi-user, remote-capable)
-```
-WRITE: API → WriteQueue → bd CLI → Dolt SQL Server (via bd dolt set host/port)
+WRITE: API → WriteQueue → bd CLI → Dolt SQL Server
 
 READ:  API → MySQL pool → same Dolt SQL Server
 ```

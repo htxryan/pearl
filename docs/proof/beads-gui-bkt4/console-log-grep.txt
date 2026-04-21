@@ -1,0 +1,2 @@
+=== Console.log grep in pearl-bdui ===
+Zero matches found - PASS

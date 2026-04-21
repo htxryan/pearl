@@ -17,6 +17,26 @@ vi.mock("@/lib/api-client", () => ({
   upsertLabel: vi.fn().mockResolvedValue({ success: true, invalidationHints: [] }),
   fetchIssues: vi.fn(),
   updateIssue: vi.fn(),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
 // Mock use-issues hooks
@@ -38,6 +58,14 @@ vi.mock("@/hooks/use-issues", () => ({
     details: () => ["issues", "detail"],
     detail: (id: string) => ["issues", "detail", id],
   },
+  dependencyKeys: {
+    all: ["dependencies"],
+  },
+}));
+
+// Mock use-dependencies
+vi.mock("@/hooks/use-dependencies", () => ({
+  useAllDependencies: vi.fn().mockReturnValue({ data: [], isLoading: false }),
 }));
 
 import { useIssues } from "@/hooks/use-issues";
@@ -56,6 +84,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-16T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: ["frontend"],
     labelColors: {},
   },
@@ -71,6 +100,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-17T10:00:00Z",
     due_at: "2026-02-01T00:00:00Z",
     pinned: true,
+    has_attachments: true,
     labels: ["frontend", "dashboard"],
     labelColors: {},
   },
@@ -86,6 +116,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-18T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -101,6 +132,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-06T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: ["cleanup"],
     labelColors: {},
   },
@@ -116,6 +148,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-20T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -167,47 +200,46 @@ describe("BoardView", () => {
     });
   });
 
-  it("renders all five status columns", () => {
+  it("renders four status columns (no blocked column), closed expanded by default", () => {
     renderBoard();
 
-    // Each status column has a list with aria-label "{status} issues"
+    // All columns show their issue list
     expect(screen.getByRole("list", { name: "open issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "in_progress issues" })).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "blocked issues" })).toBeInTheDocument();
     expect(screen.getByRole("list", { name: "deferred issues" })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
+    // "blocked" is derived from dependencies, not a column
+    expect(screen.queryByRole("list", { name: "blocked issues" })).not.toBeInTheDocument();
   });
 
   it("renders issue cards in correct columns", () => {
     renderBoard();
 
-    // Open column should have beads-001
+    // Open column should have beads-001 and beads-003 (status "blocked" falls to open)
     const openList = screen.getByRole("list", { name: "open issues" });
     expect(within(openList).getByText("Fix login bug")).toBeInTheDocument();
+    expect(within(openList).getByText("Blocked migration")).toBeInTheDocument();
 
     // In Progress column should have beads-002
     const inProgressList = screen.getByRole("list", { name: "in_progress issues" });
     expect(within(inProgressList).getByText("Add dashboard view")).toBeInTheDocument();
-
-    // Blocked column should have beads-003
-    const blockedList = screen.getByRole("list", { name: "blocked issues" });
-    expect(within(blockedList).getByText("Blocked migration")).toBeInTheDocument();
   });
 
   it("displays column issue counts", () => {
     renderBoard();
 
-    // Each column has a count — 5 columns each with 1 issue,
-    // plus other "1" text may appear. Check the board region specifically.
+    // 4 columns: open has 2 (beads-001 + beads-003 which had status "blocked"),
+    // in_progress, closed, deferred each have 1
     const board = screen.getByRole("region", { name: "Kanban board" });
-    const countBadges = within(board).getAllByText("1");
-    expect(countBadges.length).toBeGreaterThanOrEqual(5);
+    expect(within(board).getByText("2")).toBeInTheDocument(); // open column
+    const countOnes = within(board).getAllByText("1");
+    expect(countOnes.length).toBeGreaterThanOrEqual(3);
   });
 
   it("displays assignee initials on cards", () => {
     renderBoard();
 
-    // alice appears on beads-001 and beads-005
+    // alice appears on beads-001 (open) and beads-005 (closed)
     const aliceAvatars = screen.getAllByTitle("alice");
     expect(aliceAvatars.length).toBe(2);
     expect(aliceAvatars[0]).toHaveTextContent("AL");
@@ -229,7 +261,8 @@ describe("BoardView", () => {
 
     const board = screen.getByRole("region", { name: "Kanban board" });
     expect(within(board).getAllByText("Bug")).toHaveLength(1);
-    expect(within(board).getAllByText("Feature")).toHaveLength(2); // beads-002, beads-005
+    // beads-005 (Feature, closed) is now visible — beads-002 and beads-005
+    expect(within(board).getAllByText("Feature")).toHaveLength(2);
     expect(within(board).getAllByText("Task")).toHaveLength(1);
   });
 
@@ -243,8 +276,9 @@ describe("BoardView", () => {
   it("shows empty columns when no issues match filters", () => {
     renderBoard({ issues: [] });
 
+    // All 4 columns show "No issues"
     const emptyMessages = screen.getAllByText("No issues");
-    expect(emptyMessages).toHaveLength(5); // One per column
+    expect(emptyMessages).toHaveLength(4);
   });
 
   it("renders the filter bar", () => {
@@ -278,6 +312,46 @@ describe("BoardView", () => {
       "/issues/beads-001",
       expect.objectContaining({ state: { from: "/board" } }),
     );
+  });
+
+  it("collapses closed column when clicking the header", () => {
+    renderBoard();
+
+    // Initially expanded — card list visible
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
+
+    // Click the header to collapse
+    fireEvent.click(screen.getByRole("button", { name: /Collapse closed column/i }));
+
+    // Now collapsed
+    expect(screen.queryByRole("list", { name: "closed issues" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Expand closed column/i })).toBeInTheDocument();
+  });
+
+  it("expands closed column when clicking the collapsed strip", () => {
+    renderBoard();
+
+    // Collapse first
+    fireEvent.click(screen.getByRole("button", { name: /Collapse closed column/i }));
+    expect(screen.queryByRole("list", { name: "closed issues" })).not.toBeInTheDocument();
+
+    // Click the expand button
+    fireEvent.click(screen.getByRole("button", { name: /Expand closed column/i }));
+
+    // Now expanded — card list visible
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
+    const closedList = screen.getByRole("list", { name: "closed issues" });
+    expect(within(closedList).getByText("Completed feature")).toBeInTheDocument();
+  });
+
+  it("shows issue count on collapsed closed column", () => {
+    renderBoard();
+
+    // Collapse first
+    fireEvent.click(screen.getByRole("button", { name: /Collapse closed column/i }));
+
+    const expandBtn = screen.getByRole("button", { name: /Expand closed column/i });
+    expect(expandBtn).toHaveTextContent("1");
   });
 
   it("shows labels on cards", () => {

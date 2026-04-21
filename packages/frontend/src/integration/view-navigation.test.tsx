@@ -27,6 +27,26 @@ vi.mock("@/lib/api-client", () => ({
   addComment: vi.fn(),
   addDependency: vi.fn(),
   removeDependency: vi.fn(),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
 // ─── Mock use-issues hooks ───────────────────────────────
@@ -72,6 +92,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(() => ({ data: [] })),
   useUpdateIssue: vi.fn(() => mockMutation),
   useCloseIssue: vi.fn(() => mockMutation),
+  useDeleteIssue: vi.fn(() => mockMutation),
   useCreateIssue: vi.fn(() => mockMutation),
   useAddComment: vi.fn(() => mockMutation),
   useAddDependency: vi.fn(() => mockMutation),
@@ -219,6 +240,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-16T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -525,8 +547,8 @@ describe("URL routing", () => {
 
     renderApp("/issues/test-001");
 
-    // Detail view shows the issue ID and title
-    expect(screen.getByText("test-001")).toBeInTheDocument();
+    // Detail view shows the short issue ID and title
+    expect(screen.getByText("001")).toBeInTheDocument();
     expect(screen.getByText("Test Issue 1")).toBeInTheDocument();
     // And detail-specific sections
     expect(screen.getByText("Fields")).toBeInTheDocument();

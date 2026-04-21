@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { useDraft } from "@/hooks/use-draft";
@@ -291,38 +292,32 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
         {/* Type + Priority row */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="create-type" className="block text-sm font-medium mb-1">
-              Type
-            </label>
-            <select
-              id="create-type"
+            <span className="block text-sm font-medium mb-1">Type</span>
+            <CustomSelect<IssueType>
               value={issueType}
-              onChange={(e) => setIssueType(e.target.value as IssueType)}
-              className="w-full text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {ISSUE_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </option>
-              ))}
-            </select>
+              options={ISSUE_TYPES.map((t) => ({
+                value: t,
+                label: t.charAt(0).toUpperCase() + t.slice(1),
+              }))}
+              onChange={setIssueType}
+              aria-label="Issue type"
+              className="w-full"
+              triggerClassName="w-full rounded-lg px-3 py-2"
+            />
           </div>
           <div>
-            <label htmlFor="create-priority" className="block text-sm font-medium mb-1">
-              Priority
-            </label>
-            <select
-              id="create-priority"
-              value={String(priority)}
-              onChange={(e) => setPriority(Number(e.target.value) as Priority)}
-              className="w-full text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              {ISSUE_PRIORITIES.map((p) => (
-                <option key={p} value={String(p)}>
-                  P{p}
-                </option>
-              ))}
-            </select>
+            <span className="block text-sm font-medium mb-1">Priority</span>
+            <CustomSelect<Priority>
+              value={priority}
+              options={ISSUE_PRIORITIES.map((p) => ({
+                value: p,
+                label: `P${p}`,
+              }))}
+              onChange={setPriority}
+              aria-label="Priority"
+              className="w-full"
+              triggerClassName="w-full rounded-lg px-3 py-2"
+            />
           </div>
         </div>
 

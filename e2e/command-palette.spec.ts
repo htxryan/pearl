@@ -8,7 +8,7 @@ test.describe("Command Palette", () => {
     // Wait for app to be fully settled before triggering keyboard shortcut
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    const input = page.getByPlaceholder("Search issues or type a command...");
+    const input = page.getByPlaceholder("Search issues or type > for commands...");
     await expect(input).toBeVisible({ timeout: 5_000 });
   });
 
@@ -16,7 +16,7 @@ test.describe("Command Palette", () => {
     // Ensure page is fully settled before triggering keyboard shortcut
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    const input = page.getByPlaceholder("Search issues or type a command...");
+    const input = page.getByPlaceholder("Search issues or type > for commands...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
     await page.keyboard.press("Escape");
@@ -26,7 +26,7 @@ test.describe("Command Palette", () => {
   test("shows recent issues by default", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+    await expect(page.getByPlaceholder("Search issues or type > for commands...")).toBeVisible({
       timeout: 5_000,
     });
 
@@ -36,7 +36,7 @@ test.describe("Command Palette", () => {
   test("shows navigation commands", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+    await expect(page.getByPlaceholder("Search issues or type > for commands...")).toBeVisible({
       timeout: 5_000,
     });
 
@@ -49,7 +49,7 @@ test.describe("Command Palette", () => {
     // Wait for app to be fully settled before triggering keyboard shortcut
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    const input = page.getByPlaceholder("Search issues or type a command...");
+    const input = page.getByPlaceholder("Search issues or type > for commands...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
     await input.fill("dashboard");
@@ -61,7 +61,7 @@ test.describe("Command Palette", () => {
   test("selecting an issue navigates to detail", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    const input = page.getByPlaceholder("Search issues or type a command...");
+    const input = page.getByPlaceholder("Search issues or type > for commands...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
     // Wait for recent issues to load
@@ -77,7 +77,7 @@ test.describe("Command Palette", () => {
   test("navigate command: Go to Board View", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+    await expect(page.getByPlaceholder("Search issues or type > for commands...")).toBeVisible({
       timeout: 5_000,
     });
 
@@ -88,7 +88,7 @@ test.describe("Command Palette", () => {
   test("navigate command: Go to Graph View", async ({ seededPage: page }) => {
     await page.waitForLoadState("networkidle");
     await page.keyboard.press(CMD_K);
-    await expect(page.getByPlaceholder("Search issues or type a command...")).toBeVisible({
+    await expect(page.getByPlaceholder("Search issues or type > for commands...")).toBeVisible({
       timeout: 5_000,
     });
 

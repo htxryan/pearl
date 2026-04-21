@@ -1,5 +1,6 @@
 import type { Config } from "../config.js";
 import { cliError } from "../errors.js";
+import { logger } from "../logger.js";
 
 export interface BdResult {
   stdout: string;
@@ -24,7 +25,7 @@ export async function runBd(config: Config, args: string[]): Promise<BdResult> {
     const detail = result.stderr || result.stdout || "";
     // Log full detail for debugging, but don't expose paths/stack traces to clients
     if (detail) {
-      console.error(`[bd-runner] CLI error (exit ${result.exitCode}):`, detail);
+      logger.error({ exitCode: result.exitCode, detail }, "bd CLI error");
     }
     throw cliError(`bd command failed (exit code ${result.exitCode})`);
   }

@@ -13,7 +13,9 @@ test.describe("Detail View", () => {
   test("breadcrumb shows issue ID", async ({ seededPage: page }) => {
     const issueId = await navigateToFirstIssue(page);
     await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByLabel("Breadcrumb").getByText(issueId)).toBeVisible();
+    // UI strips the project prefix (e.g. "sample-project-6kq" → "6kq")
+    const shortId = issueId.includes("-") ? issueId.split("-").pop()! : issueId;
+    await expect(page.getByLabel("Breadcrumb").getByText(shortId)).toBeVisible();
   });
 
   test("breadcrumb navigates back to list", async ({ seededPage: page }) => {
@@ -42,9 +44,9 @@ test.describe("Detail View", () => {
 
     const statusSelect = page.getByLabel("Status");
     await expect(statusSelect).toBeVisible();
-    // Verify it has some value (data-agnostic — don't assume a specific status)
-    const value = await statusSelect.inputValue();
-    expect(value.length).toBeGreaterThan(0);
+    // Verify it displays a value (custom dropdown uses a button, not a native select)
+    const text = await statusSelect.textContent();
+    expect(text!.trim().length).toBeGreaterThan(0);
   });
 
   test("priority select field is present", async ({ seededPage: page }) => {
@@ -65,19 +67,19 @@ test.describe("Detail View", () => {
 
   test("markdown edit button toggles editor", async ({ seededPage: page }) => {
     await navigateToFirstIssue(page);
-    await expect(page.getByRole("heading", { name: "Description" })).toBeVisible({
-      timeout: 15_000,
-    });
+    const descriptionHeading = page.getByRole("heading", { name: "Description" });
+    await expect(descriptionHeading).toBeVisible({ timeout: 15_000 });
 
-    // Click "Edit" button near Description section
-    const editBtn = page.getByRole("button", { name: /edit/i }).first();
+    // Target the Edit button adjacent to the Description heading, not the
+    // first Edit on the page (which may be the title inline editor).
+    const descriptionSection = descriptionHeading.locator("..").locator("..");
+    const editBtn = descriptionSection.getByRole("button", { name: /^edit$/i }).first();
     await expect(editBtn).toBeVisible();
     await editBtn.click();
-    const editor = page.locator("textarea").first();
+    const editor = descriptionSection.locator("textarea").first();
     await expect(editor).toBeVisible({ timeout: 5_000 });
 
-    // Cancel
-    const cancelBtn = page.getByRole("button", { name: /cancel/i }).first();
+    const cancelBtn = descriptionSection.getByRole("button", { name: /cancel/i }).first();
     await expect(cancelBtn).toBeVisible();
     await cancelBtn.click();
   });

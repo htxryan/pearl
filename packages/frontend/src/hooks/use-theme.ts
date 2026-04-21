@@ -54,6 +54,20 @@ function applyTheme(theme: ThemeDefinition) {
   // Toggle .dark class based on colorScheme
   root.classList.toggle("dark", theme.colorScheme === "dark");
 
+  // Clear any previously-set --color-* inline styles so stale dark-theme
+  // values don't persist when switching to a light theme (or vice-versa).
+  // We iterate a snapshot because removing properties mutates the live object.
+  const toRemove: string[] = [];
+  for (let i = 0; i < root.style.length; i++) {
+    const prop = root.style[i];
+    if (prop.startsWith("--color-")) {
+      toRemove.push(prop);
+    }
+  }
+  for (const prop of toRemove) {
+    root.style.removeProperty(prop);
+  }
+
   // Apply CSS custom properties
   for (const [token, value] of Object.entries(theme.colors)) {
     root.style.setProperty(`--color-${token}`, value);

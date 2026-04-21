@@ -11,6 +11,7 @@ import type { RowDataPacket } from "mysql2";
 import type { Config } from "../config.js";
 import { queryWithRetry } from "../dolt/pool.js";
 import { notFoundError, validationError } from "../errors.js";
+import { computeHasAttachments } from "../write-service/sql-writer.js";
 import type { WriteService } from "../write-service/write-service.js";
 import { fetchLabelColors } from "./labels.js";
 
@@ -69,10 +70,18 @@ const updateIssueSchema = {
 } as const;
 
 const deleteIssueSchema = {
+  params: {
+    type: "object",
+    properties: {
+      id: { type: "string" },
+    },
+    required: ["id"],
+  },
   querystring: {
     type: "object",
     properties: {
       reason: { type: "string", maxLength: 500 },
+      permanent: { type: "string", enum: ["true"] },
     },
     additionalProperties: false,
   },
@@ -88,7 +97,7 @@ const DATE_RANGE_VALUES = [
   "created_this_week",
   "created_last_week",
 ];
-const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "is_epic", "no_assignee"];
+const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "not_blocked", "is_epic", "no_assignee"];
 
 const listIssuesQuerySchema = {
   querystring: {
@@ -132,11 +141,34 @@ const addCommentSchema = {
   },
 } as const;
 
+export async function ensureHasAttachmentsColumn(
+  getConfig: () => Config,
+  log?: { warn: (obj: unknown, msg: string) => void },
+): Promise<void> {
+  try {
+    await queryWithRetry(getConfig(), async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'issues' AND COLUMN_NAME = 'has_attachments'
+         LIMIT 1`,
+      );
+      if ((rows as unknown[]).length === 0) {
+        await conn.query(`ALTER TABLE issues ADD COLUMN \`has_attachments\` TINYINT(1) DEFAULT 0`);
+      }
+    });
+  } catch (err) {
+    log?.warn({ err }, "ensureHasAttachmentsColumn failed — column may not exist yet");
+  }
+}
+
 export function registerIssueRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
   writeService: WriteService,
 ): void {
+  app.addHook("onReady", async () => {
+    await ensureHasAttachmentsColumn(getConfig, app.log);
+  });
   // GET /api/issues — list with filtering, sorting, column projection
   app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
     const query = request.query as Record<string, string | undefined>;
@@ -269,7 +301,10 @@ export function registerIssueRoutes(
             sql += ` AND EXISTS (SELECT 1 FROM dependencies d WHERE d.issue_id = i.id OR d.depends_on_id = i.id)`;
             break;
           case "is_blocked":
-            sql += ` AND i.status = 'blocked'`;
+            sql += ` AND EXISTS (SELECT 1 FROM dependencies d JOIN issues dep ON dep.id = d.depends_on_id WHERE d.issue_id = i.id AND d.type IN ('blocks', 'depends_on') AND dep.status != 'closed')`;
+            break;
+          case "not_blocked":
+            sql += ` AND NOT EXISTS (SELECT 1 FROM dependencies d JOIN issues dep ON dep.id = d.depends_on_id WHERE d.issue_id = i.id AND d.type IN ('blocks', 'depends_on') AND dep.status != 'closed')`;
             break;
           case "is_epic":
             sql += ` AND i.issue_type = 'epic'`;
@@ -316,11 +351,12 @@ export function registerIssueRoutes(
       return rows;
     });
 
-    // Ensure all issues have labels and labelColors initialized
+    // Ensure all issues have labels/labelColors initialized and coerce TINYINT→boolean
     const issueRows = issues as RowDataPacket[];
     for (const issue of issueRows) {
       issue.labels = [];
       issue.labelColors = {};
+      issue.has_attachments = Boolean(issue.has_attachments);
     }
     if (issueRows.length > 0 && validFields.includes("id")) {
       const ids = issueRows.map((r) => r.id);
@@ -375,6 +411,23 @@ export function registerIssueRoutes(
 
     if (!issue) {
       throw notFoundError("Issue", id);
+    }
+
+    // Reconcile has_attachments (E4a: recover from external bd CLI edits).
+    const computed = computeHasAttachments(issue);
+    const stored = Boolean(issue.has_attachments);
+    if (computed !== stored) {
+      issue.has_attachments = computed;
+      queryWithRetry(getConfig(), async (conn) => {
+        await conn.execute("UPDATE issues SET has_attachments = ? WHERE id = ?", [
+          computed ? 1 : 0,
+          id,
+        ]);
+      }).catch((err) => {
+        request.log.warn({ err, issueId: id }, "has_attachments reconciliation failed");
+      });
+    } else {
+      issue.has_attachments = stored;
     }
 
     // Fetch labels
@@ -459,11 +512,14 @@ export function registerIssueRoutes(
     return reply.send(result);
   });
 
-  // DELETE /api/issues/:id — close/delete
+  // DELETE /api/issues/:id — close (default) or permanently delete (?permanent=true)
   app.delete("/api/issues/:id", { schema: deleteIssueSchema }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const { reason } = request.query as { reason?: string };
-    const result = await writeService.closeIssue(id, reason);
+    const { reason, permanent } = request.query as { reason?: string; permanent?: string };
+    const result =
+      permanent === "true"
+        ? await writeService.deleteIssue(id)
+        : await writeService.closeIssue(id, reason);
     return reply.send(result);
   });
 

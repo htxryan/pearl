@@ -16,9 +16,9 @@ const baseFilters: FilterState = {
 };
 
 describe("buildApiParams", () => {
-  it("returns empty params for default filters", () => {
+  it("omits status param when no status filter set (returns all issues)", () => {
     const params = buildApiParams(baseFilters, []);
-    expect(params.toString()).toBe("");
+    expect(params.get("status")).toBeNull();
   });
 
   it("encodes status filter", () => {

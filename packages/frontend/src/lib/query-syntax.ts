@@ -9,7 +9,6 @@
 
 import type { IssueStatus, IssueType, Priority } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
-import type { FilterState } from "@/components/issue-table/filter-bar";
 
 const VALID_STATUSES = new Set<string>(ISSUE_STATUSES);
 const VALID_PRIORITIES = new Set<number>(ISSUE_PRIORITIES);
@@ -44,6 +43,7 @@ const VALID_DATE_RANGES = new Set<string>(DATE_RANGE_OPTIONS);
 export const STRUCTURAL_FILTER_OPTIONS = [
   "has_dependency",
   "is_blocked",
+  "not_blocked",
   "is_epic",
   "no_assignee",
 ] as const;
@@ -51,13 +51,76 @@ export const STRUCTURAL_FILTER_OPTIONS = [
 export type StructuralFilter = (typeof STRUCTURAL_FILTER_OPTIONS)[number];
 
 export const STRUCTURAL_FILTER_LABELS: Record<StructuralFilter, string> = {
-  has_dependency: "Has Dependency",
-  is_blocked: "Is Blocked",
+  has_dependency: "Has Any Dependency",
+  is_blocked: "Is Blocked (Open Deps)",
+  not_blocked: "Not Blocked",
   is_epic: "Is Epic",
   no_assignee: "No Assignee",
 };
 
 const VALID_STRUCTURAL = new Set<string>(STRUCTURAL_FILTER_OPTIONS);
+
+export interface FilterState {
+  status: IssueStatus[];
+  priority: Priority[];
+  issue_type: IssueType[];
+  assignee: string;
+  search: string;
+  labels: string[];
+  dateRanges: DateRange[];
+  structural: StructuralFilter[];
+  groupBy: GroupByField | null;
+}
+
+export type GroupByField = "status" | "priority" | "assignee" | "issue_type";
+
+export const GROUP_BY_LABELS: Record<GroupByField, string> = {
+  status: "Status",
+  priority: "Priority",
+  assignee: "Assignee",
+  issue_type: "Type",
+};
+
+export const EMPTY_FILTERS: FilterState = {
+  status: [],
+  priority: [],
+  issue_type: [],
+  assignee: "",
+  search: "",
+  labels: [],
+  dateRanges: [],
+  structural: [],
+  groupBy: null,
+};
+
+export const SHOW_ALL_FILTERS: FilterState = {
+  ...EMPTY_FILTERS,
+  status: [...ISSUE_STATUSES] as IssueStatus[],
+};
+
+export const DEFAULT_ACTIVE_STATUSES: IssueStatus[] = [
+  "open",
+  "in_progress",
+  "deferred",
+  "blocked",
+];
+
+export const ACTIVE_FILTERS: FilterState = {
+  ...EMPTY_FILTERS,
+  status: DEFAULT_ACTIVE_STATUSES,
+};
+
+export function isShowingAllStatuses(statuses: IssueStatus[]): boolean {
+  if (statuses.length !== ISSUE_STATUSES.length) return false;
+  const set = new Set(statuses);
+  return ISSUE_STATUSES.every((s) => set.has(s));
+}
+
+export function isDefaultStatuses(statuses: IssueStatus[]): boolean {
+  if (statuses.length !== DEFAULT_ACTIVE_STATUSES.length) return false;
+  const set = new Set(statuses);
+  return DEFAULT_ACTIVE_STATUSES.every((s) => set.has(s));
+}
 
 /** Token pattern: `key:value` or `key:"value with spaces"` */
 const TOKEN_RE = /(\w+):(?:"([^"]*)"|([\S]+))/g;
@@ -185,8 +248,18 @@ export function parseQuerySyntax(input: string): ParsedQuery {
         if (value === "blocked") {
           result.structural.push("is_blocked");
           consumed = true;
+        } else if (value === "not_blocked" || value === "notblocked") {
+          result.structural.push("not_blocked");
+          consumed = true;
         } else if (value === "epic") {
           result.structural.push("is_epic");
+          consumed = true;
+        }
+        break;
+      }
+      case "not": {
+        if (value === "blocked") {
+          result.structural.push("not_blocked");
           consumed = true;
         }
         break;

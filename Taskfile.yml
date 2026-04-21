@@ -29,6 +29,39 @@ tasks:
     cmds:
       - task --list
 
+  # --- Setup ---
+
+  setup:
+    desc: Set up the repo for rh-dev-kit usage (symlink rh namespace under .claude/) and ensure husky hooks work from GUI git clients
+    cmds:
+      - |
+        set -euo pipefail
+        for kind in agents commands skills; do
+          mkdir -p ".claude/$kind"
+          target=".claude/$kind/rh"
+          rm -rf "$target"
+          ln -s "../../.rh-dev-kit/.claude/$kind" "$target"
+          echo "linked $target -> $(readlink "$target")"
+        done
+      - |
+        set -euo pipefail
+        # Husky v9 runs hooks with only git's PATH. GUI clients (Fork, Tower, GitHub Desktop)
+        # don't source your shell rc, so nvm-managed node is missing and `npx` fails.
+        # ~/.config/husky/init.sh is sourced before every hook — install a shim if nvm is in use.
+        if [ -s "$HOME/.nvm/nvm.sh" ]; then
+          init="$HOME/.config/husky/init.sh"
+          if [ ! -f "$init" ]; then
+            mkdir -p "$(dirname "$init")"
+            cat > "$init" <<'EOF'
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        EOF
+            echo "installed husky init shim at $init"
+          else
+            echo "husky init shim already present at $init"
+          fi
+        fi
+
   # --- Loop Monitoring ---
 
   loop:watch:

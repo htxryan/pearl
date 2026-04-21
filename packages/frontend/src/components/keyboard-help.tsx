@@ -67,6 +67,18 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     name: "Detail View",
     shortcuts: [{ key: "Esc", description: "Close detail / back to list" }],
   },
+  {
+    name: "Image Attachments",
+    shortcuts: [
+      { key: "Enter", description: "Open lightbox (on focused pill or gallery tile)" },
+      { key: "→", description: "Next image in lightbox" },
+      { key: "←", description: "Previous image in lightbox" },
+      { key: "Home", description: "First image" },
+      { key: "End", description: "Last image" },
+      { key: "Esc", description: "Close lightbox" },
+      { key: "?", description: "Show shortcuts (while lightbox is open)" },
+    ],
+  },
 ];
 
 // ─── Component ─────────────────────────────────────────
@@ -90,16 +102,16 @@ export function KeyboardHelpOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-[60] flex items-center justify-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="keyboard-help-title"
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" onClick={closeKeyboardHelp} />
+      <div className="fixed inset-0 bg-black/70" onClick={closeKeyboardHelp} />
 
       {/* Modal */}
-      <div className="relative z-50 w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden animate-modal-enter">
+      <div className="relative z-[60] w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden animate-modal-enter">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 id="keyboard-help-title" className="text-lg font-semibold">
             Keyboard Shortcuts

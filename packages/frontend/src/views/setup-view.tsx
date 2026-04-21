@@ -77,9 +77,9 @@ export function SetupView() {
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary">
-            B
+            P
           </div>
-          <h1 className="mt-4 text-2xl font-bold text-foreground">Welcome to Beads</h1>
+          <h1 className="mt-4 text-2xl font-bold text-foreground">Welcome to Pearl</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Set up your project database to get started.
           </p>
@@ -124,7 +124,7 @@ function ModeSelection({
   return (
     <div>
       <h2 className="text-lg font-semibold text-foreground">Choose your database mode</h2>
-      <p className="mt-1 text-sm text-muted-foreground">How should Beads store your data?</p>
+      <p className="mt-1 text-sm text-muted-foreground">How should Pearl store your data?</p>
 
       {error && (
         <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">

@@ -7,7 +7,7 @@ import type {
 } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { Config } from "../config.js";
-import { type DoltMode, findBeadsDir, loadConfig, readBeadsMetadata } from "../config.js";
+import { type DoltMode, findBeadsDir, loadConfig } from "../config.js";
 import { validationError } from "../errors.js";
 
 export interface SetupContext {
@@ -60,6 +60,10 @@ export function registerSetupRoutes(app: FastifyInstance, ctx: SetupContext): vo
         throw validationError("mode must be 'embedded' or 'server'");
       }
 
+      if (body.mode === "embedded") {
+        throw validationError("Embedded mode is deprecated. Please use 'server' mode instead.");
+      }
+
       if (body.mode === "server") {
         if (!body.server_host) {
           throw validationError("server_host is required for server mode");
@@ -84,27 +88,22 @@ export function registerSetupRoutes(app: FastifyInstance, ctx: SetupContext): vo
       const cwd = process.cwd();
       const beadsDir = resolve(cwd, ".beads");
 
-      if (body.mode === "embedded") {
-        // Run bd init to create the .beads/ directory and embedded database
-        await runBdInit(config);
-      } else {
-        // Server mode: create .beads/metadata.json manually
-        if (!existsSync(beadsDir)) {
-          mkdirSync(beadsDir, { recursive: true });
-        }
-        const metadata = {
-          database: "dolt",
-          backend: "dolt",
-          dolt_mode: "server" as DoltMode,
-          dolt_host: body.server_host,
-          dolt_port: body.server_port || 3307,
-          dolt_user: body.server_user || "root",
-          dolt_password: body.server_password || "",
-          dolt_database: body.database || "beads_gui",
-          project_id: crypto.randomUUID(),
-        };
-        writeFileSync(resolve(beadsDir, "metadata.json"), JSON.stringify(metadata, null, 2));
+      // Server mode: create .beads/metadata.json
+      if (!existsSync(beadsDir)) {
+        mkdirSync(beadsDir, { recursive: true });
       }
+      const metadata = {
+        database: "dolt",
+        backend: "dolt",
+        dolt_mode: "server" as DoltMode,
+        dolt_host: body.server_host,
+        dolt_port: body.server_port || 3307,
+        dolt_user: body.server_user || "root",
+        dolt_password: body.server_password || "",
+        dolt_database: body.database || "beads_gui",
+        project_id: crypto.randomUUID(),
+      };
+      writeFileSync(resolve(beadsDir, "metadata.json"), JSON.stringify(metadata, null, 2));
 
       // Verify .beads/ was created
       if (!findBeadsDir(cwd)) {
@@ -130,20 +129,6 @@ export function registerSetupRoutes(app: FastifyInstance, ctx: SetupContext): vo
       isInitializing = false;
     }
   });
-}
-
-async function runBdInit(config: Config): Promise<void> {
-  const { execa } = await import("execa");
-  const result = await execa(config.bdPath, ["init"], {
-    cwd: process.cwd(),
-    reject: false,
-    timeout: 60000,
-  });
-
-  if (result.exitCode !== 0) {
-    const detail = result.stderr || result.stdout || "Unknown error";
-    throw new Error(`bd init failed (exit ${result.exitCode}): ${detail}`);
-  }
 }
 
 async function testServerConnection(

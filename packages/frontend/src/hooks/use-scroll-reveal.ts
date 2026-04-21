@@ -1,29 +1,29 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
-/**
- * Returns a ref and a boolean indicating whether the element has scrolled into view.
- * Uses IntersectionObserver for efficient scroll-triggered reveals.
- * Once revealed, stays revealed (one-shot animation).
- */
 export function useScrollReveal<T extends HTMLElement>(
   threshold = 0.1,
 ): [React.RefObject<T | null>, boolean] {
   const ref = useRef<T | null>(null);
   const [revealed, setRevealed] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el || revealed) return;
 
-    // Fallback: if IntersectionObserver unavailable (e.g. jsdom), reveal immediately
     if (typeof IntersectionObserver === "undefined") {
       setRevealed(true);
       return;
     }
 
-    // Check prefers-reduced-motion — skip animation entirely
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (mq.matches) {
+      setRevealed(true);
+      return;
+    }
+
+    // Synchronously check if already in viewport to prevent opacity-0 flash
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
       setRevealed(true);
       return;
     }

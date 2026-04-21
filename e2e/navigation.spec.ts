@@ -4,6 +4,7 @@ test.describe("Navigation", () => {
   test("root redirects to /list", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
     await page.goto("/");
     await page.waitForURL("**/list");
@@ -35,9 +36,9 @@ test.describe("Navigation", () => {
     await expect(boardLink).toHaveClass(/text-primary/);
   });
 
-  test("sidebar shows Beads branding", async ({ seededPage: page }) => {
+  test("sidebar shows Pearl branding", async ({ seededPage: page }) => {
     const sidebar = page.locator("aside");
-    await expect(sidebar.getByText("Beads")).toBeVisible();
+    await expect(sidebar.getByText("Pearl").first()).toBeVisible();
   });
 
   test("header shows command palette hint", async ({ seededPage: page }) => {

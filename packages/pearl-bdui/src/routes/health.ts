@@ -16,21 +16,36 @@ export function registerHealthRoutes(
     const config = getConfig();
     const doltManager = getDoltManager();
 
+    const projectPrefix = config.doltDatabase.replace(/_/g, "-");
+
     if (config.needsSetup) {
       const response: HealthResponse = {
         status: "degraded",
         dolt_server: "stopped",
         uptime_seconds: 0,
         version: VERSION,
+        project_prefix: projectPrefix,
+        dolt_mode: config.doltMode,
       };
       return reply.code(200).send(response);
     }
 
     if (config.doltMode === "server") {
-      // Server mode: check pool connectivity to the external Dolt server
-      const health = await serverModeHealth();
+      const health = await serverModeHealth(projectPrefix);
       const statusCode = health.status === "healthy" ? 200 : 503;
       return reply.code(statusCode).send(health);
+    }
+
+    if (config.doltMode === "embedded") {
+      const response: HealthResponse = {
+        status: "degraded",
+        dolt_server: "stopped",
+        uptime_seconds: 0,
+        version: VERSION,
+        project_prefix: projectPrefix,
+        dolt_mode: "embedded",
+      };
+      return reply.code(200).send(response);
     }
 
     if (!doltManager) {
@@ -39,11 +54,12 @@ export function registerHealthRoutes(
         dolt_server: "stopped",
         uptime_seconds: 0,
         version: VERSION,
+        project_prefix: projectPrefix,
+        dolt_mode: config.doltMode,
       };
       return reply.code(503).send(response);
     }
 
-    // Embedded mode: check DoltServerManager state
     const doltState = doltManager.getState();
 
     let status: HealthResponse["status"];
@@ -60,6 +76,8 @@ export function registerHealthRoutes(
       dolt_server: doltState,
       uptime_seconds: doltManager.getUptime(),
       version: VERSION,
+      project_prefix: projectPrefix,
+      dolt_mode: config.doltMode,
     };
 
     const statusCode = status === "healthy" ? 200 : status === "degraded" ? 200 : 503;
@@ -67,7 +85,7 @@ export function registerHealthRoutes(
   });
 }
 
-async function serverModeHealth(): Promise<HealthResponse> {
+async function serverModeHealth(projectPrefix: string): Promise<HealthResponse> {
   try {
     const pool = getPool();
     await pool.query("SELECT 1");
@@ -76,6 +94,8 @@ async function serverModeHealth(): Promise<HealthResponse> {
       dolt_server: "running",
       uptime_seconds: 0,
       version: VERSION,
+      project_prefix: projectPrefix,
+      dolt_mode: "server",
     };
   } catch {
     return {
@@ -83,6 +103,8 @@ async function serverModeHealth(): Promise<HealthResponse> {
       dolt_server: "error",
       uptime_seconds: 0,
       version: VERSION,
+      project_prefix: projectPrefix,
+      dolt_mode: "server",
     };
   }
 }

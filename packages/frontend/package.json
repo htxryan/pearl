@@ -11,13 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@pearl/shared": "workspace:*",
     "@dagrejs/dagre": "^3.0.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
+    "@pearl/shared": "workspace:*",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-query": "^5.60.0",
     "@tanstack/react-table": "^8.21.3",
@@ -32,6 +32,8 @@
     "react-markdown": "^10.1.0",
     "react-router": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "highlight.js": "^11.11.1",
+    "rehype-highlight": "^7.0.2",
     "tailwind-merge": "^2.5.0"
   },
   "devDependencies": {

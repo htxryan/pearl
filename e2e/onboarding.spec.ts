@@ -10,7 +10,7 @@ test.describe("Onboarding", () => {
     await expect(page.getByLabel("Issue list")).toBeVisible({ timeout: 15_000 });
 
     // Onboarding banner should be visible
-    await expect(page.getByText("Welcome to Beads")).toBeVisible();
+    await expect(page.getByText("Welcome to Pearl")).toBeVisible();
     await expect(page.getByText("Step 1 of 5")).toBeVisible();
   });
 
@@ -35,7 +35,7 @@ test.describe("Onboarding", () => {
     await page.waitForURL("**/list");
     await expect(page.getByLabel("Issue list")).toBeVisible({ timeout: 15_000 });
 
-    await expect(page.getByText("Welcome to Beads")).toBeVisible();
+    await expect(page.getByText("Welcome to Pearl")).toBeVisible();
 
     // Click Skip
     await page.getByRole("button", { name: "Skip" }).click();

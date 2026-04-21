@@ -10,11 +10,16 @@ import type {
   Issue,
   IssueListItem,
   LabelWithCount,
+  MigrateRequest,
+  MigrateResponse,
   MutationResponse,
+  Settings,
   SetupInitializeRequest,
   SetupInitializeResponse,
   SetupStatusResponse,
   StatsResponse,
+  TestServerRequest,
+  TestServerResponse,
   UpdateIssueRequest,
   UpsertLabelRequest,
 } from "@pearl/shared";
@@ -26,7 +31,8 @@ class ApiClientError extends Error {
     public status: number,
     public apiError: ApiError,
   ) {
-    super(apiError.message);
+    const raw = apiError as ApiError & { error?: string };
+    super(apiError.message || raw.error || `Request failed with status ${status}`);
     this.name = "ApiClientError";
   }
 }
@@ -93,6 +99,12 @@ export function closeIssue(id: string, reason?: string): Promise<MutationRespons
   });
 }
 
+export function deleteIssue(id: string): Promise<MutationResponse> {
+  return request(`/issues/${encodeURIComponent(id)}?permanent=true`, {
+    method: "DELETE",
+  });
+}
+
 // ─── Comments ───────────────────────────────────────────
 export function fetchComments(issueId: string): Promise<Comment[]> {
   return request(`/issues/${encodeURIComponent(issueId)}/comments`);
@@ -150,6 +162,18 @@ export function upsertLabel(data: UpsertLabelRequest): Promise<MutationResponse>
   });
 }
 
+// ─── Settings ──────────────────────────────────────────
+export function fetchSettings(): Promise<Settings> {
+  return request("/settings");
+}
+
+export function updateSettings(data: Settings): Promise<MutationResponse<Settings>> {
+  return request("/settings", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 // ─── Health & Stats ─────────────────────────────────────
 export function fetchHealth(): Promise<HealthResponse> {
   return request("/health");
@@ -166,6 +190,21 @@ export function fetchSetupStatus(): Promise<SetupStatusResponse> {
 
 export function initializeSetup(data: SetupInitializeRequest): Promise<SetupInitializeResponse> {
   return request("/setup/initialize", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Migration ─────────────────────────────────────────
+export function testMigrationServer(data: TestServerRequest): Promise<TestServerResponse> {
+  return request("/migration/test-server", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export function migrate(data: MigrateRequest): Promise<MigrateResponse> {
+  return request("/migration/migrate", {
     method: "POST",
     body: JSON.stringify(data),
   });

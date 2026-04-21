@@ -1,4 +1,5 @@
 import { loadConfig } from "./config.js";
+import { logger } from "./logger.js";
 import { createServer } from "./server.js";
 
 async function main() {
@@ -11,16 +12,16 @@ async function main() {
   // Start Fastify — bound to 127.0.0.1 ONLY (security: no LAN access)
   await app.listen({ host: config.host, port: config.port });
 
-  console.log(`\n  Pearl backend running at http://${config.host}:${config.port}`);
+  app.log.info({ host: config.host, port: config.port }, "Pearl backend running");
   if (config.needsSetup) {
-    console.log("  Setup required — open the frontend to configure your project\n");
+    app.log.info("Setup required — open the frontend to configure your project");
   } else {
-    console.log(`  Dolt SQL server on port ${config.doltPort}\n`);
+    app.log.info({ doltPort: config.doltPort }, "Dolt SQL server ready");
   }
 
   // Graceful shutdown
   const onSignal = async (signal: string) => {
-    console.log(`\nReceived ${signal}, shutting down...`);
+    app.log.info({ signal }, "Received signal, shutting down");
     await app.close();
     await shutdown();
     process.exit(0);
@@ -31,6 +32,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("Fatal error:", err);
+  logger.fatal({ err }, "Fatal error");
   process.exit(1);
 });

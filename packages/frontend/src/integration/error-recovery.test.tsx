@@ -213,6 +213,7 @@ describe("HealthBanner", () => {
         dolt_server: "stopped",
         uptime_seconds: 100,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -233,6 +234,7 @@ describe("HealthBanner", () => {
         dolt_server: "starting",
         uptime_seconds: 5,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -250,6 +252,7 @@ describe("HealthBanner", () => {
         dolt_server: "error",
         uptime_seconds: 50,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -267,6 +270,7 @@ describe("HealthBanner", () => {
         dolt_server: "running",
         uptime_seconds: 300,
         version: "1.0.0",
+        dolt_mode: "embedded",
       },
       isSuccess: true,
     });
@@ -513,9 +517,9 @@ describe("View degradation during errors", () => {
       const { BoardView } = await import("@/views/board-view");
       renderWithProviders(<BoardView />);
 
-      // Board renders columns even when empty; each column shows "No issues"
+      // All 4 columns show "No issues"
       const emptyMessages = screen.getAllByText("No issues");
-      expect(emptyMessages.length).toBe(5);
+      expect(emptyMessages.length).toBe(4);
     });
   });
 
@@ -582,6 +586,7 @@ describe("View degradation during errors", () => {
           dolt_server: "stopped",
           uptime_seconds: 10,
           version: "1.0.0",
+          dolt_mode: "embedded",
         },
         isSuccess: true,
       });

@@ -8,6 +8,7 @@ import type {
   IssueListItem,
   UpdateIssueRequest,
 } from "@pearl/shared";
+import { ATTACHMENT_HOST_FIELDS, hasAttachmentSyntax } from "@pearl/shared";
 import {
   type QueryClient,
   useIsMutating,
@@ -16,31 +17,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import * as api from "@/lib/api-client";
+import { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys } from "./issue-keys";
 import { labelKeys } from "./use-labels";
+import { notifyCommentAdded } from "./use-notifications";
+import { settingsKeys } from "./use-settings";
 
-// ─── Query Keys ─────────────────────────────────────────
-export const issueKeys = {
-  all: ["issues"] as const,
-  lists: () => [...issueKeys.all, "list"] as const,
-  list: (params?: URLSearchParams) => [...issueKeys.lists(), params?.toString() ?? ""] as const,
-  details: () => [...issueKeys.all, "detail"] as const,
-  detail: (id: string) => [...issueKeys.details(), id] as const,
-  comments: (id: string) => [...issueKeys.all, "comments", id] as const,
-  events: (id: string) => [...issueKeys.all, "events", id] as const,
-  dependencies: (id: string) => [...issueKeys.all, "dependencies", id] as const,
-};
-
-export const statsKeys = {
-  all: ["stats"] as const,
-};
-
-export const healthKeys = {
-  all: ["health"] as const,
-};
-
-export const dependencyKeys = {
-  all: ["dependencies"] as const,
-};
+export { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys };
 
 // ─── Invalidation from hints ────────────────────────────
 function invalidateFromHints(
@@ -77,6 +59,9 @@ function invalidateFromHints(
       case "labels":
         queryClient.invalidateQueries({ queryKey: labelKeys.all });
         break;
+      case "settings":
+        queryClient.invalidateQueries({ queryKey: settingsKeys.all });
+        break;
     }
   }
 }
@@ -89,8 +74,7 @@ export function useIssues(params?: URLSearchParams) {
   return useQuery<IssueListItem[]>({
     queryKey: issueKeys.list(params),
     queryFn: () => api.fetchIssues(params),
-    // STPA H1: Suppress polling while mutations are pending
-    refetchInterval: pendingIssueMutations + pendingDepMutations > 0 ? false : 2000,
+    refetchInterval: pendingIssueMutations + pendingDepMutations > 0 ? false : 10_000,
   });
 }
 
@@ -166,6 +150,7 @@ export function useCreateIssue() {
         updated_at: new Date().toISOString(),
         due_at: data.due ?? null,
         pinned: false,
+        has_attachments: Boolean(data.description && hasAttachmentSyntax(data.description)),
         labels: data.labels ?? [],
         labelColors: {},
       };
@@ -212,13 +197,18 @@ export function useUpdateIssue() {
         queryKey: issueKeys.lists(),
       });
 
+      const touchesAttachmentField = ATTACHMENT_HOST_FIELDS.some((f) => f in data);
+
       // Optimistic update on detail
       if (previousDetail) {
-        queryClient.setQueryData<Issue>(issueKeys.detail(id), {
-          ...previousDetail,
-          ...data,
-          updated_at: new Date().toISOString(),
-        });
+        const merged = { ...previousDetail, ...data, updated_at: new Date().toISOString() };
+        if (touchesAttachmentField) {
+          merged.has_attachments = ATTACHMENT_HOST_FIELDS.some((f) => {
+            const val = merged[f as keyof typeof merged];
+            return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
+          });
+        }
+        queryClient.setQueryData<Issue>(issueKeys.detail(id), merged);
       }
 
       // Optimistic update on list items
@@ -226,9 +216,17 @@ export function useUpdateIssue() {
         if (!list) continue;
         queryClient.setQueryData<IssueListItem[]>(
           queryKey,
-          list.map((item) =>
-            item.id === id ? { ...item, ...data, updated_at: new Date().toISOString() } : item,
-          ),
+          list.map((item) => {
+            if (item.id !== id) return item;
+            const merged = { ...item, ...data, updated_at: new Date().toISOString() };
+            if (touchesAttachmentField) {
+              merged.has_attachments = ATTACHMENT_HOST_FIELDS.some((f) => {
+                const val = merged[f as keyof typeof merged];
+                return typeof val === "string" && val.length > 0 && hasAttachmentSyntax(val);
+              });
+            }
+            return merged;
+          }),
         );
       }
 
@@ -312,6 +310,44 @@ export function useCloseIssue() {
   });
 }
 
+// ─── Delete Issue Mutation (permanent) ─────────────────
+export function useDeleteIssue() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ["issues", "delete"],
+    mutationFn: ({ id }: { id: string }) => api.deleteIssue(id),
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: issueKeys.lists() });
+      await queryClient.cancelQueries({ queryKey: issueKeys.detail(id) });
+
+      const previousLists = queryClient.getQueriesData<IssueListItem[]>({
+        queryKey: issueKeys.lists(),
+      });
+
+      for (const [queryKey, list] of previousLists) {
+        if (!list) continue;
+        queryClient.setQueryData<IssueListItem[]>(
+          queryKey,
+          list.filter((item) => item.id !== id),
+        );
+      }
+
+      return { previousLists };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousLists) {
+        for (const [queryKey, data] of context.previousLists) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+    },
+    onSuccess: (response) => {
+      invalidateFromHints(queryClient, response.invalidationHints);
+    },
+  });
+}
+
 // ─── Add Comment Mutation ──────────────────────────────
 export function useAddComment() {
   const queryClient = useQueryClient();
@@ -351,6 +387,12 @@ export function useAddComment() {
     },
     onSuccess: (response, { issueId }) => {
       invalidateFromHints(queryClient, response.invalidationHints);
+      if (response.data?.author) {
+        const issue = queryClient.getQueryData<Issue>(issueKeys.detail(issueId));
+        if (issue) {
+          notifyCommentAdded(issueId, issue.title, response.data.author);
+        }
+      }
     },
   });
 }
@@ -485,7 +527,7 @@ export function useStats() {
   return useQuery({
     queryKey: statsKeys.all,
     queryFn: api.fetchStats,
-    refetchInterval: 30000,
+    refetchInterval: 60_000,
   });
 }
 
@@ -494,16 +536,12 @@ export function useHealth() {
   return useQuery({
     queryKey: healthKeys.all,
     queryFn: api.fetchHealth,
-    refetchInterval: 5000,
+    refetchInterval: 15_000,
     retry: 0,
   });
 }
 
 // ─── Setup Hook ─────────────────────────────────────────
-export const setupKeys = {
-  status: ["setup", "status"] as const,
-};
-
 export function useSetupStatus() {
   return useQuery({
     queryKey: setupKeys.status,

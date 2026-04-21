@@ -13,6 +13,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(),
   useUpdateIssue: vi.fn(),
   useCloseIssue: vi.fn(),
+  useDeleteIssue: vi.fn(),
   useAddComment: vi.fn(),
   useAddDependency: vi.fn(),
   useRemoveDependency: vi.fn(),
@@ -24,6 +25,7 @@ import {
   useAddDependency,
   useCloseIssue,
   useComments,
+  useDeleteIssue,
   useDependencies,
   useEvents,
   useIssue,
@@ -32,7 +34,7 @@ import {
 } from "@/hooks/use-issues";
 
 const mockIssue: Issue = {
-  id: "pearl-test",
+  id: "pearl-beads-test",
   title: "Test Issue",
   description: "A test description",
   design: "",
@@ -54,6 +56,7 @@ const mockIssue: Issue = {
   spec_id: null,
   pinned: false,
   is_template: false,
+  has_attachments: false,
   labels: ["frontend", "v1"],
   labelColors: {},
   metadata: {},
@@ -100,6 +103,7 @@ beforeEach(() => {
   // Setup default mock returns
   (useUpdateIssue as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useCloseIssue as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
+  (useDeleteIssue as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useAddComment as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useAddDependency as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
   (useRemoveDependency as ReturnType<typeof vi.fn>).mockReturnValue(mockMutation);
@@ -116,7 +120,7 @@ describe("DetailView", () => {
     (useEvents as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
     (useDependencies as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
 
-    renderWithProviders("pearl-test");
+    renderWithProviders("pearl-beads-test");
     // Skeleton should show animated placeholders
     const skeletonElements = document.querySelectorAll(".skeleton-shimmer");
     expect(skeletonElements.length).toBeGreaterThan(0);
@@ -147,10 +151,10 @@ describe("DetailView", () => {
     (useEvents as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
     (useDependencies as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
 
-    renderWithProviders("pearl-test");
+    renderWithProviders("pearl-beads-test");
 
-    // Issue ID and title
-    expect(screen.getByText("pearl-test")).toBeDefined();
+    // Issue ID (short form) and title
+    expect(screen.getByText("beads-test")).toBeDefined();
     expect(screen.getByText("Test Issue")).toBeDefined();
 
     // Metadata
@@ -172,7 +176,7 @@ describe("DetailView", () => {
     const comments: Comment[] = [
       {
         id: "c1",
-        issue_id: "pearl-test",
+        issue_id: "pearl-beads-test",
         author: "user1",
         text: "This is a test comment",
         created_at: "2026-04-10T11:00:00Z",
@@ -188,7 +192,7 @@ describe("DetailView", () => {
     (useEvents as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
     (useDependencies as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
 
-    renderWithProviders("pearl-test");
+    renderWithProviders("pearl-beads-test");
 
     expect(screen.getByText("Comments (1)")).toBeDefined();
     expect(screen.getByText("This is a test comment")).toBeDefined();
@@ -199,7 +203,7 @@ describe("DetailView", () => {
     const events: Event[] = [
       {
         id: "e1",
-        issue_id: "pearl-test",
+        issue_id: "pearl-beads-test",
         event_type: "status_change",
         actor: "user1",
         old_value: "open",
@@ -218,7 +222,7 @@ describe("DetailView", () => {
     (useEvents as ReturnType<typeof vi.fn>).mockReturnValue({ data: events });
     (useDependencies as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
 
-    renderWithProviders("pearl-test");
+    renderWithProviders("pearl-beads-test");
 
     expect(screen.getByText("Activity (1)")).toBeDefined();
     expect(screen.getByText("user1")).toBeDefined();
@@ -240,7 +244,7 @@ describe("DetailView", () => {
     (useEvents as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
     (useDependencies as ReturnType<typeof vi.fn>).mockReturnValue({ data: [] });
 
-    renderWithProviders("pearl-test");
+    renderWithProviders("pearl-beads-test");
 
     expect(screen.queryByText("Claim")).toBeNull();
     expect(screen.queryByText("Close")).toBeNull();

@@ -1,10 +1,17 @@
 import type { Event } from "@pearl/shared";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { RelativeTime } from "@/components/ui/relative-time";
 
 interface ActivityTimelineProps {
   events: Event[];
+}
+
+interface EventGroup {
+  key: string;
+  events: Event[];
+  representative: Event;
 }
 
 const PAGE_SIZE = 20;
@@ -32,7 +39,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
   const sortedEvents = useMemo(
     () =>
       [...events].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       ),
     [events],
   );
@@ -43,8 +50,10 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
     [sortedEvents, filterType],
   );
 
-  const visibleEvents = filteredEvents.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredEvents.length;
+  const groupedEvents = useMemo(() => groupAdjacentEvents(filteredEvents), [filteredEvents]);
+
+  const visibleGroups = groupedEvents.slice(0, visibleCount);
+  const hasMore = visibleCount < groupedEvents.length;
 
   const handleTimestampClick = useCallback((eventId: string) => {
     const anchor = `#event-${eventId}`;
@@ -59,51 +68,57 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
     <section>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
-          Activity ({filteredEvents.length})
+          Activity ({groupedEvents.length})
         </h2>
-        <select
+        <CustomSelect
           value={filterType}
-          onChange={(e) => {
-            setFilterType(e.target.value);
+          options={EVENT_FILTER_OPTIONS}
+          onChange={(value) => {
+            setFilterType(value);
             setVisibleCount(PAGE_SIZE);
           }}
-          className="text-xs border border-border rounded px-1.5 py-0.5 bg-background text-foreground"
           aria-label="Filter events by type"
-        >
-          {EVENT_FILTER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          size="sm"
+        />
       </div>
 
-      {visibleEvents.length > 0 ? (
+      {visibleGroups.length > 0 ? (
         <div className="relative pl-4 border-l-2 border-border space-y-3">
-          {visibleEvents.map((event) => (
-            <div key={event.id} id={`event-${event.id}`} className="relative">
-              {/* Dot on timeline */}
-              <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-border" />
+          {visibleGroups.map((group) => {
+            const event = group.representative;
+            const count = group.events.length;
+            return (
+              <div key={group.key} id={`event-${event.id}`} className="relative">
+                <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-border" />
 
-              <div className="text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{event.actor}</span>
-                  <span className="text-muted-foreground">{describeEvent(event)}</span>
+                <div className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{event.actor}</span>
+                    <span className="text-muted-foreground">{describeEvent(event)}</span>
+                    {count > 1 && (
+                      <span className="text-xs text-muted-foreground/60 font-medium">
+                        &times;{count}
+                      </span>
+                    )}
+                  </div>
+                  {event.comment && (
+                    <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleTimestampClick(event.id)}
+                    className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer bg-transparent border-none p-0"
+                    title="Copy link to this event"
+                  >
+                    <RelativeTime
+                      iso={event.created_at}
+                      className="text-xs text-muted-foreground"
+                    />
+                  </button>
                 </div>
-                {event.comment && (
-                  <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleTimestampClick(event.id)}
-                  className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer bg-transparent border-none p-0"
-                  title="Copy link to this event"
-                >
-                  <RelativeTime iso={event.created_at} className="text-xs text-muted-foreground" />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-col items-center py-6 text-muted-foreground">
@@ -125,12 +140,37 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
             size="sm"
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
           >
-            Show more ({filteredEvents.length - visibleCount} remaining)
+            Show more ({groupedEvents.length - visibleCount} remaining)
           </Button>
         </div>
       )}
     </section>
   );
+}
+
+export function groupAdjacentEvents(events: Event[]): EventGroup[] {
+  const groups: EventGroup[] = [];
+  for (const event of events) {
+    const prev = groups[groups.length - 1];
+    if (
+      prev &&
+      prev.representative.actor === event.actor &&
+      prev.representative.event_type === event.event_type &&
+      prev.representative.old_value === event.old_value &&
+      prev.representative.new_value === event.new_value &&
+      !event.comment &&
+      !prev.representative.comment
+    ) {
+      prev.events.push(event);
+    } else {
+      groups.push({
+        key: event.id,
+        events: [event],
+        representative: event,
+      });
+    }
+  }
+  return groups;
 }
 
 function describeEvent(event: Event): string {
@@ -165,13 +205,39 @@ function describeEvent(event: Event): string {
     case "claimed":
       return `claimed this issue`;
     case "label_change":
-      return `updated labels`;
+      if (old_value && new_value)
+        return `changed labels from ${formatValue(old_value)} to ${formatValue(new_value)}`;
+      if (new_value) return `added label ${formatValue(new_value)}`;
+      if (old_value) return `removed label ${formatValue(old_value)}`;
+      return "updated labels";
     default:
+      if (old_value && new_value)
+        return `changed ${event_type.replace(/_/g, " ")} from ${formatValue(old_value)} to ${formatValue(new_value)}`;
+      if (new_value) return `set ${event_type.replace(/_/g, " ")} to ${formatValue(new_value)}`;
       return event_type.replace(/_/g, " ");
   }
 }
 
 function formatValue(val: string | null): string {
   if (val === null || val === "") return "none";
+  if (val.startsWith("{") || val.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed))
+        return parsed
+          .map((el) => (typeof el === "object" && el !== null ? JSON.stringify(el) : String(el)))
+          .join(", ");
+      if (typeof parsed === "object" && parsed !== null) {
+        return Object.entries(parsed)
+          .map(
+            ([k, v]) =>
+              `${k.replace(/_/g, " ")}: ${typeof v === "object" && v !== null ? JSON.stringify(v) : v}`,
+          )
+          .join(", ");
+      }
+    } catch {
+      // Not valid JSON, fall through
+    }
+  }
   return val.replace(/_/g, " ");
 }

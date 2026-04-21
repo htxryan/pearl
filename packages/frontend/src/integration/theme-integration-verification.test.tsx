@@ -28,6 +28,26 @@ vi.mock("@/lib/api-client", () => ({
   removeDependency: vi.fn(),
   fetchHealth: vi.fn(),
   fetchStats: vi.fn(),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
 // ─── Mock use-issues hooks ───────────────────────────────

@@ -1,11 +1,19 @@
-import type { Issue, IssueStatus, IssueType, LabelColor, Priority } from "@pearl/shared";
-import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
-import { Children, useCallback, useEffect, useMemo, useState } from "react";
+import type { IssueStatus, LabelColor, ParsedField } from "@pearl/shared";
+import {
+  hasAttachmentSyntax,
+  ISSUE_PRIORITIES,
+  ISSUE_TYPES,
+  parseField,
+  SETTABLE_STATUSES,
+} from "@pearl/shared";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
+import { AttachmentsGallery } from "@/components/detail/attachments-gallery";
 import { CommentThread } from "@/components/detail/comment-thread";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
+import { Lightbox } from "@/components/detail/lightbox";
 import { MarkdownSection } from "@/components/detail/markdown-section";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -15,12 +23,14 @@ import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import {
   useAddComment,
   useAddDependency,
   useCloseIssue,
   useComments,
+  useDeleteIssue,
   useDependencies,
   useEvents,
   useIssue,
@@ -28,9 +38,19 @@ import {
   useUpdateIssue,
 } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
-import { useScrollReveal } from "@/hooks/use-scroll-reveal";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { useParseField } from "@/hooks/use-parse-field";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
+import { shortId } from "@/lib/format-id";
+import {
+  DetailErrorView,
+  DetailSections,
+  DetailSkeleton,
+  FieldRow,
+  SelectField,
+  statusLabel,
+} from "@/views/detail-components";
 
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
@@ -44,9 +64,57 @@ const VIEW_LABELS: Record<string, string> = {
   "/graph": "Graph",
 };
 
+/** Collapsible wrapper for detail sections on mobile. On desktop, renders children directly. */
+function CollapsibleSection({
+  title,
+  hasContent,
+  children,
+}: {
+  title: string;
+  hasContent: boolean;
+  children: ReactNode;
+}) {
+  const isMobile = useIsMobile();
+  const [expanded, setExpanded] = useState(hasContent);
+
+  useEffect(() => {
+    if (hasContent) setExpanded(true);
+  }, [hasContent]);
+
+  if (!isMobile) return <>{children}</>;
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="flex items-center justify-between w-full py-2 text-left text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        aria-expanded={expanded}
+      >
+        <span>{title}</span>
+        <svg
+          className={`h-4 w-4 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+      {expanded && children}
+    </div>
+  );
+}
+
 function DetailViewContent({ id }: { id: string }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Determine where the user came from for breadcrumbs
   const fromPath = (location.state as { from?: string } | null)?.from;
@@ -59,10 +127,53 @@ function DetailViewContent({ id }: { id: string }) {
   const { data: events = [] } = useEvents(id);
   const { data: dependencies = [] } = useDependencies(id);
 
+  // Attachment field parsing
+  const descParsed = useParseField(issue?.description);
+  const designParsed = useParseField(issue?.design);
+  const acceptanceParsed = useParseField(issue?.acceptance_criteria);
+  const notesParsed = useParseField(issue?.notes);
+  const commentParsedFields = useMemo(() => {
+    const results: { parsed: ParsedField; sourceLabel: string }[] = [];
+    let commentIdx = 0;
+    for (const comment of comments) {
+      commentIdx++;
+      if (comment.text && hasAttachmentSyntax(comment.text)) {
+        try {
+          results.push({
+            parsed: parseField(comment.text),
+            sourceLabel: `Comment #${commentIdx}`,
+          });
+        } catch {
+          // skip unparseable comments
+        }
+      }
+    }
+    return results;
+  }, [comments]);
+
+  const parsedFields = useMemo(() => {
+    const labeled: { parsed: ParsedField; sourceLabel: string }[] = [];
+    if (descParsed.parsed) labeled.push({ parsed: descParsed.parsed, sourceLabel: "Description" });
+    if (designParsed.parsed)
+      labeled.push({ parsed: designParsed.parsed, sourceLabel: "Design Notes" });
+    if (acceptanceParsed.parsed)
+      labeled.push({ parsed: acceptanceParsed.parsed, sourceLabel: "Acceptance Criteria" });
+    if (notesParsed.parsed) labeled.push({ parsed: notesParsed.parsed, sourceLabel: "Notes" });
+    labeled.push(...commentParsedFields);
+    return labeled;
+  }, [
+    descParsed.parsed,
+    designParsed.parsed,
+    acceptanceParsed.parsed,
+    notesParsed.parsed,
+    commentParsedFields,
+  ]);
+
   // Mutations
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
   const addCommentMutation = useAddComment();
+  const deleteMutation = useDeleteIssue();
   const addDepMutation = useAddDependency();
   const removeDepMutation = useRemoveDependency();
 
@@ -71,6 +182,10 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Confirmation dialog state
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Lightbox state
+  const [lightboxRef, setLightboxRef] = useState<string | null>(null);
 
   // Dirty state for unsaved changes warning
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
@@ -101,7 +216,6 @@ function DetailViewContent({ id }: { id: string }) {
               next.delete(field);
               return next;
             });
-            // Record undo for field changes (skip for trivial fields)
             if (issue && oldValue !== value) {
               undo.recordFieldEdit(id, issue.title, field, oldValue);
             }
@@ -136,6 +250,24 @@ function DetailViewContent({ id }: { id: string }) {
       },
     );
   }, [id, issue, closeMutation.mutate, navigate, backPath, undo, toast]);
+
+  // Delete handler (permanent)
+  const handleDelete = useCallback(() => {
+    deleteMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          setShowDeleteConfirm(false);
+          toast.success("Issue deleted.");
+          navigate(backPath);
+        },
+        onError: () => {
+          setShowDeleteConfirm(false);
+          toast.error("Failed to delete issue. Please try again.");
+        },
+      },
+    );
+  }, [id, deleteMutation.mutate, navigate, backPath, toast]);
 
   // Claim handler
   const handleClaim = useCallback(() => {
@@ -212,345 +344,287 @@ function DetailViewContent({ id }: { id: string }) {
   // Error state
   if (error || !issue) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <div className="text-4xl">!</div>
-        <h2 className="text-xl font-semibold">Issue not found</h2>
-        <p className="text-muted-foreground">{error?.message ?? `Could not load issue ${id}`}</p>
-        <Button variant="outline" onClick={() => navigate(backPath)}>
-          Back to {backLabel.toLowerCase()}
-        </Button>
-      </div>
+      <DetailErrorView
+        error={error}
+        id={id}
+        backPath={backPath}
+        backLabel={backLabel}
+        onBack={() => navigate(backPath)}
+      />
     );
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Header bar */}
-      <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
-              <button
-                onClick={() => navigate(backPath)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+    <AttachmentProvider parsedFields={parsedFields} onPillClick={setLightboxRef}>
+      <div className="flex flex-col h-full overflow-hidden">
+        {/* Header bar */}
+        <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
+                <button
+                  onClick={() => navigate(backPath)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {backLabel}
+                </button>
+                <span className="text-muted-foreground">/</span>
+                <code className="text-muted-foreground" title={issue.id}>
+                  {shortId(issue.id)}
+                </code>
+              </nav>
+              <StatusBadge status={issue.status} />
+              <PriorityIndicator priority={issue.priority} />
+              <TypeBadge type={issue.issue_type} />
+            </div>
+            <div className="flex items-center gap-2">
+              {issue.status !== "closed" && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClaim}
+                    disabled={updateMutation.isPending}
+                  >
+                    Claim
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setShowCloseConfirm(true)}
+                    disabled={closeMutation.isPending}
+                  >
+                    Close
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={deleteMutation.isPending}
+                className="text-destructive hover:bg-destructive/10 border-destructive/30"
               >
-                {backLabel}
-              </button>
-              <span className="text-muted-foreground">/</span>
-              <code className="text-muted-foreground">{issue.id}</code>
-            </nav>
-            <StatusBadge status={issue.status} />
-            <PriorityIndicator priority={issue.priority} />
-            <TypeBadge type={issue.issue_type} />
+                Delete
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {issue.status !== "closed" && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClaim}
-                  disabled={updateMutation.isPending}
-                >
-                  Claim
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setShowCloseConfirm(true)}
-                  disabled={closeMutation.isPending}
-                >
-                  Close
-                </Button>
-              </>
+
+          {/* Title (click-to-edit) */}
+          <FieldEditor
+            value={issue.title}
+            field="title"
+            onSave={(val) => handleFieldUpdate("title", val)}
+            className="mt-3"
+            renderDisplay={(val) => (
+              <h1 className="text-2xl font-semibold cursor-pointer hover:text-muted-foreground transition-colors">
+                {val}
+              </h1>
             )}
-          </div>
+          />
+
+          {isDirty && (
+            <div className="mt-2 text-xs text-warning-foreground">
+              Unsaved changes in: {Array.from(dirtyFields).join(", ")}
+            </div>
+          )}
         </div>
 
-        {/* Title (click-to-edit) */}
-        <FieldEditor
-          value={issue.title}
-          field="title"
-          onSave={(val) => handleFieldUpdate("title", val)}
-          className="mt-3"
-          renderDisplay={(val) => (
-            <h1 className="text-2xl font-semibold cursor-pointer hover:text-muted-foreground transition-colors">
-              {val}
-            </h1>
-          )}
+        {/* Main content */}
+        <div className="flex-1 overflow-auto">
+          <DetailSections>
+            {/* Metadata fields */}
+            <section>
+              <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
+                Fields
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FieldRow label="Status">
+                  <SelectField
+                    value={issue.status}
+                    options={SETTABLE_STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
+                    onChange={(v) => handleFieldUpdate("status", v)}
+                    label="Status"
+                  />
+                </FieldRow>
+                <FieldRow label="Priority">
+                  <SelectField
+                    value={String(issue.priority)}
+                    options={ISSUE_PRIORITIES.map((p) => ({ value: String(p), label: `P${p}` }))}
+                    onChange={(v) => handleFieldUpdate("priority", Number(v))}
+                    label="Priority"
+                  />
+                </FieldRow>
+                <FieldRow label="Type">
+                  <SelectField
+                    value={issue.issue_type}
+                    options={ISSUE_TYPES.map((t) => ({
+                      value: t,
+                      label: t.charAt(0).toUpperCase() + t.slice(1),
+                    }))}
+                    onChange={(v) => handleFieldUpdate("issue_type", v)}
+                    label="Type"
+                  />
+                </FieldRow>
+                <FieldRow label="Assignee">
+                  <FieldEditor
+                    value={issue.assignee ?? ""}
+                    field="assignee"
+                    onSave={(val) => handleFieldUpdate("assignee", val || null)}
+                    placeholder="Unassigned"
+                  />
+                </FieldRow>
+                <FieldRow label="Owner">
+                  <span className="text-sm">{issue.owner}</span>
+                </FieldRow>
+                <FieldRow label="Due Date">
+                  <DatePicker
+                    value={issue.due_at ? issue.due_at.slice(0, 10) : null}
+                    onChange={(date) => handleFieldUpdate("due", date)}
+                  />
+                </FieldRow>
+                <FieldRow label="Labels">
+                  <LabelPicker
+                    selected={issue.labels}
+                    selectedColors={(issue.labelColors ?? {}) as Record<string, LabelColor>}
+                    onChange={(labels) => handleFieldUpdate("labels", labels)}
+                  />
+                </FieldRow>
+                <FieldRow label="Created">
+                  <span className="text-sm text-muted-foreground">
+                    <RelativeTime iso={issue.created_at} /> by {issue.created_by}
+                  </span>
+                </FieldRow>
+                <FieldRow label="Updated">
+                  <RelativeTime iso={issue.updated_at} className="text-sm text-muted-foreground" />
+                </FieldRow>
+                {issue.closed_at && (
+                  <FieldRow label="Closed">
+                    <RelativeTime iso={issue.closed_at} className="text-sm text-muted-foreground" />
+                  </FieldRow>
+                )}
+              </div>
+            </section>
+
+            {/* Description */}
+            <CollapsibleSection title="Description" hasContent={!!issue.description}>
+              <MarkdownSection
+                title="Description"
+                content={issue.description}
+                field="description"
+                onSave={(val) => handleFieldUpdate("description", val)}
+                hideTitle={isMobile}
+              />
+            </CollapsibleSection>
+
+            {/* Design Notes */}
+            {(issue.design || issue.status !== "closed") && (
+              <CollapsibleSection title="Design Notes" hasContent={!!issue.design}>
+                <MarkdownSection
+                  title="Design Notes"
+                  content={issue.design}
+                  field="design"
+                  onSave={(val) => handleFieldUpdate("design", val)}
+                  hideTitle={isMobile}
+                />
+              </CollapsibleSection>
+            )}
+
+            {/* Acceptance Criteria */}
+            {(issue.acceptance_criteria || issue.status !== "closed") && (
+              <CollapsibleSection
+                title="Acceptance Criteria"
+                hasContent={!!issue.acceptance_criteria}
+              >
+                <MarkdownSection
+                  title="Acceptance Criteria"
+                  content={issue.acceptance_criteria}
+                  field="acceptance_criteria"
+                  onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
+                  hideTitle={isMobile}
+                />
+              </CollapsibleSection>
+            )}
+
+            {/* Notes */}
+            {(issue.notes || issue.status !== "closed") && (
+              <CollapsibleSection title="Notes" hasContent={!!issue.notes}>
+                <MarkdownSection
+                  title="Notes"
+                  content={issue.notes}
+                  field="notes"
+                  onSave={(val) => handleFieldUpdate("notes", val)}
+                  hideTitle={isMobile}
+                />
+              </CollapsibleSection>
+            )}
+
+            {/* Attachments Gallery */}
+            <CollapsibleSection
+              title="Attachments"
+              hasContent={parsedFields.some((p) => p.parsed.blocks.size > 0)}
+            >
+              <AttachmentsGallery onThumbnailClick={setLightboxRef} />
+            </CollapsibleSection>
+
+            {/* Dependencies */}
+            <CollapsibleSection title="Dependencies" hasContent={dependencies.length > 0}>
+              <DependencyList
+                issueId={id}
+                dependencies={dependencies}
+                onAdd={(dependsOnId) =>
+                  addDepMutation.mutateAsync({ issue_id: id, depends_on_id: dependsOnId })
+                }
+                onRemove={(depIssueId, depDependsOnId) =>
+                  removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })
+                }
+                isAdding={addDepMutation.isPending}
+                hideTitle={isMobile}
+              />
+            </CollapsibleSection>
+
+            {/* Comments */}
+            <CollapsibleSection title="Comments" hasContent={comments.length > 0}>
+              <CommentThread
+                comments={comments}
+                onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
+                isAdding={addCommentMutation.isPending}
+                hideTitle={isMobile}
+              />
+            </CollapsibleSection>
+
+            {/* Activity Timeline */}
+            <ActivityTimeline events={events} />
+          </DetailSections>
+        </div>
+
+        <ConfirmDialog
+          isOpen={showCloseConfirm}
+          onConfirm={() => {
+            setShowCloseConfirm(false);
+            handleClose();
+          }}
+          onCancel={() => setShowCloseConfirm(false)}
+          title="Close issue?"
+          description={`Are you sure you want to close "${issue.title}"? This can be undone.`}
+          confirmLabel="Close Issue"
+          isPending={closeMutation.isPending}
         />
 
-        {isDirty && (
-          <div className="mt-2 text-xs text-warning-foreground">
-            Unsaved changes in: {Array.from(dirtyFields).join(", ")}
-          </div>
-        )}
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onConfirm={() => {
+            handleDelete();
+          }}
+          onCancel={() => setShowDeleteConfirm(false)}
+          title="Delete issue permanently?"
+          description={`This will permanently delete "${issue.title}" and remove all its dependency links. This cannot be undone.`}
+          confirmLabel="Delete Issue"
+          isPending={deleteMutation.isPending}
+        />
       </div>
-
-      {/* Main content */}
-      <div className="flex-1 overflow-auto">
-        <DetailSections>
-          {/* Metadata fields */}
-          <section>
-            <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
-              Fields
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <FieldRow label="Status">
-                <SelectField
-                  value={issue.status}
-                  options={ISSUE_STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))}
-                  onChange={(v) => handleFieldUpdate("status", v)}
-                  label="Status"
-                />
-              </FieldRow>
-              <FieldRow label="Priority">
-                <SelectField
-                  value={String(issue.priority)}
-                  options={ISSUE_PRIORITIES.map((p) => ({ value: String(p), label: `P${p}` }))}
-                  onChange={(v) => handleFieldUpdate("priority", Number(v))}
-                  label="Priority"
-                />
-              </FieldRow>
-              <FieldRow label="Type">
-                <SelectField
-                  value={issue.issue_type}
-                  options={ISSUE_TYPES.map((t) => ({
-                    value: t,
-                    label: t.charAt(0).toUpperCase() + t.slice(1),
-                  }))}
-                  onChange={(v) => handleFieldUpdate("issue_type", v)}
-                  label="Type"
-                />
-              </FieldRow>
-              <FieldRow label="Assignee">
-                <FieldEditor
-                  value={issue.assignee ?? ""}
-                  field="assignee"
-                  onSave={(val) => handleFieldUpdate("assignee", val || null)}
-                  placeholder="Unassigned"
-                />
-              </FieldRow>
-              <FieldRow label="Owner">
-                <span className="text-sm">{issue.owner}</span>
-              </FieldRow>
-              <FieldRow label="Due Date">
-                <DatePicker
-                  value={issue.due_at ? issue.due_at.slice(0, 10) : null}
-                  onChange={(date) => handleFieldUpdate("due", date)}
-                />
-              </FieldRow>
-              <FieldRow label="Labels">
-                <LabelPicker
-                  selected={issue.labels}
-                  selectedColors={(issue.labelColors ?? {}) as Record<string, LabelColor>}
-                  onChange={(labels) => handleFieldUpdate("labels", labels)}
-                />
-              </FieldRow>
-              <FieldRow label="Created">
-                <span className="text-sm text-muted-foreground">
-                  <RelativeTime iso={issue.created_at} /> by {issue.created_by}
-                </span>
-              </FieldRow>
-              <FieldRow label="Updated">
-                <RelativeTime iso={issue.updated_at} className="text-sm text-muted-foreground" />
-              </FieldRow>
-              {issue.closed_at && (
-                <FieldRow label="Closed">
-                  <RelativeTime iso={issue.closed_at} className="text-sm text-muted-foreground" />
-                </FieldRow>
-              )}
-            </div>
-          </section>
-
-          {/* Description */}
-          <MarkdownSection
-            title="Description"
-            content={issue.description}
-            field="description"
-            onSave={(val) => handleFieldUpdate("description", val)}
-          />
-
-          {/* Design Notes */}
-          {(issue.design || issue.status !== "closed") && (
-            <MarkdownSection
-              title="Design Notes"
-              content={issue.design}
-              field="design"
-              onSave={(val) => handleFieldUpdate("design", val)}
-            />
-          )}
-
-          {/* Acceptance Criteria */}
-          {(issue.acceptance_criteria || issue.status !== "closed") && (
-            <MarkdownSection
-              title="Acceptance Criteria"
-              content={issue.acceptance_criteria}
-              field="acceptance_criteria"
-              onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
-            />
-          )}
-
-          {/* Notes */}
-          {(issue.notes || issue.status !== "closed") && (
-            <MarkdownSection
-              title="Notes"
-              content={issue.notes}
-              field="notes"
-              onSave={(val) => handleFieldUpdate("notes", val)}
-            />
-          )}
-
-          {/* Dependencies */}
-          <DependencyList
-            issueId={id}
-            dependencies={dependencies}
-            onAdd={(dependsOnId) =>
-              addDepMutation.mutateAsync({ issue_id: id, depends_on_id: dependsOnId })
-            }
-            onRemove={(depIssueId, depDependsOnId) =>
-              removeDepMutation.mutate({ issueId: depIssueId, dependsOnId: depDependsOnId })
-            }
-            isAdding={addDepMutation.isPending}
-          />
-
-          {/* Comments */}
-          <CommentThread
-            comments={comments}
-            onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
-            isAdding={addCommentMutation.isPending}
-          />
-
-          {/* Activity Timeline */}
-          <ActivityTimeline events={events} />
-        </DetailSections>
-      </div>
-
-      <ConfirmDialog
-        isOpen={showCloseConfirm}
-        onConfirm={() => {
-          setShowCloseConfirm(false);
-          handleClose();
-        }}
-        onCancel={() => setShowCloseConfirm(false)}
-        title="Close issue?"
-        description={`Are you sure you want to close "${issue.title}"? This can be undone.`}
-        confirmLabel="Close Issue"
-        isPending={closeMutation.isPending}
-      />
-    </div>
+      <Lightbox activeRef={lightboxRef} onClose={() => setLightboxRef(null)} />
+    </AttachmentProvider>
   );
-}
-
-// ─── Helper Components ─────────────────────────────────
-
-function DetailSections({ children }: { children: React.ReactNode }) {
-  const items = Children.toArray(children).filter(Boolean);
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-8">
-      {items.map((child, i) => (
-        <ScrollRevealSection key={i} index={i}>
-          {child}
-        </ScrollRevealSection>
-      ))}
-    </div>
-  );
-}
-
-/** Wraps a detail section with scroll-triggered fade-up entrance. */
-function ScrollRevealSection({ children, index }: { children: React.ReactNode; index: number }) {
-  const [ref, revealed] = useScrollReveal<HTMLDivElement>();
-  return (
-    <div
-      ref={ref}
-      className={revealed ? "animate-fade-up [animation-fill-mode:backwards]" : "opacity-0"}
-      style={revealed ? { animationDelay: `${index * 60}ms` } : undefined}
-    >
-      {children}
-    </div>
-  );
-}
-
-function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-muted-foreground w-24 shrink-0">{label}</span>
-      <div className="flex-1 min-w-0">{children}</div>
-    </div>
-  );
-}
-
-function SelectField({
-  value,
-  options,
-  onChange,
-  label,
-}: {
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-  label: string;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label={label}
-      className="text-sm bg-transparent border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function DetailSkeleton() {
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header skeleton */}
-      <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4 space-y-3">
-        <div className="h-4 skeleton-shimmer rounded w-32" />
-        <div className="h-7 skeleton-shimmer rounded w-80" />
-      </div>
-      {/* Content skeleton */}
-      <div className="flex-1 p-4 sm:p-6 space-y-8 max-w-4xl">
-        {/* Fields grid skeleton */}
-        <div className="space-y-2">
-          <div className="h-3 skeleton-shimmer rounded w-16 mb-3" />
-          <div className="grid grid-cols-2 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="space-y-1.5">
-                <div className="h-3 skeleton-shimmer rounded w-16" />
-                <div className="h-5 skeleton-shimmer rounded w-28" />
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* Description skeleton */}
-        <div className="space-y-2">
-          <div className="h-3 skeleton-shimmer rounded w-24 mb-3" />
-          <div className="space-y-2">
-            <div className="h-4 skeleton-shimmer rounded w-full" />
-            <div className="h-4 skeleton-shimmer rounded w-5/6" />
-            <div className="h-4 skeleton-shimmer rounded w-3/4" />
-          </div>
-        </div>
-        {/* Activity skeleton */}
-        <div className="space-y-2">
-          <div className="h-3 skeleton-shimmer rounded w-20" />
-          <div className="h-12 skeleton-shimmer rounded" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Utility Functions ─────────────────────────────────
-
-function statusLabel(status: IssueStatus): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

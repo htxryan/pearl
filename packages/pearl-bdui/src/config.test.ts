@@ -49,18 +49,41 @@ describe("loadConfig", () => {
   });
 
   describe("dolt mode detection", () => {
+    // The real .beads/metadata.json in this repo now has dolt_mode: "server".
+    // These tests exercise embedded-mode logic, so we mock the file read.
+    function mockEmbeddedMetadata(overrides: Record<string, unknown> = {}) {
+      mockedReadFileSync.mockImplementation((path: unknown, enc: unknown) => {
+        if (String(path).includes("metadata.json")) {
+          return JSON.stringify({
+            database: "dolt",
+            backend: "dolt",
+            dolt_mode: "embedded",
+            dolt_database: "beads_gui",
+            ...overrides,
+          });
+        }
+        return realReadFileSync(path as string, enc as BufferEncoding);
+      });
+    }
+
+    afterEach(() => {
+      mockedReadFileSync.mockReset();
+    });
+
     it("detects embedded mode from metadata.json", () => {
-      // The actual .beads/metadata.json in this repo has dolt_mode: "embedded"
+      mockEmbeddedMetadata();
       const config = loadConfig();
       expect(config.doltMode).toBe("embedded");
     });
 
     it("defaults doltHost to 127.0.0.1 in embedded mode", () => {
+      mockEmbeddedMetadata();
       const config = loadConfig();
       expect(config.doltHost).toBe("127.0.0.1");
     });
 
     it("derives replicaPath as sibling __replica__/<dbname>", () => {
+      mockEmbeddedMetadata();
       const config = loadConfig();
       const dbName = basename(config.doltDbPath);
       expect(config.replicaPath).toContain("__replica__");
@@ -68,6 +91,7 @@ describe("loadConfig", () => {
     });
 
     it("ignores DOLT_HOST env var in embedded mode", () => {
+      mockEmbeddedMetadata();
       process.env.DOLT_HOST = "dolt.example.com";
       // In embedded mode, doltHost is always 127.0.0.1 regardless of env var
       const config = loadConfig();
@@ -194,7 +218,10 @@ describe("readBeadsMetadata", () => {
     const cwd = process.cwd();
     const metadata = readBeadsMetadata(cwd);
     expect(metadata).not.toBeNull();
-    expect(metadata!.dolt_mode).toBe("embedded");
+    // Don't pin the mode value — the real repo can be either "embedded" or
+    // "server" depending on how pearl-bdui is configured. Just assert the
+    // parser returned a well-formed object.
+    expect(metadata!.dolt_mode).toMatch(/^(embedded|server)$/);
     expect(metadata!.dolt_database).toBe("beads_gui");
   });
 

@@ -5,6 +5,7 @@ test.describe("404 Page", () => {
     // Dismiss onboarding
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
 
     await page.goto("/some-invalid-route");
@@ -17,6 +18,7 @@ test.describe("404 Page", () => {
   test("404 page has navigation buttons", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
 
     await page.goto("/does-not-exist");
@@ -31,6 +33,7 @@ test.describe("404 Page", () => {
   test("404 navigation button goes to list view", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
 
     await page.goto("/nope");

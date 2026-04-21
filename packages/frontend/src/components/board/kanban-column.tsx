@@ -13,6 +13,9 @@ interface KanbanColumnProps {
   isDropTarget?: boolean;
   onQuickAdd?: (title: string, status: IssueStatus) => void;
   mobile?: boolean;
+  blockedIds?: Set<string>;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -22,6 +25,9 @@ export const KanbanColumn = memo(function KanbanColumn({
   isDropTarget,
   onQuickAdd,
   mobile,
+  blockedIds,
+  collapsed,
+  onToggleCollapse,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -30,17 +36,68 @@ export const KanbanColumn = memo(function KanbanColumn({
 
   const issueIds = issues.map((i) => i.id);
 
+  if (collapsed && !mobile) {
+    return (
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "flex flex-col items-center rounded-lg border border-border bg-surface-raised",
+          "transition-colors duration-150 w-[48px] min-w-[48px] cursor-pointer select-none",
+          (isOver || isDropTarget) && "border-ring ring-2 ring-ring/30 bg-ring/10",
+        )}
+        onClick={onToggleCollapse}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggleCollapse?.();
+          }
+        }}
+        aria-label={`Expand ${status} column (${issues.length} issues)`}
+        aria-expanded={false}
+      >
+        <div className="py-3 flex flex-col items-center gap-2">
+          <StatusBadge status={status} />
+          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1 rounded-full bg-muted text-xs font-semibold text-muted-foreground tabular-nums">
+            {issues.length}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "flex flex-col rounded-lg border border-border bg-muted/30",
-        "transition-colors duration-150",
+        "flex flex-col rounded-lg border border-border bg-surface-raised",
+        "transition-all duration-150",
         mobile ? "w-full" : "min-w-[280px] w-[280px]",
-        (isOver || isDropTarget) && "border-ring bg-ring/5",
+        (isOver || isDropTarget) && "border-ring ring-2 ring-ring/30 bg-ring/10 scale-[1.01]",
       )}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-2.5">
+      <div
+        className={cn(
+          "flex items-center justify-between px-3 py-2.5",
+          onToggleCollapse && "cursor-pointer",
+        )}
+        onClick={onToggleCollapse}
+        onKeyDown={
+          onToggleCollapse
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onToggleCollapse();
+                }
+              }
+            : undefined
+        }
+        role={onToggleCollapse ? "button" : undefined}
+        tabIndex={onToggleCollapse ? 0 : undefined}
+        aria-expanded={onToggleCollapse ? true : undefined}
+        aria-label={onToggleCollapse ? `Collapse ${status} column` : undefined}
+      >
         <StatusBadge status={status} />
         <span className="text-xs font-medium text-muted-foreground tabular-nums">
           {issues.length}
@@ -62,7 +119,11 @@ export const KanbanColumn = memo(function KanbanColumn({
               className="animate-fade-up [animation-fill-mode:backwards]"
               style={{ animationDelay: `${Math.min(index * 40, 300)}ms` }}
             >
-              <KanbanCard issue={issue} onClick={onCardClick} />
+              <KanbanCard
+                issue={issue}
+                onClick={onCardClick}
+                isBlocked={blockedIds?.has(issue.id)}
+              />
             </div>
           ))}
         </SortableContext>
@@ -100,7 +161,7 @@ function ColumnQuickAdd({
   };
 
   return (
-    <div className="px-2 py-1.5 bg-muted/30 rounded-b-lg">
+    <div className="px-2 py-1.5 bg-surface-raised rounded-b-lg">
       <input
         ref={inputRef}
         value={title}

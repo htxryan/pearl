@@ -15,9 +15,10 @@ export const test = base.extend<{
   seededPage: Page;
 }>({
   seededPage: async ({ page }, use) => {
-    // Dismiss onboarding banner so it doesn't interfere with tests
+    // Dismiss onboarding banner and suppress migration modal for read-only tests
     await page.addInitScript(() => {
       localStorage.setItem("pearl-onboarding-complete", "true");
+      (window as any).__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__ = true;
     });
 
     // Navigate to app root (redirects to /list)

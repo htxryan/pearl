@@ -1,0 +1,12 @@
+[2026-04-18T20:10:45.676Z] [precheck-embedded] PASS — dolt_mode=embedded status=degraded
+[2026-04-18T20:10:46.728Z] [AC-4] PASS — modal visible in 81ms (<2s threshold)
+[2026-04-18T20:10:47.193Z] [ui-external-tab] PASS — rendered external migration form
+[2026-04-18T20:10:50.203Z] [AC-5] PASS — modal dismissed in 2664ms (reloads=1)
+[2026-04-18T20:10:50.204Z] [REQ-E4] PASS — hard reload fired (1x)
+[2026-04-18T20:10:52.424Z] [AC-1] PASS — dolt_mode=server status=healthy
+[2026-04-18T20:10:52.426Z] [AC-7-api] PASS — api returned 3 issues: ["Sample: Login page bug","Sample: Dark mode toggle","Sample: Refactor auth"]
+[2026-04-18T20:10:52.428Z] [AC-7-ui] PASS — ui renders 3/3 sample titles
+[2026-04-18T20:10:52.428Z] [AC-3] PASS — metadata: mode=server host=127.0.0.1 port=3307 managed=true
+
+=========================================
+PROOF COMPLETE — 9 passed, 0 failed

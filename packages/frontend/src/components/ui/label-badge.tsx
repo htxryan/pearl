@@ -70,7 +70,7 @@ export function LabelBadge({
             e.stopPropagation();
             onRemove();
           }}
-          className="opacity-60 hover:opacity-100 focus:opacity-100 text-current"
+          className="opacity-60 hover:opacity-100 focus:opacity-100 text-current min-w-[28px] min-h-[28px] inline-flex items-center justify-center"
           aria-label={`Remove label ${name}`}
         >
           &times;

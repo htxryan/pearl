@@ -69,6 +69,7 @@ export interface Issue {
   spec_id: string | null;
   pinned: boolean;
   is_template: boolean;
+  has_attachments: boolean;
   labels: string[];
   /** Map of label name → palette color key (from label_definitions) */
   labelColors: Record<string, LabelColor>;
@@ -88,6 +89,7 @@ export interface IssueListItem {
   updated_at: string;
   due_at: string | null;
   pinned: boolean;
+  has_attachments: boolean;
   labels: string[];
   /** Map of label name → palette color key (from label_definitions) */
   labelColors: Record<string, LabelColor>;
@@ -116,6 +118,14 @@ export const ISSUE_STATUSES: IssueStatus[] = [
   "blocked",
   "deferred",
 ];
+
+/** Statuses a user can manually set — "blocked" is derived from dependencies */
+export const SETTABLE_STATUSES: readonly IssueStatus[] = [
+  "open",
+  "in_progress",
+  "closed",
+  "deferred",
+] as const;
 export const ISSUE_PRIORITIES: Priority[] = [0, 1, 2, 3, 4];
 export const ISSUE_TYPES: IssueType[] = [
   "task",
@@ -234,7 +244,7 @@ export interface MutationResponse<T = unknown> {
 }
 
 export interface InvalidationHint {
-  entity: "issues" | "dependencies" | "comments" | "events" | "stats" | "labels";
+  entity: "issues" | "dependencies" | "comments" | "events" | "stats" | "labels" | "settings";
   id?: string;
 }
 
@@ -257,6 +267,40 @@ export interface HealthResponse {
   dolt_server: "running" | "starting" | "stopped" | "error";
   uptime_seconds: number;
   version: string;
+  project_prefix?: string;
+  dolt_mode: "embedded" | "server";
+}
+
+// ─── Migration Types ───────────────────────────────────────
+
+export interface TestServerRequest {
+  host: string;
+  port: number;
+  user?: string;
+  password?: string;
+}
+
+export interface TestServerResponse {
+  ok: boolean;
+  error?: string;
+}
+
+export interface MigrateRequest {
+  target: "managed" | "external";
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  dataDir?: string;
+  force?: boolean;
+}
+
+export interface MigrateResponse {
+  ok: boolean;
+  dolt_mode: "server";
+  dolt_host: string;
+  dolt_port: number;
+  error?: string;
 }
 
 export interface StatsResponse {
@@ -306,6 +350,105 @@ export const ISSUE_LIST_FIELDS = [
   "updated_at",
   "due_at",
   "pinned",
+  "has_attachments",
 ] as const;
 
 export type IssueListField = (typeof ISSUE_LIST_FIELDS)[number];
+
+/** Fields that can contain attachment syntax (pills + data blocks) */
+export const ATTACHMENT_HOST_FIELDS = [
+  "description",
+  "design",
+  "acceptance_criteria",
+  "notes",
+] as const;
+
+// ─── Settings Types ─────────────────────────────────────────
+
+export type StorageMode = "inline" | "local";
+export type LocalScope = "project" | "user";
+
+export interface LocalStorageSettings {
+  scope: LocalScope;
+  projectPathOverride: string | null;
+  userPathOverride: string | null;
+}
+
+export interface EncodingSettings {
+  format: "webp";
+  maxBytes: number;
+  maxDimension: number;
+}
+
+export interface SweepSettings {
+  graceSeconds: number;
+  intervalSeconds: number;
+}
+
+export interface AttachmentSettings {
+  storageMode: StorageMode;
+  local: LocalStorageSettings;
+  encoding: EncodingSettings;
+  sweep: SweepSettings;
+}
+
+export interface Settings {
+  version: 1;
+  attachments: AttachmentSettings;
+}
+
+function deepFreeze<T extends object>(obj: T): T {
+  Object.freeze(obj);
+  for (const value of Object.values(obj)) {
+    if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
+      deepFreeze(value as object);
+    }
+  }
+  return obj;
+}
+
+export const DEFAULT_SETTINGS: Settings = deepFreeze({
+  version: 1,
+  attachments: {
+    storageMode: "local",
+    local: {
+      scope: "project",
+      projectPathOverride: null,
+      userPathOverride: null,
+    },
+    encoding: {
+      format: "webp",
+      maxBytes: 1_048_576,
+      maxDimension: 2048,
+    },
+    sweep: {
+      graceSeconds: 3600,
+      intervalSeconds: 600,
+    },
+  },
+});
+
+// ─── Attachment Types & Functions ───────────────────────────
+
+export type {
+  AttachmentBlock,
+  InlineAttachment,
+  LocalAttachment,
+  ParsedField,
+  PillReference,
+  Ref,
+} from "./attachment-syntax.js";
+
+export {
+  createRef,
+  disambiguateRefs,
+  extractBlocks,
+  extractPills,
+  hasAttachmentSyntax,
+  isRef,
+  PILL_RE,
+  parseField,
+  parseFieldAsync,
+  SUPPORTED_VERSIONS,
+  serializeField,
+} from "./attachment-syntax.js";

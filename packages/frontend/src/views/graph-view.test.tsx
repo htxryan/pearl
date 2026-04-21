@@ -17,6 +17,26 @@ vi.mock("@/lib/api-client", () => ({
   upsertLabel: vi.fn().mockResolvedValue({ success: true, invalidationHints: [] }),
   fetchIssues: vi.fn(),
   fetchAllDependencies: vi.fn(),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
 // Mock use-issues hooks
@@ -128,6 +148,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-16T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -143,6 +164,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-17T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -158,6 +180,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-18T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -173,6 +196,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-06T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -393,6 +417,7 @@ describe("GraphView", () => {
       updated_at: "2026-01-01T00:00:00Z",
       due_at: null,
       pinned: false,
+      has_attachments: false,
       labels: [],
       labelColors: {},
     }));

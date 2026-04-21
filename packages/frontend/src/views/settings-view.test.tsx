@@ -1,7 +1,23 @@
+import { DEFAULT_SETTINGS } from "@pearl/shared";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "./settings-view";
+
+// Mock useSettings hook
+const mockMutate = vi.fn();
+vi.mock("@/hooks/use-settings", () => ({
+  useSettings: () => ({
+    data: DEFAULT_SETTINGS,
+    isLoading: false,
+  }),
+  useUpdateSettings: () => ({
+    mutate: mockMutate,
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+  }),
+}));
 
 // Mock useTheme hook
 const mockSetTheme = vi.fn();
@@ -136,5 +152,54 @@ describe("SettingsView", () => {
     const group = screen.getByRole("group", { name: "Available themes" });
     const swatches = group.querySelectorAll("[aria-hidden='true']");
     expect(swatches).toHaveLength(15); // 3 themes × 5 swatches
+  });
+
+  // ─── Attachment Settings Tests ──────────────────────────────
+  it("renders the Attachments section", () => {
+    renderSettings();
+    expect(screen.getByRole("heading", { name: "Attachments", level: 2 })).toBeInTheDocument();
+    expect(screen.getByText(/configure how image attachments/i)).toBeInTheDocument();
+  });
+
+  it("renders storage mode radio buttons", () => {
+    renderSettings();
+    const inlineRadio = screen.getByLabelText(/inline/i);
+    const localRadio = screen.getByLabelText(/local filesystem/i);
+    expect(inlineRadio).toBeInTheDocument();
+    expect(localRadio).toBeInTheDocument();
+  });
+
+  it("shows warning banner when storageMode is local", () => {
+    renderSettings();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText(/not collaborative/i)).toBeInTheDocument();
+  });
+
+  it("shows local scope selector when mode is local", () => {
+    renderSettings();
+    expect(screen.getByText(/project scope/i)).toBeInTheDocument();
+    expect(screen.getByText(/user scope/i)).toBeInTheDocument();
+  });
+
+  it("shows encoding policy fields", () => {
+    renderSettings();
+    expect(screen.getByLabelText(/maximum file size/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/maximum dimension/i)).toBeInTheDocument();
+    expect(screen.getByText("WebP")).toBeInTheDocument();
+    expect(screen.getByText(/always enabled/i)).toBeInTheDocument();
+  });
+
+  it("renders save and reset buttons", () => {
+    renderSettings();
+    expect(screen.getByRole("button", { name: /save changes/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /reset to defaults/i })).toBeInTheDocument();
+  });
+
+  it("hides local-only controls when mode is inline", () => {
+    renderSettings();
+    const inlineRadio = screen.getByLabelText(/inline/i);
+    fireEvent.click(inlineRadio);
+    expect(screen.queryByText(/project scope/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/user scope/i)).not.toBeInTheDocument();
   });
 });

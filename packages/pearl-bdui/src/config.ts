@@ -38,15 +38,26 @@ export interface Config {
   doltPassword: string;
   /** Dolt database name (server mode: from metadata; embedded: from path) */
   doltDatabase: string;
+  /** True when pearl manages the dolt sql-server lifecycle (server mode only) */
+  pearlManaged: boolean;
+  /** Data directory for pearl-managed dolt server */
+  doltDataDir: string;
   /** True when no .beads/ directory found — backend runs in setup-only mode */
   needsSetup: boolean;
 }
 
 export function loadConfig(): Config {
-  const cwd = process.cwd();
+  // When BEADS_DB_PATH is set, anchor metadata discovery to its project root
+  // (e.g. sample-project/.beads/embeddeddolt/<db>/ → sample-project/) instead
+  // of process.cwd(). This matters when the server is spawned via `pnpm
+  // --filter`, which forces cwd into the package directory and causes the
+  // walk to find a repo-root .beads/ before the intended project's.
+  const searchDir = process.env.BEADS_DB_PATH
+    ? resolve(process.env.BEADS_DB_PATH, "..", "..", "..")
+    : process.cwd();
 
   // Check if .beads/ directory exists anywhere up the tree
-  const needsSetup = !findBeadsDir(cwd);
+  const needsSetup = !findBeadsDir(searchDir);
 
   // In setup mode, return safe defaults — no Dolt paths or host validation
   if (needsSetup) {
@@ -56,7 +67,7 @@ export function loadConfig(): Config {
       doltMode: "embedded",
       doltHost: "127.0.0.1",
       doltPort: 3307,
-      doltDbPath: cwd,
+      doltDbPath: searchDir,
       replicaPath: "",
       bdPath: process.env.BD_PATH || "bd",
       doltPath: process.env.DOLT_PATH || "dolt",
@@ -68,15 +79,17 @@ export function loadConfig(): Config {
       doltUser: process.env.DOLT_USER || "root",
       doltPassword: process.env.DOLT_PASSWORD || "",
       doltDatabase: "beads_gui",
+      pearlManaged: false,
+      doltDataDir: "",
       needsSetup: true,
     };
   }
 
   // Auto-discover the .beads database path
-  const doltDbPath = process.env.BEADS_DB_PATH || findBeadsDbPath(cwd);
+  const doltDbPath = process.env.BEADS_DB_PATH || findBeadsDbPath(searchDir);
 
   // Read .beads/metadata.json for mode detection
-  const metadata = readBeadsMetadata(cwd);
+  const metadata = readBeadsMetadata(searchDir);
   const doltMode: DoltMode = metadata?.dolt_mode === "server" ? "server" : "embedded";
 
   let doltHost: string;
@@ -131,6 +144,8 @@ export function loadConfig(): Config {
     doltUser: process.env.DOLT_USER || String(metadata?.dolt_user || "") || "root",
     doltPassword: process.env.DOLT_PASSWORD || String(metadata?.dolt_password || ""),
     doltDatabase,
+    pearlManaged: !!metadata?.pearl_managed,
+    doltDataDir: metadata?.dolt_data_dir || "",
     needsSetup: false,
   };
 }
@@ -144,6 +159,8 @@ interface BeadsMetadata {
   /** Written by `bd dolt set port` */
   dolt_server_port?: number;
   dolt_database?: string;
+  pearl_managed?: boolean;
+  dolt_data_dir?: string;
   [key: string]: unknown;
 }
 

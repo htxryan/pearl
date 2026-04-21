@@ -35,8 +35,33 @@ vi.mock("@/lib/api-client", () => ({
   fetchStats: vi.fn().mockResolvedValue({}),
   fetchHealth: vi.fn().mockResolvedValue({}),
   fetchAllDependencies: vi.fn().mockResolvedValue([]),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
+vi.mock("@/hooks/use-notifications", () => ({
+  notifyCommentAdded: vi.fn(),
+}));
+
+import { notifyCommentAdded } from "@/hooks/use-notifications";
 import * as api from "@/lib/api-client";
 
 // ─── Test helpers ───────────────────────────────────────────────
@@ -83,6 +108,7 @@ function makeIssue(overrides: Partial<Issue> = {}): Issue {
     spec_id: null,
     pinned: false,
     is_template: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
     metadata: {},
@@ -103,6 +129,7 @@ function makeListItem(overrides: Partial<IssueListItem> = {}): IssueListItem {
     updated_at: "2025-01-01T00:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
     ...overrides,
@@ -168,7 +195,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
     (api.fetchIssues as Mock).mockResolvedValue([]);
   });
 
-  it("sets refetchInterval to 2000 when no mutations are pending", async () => {
+  it("sets refetchInterval to 10000 when no mutations are pending", async () => {
     const { queryClient, wrapper } = createWrapper();
 
     const { result } = renderHook(() => useIssues(), { wrapper });
@@ -182,11 +209,10 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
       queryKey: issueKeys.list(),
     });
     expect(queryState).toBeDefined();
-    // The refetchInterval on the observer should be 2000 when no mutations are pending
     const observers = queryState!.observers;
     expect(observers.length).toBeGreaterThan(0);
     const observerOptions = observers[0].options;
-    expect(observerOptions.refetchInterval).toBe(2000);
+    expect(observerOptions.refetchInterval).toBe(10_000);
   });
 
   it("suppresses polling when an issue mutation is pending", async () => {
@@ -249,7 +275,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
 
     await waitFor(() => {
       const qs = queryClient.getQueryCache().find({ queryKey: issueKeys.list() });
-      expect(qs!.observers[0].options.refetchInterval).toBe(2000);
+      expect(qs!.observers[0].options.refetchInterval).toBe(10_000);
     });
   });
 
@@ -303,7 +329,7 @@ describe("STPA H1: Poll suppression during pending mutations", () => {
 
     await waitFor(() => {
       const qs = queryClient.getQueryCache().find({ queryKey: issueKeys.list() });
-      expect(qs!.observers[0].options.refetchInterval).toBe(2000);
+      expect(qs!.observers[0].options.refetchInterval).toBe(10_000);
     });
   });
 });
@@ -419,6 +445,110 @@ describe("Invalidation from hints", () => {
     const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]!.queryKey);
     expect(invalidatedKeys).toContainEqual(issueKeys.comments("issue-1"));
     expect(invalidatedKeys).toContainEqual(issueKeys.events("issue-1"));
+  });
+
+  it("useAddComment calls notifyCommentAdded when response has data and issue is cached", async () => {
+    const { queryClient, wrapper } = createWrapper();
+
+    queryClient.setQueryData(issueKeys.detail("issue-1"), makeIssue());
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      data: {
+        id: "c1",
+        issue_id: "issue-1",
+        author: "alice",
+        text: "hi",
+        created_at: "2025-01-01T00:00:00Z",
+      },
+      invalidationHints: [{ entity: "comments", id: "issue-1" }],
+    });
+
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).toHaveBeenCalledWith("issue-1", "Test Issue", "alice");
+  });
+
+  it("useAddComment skips notification when response has no data", async () => {
+    const { queryClient, wrapper } = createWrapper();
+
+    queryClient.setQueryData(issueKeys.detail("issue-1"), makeIssue());
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      invalidationHints: [],
+    });
+
+    vi.mocked(notifyCommentAdded).mockClear();
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).not.toHaveBeenCalled();
+  });
+
+  it("useAddComment skips notification when issue is not in cache", async () => {
+    const { wrapper } = createWrapper();
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      data: {
+        id: "c1",
+        issue_id: "issue-1",
+        author: "alice",
+        text: "hi",
+        created_at: "2025-01-01T00:00:00Z",
+      },
+      invalidationHints: [{ entity: "comments", id: "issue-1" }],
+    });
+
+    vi.mocked(notifyCommentAdded).mockClear();
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).not.toHaveBeenCalled();
+  });
+
+  it("useAddComment skips notification when response data has no author", async () => {
+    const { queryClient, wrapper } = createWrapper();
+
+    queryClient.setQueryData(issueKeys.detail("issue-1"), makeIssue());
+
+    (api.addComment as Mock).mockResolvedValue({
+      success: true,
+      data: { raw: "non-json response" },
+      invalidationHints: [{ entity: "comments", id: "issue-1" }],
+    });
+
+    vi.mocked(notifyCommentAdded).mockClear();
+    const { result } = renderHook(() => useAddComment(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        issueId: "issue-1",
+        data: { text: "hi" },
+      });
+    });
+
+    expect(notifyCommentAdded).not.toHaveBeenCalled();
   });
 
   it("useAddDependency invalidates dependency keys from hints", async () => {

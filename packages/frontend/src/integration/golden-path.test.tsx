@@ -42,6 +42,26 @@ vi.mock("@/lib/api-client", () => ({
   removeDependency: vi.fn(),
   fetchHealth: vi.fn(),
   fetchStats: vi.fn(),
+  fetchSettings: vi.fn().mockResolvedValue({
+    version: 1,
+    attachments: {
+      storageMode: "local",
+      local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+      encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+    },
+  }),
+  updateSettings: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      version: 1,
+      attachments: {
+        storageMode: "local",
+        local: { scope: "project", projectPathOverride: null, userPathOverride: null },
+        encoding: { format: "webp", maxBytes: 1048576, maxDimension: 2048 },
+      },
+    },
+    invalidationHints: [{ entity: "settings" }],
+  }),
 }));
 
 // ─── Mock use-issues hooks ──────────────────────────────
@@ -106,6 +126,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(() => ({ data: [] })),
   useUpdateIssue: vi.fn(() => mockUpdateMutation),
   useCloseIssue: vi.fn(() => mockCloseMutation),
+  useDeleteIssue: vi.fn(() => baseMutation),
   useCreateIssue: vi.fn(() => mockCreateMutation),
   useAddComment: vi.fn(() => baseMutation),
   useAddDependency: vi.fn(() => baseMutation),
@@ -261,6 +282,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-16T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -276,6 +298,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-17T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -291,6 +314,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-18T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: [],
     labelColors: {},
   },
@@ -319,6 +343,7 @@ const mockIssueDetail: Issue = {
   spec_id: null,
   pinned: false,
   is_template: false,
+  has_attachments: false,
   labels: [],
   labelColors: {},
   metadata: {},
@@ -396,6 +421,7 @@ function renderCreateDialog(props: { isOpen: boolean; onClose: () => void }) {
 // ─── Setup / Teardown ───────────────────────────────────
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.removeItem("beads:create-issue-draft");
   setupIssuesMock();
   setupDependenciesMock();
 });
@@ -430,11 +456,17 @@ describe("SC2+SC1: Create issue via form", () => {
     const descInput = screen.getByLabelText(/description/i);
     fireEvent.change(descInput, { target: { value: "Description for testing" } });
 
-    const typeSelect = screen.getByLabelText(/type/i);
-    fireEvent.change(typeSelect, { target: { value: "bug" } });
+    // Select type via custom dropdown
+    const typeButton = screen.getByRole("combobox", { name: /issue type/i });
+    fireEvent.click(typeButton);
+    const bugOption = screen.getByRole("option", { name: /bug/i });
+    fireEvent.click(bugOption);
 
-    const prioritySelect = screen.getByLabelText(/priority/i);
-    fireEvent.change(prioritySelect, { target: { value: "1" } });
+    // Select priority via custom dropdown
+    const priorityButton = screen.getByRole("combobox", { name: /priority/i });
+    fireEvent.click(priorityButton);
+    const p1Option = screen.getByRole("option", { name: /P1/i });
+    fireEvent.click(p1Option);
 
     const assigneeInput = screen.getByLabelText(/assignee/i);
     fireEvent.change(assigneeInput, { target: { value: "alice" } });
@@ -550,9 +582,8 @@ describe("SC5+SC10: Kanban board column rendering and mutation wiring", () => {
     const inProgressList = screen.getByRole("list", { name: "in_progress issues" });
     expect(within(inProgressList).getByText("In Progress Issue")).toBeInTheDocument();
 
-    // Blocked column should have test-003
-    const blockedList = screen.getByRole("list", { name: "blocked issues" });
-    expect(within(blockedList).getByText("Blocked Issue")).toBeInTheDocument();
+    // Issues with status "blocked" now land in the open column (blocked is derived)
+    expect(within(openList).getByText("Blocked Issue")).toBeInTheDocument();
   });
 
   it("wires up useUpdateIssue hook and renders the board region", () => {
@@ -588,9 +619,9 @@ describe("SC5+SC10: Kanban board column rendering and mutation wiring", () => {
     expect(within(inProgressList).getByText("Open Issue")).toBeInTheDocument();
     expect(within(inProgressList).getByText("In Progress Issue")).toBeInTheDocument();
 
-    // open column should be empty
+    // open column should still have test-003 (status "blocked" falls to open)
     const openList = screen.getByRole("list", { name: "open issues" });
-    expect(within(openList).getByText("No issues")).toBeInTheDocument();
+    expect(within(openList).getByText("Blocked Issue")).toBeInTheDocument();
   });
 });
 
@@ -961,8 +992,8 @@ describe("View composition: List -> Detail -> Back", () => {
     setupIssuesMock(mockIssues);
     renderApp("/issues/test-001");
 
-    // Should show the issue detail
-    expect(screen.getByText("test-001")).toBeInTheDocument();
+    // Should show the issue detail (short ID)
+    expect(screen.getByText("001")).toBeInTheDocument();
     expect(screen.getByText("Open Issue")).toBeInTheDocument();
 
     // Find and click the breadcrumb back link
@@ -1082,10 +1113,10 @@ describe("Cross-view data consistency", () => {
     expect(screen.getByText("No issues found")).toBeInTheDocument();
     u1();
 
-    // Board shows "No issues" in each column
+    // Board: all 4 columns show "No issues"
     const { unmount: u2 } = renderApp("/board");
     const emptyMessages = screen.getAllByText("No issues");
-    expect(emptyMessages.length).toBe(5); // 5 columns
+    expect(emptyMessages.length).toBe(4);
     u2();
 
     // Graph shows empty state message

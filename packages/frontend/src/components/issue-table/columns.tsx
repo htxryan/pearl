@@ -2,6 +2,8 @@ import type { IssueListItem, IssueStatus, LabelColor, Priority } from "@pearl/sh
 import { createColumnHelper } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AssigneePicker } from "@/components/ui/assignee-picker";
+import { AttachmentIcon } from "@/components/ui/attachment-icon";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { LabelPicker } from "@/components/ui/label-picker";
@@ -9,6 +11,7 @@ import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TypeBadge } from "@/components/ui/type-badge";
+import { shortId } from "@/lib/format-id";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -358,9 +361,15 @@ export function buildColumns({
     col.accessor("id", {
       header: "ID",
       cell: (info) => (
-        <code className="text-[11px] text-muted-foreground/70">{info.getValue()}</code>
+        <code
+          className="whitespace-nowrap text-[11px] text-muted-foreground/70"
+          title={info.getValue()}
+        >
+          {shortId(info.getValue())}
+        </code>
       ),
       size: 140,
+      minSize: 120,
     }),
     col.accessor("title", {
       header: "Title",
@@ -411,19 +420,20 @@ export function buildColumns({
         const status = info.getValue();
         if (onStatusChange) {
           return (
-            <select
+            <CustomSelect<IssueStatus>
               value={status}
-              onChange={(e) => onStatusChange(info.row.original.id, e.target.value as IssueStatus)}
-              onClick={(e) => e.stopPropagation()}
-              className="appearance-none bg-transparent border-none text-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring rounded p-0"
+              options={[
+                { value: "open", label: "Open" },
+                { value: "in_progress", label: "In Progress" },
+                { value: "closed", label: "Closed" },
+                { value: "deferred", label: "Deferred" },
+              ]}
+              onChange={(v) => onStatusChange(info.row.original.id, v)}
               aria-label={`Change status for ${info.row.original.title}`}
-            >
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="closed">Closed</option>
-              <option value="blocked">Blocked</option>
-              <option value="deferred">Deferred</option>
-            </select>
+              size="sm"
+              triggerClassName="border-none bg-transparent px-0 hover:bg-accent"
+              renderOption={(opt) => <StatusBadge status={opt.value} />}
+            />
           );
         }
         return <StatusBadge status={status} />;
@@ -436,21 +446,26 @@ export function buildColumns({
         const priority = info.getValue();
         if (onPriorityChange) {
           return (
-            <select
+            <CustomSelect<Priority>
               value={priority}
-              onChange={(e) =>
-                onPriorityChange(info.row.original.id, Number(e.target.value) as Priority)
-              }
-              onClick={(e) => e.stopPropagation()}
-              className="appearance-none bg-transparent border-none text-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring rounded p-0"
+              options={[
+                { value: 0 as Priority, label: "P0 — Critical" },
+                { value: 1 as Priority, label: "P1 — High" },
+                { value: 2 as Priority, label: "P2 — Medium" },
+                { value: 3 as Priority, label: "P3 — Low" },
+                { value: 4 as Priority, label: "P4 — Backlog" },
+              ]}
+              onChange={(v) => onPriorityChange(info.row.original.id, v)}
               aria-label={`Change priority for ${info.row.original.title}`}
-            >
-              <option value={0}>P0 — Critical</option>
-              <option value={1}>P1 — High</option>
-              <option value={2}>P2 — Medium</option>
-              <option value={3}>P3 — Low</option>
-              <option value={4}>P4 — Backlog</option>
-            </select>
+              size="sm"
+              triggerClassName="border-none bg-transparent px-0 hover:bg-accent"
+              renderOption={(opt) => (
+                <span className="flex items-center gap-2">
+                  <PriorityIndicator priority={opt.value} />
+                  <span>{opt.label}</span>
+                </span>
+              )}
+            />
           );
         }
         return <PriorityIndicator priority={priority} />;
@@ -547,6 +562,13 @@ export function buildColumns({
         );
       },
       size: 160,
+      enableSorting: false,
+    }),
+    col.accessor("has_attachments", {
+      id: "has_attachments",
+      header: () => <AttachmentIcon />,
+      cell: (info) => (info.getValue() ? <AttachmentIcon /> : null),
+      size: 40,
       enableSorting: false,
     }),
   ];

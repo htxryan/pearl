@@ -12,7 +12,7 @@ interface OnboardingStep {
 const STEPS: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Welcome to Beads",
+    title: "Welcome to Pearl",
     description: "A fast, keyboard-driven issue tracker. Let's show you around.",
     tip: "This will only take a moment.",
   },
@@ -32,7 +32,7 @@ const STEPS: OnboardingStep[] = [
     id: "keyboard",
     title: "Keyboard shortcuts",
     description: "Press ? to see all available shortcuts. Use j/k to navigate, Enter to open.",
-    tip: "Beads is designed for keyboard-first workflows.",
+    tip: "Pearl is designed for keyboard-first workflows.",
   },
   {
     id: "create",

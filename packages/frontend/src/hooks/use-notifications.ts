@@ -2,7 +2,7 @@ import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { fetchIssues } from "@/lib/api-client";
-import { issueKeys } from "./use-issues";
+import { issueKeys } from "./issue-keys";
 
 // ─── Types ────────────────────────────────────────────
 export type NotificationType =
@@ -147,6 +147,7 @@ function isDuplicate(input: Omit<AppNotification, "id" | "read" | "createdAt">):
     (n) =>
       n.type === input.type &&
       n.issueId === input.issueId &&
+      n.message === input.message &&
       new Date(n.createdAt).getTime() > cutoff,
   );
 }
@@ -347,13 +348,13 @@ export function useNotificationPoller() {
   const initializedRef = useRef(Object.keys(snapshotRef.current).length > 0);
 
   const { data: issues } = useQuery<IssueListItem[]>({
-    queryKey: issueKeys.lists(),
+    queryKey: [...issueKeys.all, "notifications"],
     queryFn: async () => {
       const result = await fetchIssues();
       return result ?? [];
     },
-    refetchInterval: 10_000, // Poll every 10 seconds
-    staleTime: 5_000,
+    refetchInterval: 30_000,
+    staleTime: 10_000,
   });
 
   useEffect(() => {

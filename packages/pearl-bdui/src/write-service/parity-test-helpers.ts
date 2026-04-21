@@ -1,0 +1,417 @@
+import { type ChildProcess, execFileSync, execSync, spawn } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { createServer } from "node:net";
+import { hostname, tmpdir } from "node:os";
+import { join } from "node:path";
+import { createPool, type Pool } from "mysql2/promise";
+import type { Config } from "../config.js";
+
+export let TEST_PORT = 33070;
+export const TEST_HOST = "127.0.0.1";
+export const TEST_USER = "root";
+export const ACTOR = hostname();
+export const ISSUE_PREFIX = "test";
+
+async function findEphemeralPort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const srv = createServer();
+    srv.listen(0, TEST_HOST, () => {
+      const addr = srv.address();
+      if (addr && typeof addr === "object") {
+        const port = addr.port;
+        srv.close(() => resolve(port));
+      } else {
+        srv.close(() => reject(new Error("Failed to get ephemeral port")));
+      }
+    });
+    srv.on("error", reject);
+  });
+}
+
+const TABLES_TO_COMPARE = ["issues", "events", "labels", "dependencies", "comments"] as const;
+
+// Fields we meaningfully compare for parity (per table)
+const PARITY_FIELDS: Record<string, Set<string>> = {
+  issues: new Set([
+    "title",
+    "description",
+    "design",
+    "acceptance_criteria",
+    "notes",
+    "status",
+    "priority",
+    "issue_type",
+    "estimated_minutes",
+    "due_at",
+    "ephemeral",
+    "pinned",
+    "is_template",
+  ]),
+  events: new Set(["event_type"]),
+  labels: new Set(["label"]),
+  dependencies: new Set(["type"]),
+  comments: new Set(["text"]),
+};
+
+export interface ParityContext {
+  doltProcess: ChildProcess;
+  dataDir: string;
+  cliWorkDir: string;
+  adminPool: Pool;
+  sqlPool: Pool;
+  cliPool: Pool;
+}
+
+export function isDoltAvailable(): boolean {
+  try {
+    execSync("dolt version", { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function setupParityInfra(): Promise<ParityContext> {
+  TEST_PORT = await findEphemeralPort();
+
+  const dataDir = mkdtempSync(join(tmpdir(), "parity-dolt-"));
+  const cliWorkDir = mkdtempSync(join(tmpdir(), "parity-cli-"));
+
+  const doltProcess = spawn(
+    "dolt",
+    ["sql-server", "--host", TEST_HOST, "--port", String(TEST_PORT), "--data-dir", dataDir],
+    { stdio: ["ignore", "pipe", "pipe"], detached: false },
+  );
+
+  await waitForServer(doltProcess);
+
+  const adminPool = createPool({
+    host: TEST_HOST,
+    port: TEST_PORT,
+    user: TEST_USER,
+    waitForConnections: true,
+    connectionLimit: 5,
+    multipleStatements: true,
+  });
+
+  // Use bd init to create both databases with proper schema and metadata
+  initBdProject(cliWorkDir, "parity_cli");
+
+  const sqlInitDir = mkdtempSync(join(tmpdir(), "parity-sql-init-"));
+  initBdProject(sqlInitDir, "parity_sql");
+  rmSync(sqlInitDir, { recursive: true, force: true });
+
+  const sqlPool = createPool({
+    host: TEST_HOST,
+    port: TEST_PORT,
+    user: TEST_USER,
+    database: "parity_sql",
+    connectionLimit: 5,
+  });
+
+  const cliPool = createPool({
+    host: TEST_HOST,
+    port: TEST_PORT,
+    user: TEST_USER,
+    database: "parity_cli",
+    connectionLimit: 5,
+  });
+
+  // Ensure has_attachments column exists (Pearl-only, not in bd CLI schema)
+  for (const pool of [sqlPool, cliPool]) {
+    const conn = await pool.getConnection();
+    try {
+      const [cols] = await conn.query(
+        `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'issues' AND COLUMN_NAME = 'has_attachments'
+         LIMIT 1`,
+      );
+      if ((cols as unknown[]).length === 0) {
+        await conn.query("ALTER TABLE issues ADD COLUMN `has_attachments` TINYINT(1) DEFAULT 0");
+      }
+    } finally {
+      conn.release();
+    }
+  }
+
+  return { doltProcess, dataDir, cliWorkDir, adminPool, sqlPool, cliPool };
+}
+
+function initBdProject(workDir: string, dbName: string): void {
+  execFileSync("git", ["init", "-q"], { cwd: workDir, stdio: "ignore" });
+  execFileSync("git", ["config", "user.name", "Test"], { cwd: workDir, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "test@test.com"], { cwd: workDir, stdio: "ignore" });
+
+  execFileSync(
+    "bd",
+    [
+      "init",
+      "--server",
+      "--server-host",
+      TEST_HOST,
+      "--server-port",
+      String(TEST_PORT),
+      "--server-user",
+      TEST_USER,
+      "--database",
+      dbName,
+      "--prefix",
+      ISSUE_PREFIX,
+      "--non-interactive",
+      "--skip-agents",
+      "--skip-hooks",
+      "--quiet",
+    ],
+    {
+      cwd: workDir,
+      timeout: 30000,
+      env: { ...process.env, BEADS_ACTOR: ACTOR, BD_NON_INTERACTIVE: "1" },
+    },
+  );
+}
+
+export async function teardownParityInfra(ctx: ParityContext): Promise<void> {
+  await ctx.sqlPool.end().catch(() => {});
+  await ctx.cliPool.end().catch(() => {});
+  await ctx.adminPool.end().catch(() => {});
+  ctx.doltProcess.kill("SIGTERM");
+  await new Promise<void>((r) => {
+    ctx.doltProcess.once("exit", () => r());
+    setTimeout(r, 3000);
+  });
+  rmSync(ctx.dataDir, { recursive: true, force: true });
+  rmSync(ctx.cliWorkDir, { recursive: true, force: true });
+}
+
+export async function truncateAllTables(ctx: ParityContext): Promise<void> {
+  const conn = await ctx.adminPool.getConnection();
+  try {
+    for (const db of ["parity_sql", "parity_cli"]) {
+      await conn.query(`USE \`${db}\``);
+      await conn.query("SET FOREIGN_KEY_CHECKS=0");
+      for (const table of [
+        "events",
+        "comments",
+        "labels",
+        "dependencies",
+        "child_counters",
+        "issue_counter",
+        "compaction_snapshots",
+        "issue_snapshots",
+        "issues",
+      ]) {
+        await conn.query(`DELETE FROM \`${table}\``);
+      }
+      await conn.query("SET FOREIGN_KEY_CHECKS=1");
+      await conn.execute("REPLACE INTO config (`key`, value) VALUES ('issue_prefix', ?)", [
+        ISSUE_PREFIX,
+      ]);
+      await conn.query("REPLACE INTO config (`key`, value) VALUES ('issue_id_mode', 'counter')");
+      await conn.query("CALL dolt_add('-A')");
+      await conn.query("CALL dolt_commit('-m', 'truncate tables for test reset', '--allow-empty')");
+    }
+  } finally {
+    conn.release();
+  }
+}
+
+export function makeSqlConfig(): Config {
+  return {
+    host: TEST_HOST,
+    port: 3456,
+    doltMode: "server",
+    doltHost: TEST_HOST,
+    doltPort: TEST_PORT,
+    doltDbPath: "",
+    replicaPath: "",
+    bdPath: "bd",
+    doltPath: "dolt",
+    dbLockMaxRetries: 3,
+    dbLockRetryDelayMs: 100,
+    poolSize: 5,
+    doltUser: TEST_USER,
+    doltPassword: "",
+    doltDatabase: "parity_sql",
+    pearlManaged: false,
+    doltDataDir: "",
+    needsSetup: false,
+    doltRestartThreshold: 3,
+    doltRestartDebounceMs: 5000,
+  };
+}
+
+export async function runCli(ctx: ParityContext, args: string[]): Promise<string> {
+  const { execa } = await import("execa");
+  const result = await execa("bd", [...args, "--json"], {
+    cwd: ctx.cliWorkDir,
+    env: { ...process.env, BEADS_ACTOR: ACTOR },
+    reject: false,
+    timeout: 30000,
+  });
+  if (result.exitCode !== 0) {
+    throw new Error(`bd CLI failed (exit ${result.exitCode}): ${result.stderr || result.stdout}`);
+  }
+  return result.stdout;
+}
+
+export async function getIds(pool: Pool): Promise<string[]> {
+  const [rows] = await pool.execute("SELECT id FROM issues ORDER BY created_at");
+  return (rows as Array<{ id: string }>).map((r) => r.id);
+}
+
+interface NormalizedRow {
+  [key: string]: unknown;
+}
+
+export function normalizeRow(row: Record<string, unknown>, table: string): NormalizedRow {
+  const fields = PARITY_FIELDS[table];
+  if (!fields) return {};
+
+  const normalized: NormalizedRow = {};
+  for (const key of fields) {
+    const value = row[key];
+
+    // bd CLI truncates due_at to day precision; SQL stores full timestamp
+    if (key === "due_at") {
+      normalized[key] = value != null ? "<<TIMESTAMP>>" : null;
+      continue;
+    }
+
+    // Normalize null vs empty string
+    if (value === null || value === undefined) {
+      normalized[key] = "";
+    } else {
+      normalized[key] = value;
+    }
+  }
+  return normalized;
+}
+export function normalizeRows(rows: Record<string, unknown>[], table: string): NormalizedRow[] {
+  return rows
+    .map((r) => normalizeRow(r, table))
+    .sort((a, b) => {
+      const aKey = sortKey(a, table);
+      const bKey = sortKey(b, table);
+      return aKey.localeCompare(bKey);
+    });
+}
+
+function sortKey(row: NormalizedRow, table: string): string {
+  switch (table) {
+    case "issues":
+      return String(row.title || "");
+    case "events":
+      return `${row.event_type}`;
+    case "labels":
+      return `${row.label}`;
+    case "dependencies":
+      return `${row.type}`;
+    case "comments":
+      return `${row.text}`;
+    default:
+      return JSON.stringify(row);
+  }
+}
+
+export async function assertTablesParity(
+  ctx: ParityContext,
+  tables: readonly string[] = TABLES_TO_COMPARE,
+): Promise<void> {
+  const { expect } = await import("vitest");
+
+  for (const table of tables) {
+    const [sqlRows] = await ctx.sqlPool.execute(`SELECT * FROM \`${table}\``);
+    const [cliRows] = await ctx.cliPool.execute(`SELECT * FROM \`${table}\``);
+
+    if (table === "events") {
+      assertEventsParity(
+        sqlRows as Record<string, unknown>[],
+        cliRows as Record<string, unknown>[],
+        expect,
+      );
+      continue;
+    }
+
+    const normalizedSql = normalizeRows(sqlRows as Record<string, unknown>[], table);
+    const normalizedCli = normalizeRows(cliRows as Record<string, unknown>[], table);
+
+    expect(
+      normalizedSql.length,
+      `${table}: row count mismatch (sql=${normalizedSql.length}, cli=${normalizedCli.length})`,
+    ).toBe(normalizedCli.length);
+
+    for (let i = 0; i < normalizedSql.length; i++) {
+      const sqlRow = normalizedSql[i];
+      const cliRow = normalizedCli[i];
+
+      for (const key of Object.keys(sqlRow)) {
+        expect(sqlRow[key], `${table}[${i}].${key}`).toEqual(cliRow[key]);
+      }
+    }
+  }
+}
+
+// Event types that are known to differ between SQL and CLI paths.
+// SQL emits granular events (commented, dependency_added/removed);
+// CLI uses different event patterns (label_added, or no event at all).
+// These are documented divergences, not bugs.
+const SQL_ONLY_EVENTS = new Set(["commented", "dependency_added", "dependency_removed"]);
+const CLI_ONLY_EVENTS = new Set(["label_added"]);
+const EVENT_ALIASES: Record<string, string> = { status_changed: "claimed" };
+
+function assertEventsParity(
+  sqlRows: Record<string, unknown>[],
+  cliRows: Record<string, unknown>[],
+  expect: typeof import("vitest")["expect"],
+): void {
+  const canonicalize = (et: string) => EVENT_ALIASES[et] || et;
+  const sqlTypes = new Set(sqlRows.map((r) => canonicalize(r.event_type as string)));
+  const cliTypes = new Set(cliRows.map((r) => canonicalize(r.event_type as string)));
+
+  expect(sqlTypes.size, "SQL path should produce events").toBeGreaterThan(0);
+  expect(cliTypes.size, "CLI path should produce events").toBeGreaterThan(0);
+
+  // Shared event types (excluding known path-specific ones) should match
+  const sqlShared = [...sqlTypes].filter((t) => !SQL_ONLY_EVENTS.has(t));
+  const cliShared = [...cliTypes].filter((t) => !CLI_ONLY_EVENTS.has(t));
+
+  for (const t of sqlShared) {
+    expect(cliShared.includes(t), `CLI missing shared event type '${t}'`).toBe(true);
+  }
+  for (const t of cliShared) {
+    expect(sqlShared.includes(t), `SQL missing shared event type '${t}'`).toBe(true);
+  }
+}
+
+async function waitForServer(proc: ChildProcess, timeoutMs = 15000): Promise<void> {
+  const start = Date.now();
+  const { createConnection } = await import("mysql2/promise");
+
+  let procExited = false;
+  let exitCode: number | null = null;
+  proc.once("exit", (code) => {
+    procExited = true;
+    exitCode = code;
+  });
+
+  while (Date.now() - start < timeoutMs) {
+    if (procExited) {
+      throw new Error(`Dolt server exited early with code ${exitCode}`);
+    }
+    try {
+      const conn = await createConnection({
+        host: TEST_HOST,
+        port: TEST_PORT,
+        user: TEST_USER,
+        connectTimeout: 1000,
+      });
+      await conn.end();
+      return;
+    } catch {
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+
+  proc.kill();
+  throw new Error(`Dolt server did not start within ${timeoutMs}ms`);
+}

@@ -167,7 +167,22 @@ export function DatePicker({
           !displayValue && "text-muted-foreground",
         )}
       >
-        <span className="text-muted-foreground text-xs">&#128197;</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-muted-foreground shrink-0"
+        >
+          <rect x="2" y="3" width="12" height="11" rx="1.5" />
+          <line x1="2" y1="7" x2="14" y2="7" />
+          <line x1="5.5" y1="1.5" x2="5.5" y2="4.5" />
+          <line x1="10.5" y1="1.5" x2="10.5" y2="4.5" />
+        </svg>
         {displayValue || placeholder}
       </button>
 

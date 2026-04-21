@@ -26,6 +26,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-16T10:00:00Z",
     due_at: null,
     pinned: false,
+    has_attachments: false,
     labels: ["frontend"],
     labelColors: {},
   },
@@ -41,6 +42,7 @@ const mockIssues: IssueListItem[] = [
     updated_at: "2026-01-17T10:00:00Z",
     due_at: "2026-02-01T00:00:00Z",
     pinned: true,
+    has_attachments: true,
     labels: ["frontend", "dashboard"],
     labelColors: {},
   },
@@ -90,8 +92,8 @@ describe("IssueTable", () => {
 
     expect(screen.getByText("Fix login bug")).toBeInTheDocument();
     expect(screen.getByText("Add dashboard view")).toBeInTheDocument();
-    expect(screen.getByText("beads-001")).toBeInTheDocument();
-    expect(screen.getByText("beads-002")).toBeInTheDocument();
+    expect(screen.getByText("001")).toBeInTheDocument();
+    expect(screen.getByText("002")).toBeInTheDocument();
   });
 
   it("renders column headers", () => {

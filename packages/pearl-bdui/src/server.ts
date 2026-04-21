@@ -4,45 +4,34 @@ import { fileURLToPath } from "node:url";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyError } from "fastify";
 import type { Config } from "./config.js";
-import { beginSync, createDoltPool, destroyPool, endSync } from "./dolt/pool.js";
-import { cleanupReplica, createReplica, syncReplica } from "./dolt/replica-sync.js";
+import { findBeadsDir } from "./config.js";
+import { createDoltPool, destroyPool, getPool } from "./dolt/pool.js";
 import { DoltServerManager } from "./dolt/server-manager.js";
 import { AppError } from "./errors.js";
+import { createScrubSerializer } from "./log-scrub.js";
+import { OrphanSweep } from "./orphan-sweep.js";
+import { registerAttachmentRoutes, resolveAttachmentBase } from "./routes/attachments.js";
 import { registerDependencyRoutes } from "./routes/dependencies.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerIssueRoutes } from "./routes/issues.js";
 import { ensureLabelDefinitionsTable, registerLabelRoutes } from "./routes/labels.js";
+import { registerMigrationRoutes } from "./routes/migration.js";
+import { registerSettingsRoutes, SettingsEventBus } from "./routes/settings.js";
 import { registerSetupRoutes } from "./routes/setup.js";
 import { registerStatsRoutes } from "./routes/stats.js";
+import { loadSettings } from "./settings-loader.js";
 import { WriteService } from "./write-service/write-service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * Find the frontend dist directory for static file serving.
- * Only returns a path when running from an installed package (not in dev mode).
- * In dev mode (workspace detected), Vite dev server handles the frontend.
- */
 export function findFrontendDist(startDir: string = __dirname): string | null {
-  // Skip static serving in dev mode — Vite handles it.
-  // Walk upward from startDir looking for pnpm-workspace.yaml with Pearl's
-  // frontend package, which indicates we're in the dev workspace.
   if (isPearlWorkspace(startDir)) return null;
-
-  // Published package layout: pearl-bdui/frontend-dist/
   const publishedPath = resolve(startDir, "..", "frontend-dist");
   if (existsSync(resolve(publishedPath, "index.html"))) return publishedPath;
-
   return null;
 }
 
-/**
- * Detect the Pearl development workspace by walking upward to find
- * pnpm-workspace.yaml AND the Pearl frontend package at the expected path.
- * The two-condition check avoids false positives when pearl-bdui is installed
- * inside any other pnpm monorepo.
- */
 function isPearlWorkspace(startDir: string): boolean {
   let dir = resolve(startDir);
   for (let i = 0; i < 10; i++) {
@@ -59,122 +48,29 @@ function isPearlWorkspace(startDir: string): boolean {
 }
 
 export async function createServer(initialConfig: Config) {
-  // Mutable config — updated after setup completes
   let config = initialConfig;
   const app = Fastify({
     logger: {
-      level: "info",
-      transport: {
-        target: "pino-pretty",
-        options: { translateTime: "HH:MM:ss", ignore: "pid,hostname" },
-      },
+      level: process.env.LOG_LEVEL || "info",
+      serializers: createScrubSerializer(),
+      ...(process.env.NODE_ENV === "production"
+        ? {}
+        : {
+            transport: {
+              target: "pino-pretty",
+              options: { translateTime: "HH:mm:ss", ignore: "pid,hostname" },
+            },
+          }),
     },
   });
 
   const isEmbedded = config.doltMode === "embedded";
   const isServerMode = config.doltMode === "server";
 
-  // ─── Dolt SQL Server Lifecycle ─────────────────────────
-  // In embedded mode, the SQL server runs on the REPLICA (not primary).
-  // bd CLI writes to primary; replica is synced after each write.
-  // In server mode, no subprocess — we connect to an external Dolt server.
   let doltManager: DoltServerManager | null = null;
   let initialStartupDone = false;
 
-  if (!isServerMode) {
-    const serverDbPath = isEmbedded ? config.replicaPath : undefined;
-    doltManager = new DoltServerManager(config, serverDbPath);
-
-    doltManager.onStateChange(async (state) => {
-      app.log.info(`[dolt] Server state: ${state}`);
-      if (state === "running" && initialStartupDone) {
-        // Recovery path only — initial pool creation handled in startup()
-        app.log.info("Dolt server recovered, recreating connection pool...");
-        await destroyPool();
-        createDoltPool(config);
-      }
-    });
-  }
-
-  // ─── Connection Pool ──────────────────────────────────
-  // Pool is created after Dolt server starts (embedded) or immediately (server mode)
-
-  // ─── Write Service ────────────────────────────────────
-  // In embedded mode, sync the replica after each write:
-  // stop SQL server → copy primary → replica → restart SQL → recreate pool
-  //
-  // The sync barrier (beginSync/endSync) makes concurrent reads wait
-  // instead of failing immediately while the server is restarting.
-  // Recovery logic ensures the server is always restarted, even on errors.
-  //
-  // In server mode, writes go through bd CLI which writes to the external
-  // server directly — no sync hook needed.
-  const SYNC_TIMEOUT_MS = 30_000;
-
-  const onAfterWrite = isEmbedded
-    ? async () => {
-        // doltManager is guaranteed non-null when isEmbedded is true
-        // (set in the `if (!isServerMode)` block above).
-        const manager = doltManager!;
-
-        app.log.info("[replica] Syncing replica after write...");
-        const start = Date.now();
-        beginSync();
-        try {
-          await destroyPool();
-          await manager.stop();
-
-          // Guard against cp or start() hanging indefinitely (P2)
-          const syncOp = async () => {
-            await syncReplica(config.doltDbPath, config.replicaPath);
-            await manager.start();
-          };
-          const timeout = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Replica sync timed out")), SYNC_TIMEOUT_MS),
-          );
-          await Promise.race([syncOp(), timeout]);
-
-          if (manager.getState() === "running") {
-            const pool = createDoltPool(config);
-            // Create label_definitions on the replica BEFORE releasing the sync barrier.
-            // Pass pool directly to bypass queryWithRetry/awaitSync deadlock.
-            await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
-              app.log.warn(
-                { err: tableErr },
-                "[replica] Failed to create label_definitions before endSync",
-              );
-            });
-          }
-          app.log.info(`[replica] Sync completed in ${Date.now() - start}ms`);
-        } catch (err) {
-          // Recovery: ensure the server and pool are restored so reads
-          // don't stay permanently broken (P0).
-          app.log.error({ err }, "[replica] Sync failed, attempting recovery...");
-          try {
-            if (manager.getState() !== "running") {
-              await manager.start();
-            }
-            if (manager.getState() === "running") {
-              const pool = createDoltPool(config);
-              await ensureLabelDefinitionsTable(() => config, pool).catch((tableErr) => {
-                app.log.warn(
-                  { err: tableErr },
-                  "[replica] Failed to create label_definitions before endSync (recovery)",
-                );
-              });
-              app.log.info("[replica] Recovery successful");
-            }
-          } catch (recoveryErr) {
-            app.log.error({ err: recoveryErr }, "[replica] Recovery failed");
-          }
-          throw err;
-        } finally {
-          endSync();
-        }
-      }
-    : undefined;
-
-  const writeService = new WriteService(config, onAfterWrite);
+  const writeService = new WriteService(config);
 
   // ─── Error Handler ────────────────────────────────────
   app.setErrorHandler((error: FastifyError | AppError, _request, reply) => {
@@ -182,7 +78,6 @@ export async function createServer(initialConfig: Config) {
       return reply.code(error.statusCode).send(error.toApiError());
     }
 
-    // Fastify validation errors
     if ("validation" in error && error.validation) {
       app.log.warn({ validation: error.validation }, "Request validation failed");
       return reply.code(400).send({
@@ -201,11 +96,9 @@ export async function createServer(initialConfig: Config) {
   });
 
   // ─── CORS ─────────────────────────────────────────────
-  // Server binds to 127.0.0.1 only, so wildcard origin is safe.
-  // A restrictive origin would break frontend dev servers on different ports.
   app.addHook("onRequest", async (request, reply) => {
     reply.header("Access-Control-Allow-Origin", "*");
-    reply.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+    reply.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
     reply.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
     if (request.method === "OPTIONS") {
@@ -227,21 +120,49 @@ export async function createServer(initialConfig: Config) {
     },
   );
 
+  // Multipart parser for /api/attachments upload (busboy parses from buffer in handler)
+  app.addContentTypeParser(
+    "multipart/form-data",
+    { parseAs: "buffer", bodyLimit: 10 * 1024 * 1024 },
+    (_req, body, done) => {
+      done(null, body);
+    },
+  );
+
   // ─── Setup Mode Guard ─────────────────────────────────
-  // When in setup mode, block all non-setup/health routes with a 503.
-  // This flag is flipped to false after setup completes.
   let setupMode = config.needsSetup;
 
   app.addHook("onRequest", async (request, reply) => {
     if (!setupMode) return;
     const url = request.url;
-    // Allow setup and health endpoints through
     if (url.startsWith("/api/setup") || url.startsWith("/api/health")) return;
-    // Block all other API routes
     if (url.startsWith("/api/")) {
       return reply.code(503).send({
         code: "SETUP_REQUIRED",
         message: "Project setup required. Visit /setup to configure.",
+        retryable: false,
+      });
+    }
+  });
+
+  // ─── Embedded Mode Guard (REQ-UW3) ────────────────────
+  // When in embedded mode, block all mutation routes but allow health
+  // and migration endpoints so the frontend can render the migration modal.
+  app.addHook("onRequest", async (request, reply) => {
+    if (config.doltMode !== "embedded") return;
+    const url = request.url;
+    if (
+      url.startsWith("/api/health") ||
+      url.startsWith("/api/migration") ||
+      url.startsWith("/api/setup") ||
+      (url.startsWith("/api/settings") && request.method === "GET")
+    )
+      return;
+    if (url.startsWith("/api/") && request.method !== "GET") {
+      return reply.code(503).send({
+        code: "EMBEDDED_DEPRECATED",
+        message:
+          "Embedded mode is deprecated. Please complete the migration to server mode via the migration modal.",
         retryable: false,
       });
     }
@@ -253,46 +174,14 @@ export async function createServer(initialConfig: Config) {
     onSetupComplete: async (newConfig: Config) => {
       config = newConfig;
 
-      // Initialize Dolt with the new config
-      if (newConfig.doltMode === "embedded") {
-        app.log.info(`[setup] Creating replica at ${newConfig.replicaPath}...`);
-        await createReplica(newConfig.doltDbPath, newConfig.replicaPath);
-
-        // Create a new DoltServerManager for the new config
-        doltManager = new DoltServerManager(newConfig, newConfig.replicaPath);
-        doltManager.onStateChange(async (state) => {
-          app.log.info(`[dolt] Server state: ${state}`);
-          if (state === "running" && initialStartupDone) {
-            app.log.info("Dolt server recovered, recreating connection pool...");
-            await destroyPool();
-            createDoltPool(newConfig);
-          }
-        });
-
-        app.log.info("[setup] Starting Dolt SQL server...");
-        await doltManager.start();
-
-        if (doltManager.getState() === "running") {
-          createDoltPool(newConfig);
-          app.log.info("[setup] Dolt SQL server running, pool created");
-        }
-      } else {
-        // Server mode: just create the pool
+      if (newConfig.doltMode === "server") {
         app.log.info(
           `[setup] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
         );
         createDoltPool(newConfig);
       }
 
-      // Update write service with new config and correct after-write hook
       writeService.updateConfig(newConfig);
-      if (newConfig.doltMode === "server") {
-        // Server mode: no replica sync needed
-        writeService.setAfterWriteHook(undefined);
-      }
-      // For embedded mode, the existing onAfterWrite closure already reads
-      // the current doltManager and config via lexical scope.
-
       initialStartupDone = true;
       setupMode = false;
       app.log.info("[setup] Setup complete, all routes active");
@@ -307,9 +196,52 @@ export async function createServer(initialConfig: Config) {
   registerHealthRoutes(app, getDoltManager, getConfig);
   registerLabelRoutes(app, getConfig);
 
+  const settingsEventBus = new SettingsEventBus();
+  registerSettingsRoutes(app, settingsEventBus);
+  registerAttachmentRoutes(app, settingsEventBus);
+  registerMigrationRoutes(app, {
+    getConfig,
+    onMigrationComplete: async (newConfig: Config) => {
+      config = newConfig;
+
+      if (doltManager) {
+        await doltManager.stop();
+        doltManager = null;
+      }
+      await destroyPool();
+
+      if (newConfig.pearlManaged) {
+        const dataDir = newConfig.doltDataDir || newConfig.doltDbPath;
+        app.log.info(`[migration] Starting pearl-managed dolt sql-server on ${dataDir}...`);
+
+        doltManager = new DoltServerManager(newConfig, dataDir);
+        doltManager.onStateChange(async (state) => {
+          app.log.info(`[dolt] Managed server state: ${state}`);
+          if (state === "running") {
+            app.log.info("Managed dolt server recovered, recreating connection pool...");
+            await destroyPool();
+            createDoltPool(newConfig);
+          }
+        });
+
+        await doltManager.start();
+        if (doltManager.getState() !== "running") {
+          app.log.warn("[migration] Pearl-managed dolt sql-server failed to start after migration");
+        }
+      } else {
+        app.log.info(
+          `[migration] Connecting to Dolt at ${newConfig.doltHost}:${newConfig.doltPort}...`,
+        );
+        createDoltPool(newConfig);
+      }
+
+      writeService.updateConfig(newConfig);
+
+      app.log.info("[migration] Migration complete, running in server mode");
+    },
+  });
+
   // ─── Static File Serving (Production) ─────────────────
-  // Serve the built frontend when running from an installed package.
-  // In dev mode (Vite dev server handles frontend), this is skipped.
   const frontendDist = findFrontendDist();
   if (frontendDist) {
     app.log.info(`[static] Serving frontend from ${frontendDist}`);
@@ -318,7 +250,6 @@ export async function createServer(initialConfig: Config) {
       prefix: "/",
     });
 
-    // SPA fallback: serve index.html for non-API routes that don't match a file
     app.setNotFoundHandler(async (request, reply) => {
       if (request.url.startsWith("/api/")) {
         return reply.code(404).send({
@@ -331,6 +262,35 @@ export async function createServer(initialConfig: Config) {
     });
   }
 
+  // ─── Orphan Sweep ─────────────────────────────────────
+  const beadsDir = findBeadsDir(process.cwd());
+  const projectRoot = beadsDir ? dirname(beadsDir) : process.cwd();
+
+  const orphanSweep = new OrphanSweep({
+    resolveAttachmentBase,
+    projectRoot,
+    getSettings: () => loadSettings(projectRoot),
+    isRefReferenced: async (ref: string) => {
+      try {
+        const pool = getPool();
+        const escaped = ref.replace(/[%_\\]/g, "\\$&");
+        const pattern = `%${escaped}%`;
+        const [rows] = await pool.execute(
+          "SELECT 1 FROM issues WHERE description LIKE ? ESCAPE '\\\\' OR notes LIKE ? ESCAPE '\\\\' OR design LIKE ? ESCAPE '\\\\' OR acceptance_criteria LIKE ? ESCAPE '\\\\' LIMIT 1",
+          [pattern, pattern, pattern, pattern],
+        );
+        return (rows as unknown[]).length > 0;
+      } catch {
+        return true;
+      }
+    },
+    logger: {
+      info: (msg: string) => app.log.info(msg),
+      warn: (msg: string) => app.log.warn(msg),
+      error: (msg: string) => app.log.error(msg),
+    },
+  });
+
   // ─── Lifecycle ────────────────────────────────────────
   const startup = async () => {
     if (config.needsSetup) {
@@ -340,51 +300,61 @@ export async function createServer(initialConfig: Config) {
       return;
     }
 
-    if (isServerMode) {
-      // Server mode: connect directly to external Dolt SQL server
+    if (isEmbedded) {
+      app.log.warn(
+        "Embedded mode is deprecated. The frontend will show a migration modal. " +
+          "Only health and migration endpoints are active until migration completes.",
+      );
+      initialStartupDone = true;
+      return;
+    }
+
+    if (config.pearlManaged) {
+      const dataDir = config.doltDataDir || config.doltDbPath;
+      app.log.info(`[managed] Starting pearl-managed dolt sql-server on ${dataDir}...`);
+
+      doltManager = new DoltServerManager(config, dataDir);
+      doltManager.onStateChange(async (state) => {
+        app.log.info(`[dolt] Managed server state: ${state}`);
+        if (state === "running" && initialStartupDone) {
+          app.log.info("Managed dolt server recovered, recreating connection pool...");
+          await destroyPool();
+          createDoltPool(config);
+        }
+      });
+
+      await doltManager.start();
+      if (doltManager.getState() === "running") {
+        createDoltPool(config);
+        app.log.info("[managed] Pearl-managed dolt sql-server running, pool created");
+      } else {
+        app.log.warn("[managed] Pearl-managed dolt sql-server failed to start — degraded mode");
+      }
+    } else {
       app.log.info(
         `Connecting to external Dolt SQL server at ${config.doltHost}:${config.doltPort}...`,
       );
       createDoltPool(config);
       app.log.info("Connection pool created for external Dolt server");
-    } else {
-      // Embedded mode: manage our own Dolt SQL server process
-      app.log.info(`Starting Dolt SQL server on port ${config.doltPort}...`);
-      app.log.info(`Database path: ${config.doltDbPath}`);
-
-      if (isEmbedded) {
-        app.log.info(`[replica] Creating replica at ${config.replicaPath}...`);
-        await createReplica(config.doltDbPath, config.replicaPath);
-        app.log.info(`[replica] Replica created, starting SQL server on replica`);
-      }
-
-      await doltManager!.start();
-
-      if (doltManager!.getState() === "running") {
-        app.log.info("Dolt SQL server is running, creating connection pool...");
-        createDoltPool(config);
-      } else {
-        app.log.warn("Dolt SQL server failed to start — running in degraded mode");
-      }
     }
 
     initialStartupDone = true;
+
+    if (config.doltMode === "server") {
+      const settings = await loadSettings(projectRoot);
+      orphanSweep.start(settings.attachments.sweep.intervalSeconds);
+    }
   };
 
   const shutdown = async () => {
     app.log.info("Shutting down...");
+    orphanSweep.stop();
     await destroyPool();
 
     if (doltManager) {
       await doltManager.stop();
     }
-
-    // In embedded mode, clean up the replica directory
-    if (config.doltMode === "embedded" && config.replicaPath) {
-      app.log.info("[replica] Cleaning up replica directory...");
-      await cleanupReplica(config.replicaPath);
-    }
   };
 
-  return { app, startup, shutdown, doltManager };
+  return { app, startup, shutdown, doltManager, orphanSweep };
 }
