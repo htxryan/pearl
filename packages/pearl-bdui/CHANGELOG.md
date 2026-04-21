@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.10.1...pearl-bdui-v0.11.0) (2026-04-21)
+
+
+### Features
+
+* image attachments, SQL writer, pearl-managed Dolt, and polish ([#18](https://github.com/htxryan/pearl/issues/18)) ([3dcac2a](https://github.com/htxryan/pearl/commit/3dcac2a547a0a4dbadf1956597d8b2bc5b59f7ca))
+
 ## [0.10.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.10.0...pearl-bdui-v0.10.1) (2026-04-16)
 
 
