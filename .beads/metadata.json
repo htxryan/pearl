@@ -1,11 +1,7 @@
 {
   "database": "dolt",
   "backend": "dolt",
-  "dolt_mode": "server",
+  "dolt_mode": "embedded",
   "dolt_database": "beads_gui",
-  "project_id": "9b3071dc-35f6-4e10-b11b-67c92ac20347",
-  "dolt_host": "127.0.0.1",
-  "dolt_port": 3307,
-  "pearl_managed": true,
-  "dolt_data_dir": "/Users/redhale/src/pearl/.beads/doltdb"
+  "project_id": "9b3071dc-35f6-4e10-b11b-67c92ac20347"
 }
