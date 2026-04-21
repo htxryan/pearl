@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.10.0...pearl-bdui-v0.10.1) (2026-04-16)
+
+
+### Bug Fixes
+
+* create label_definitions table before releasing sync barrier ([a660d8c](https://github.com/htxryan/pearl/commit/a660d8cb444bd90c2cfcf62a78edd72e09321c1c))
+
+
+### Refactors
+
+* extract label_definitions DDL to shared constant ([e82c941](https://github.com/htxryan/pearl/commit/e82c941ea4995cb38da4325b46e1d2eb1ba11169))
+
 ## [0.10.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.9.0...pearl-bdui-v0.10.0) (2026-04-16)
 
 
