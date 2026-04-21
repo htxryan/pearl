@@ -1,6 +1,8 @@
 import { expect, expectToast, navigateToIssue, test } from "./fixtures";
 
-const API_BASE = "http://127.0.0.1:3456";
+// Use relative URLs; page.request resolves via playwright's baseURL and the
+// Vite proxy reaches whichever backend port this run uses.
+const API_BASE = "";
 
 // Original seed dependencies for this issue — anything else was added by prior test runs
 const ORIGINAL_DEPS = new Set([

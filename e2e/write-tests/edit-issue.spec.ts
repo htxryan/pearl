@@ -4,65 +4,69 @@ test.describe("Edit Issue", () => {
   // Use an open issue with known state for editing
   const OPEN_ISSUE_ID = "sample-project-6kq"; // "Implement session management" - open, P1, task
 
+  // Status/Priority/Type now use a CustomSelect component (button[role=combobox]
+  // that opens a div[role=listbox] of div[role=option]). Helper wraps the
+  // open/select/verify pattern so tests stay readable.
+  async function changeCombobox(
+    page: import("@playwright/test").Page,
+    label: string,
+    newOptionName: RegExp | string,
+  ): Promise<string> {
+    const combo = page.getByRole("combobox", { name: label });
+    await expect(combo).toBeVisible();
+    const original = (await combo.textContent())?.trim() ?? "";
+    await combo.click();
+    await page.getByRole("option", { name: newOptionName }).first().click();
+    await expect(combo).not.toHaveText(original, { timeout: 5_000 });
+    return original;
+  }
+
+  async function revertCombobox(
+    page: import("@playwright/test").Page,
+    label: string,
+    originalText: string,
+  ) {
+    const combo = page.getByRole("combobox", { name: label });
+    await combo.click();
+    await page.getByRole("option", { name: originalText }).first().click();
+    await expect(combo).toHaveText(originalText, { timeout: 5_000 });
+  }
+
   test("change status via select dropdown", async ({ seededPage: page }) => {
     await navigateToIssue(page, OPEN_ISSUE_ID);
-
-    const statusSelect = page.getByLabel("Status");
-    await expect(statusSelect).toBeVisible();
-
-    // Get original value
-    const originalStatus = await statusSelect.inputValue();
-
-    // Change to a different status
-    const newStatus = originalStatus === "in_progress" ? "open" : "in_progress";
-    await statusSelect.selectOption(newStatus);
-
-    // Verify the select now shows the new value (optimistic update)
-    await expect(statusSelect).toHaveValue(newStatus);
-
-    // Revert to original to avoid polluting other tests
-    await statusSelect.selectOption(originalStatus);
-    await expect(statusSelect).toHaveValue(originalStatus);
+    const combo = page.getByRole("combobox", { name: "Status" });
+    const original = ((await combo.textContent()) ?? "").trim();
+    const target = /^open$/i.test(original) ? /^in progress$/i : /^open$/i;
+    await combo.click();
+    await page.getByRole("option", { name: target }).first().click();
+    await expect(combo).not.toHaveText(original, { timeout: 5_000 });
+    await revertCombobox(page, "Status", original);
   });
 
   test("change priority via select dropdown", async ({ seededPage: page }) => {
     await navigateToIssue(page, OPEN_ISSUE_ID);
-
-    const prioritySelect = page.getByLabel("Priority");
-    await expect(prioritySelect).toBeVisible();
-
-    const originalPriority = await prioritySelect.inputValue();
-
-    // Change priority
-    const newPriority = originalPriority === "0" ? "3" : "0";
-    await prioritySelect.selectOption(newPriority);
-
-    await expect(prioritySelect).toHaveValue(newPriority);
-
-    // Revert
-    await prioritySelect.selectOption(originalPriority);
-    await expect(prioritySelect).toHaveValue(originalPriority);
+    const combo = page.getByRole("combobox", { name: "Priority" });
+    const original = ((await combo.textContent()) ?? "").trim();
+    const target = original === "P0" ? /^P3$/ : /^P0$/;
+    await combo.click();
+    await page.getByRole("option", { name: target }).first().click();
+    await expect(combo).not.toHaveText(original, { timeout: 5_000 });
+    await revertCombobox(page, "Priority", original);
   });
 
   test("change issue type via select dropdown", async ({ seededPage: page }) => {
     await navigateToIssue(page, OPEN_ISSUE_ID);
-
-    // Scope to the Fields section to avoid matching "Filter events by type" select
+    // Scope to the Fields section to avoid matching "Filter events by type"
     const fieldsSection = page.getByRole("heading", { name: "Fields" }).locator("..");
-    const typeSelect = fieldsSection.getByLabel("Type");
-    await expect(typeSelect).toBeVisible();
-
-    const originalType = await typeSelect.inputValue();
-
-    // Change type
-    const newType = originalType === "bug" ? "feature" : "bug";
-    await typeSelect.selectOption(newType);
-
-    await expect(typeSelect).toHaveValue(newType);
-
-    // Revert
-    await typeSelect.selectOption(originalType);
-    await expect(typeSelect).toHaveValue(originalType);
+    const combo = fieldsSection.getByRole("combobox", { name: "Type" });
+    const original = ((await combo.textContent()) ?? "").trim();
+    const target = /^bug$/i.test(original) ? /^feature$/i : /^bug$/i;
+    await combo.click();
+    await page.getByRole("option", { name: target }).first().click();
+    await expect(combo).not.toHaveText(original, { timeout: 5_000 });
+    await combo.click();
+    await page.getByRole("option", { name: original }).first().click();
+    await expect(combo).toHaveText(original, { timeout: 5_000 });
   });
 
   test("edit title inline with click-to-edit", async ({ seededPage: page }) => {
@@ -98,39 +102,31 @@ test.describe("Edit Issue", () => {
   test("edit assignee inline", async ({ seededPage: page }) => {
     await navigateToIssue(page, OPEN_ISSUE_ID);
 
-    await expect(page.getByRole("heading", { name: "Fields" })).toBeVisible({ timeout: 15_000 });
+    const fieldsHeading = page.getByRole("heading", { name: "Fields" });
+    await expect(fieldsHeading).toBeVisible({ timeout: 15_000 });
+    const fieldsSection = fieldsHeading.locator("..");
 
-    // The assignee FieldEditor shows "Unassigned" (italic) or the name
-    // Click on the assignee value area to enter edit mode
-    const assigneeDisplay = page.getByText("Unassigned").first();
-    if (await assigneeDisplay.isVisible().catch(() => false)) {
-      await assigneeDisplay.click();
-    } else {
-      // Already has an assignee — find the FieldEditor by input name
-      const existingAssignee = page
-        .locator('[role="button"]')
-        .filter({ has: page.locator("text=Assignee").locator("..") });
-      // Fallback: click on the text after the "Assignee" label
-      const assigneeLabel = page.getByText("Assignee", { exact: true }).first();
-      // Click the sibling content area
-      await assigneeLabel.locator("..").locator('[role="button"]').first().click();
-    }
+    // Scope to the Assignee row — locate by the field's label span
+    const assigneeRow = fieldsSection.getByText("Assignee", { exact: true }).locator("..");
+    const assigneeDisplay = assigneeRow.locator('[role="button"]').first();
+    await expect(assigneeDisplay).toBeVisible({ timeout: 5_000 });
+    await assigneeDisplay.click();
 
-    // The FieldEditor renders an input[name="assignee"] in edit mode
     const assigneeInput = page.locator('input[name="assignee"]');
     await expect(assigneeInput).toBeVisible({ timeout: 3_000 });
 
-    await assigneeInput.fill("E2E Test User");
+    const testValue = `E2E Test User ${Date.now()}`;
+    await assigneeInput.fill(testValue);
     await assigneeInput.press("Enter");
 
-    // Verify the update (optimistic)
-    await expect(page.getByText("E2E Test User")).toBeVisible({ timeout: 5_000 });
+    // Verify within the assignee row only (activity timeline also mentions it)
+    await expect(assigneeRow.getByText(testValue)).toBeVisible({ timeout: 5_000 });
 
-    // Revert — click to edit again
-    await page.getByText("E2E Test User").click();
+    // Revert — click the row's display again and clear
+    await assigneeRow.locator('[role="button"]').first().click();
     const assigneeInputAgain = page.locator('input[name="assignee"]');
     await expect(assigneeInputAgain).toBeVisible({ timeout: 3_000 });
-    await assigneeInputAgain.clear();
+    await assigneeInputAgain.fill("");
     await assigneeInputAgain.press("Enter");
   });
 

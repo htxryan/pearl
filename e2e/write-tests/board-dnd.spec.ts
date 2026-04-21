@@ -6,12 +6,13 @@ test.describe("Board Drag-and-Drop", () => {
     const board = page.getByRole("region", { name: "Kanban board" });
     await expect(board).toBeVisible({ timeout: 15_000 });
 
-    // Verify all 5 columns exist
-    await expect(board.getByText("Open")).toBeVisible();
-    await expect(board.getByText("In Progress")).toBeVisible();
-    await expect(board.getByText("Closed")).toBeVisible();
-    await expect(board.getByText("Blocked")).toBeVisible();
-    await expect(board.getByText("Deferred")).toBeVisible();
+    // Blocked is no longer a settable status (derived from dependencies),
+    // so the board renders 4 columns. Use list aria-labels to avoid matching
+    // "Blocked" badges inside issue cards.
+    await expect(board.getByRole("list", { name: /open issues/i })).toBeVisible();
+    await expect(board.getByRole("list", { name: /in_progress issues/i })).toBeVisible();
+    await expect(board.getByRole("list", { name: /closed issues/i })).toBeVisible();
+    await expect(board.getByRole("list", { name: /deferred issues/i })).toBeVisible();
   });
 
   test("dragging card between columns updates status", async ({ seededPage: page }) => {
@@ -88,52 +89,7 @@ test.describe("Board Drag-and-Drop", () => {
     await expectToast(page, /Created/, 15_000);
   });
 
-  test("cannot drag to blocked column", async ({ seededPage: page }) => {
-    await page.goto("/board");
-    const board = page.getByRole("region", { name: "Kanban board" });
-    await expect(board).toBeVisible({ timeout: 15_000 });
-
-    // Get a card from Open column
-    const openColumnList = board.getByRole("list", { name: /open issues/i });
-    const cards = openColumnList.locator('[aria-roledescription="draggable issue card"]');
-    const cardCount = await cards.count();
-
-    if (cardCount === 0) {
-      test.skip(true, "No cards in Open column");
-      return;
-    }
-
-    const firstCard = cards.first();
-    const cardBox = await firstCard.boundingBox();
-
-    // Get blocked column
-    const blockedList = board.getByRole("list", { name: /blocked issues/i });
-    const blockedBox = await blockedList.boundingBox();
-
-    if (!cardBox || !blockedBox) {
-      test.skip(true, "Could not get bounding boxes");
-      return;
-    }
-
-    // Record card count in Open column before drag
-    const openCountBefore = await cards.count();
-
-    // Try to drag to blocked column
-    const startX = cardBox.x + cardBox.width / 2;
-    const startY = cardBox.y + cardBox.height / 2;
-    const endX = blockedBox.x + blockedBox.width / 2;
-    const endY = blockedBox.y + blockedBox.height / 2;
-
-    await page.mouse.move(startX, startY);
-    await page.mouse.down();
-    await page.mouse.move(startX + 10, startY, { steps: 5 });
-    await page.mouse.move(endX, endY, { steps: 20 });
-    await page.mouse.up();
-
-    await page.waitForTimeout(500);
-
-    // Card should still be in Open column (blocked is not droppable)
-    const openCountAfter = await cards.count();
-    expect(openCountAfter).toBe(openCountBefore);
-  });
+  // Removed: "cannot drag to blocked column" — Blocked is no longer a settable
+  // status or a kanban column; it is derived from open dependencies, so there
+  // is no blocked drop target to test against.
 });
