@@ -96,8 +96,13 @@ export function AppShell() {
         handler: () => toggleSidebar(),
         description: "Toggle sidebar",
       },
+      {
+        key: "c",
+        handler: openCreateDialog,
+        description: "Create new issue",
+      },
     ],
-    [navigate, viewNavigate],
+    [navigate, viewNavigate, openCreateDialog],
   );
 
   useKeyboardScope("shell", bindings);
@@ -142,6 +147,7 @@ export function AppShell() {
       {
         id: "create-issue",
         label: "Create Issue",
+        shortcut: "c",
         group: "Actions",
         handler: openCreateDialog,
       },

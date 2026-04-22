@@ -50,6 +50,7 @@ function buildShortcutGroups(isMac: boolean): ShortcutGroup[] {
         { key: "1", description: "Go to List view" },
         { key: "2", description: "Go to Board view" },
         { key: "3", description: "Go to Graph view" },
+        { key: "c", description: "Create new issue" },
         { key: "?", description: "Show keyboard shortcuts" },
       ],
     },
@@ -66,6 +67,15 @@ function buildShortcutGroups(isMac: boolean): ShortcutGroup[] {
     {
       name: "Board View",
       shortcuts: [{ key: "/", description: "Focus search" }],
+    },
+    {
+      name: "Graph View",
+      shortcuts: [
+        { key: "/", description: "Focus search" },
+        { key: "l", description: "Re-run auto layout" },
+        { key: "p", description: "Toggle critical path" },
+        { key: "Esc", description: "Clear selection" },
+      ],
     },
     {
       name: "Detail View",

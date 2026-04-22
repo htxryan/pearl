@@ -296,7 +296,7 @@ export function GraphView() {
         description: "Re-run auto layout",
       },
       {
-        key: "c",
+        key: "p",
         handler: () => setShowCriticalPath((prev) => !prev),
         description: "Toggle critical path",
       },
