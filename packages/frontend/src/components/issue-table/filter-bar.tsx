@@ -117,12 +117,9 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
     }, 300);
   }, []);
 
-  const setField = useCallback(
-    <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-      onChange({ ...filters, [key]: value });
-    },
-    [filters, onChange],
-  );
+  const setField = useCallback(<K extends keyof FilterState>(key: K, value: FilterState[K]) => {
+    onChangeRef.current({ ...filtersRef.current, [key]: value });
+  }, []);
 
   const handleLabelsChange = useCallback((labels: string[]) => {
     onChangeRef.current({ ...filtersRef.current, labels });
@@ -224,8 +221,9 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
           disabled: filters.structural.includes(opt),
         }))}
         onChange={(value) => {
-          if (!filters.structural.includes(value)) {
-            onChange({ ...filters, structural: [...filters.structural, value] });
+          const current = filtersRef.current.structural;
+          if (!current.includes(value)) {
+            onChangeRef.current({ ...filtersRef.current, structural: [...current, value] });
           }
         }}
         placeholder="Properties..."
@@ -239,8 +237,8 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
           value={filters.groupBy ?? "__none__"}
           options={groupByOptions}
           onChange={(value) =>
-            onChange({
-              ...filters,
+            onChangeRef.current({
+              ...filtersRef.current,
               groupBy: value === "__none__" ? null : (value as GroupByField),
             })
           }
@@ -288,8 +286,9 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
             disabled: filters.dateRanges.includes(opt),
           }))}
           onChange={(value) => {
-            if (!filters.dateRanges.includes(value)) {
-              onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
+            const current = filtersRef.current.dateRanges;
+            if (!current.includes(value)) {
+              onChangeRef.current({ ...filtersRef.current, dateRanges: [...current, value] });
             }
           }}
           placeholder="Date filter..."
