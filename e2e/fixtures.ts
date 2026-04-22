@@ -40,16 +40,17 @@ export function issueTable(page: Page) {
 }
 
 /**
- * Navigate to the first issue's detail view from the list.
- * Returns the issue ID extracted from the URL.
+ * Navigate to the first issue's full detail page.
+ * Uses the data-issue-id attribute on the row to avoid waiting for URL-based navigation
+ * (row clicks now open an in-place panel rather than navigating).
+ * Returns the issue ID.
  */
 export async function navigateToFirstIssue(page: Page): Promise<string> {
-  // Ensure data rows are present
   await page.waitForSelector(DATA_ROW, { timeout: 15_000 });
-  // Click the title cell (nth(2)) — avoid checkbox (nth(0)) which has stopPropagation
   const firstDataRow = page.locator(DATA_ROW).first();
-  await firstDataRow.locator("td").nth(2).click();
-  await page.waitForURL("**/issues/**", { timeout: 10_000 });
-  const url = page.url();
-  return url.split("/issues/")[1];
+  const issueId = await firstDataRow.getAttribute("data-issue-id");
+  if (!issueId) throw new Error("Row missing data-issue-id attribute");
+  await page.goto(`/issues/${issueId}`);
+  await page.waitForURL(`**/issues/${issueId}`, { timeout: 10_000 });
+  return issueId;
 }

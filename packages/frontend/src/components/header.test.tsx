@@ -37,7 +37,7 @@ describe("Header", () => {
   it("renders the search issues button when onSearchIssues is provided", () => {
     const onSearch = vi.fn();
     render(<Header onSearchIssues={onSearch} />);
-    const searchButton = screen.getByRole("button", { name: /search issues/i });
+    const searchButton = screen.getByRole("button", { name: /open search/i });
     fireEvent.click(searchButton);
     expect(onSearch).toHaveBeenCalledOnce();
   });

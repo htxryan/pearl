@@ -17,14 +17,16 @@ test.describe("List View", () => {
     await expect(table.getByRole("columnheader", { name: /priority/i })).toBeVisible();
   });
 
-  test("clicking an issue row navigates to detail view", async ({ seededPage: page }) => {
+  test("clicking an issue row opens the detail panel", async ({ seededPage: page }) => {
     const table = issueTable(page);
     const firstRow = table.locator("tbody tr").first();
 
     // Click the title cell (nth(2) = Title column, after checkbox and ID)
     await firstRow.locator("td").nth(2).click();
-    await page.waitForURL("**/issues/**");
-    await expect(page.getByLabel("Breadcrumb")).toBeVisible();
+    // Row click opens an in-place panel; wait for the panel close button
+    await expect(page.getByRole("button", { name: "Close panel" })).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
   test("search filter narrows results", async ({ seededPage: page }) => {
@@ -105,10 +107,13 @@ test.describe("List View", () => {
     await expect(page.getByText("issue selected")).toBeVisible({ timeout: 5_000 });
   });
 
-  test("keyboard: Enter opens the active issue", async ({ seededPage: page }) => {
+  test("keyboard: Enter opens the active issue panel", async ({ seededPage: page }) => {
     await page.keyboard.press("j");
     await page.keyboard.press("Enter");
-    await page.waitForURL("**/issues/**");
+    // Enter key opens in-place panel; wait for the panel close button
+    await expect(page.getByRole("button", { name: "Close panel" })).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
   test("quick-add input is visible and has placeholder", async ({ seededPage: page }) => {

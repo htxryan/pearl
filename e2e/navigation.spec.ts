@@ -43,6 +43,6 @@ test.describe("Navigation", () => {
 
   test("header shows command palette hint", async ({ seededPage: page }) => {
     const header = page.locator("header");
-    await expect(header.getByText(/command palette/i)).toBeVisible();
+    await expect(header.getByText(/for commands/i)).toBeVisible();
   });
 });

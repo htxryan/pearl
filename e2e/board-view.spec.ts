@@ -20,7 +20,7 @@ test.describe("Board View", () => {
     await expect(board.getByText("Deferred")).toBeVisible();
   });
 
-  test("clicking a card navigates to detail view", async ({ seededPage: page }) => {
+  test("clicking a card opens the detail panel", async ({ seededPage: page }) => {
     await page.goto("/board");
     const board = page.getByRole("region", { name: "Kanban board" });
     await expect(board).toBeVisible({ timeout: 15_000 });
@@ -29,7 +29,10 @@ test.describe("Board View", () => {
     const firstCard = board.locator('[aria-roledescription="draggable issue card"]').first();
     await expect(firstCard).toBeVisible();
     await firstCard.click();
-    await page.waitForURL("**/issues/**");
+    // Card click opens in-place panel; wait for the panel close button
+    await expect(page.getByRole("button", { name: "Close panel" })).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
   test("filter bar present on board view", async ({ seededPage: page }) => {

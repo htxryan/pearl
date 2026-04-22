@@ -47,8 +47,11 @@ test.describe("Accessibility", () => {
       .locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])')
       .first();
     await expect(dataRow).toBeVisible({ timeout: 15_000 });
-    await dataRow.locator("td").nth(2).click();
-    await page.waitForURL("**/issues/**");
+    // Navigate directly to the full detail page via data-issue-id attribute
+    const issueId = await dataRow.getAttribute("data-issue-id");
+    if (!issueId) throw new Error("Row missing data-issue-id attribute");
+    await page.goto(`/issues/${issueId}`);
+    await page.waitForURL(`**/issues/${issueId}`);
 
     const breadcrumb = page.getByLabel("Breadcrumb");
     await expect(breadcrumb).toBeVisible();

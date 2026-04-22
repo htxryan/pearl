@@ -84,7 +84,7 @@ export function Header({
           <button
             type="button"
             onClick={onSearchIssues}
-            aria-label="Search issues"
+            aria-label="Open search"
             className="inline-flex h-11 sm:h-auto items-center justify-center rounded-[var(--radius)] border border-border px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             data-testid="search-issues-btn"
           >

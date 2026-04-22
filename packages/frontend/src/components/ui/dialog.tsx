@@ -16,6 +16,7 @@ export interface DialogProps {
   children: ReactNode;
   className?: string;
   onCancel?: (e: React.SyntheticEvent<HTMLDialogElement>) => void;
+  "aria-label"?: string;
 }
 
 export interface DialogRef {
@@ -23,7 +24,10 @@ export interface DialogRef {
 }
 
 export const Dialog = forwardRef<DialogRef, DialogProps>(
-  ({ isOpen, onClose, size = "sm", children, className, onCancel }, ref) => {
+  (
+    { isOpen, onClose, size = "sm", children, className, onCancel, "aria-label": ariaLabel },
+    ref,
+  ) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     useImperativeHandle(ref, () => ({
@@ -46,6 +50,7 @@ export const Dialog = forwardRef<DialogRef, DialogProps>(
       <dialog
         ref={dialogRef}
         aria-modal="true"
+        aria-label={ariaLabel}
         className={cn(
           "fixed inset-0 z-50 m-auto w-full rounded-xl border border-border bg-background text-foreground p-0 shadow-xl backdrop:bg-black/50",
           sizeStyles[size],

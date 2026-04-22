@@ -6,8 +6,10 @@ test.describe("Detail View", () => {
     const firstRow = table.locator("tbody tr").first();
 
     await firstRow.locator("td").nth(2).click();
-    await page.waitForURL("**/issues/**");
-    await expect(page.getByLabel("Breadcrumb")).toBeVisible();
+    // Row click opens an in-place panel; wait for the panel close button to confirm it opened
+    await expect(page.getByRole("button", { name: "Close panel" })).toBeVisible({
+      timeout: 10_000,
+    });
   });
 
   test("breadcrumb shows issue ID", async ({ seededPage: page }) => {

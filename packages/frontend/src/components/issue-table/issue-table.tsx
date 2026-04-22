@@ -127,6 +127,7 @@ function TableRow({
       )}
       style={style}
       data-row-index={index}
+      data-issue-id={row.original.id}
       aria-selected={index === activeRowIndex}
     >
       {row.getVisibleCells().map((cell) => (
