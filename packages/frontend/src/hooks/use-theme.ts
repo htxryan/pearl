@@ -51,8 +51,10 @@ function getEffectiveTheme(): ThemeDefinition {
 function applyTheme(theme: ThemeDefinition) {
   const root = document.documentElement;
 
-  // Toggle .dark class based on colorScheme
-  root.classList.toggle("dark", theme.colorScheme === "dark");
+  // Toggle .dark class and color-scheme property based on colorScheme
+  const isDark = theme.colorScheme === "dark";
+  root.classList.toggle("dark", isDark);
+  root.style.colorScheme = isDark ? "dark" : "light";
 
   // Clear any previously-set --color-* inline styles so stale dark-theme
   // values don't persist when switching to a light theme (or vice-versa).

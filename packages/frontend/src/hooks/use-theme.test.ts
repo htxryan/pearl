@@ -50,6 +50,22 @@ describe("useTheme", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
+  it("setTheme sets color-scheme property for native element theming", () => {
+    const { result } = renderHook(() => useTheme());
+
+    act(() => {
+      result.current.setTheme("vscode-monokai");
+    });
+
+    expect(document.documentElement.style.colorScheme).toBe("dark");
+
+    act(() => {
+      result.current.setTheme("vscode-light-plus");
+    });
+
+    expect(document.documentElement.style.colorScheme).toBe("light");
+  });
+
   it("setTheme persists theme ID to localStorage", () => {
     const { result } = renderHook(() => useTheme());
 

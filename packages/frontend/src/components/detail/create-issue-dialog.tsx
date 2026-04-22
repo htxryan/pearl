@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Dialog } from "@/components/ui/dialog";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { useDraft } from "@/hooks/use-draft";
 import { useCreateIssue } from "@/hooks/use-issues";
@@ -31,29 +32,22 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   const [labels, setLabels] = useState<string[]>([]);
   const [due, setDue] = useState("");
 
-  // Markdown preview tab
   const [descTab, setDescTab] = useState<DescriptionTab>("write");
 
-  // Title validation state
   const [titleTouched, setTitleTouched] = useState(false);
   const [titleDirty, setTitleDirty] = useState(false);
 
-  // Draft restored banner
   const [showDraftBanner, setShowDraftBanner] = useState(false);
 
   const { draft, saveDraft, clearDraft, hasDraft } = useDraft(DRAFT_KEY);
   const createMutation = useCreateIssue();
   const titleRef = useRef<HTMLInputElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const hasRestoredRef = useRef(false);
 
-  // Focus title on open and restore draft
   useEffect(() => {
     if (isOpen) {
-      dialogRef.current?.showModal();
       titleRef.current?.focus();
 
-      // Restore draft on open (only once per open)
       if (!hasRestoredRef.current && hasDraft && draft) {
         setTitle(draft.title);
         setDescription(draft.description);
@@ -66,7 +60,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
         hasRestoredRef.current = true;
       }
     } else {
-      dialogRef.current?.close();
       hasRestoredRef.current = false;
       setShowDraftBanner(false);
       setTitleTouched(false);
@@ -76,7 +69,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- draft excluded to prevent focus theft on every keystroke
   }, [isOpen, hasDraft]);
 
-  // Auto-save draft on field changes
   const saveDraftFromFields = useCallback(() => {
     saveDraft({
       title,
@@ -134,11 +126,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   };
 
   const handleCancel = () => {
-    // Don't resetForm() here — draft should survive cancel.
-    // resetForm() would clear fields, and the auto-save effect could
-    // flush the empty state to localStorage, wiping the draft.
-    // Form state resets via the else-branch of the isOpen effect (line 67-73)
-    // and gets re-initialized from the draft on the next open.
     onClose();
   };
 
@@ -157,32 +144,20 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   const showCharCount = titleDirty;
   const charCountWarning = title.length > TITLE_WARN;
 
-  if (!isOpen) return null;
-
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed inset-0 z-50 m-auto w-full max-w-lg rounded-xl border border-border bg-background p-0 shadow-xl backdrop:bg-black/50"
+    <Dialog
+      isOpen={isOpen}
       onClose={handleCancel}
+      size="lg"
       onCancel={(e) => {
-        // Belt-and-suspenders: child pickers already call preventDefault()
-        // on Escape keydown to suppress this cancel event. This guard is a
-        // fallback in case a future picker forgets to preventDefault().
         if (e.currentTarget.querySelector('[aria-expanded="true"]')) {
           e.preventDefault();
-        }
-      }}
-      onClick={(e) => {
-        // Close on backdrop click
-        if (e.target === dialogRef.current) {
-          handleCancel();
         }
       }}
     >
       <form onSubmit={handleSubmit} className="p-6 space-y-4 animate-modal-enter">
         <h2 className="text-lg font-semibold">Create Issue</h2>
 
-        {/* Draft restored banner */}
         {showDraftBanner && (
           <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-1.5">
             <span>Draft restored</span>
@@ -240,7 +215,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
           <label htmlFor="create-desc" className="block text-sm font-medium mb-1">
             Description
           </label>
-          {/* Tab bar */}
           <div className="flex gap-4 border-b border-border mb-2">
             <button
               type="button"
@@ -370,6 +344,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
           <div className="text-sm text-destructive">Failed to create issue. Please try again.</div>
         )}
       </form>
-    </dialog>
+    </Dialog>
   );
 }

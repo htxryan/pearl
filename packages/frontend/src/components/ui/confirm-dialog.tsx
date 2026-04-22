@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -24,30 +25,16 @@ export function ConfirmDialog({
   variant = "destructive",
   isPending = false,
 }: ConfirmDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      dialogRef.current?.showModal();
-      // Focus cancel button by default (safer default for destructive actions)
       cancelRef.current?.focus();
-    } else {
-      dialogRef.current?.close();
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   return (
-    <dialog
-      ref={dialogRef}
-      className="fixed inset-0 z-50 m-auto w-full max-w-sm rounded-xl border border-border bg-background p-0 shadow-xl backdrop:bg-black/50"
-      onClose={onCancel}
-      onClick={(e) => {
-        if (e.target === dialogRef.current) onCancel();
-      }}
-    >
+    <Dialog isOpen={isOpen} onClose={onCancel} size="sm">
       <div className="p-6 animate-modal-enter">
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
@@ -60,6 +47,6 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </dialog>
+    </Dialog>
   );
 }
