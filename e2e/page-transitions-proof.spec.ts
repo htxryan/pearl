@@ -108,7 +108,7 @@ test.describe("Modal animations", () => {
 
     // Open command palette and select "Create Issue"
     await page.keyboard.press(CMD_K);
-    const cmdInput = page.getByPlaceholder("Search issues or type a command...");
+    const cmdInput = page.getByPlaceholder("Type a command...");
     await expect(cmdInput).toBeVisible({ timeout: 5_000 });
 
     // Find and click the Create Issue item
@@ -148,7 +148,7 @@ test.describe("Modal animations", () => {
     await page.waitForTimeout(120); // Settled
     await page.screenshot({ path: `${PROOF_DIR}/17-cmd-palette-fully-open.png` });
 
-    const input = page.getByPlaceholder("Search issues or type a command...");
+    const input = page.getByPlaceholder("Type a command...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
     // Close with Escape
@@ -230,7 +230,7 @@ test.describe("Reduced motion", () => {
     await page.keyboard.press(CMD_K);
     await page.waitForTimeout(20); // Near-instant
     await page.screenshot({ path: `${PROOF_DIR}/26-reduced-motion-cmd-palette-instant.png` });
-    const input = page.getByPlaceholder("Search issues or type a command...");
+    const input = page.getByPlaceholder("Type a command...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
     // Close — should disappear instantly

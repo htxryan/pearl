@@ -17,7 +17,7 @@ test.describe("Close Issue", () => {
     await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
-    const closeBtn = page.getByRole("button", { name: "Close" }).first();
+    const closeBtn = page.getByRole("button", { name: "Close", exact: true }).first();
     await expect(closeBtn).toBeVisible();
     await closeBtn.click();
 
@@ -36,7 +36,7 @@ test.describe("Close Issue", () => {
     await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
-    const closeBtn = page.getByRole("button", { name: "Close" }).first();
+    const closeBtn = page.getByRole("button", { name: "Close", exact: true }).first();
     await closeBtn.click();
 
     const dialog = page.getByRole("dialog");
@@ -60,7 +60,7 @@ test.describe("Close Issue", () => {
     await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
-    const closeBtn = page.getByRole("button", { name: "Close" }).first();
+    const closeBtn = page.getByRole("button", { name: "Close", exact: true }).first();
     await closeBtn.click();
 
     const dialog = page.getByRole("dialog");
@@ -82,7 +82,7 @@ test.describe("Close Issue", () => {
     await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
 
     // Close and Claim buttons should NOT be visible for closed issues
-    const closeBtn = page.getByRole("button", { name: "Close" });
+    const closeBtn = page.getByRole("button", { name: "Close", exact: true });
     await expect(closeBtn).not.toBeVisible({ timeout: 3_000 });
   });
 });

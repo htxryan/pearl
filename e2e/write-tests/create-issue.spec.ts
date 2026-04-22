@@ -48,7 +48,7 @@ test.describe("Create Issue", () => {
       await page.keyboard.press(CMD_K);
 
       // The command palette input has a specific placeholder
-      const cmdInput = page.getByPlaceholder("Search issues or type > for commands...");
+      const cmdInput = page.getByPlaceholder("Type a command...");
       await expect(cmdInput).toBeVisible({ timeout: 5_000 });
 
       // Search for Create Issue action
@@ -60,7 +60,7 @@ test.describe("Create Issue", () => {
       await createItem.click();
 
       // Now the create issue dialog (native <dialog>) should be open
-      const dialog = page.getByRole("dialog");
+      const dialog = page.getByRole("dialog", { name: "Create Issue" });
       await expect(dialog).toBeVisible({ timeout: 5_000 });
       await expect(dialog.getByRole("heading", { name: "Create Issue" })).toBeVisible();
       return dialog;
