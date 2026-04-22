@@ -1,5 +1,5 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
-import { NavLink, useLocation } from "react-router";
+import { NavLink, useLocation, useSearchParams } from "react-router";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useHealth } from "@/hooks/use-issues";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -166,6 +166,8 @@ const settingsItem = {
   icon: () => <SettingsIcon />,
 };
 
+const VIEW_PATHS = new Set(["/list", "/board", "/graph"]);
+
 function NavItem({
   item,
   mobile,
@@ -175,9 +177,14 @@ function NavItem({
   mobile?: boolean;
   collapsed?: boolean;
 }) {
+  const [searchParams] = useSearchParams();
+  const search = searchParams.toString();
+  const to =
+    VIEW_PATHS.has(item.to) && search ? { pathname: item.to, search: `?${search}` } : item.to;
+
   return (
     <NavLink
-      to={item.to}
+      to={to}
       title={collapsed ? item.label : undefined}
       aria-label={collapsed ? item.label : undefined}
       className={({ isActive }) =>

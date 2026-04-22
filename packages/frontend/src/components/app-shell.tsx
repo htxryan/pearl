@@ -7,11 +7,13 @@ import {
   useCommandPaletteActions,
 } from "@/hooks/use-command-palette";
 import { EmbeddedModeProvider, useEmbeddedModeDetection } from "@/hooks/use-embedded-mode";
+import { useFilterSync } from "@/hooks/use-filter-sync";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useNotificationPoller } from "@/hooks/use-notifications";
 import { useRouteAnnouncer } from "@/hooks/use-route-announcer";
 import { useTheme } from "@/hooks/use-theme";
 import { undoLast, useCanUndo } from "@/hooks/use-undo";
+import { useViewNavigate } from "@/hooks/use-view-navigate";
 import { getAllThemes } from "@/themes";
 import { CommandPalette } from "./command-palette";
 import { CreateIssueDialog } from "./detail/create-issue-dialog";
@@ -27,6 +29,7 @@ import { ToastContainer } from "./toast-container";
 
 export function AppShell() {
   const navigate = useNavigate();
+  const viewNavigate = useViewNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const openCreateDialog = useCallback(() => setCreateDialogOpen(true), []);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -34,6 +37,7 @@ export function AppShell() {
   const { setTheme } = useTheme();
   const { isEmbedded, showModal } = useEmbeddedModeDetection();
 
+  useFilterSync();
   useNotificationPoller();
 
   const bindings = useMemo(
@@ -67,17 +71,17 @@ export function AppShell() {
       },
       {
         key: "1",
-        handler: () => navigate("/list"),
+        handler: () => viewNavigate("/list"),
         description: "Go to List view",
       },
       {
         key: "2",
-        handler: () => navigate("/board"),
+        handler: () => viewNavigate("/board"),
         description: "Go to Board view",
       },
       {
         key: "3",
-        handler: () => navigate("/graph"),
+        handler: () => viewNavigate("/graph"),
         description: "Go to Graph view",
       },
       {
@@ -91,7 +95,7 @@ export function AppShell() {
         description: "Toggle sidebar",
       },
     ],
-    [navigate],
+    [navigate, viewNavigate],
   );
 
   useKeyboardScope("shell", bindings);
@@ -110,21 +114,21 @@ export function AppShell() {
         label: "Go to List View",
         shortcut: "1",
         group: "Navigation",
-        handler: () => navigate("/list"),
+        handler: () => viewNavigate("/list"),
       },
       {
         id: "nav-board",
         label: "Go to Board View",
         shortcut: "2",
         group: "Navigation",
-        handler: () => navigate("/board"),
+        handler: () => viewNavigate("/board"),
       },
       {
         id: "nav-graph",
         label: "Go to Graph View",
         shortcut: "3",
         group: "Navigation",
-        handler: () => navigate("/graph"),
+        handler: () => viewNavigate("/graph"),
       },
       {
         id: "nav-settings",
@@ -173,7 +177,7 @@ export function AppShell() {
         handler: () => setTheme(t.id),
       })),
     ],
-    [navigate, openCreateDialog, canUndo, setTheme],
+    [navigate, viewNavigate, openCreateDialog, canUndo, setTheme],
   );
 
   useCommandPaletteActions("shell", commands);

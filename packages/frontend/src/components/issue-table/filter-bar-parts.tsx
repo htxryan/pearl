@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { addToast } from "@/hooks/use-toast";
 import {
   ACTIVE_FILTERS,
@@ -242,10 +243,10 @@ export function PresetDropdown({
   const [open, setOpen] = useState(false);
   const [showSaveAs, setShowSaveAs] = useState(false);
   const [newName, setNewName] = useState("");
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(() => {
-    const match = presets.find((p) => filtersMatch(p.filters, filters));
-    return match?.id ?? null;
-  });
+  const [selectedPresetId, setSelectedPresetId] = usePersistedState<string | null>(
+    "pearl:active-preset",
+    null,
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
