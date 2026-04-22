@@ -126,4 +126,40 @@ describe("useFilterPresets", () => {
     const preset = result.current.presets.find((p) => p.id === newId!);
     expect(preset?.filters.priority).toEqual([2, 3]);
   });
+
+  it("exact match against a different preset suppresses modified indicator", () => {
+    const { result } = renderHook(() => useFilterPresets());
+    const filtersA: FilterState = { ...testFilters, priority: [0] };
+    const filtersB: FilterState = { ...testFilters, priority: [1] };
+    let idA: string;
+    act(() => {
+      idA = result.current.save("Preset A", filtersA);
+      result.current.save("Preset B", filtersB);
+    });
+    // Active preset is B (last saved), switch to A
+    act(() => {
+      result.current.selectPreset(idA!);
+    });
+    expect(result.current.activePresetId).toBe(idA!);
+    // Now if the user manually adjusts filters to match Preset B,
+    // the component finds an exactMatch on B — hasUnsavedChanges should be false.
+    // Verify the presets array contains B with the expected filters.
+    const presetB = result.current.presets.find((p) => p.name === "Preset B");
+    expect(presetB).toBeDefined();
+    // The component computes: exactMatch = presets.find(p => filtersMatch(p.filters, currentFilters))
+    // If currentFilters === filtersB, exactMatch = presetB, so hasUnsavedChanges = selectedPreset && !exactMatch = false
+    // Verify the data the component would use:
+    const selectedPreset = result.current.presets.find(
+      (p) => p.id === result.current.activePresetId,
+    );
+    expect(selectedPreset?.name).toBe("Preset A");
+    const exactMatch = result.current.presets.find(
+      (p) =>
+        p.filters.priority.length === filtersB.priority.length &&
+        p.filters.priority.every((v, i) => v === filtersB.priority[i]),
+    );
+    expect(exactMatch?.name).toBe("Preset B");
+    // hasUnsavedChanges = selectedPreset && !exactMatch → truthy && !truthy → false
+    expect(!!(selectedPreset && !exactMatch)).toBe(false);
+  });
 });

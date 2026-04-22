@@ -256,8 +256,13 @@ export function PresetDropdown({
 
   const exactMatch = presets.find((p) => filtersMatch(p.filters, filters));
   const selectedPreset = activePresetId ? presets.find((p) => p.id === activePresetId) : null;
-  const hasUnsavedChanges =
-    selectedPreset && !exactMatch && !filtersMatch(selectedPreset.filters, filters);
+  const hasUnsavedChanges = selectedPreset && !exactMatch;
+
+  useEffect(() => {
+    if (exactMatch && exactMatch.id !== activePresetId) {
+      selectPreset(exactMatch.id);
+    }
+  }, [exactMatch, activePresetId, selectPreset]);
 
   const label = exactMatch
     ? exactMatch.name
@@ -389,7 +394,6 @@ export function PresetDropdown({
               <SaveAsInline
                 filters={filters}
                 savePreset={savePreset}
-                selectPreset={selectPreset}
                 onClose={() => setOpen(false)}
               />
             </>
@@ -403,12 +407,10 @@ export function PresetDropdown({
 function SaveAsInline({
   filters,
   savePreset,
-  selectPreset,
   onClose,
 }: {
   filters: FilterState;
   savePreset: (name: string, filters: FilterState) => string;
-  selectPreset: (id: string | null) => void;
   onClose: () => void;
 }) {
   const [showInput, setShowInput] = useState(false);
@@ -416,13 +418,12 @@ function SaveAsInline({
 
   const handleSave = useCallback(() => {
     if (!newName.trim()) return;
-    const id = savePreset(newName.trim(), filters);
-    selectPreset(id);
+    savePreset(newName.trim(), filters);
     addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
     setNewName("");
     setShowInput(false);
     onClose();
-  }, [newName, savePreset, selectPreset, filters, onClose]);
+  }, [newName, savePreset, filters, onClose]);
 
   if (!showInput) {
     return (
@@ -473,21 +474,13 @@ export function UnsavedChangesBar({
   filters: FilterState;
   onChange: (filters: FilterState) => void;
 }) {
-  const {
-    presets,
-    activePresetId,
-    save: savePreset,
-    update: updatePreset,
-    selectPreset,
-  } = useFilterPresets();
+  const { presets, activePresetId, save: savePreset, update: updatePreset } = useFilterPresets();
   const [showSaveAs, setShowSaveAs] = useState(false);
   const [newName, setNewName] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const exactMatch = presets.find((p) => filtersMatch(p.filters, filters));
   const selectedPreset = activePresetId ? presets.find((p) => p.id === activePresetId) : null;
-  const hasUnsavedChanges =
-    selectedPreset && !exactMatch && !filtersMatch(selectedPreset.filters, filters);
+  const hasUnsavedChanges = selectedPreset && !exactMatch;
 
   if (!hasUnsavedChanges || !selectedPreset) return null;
 
@@ -502,15 +495,14 @@ export function UnsavedChangesBar({
 
   const handleSaveAs = () => {
     if (!newName.trim()) return;
-    const id = savePreset(newName.trim(), filters);
-    selectPreset(id);
+    savePreset(newName.trim(), filters);
     addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
     setNewName("");
     setShowSaveAs(false);
   };
 
   return (
-    <div ref={containerRef} className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5">
       <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">Modified</span>
 
       {isUserPreset(selectedPreset.id) && (
