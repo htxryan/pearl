@@ -146,176 +146,172 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
     })),
   ];
 
-  // Shared filter controls
-  const filterControls = (
+  // Filter controls (without preset, used inside the single toolbar row)
+  const filterInputs = (
     <>
-      <div
-        className={cn("flex items-center gap-2", isMobile ? "flex-col items-stretch" : "flex-wrap")}
-      >
-        {/* Search */}
-        <div className="relative">
-          <input
-            ref={inputRef}
-            type="text"
-            value={localSearch}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search issues... (/)"
-            className={cn(
-              "h-8 rounded border border-border bg-background pl-3 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
-              isMobile ? "w-full min-h-[44px]" : "w-56",
-            )}
-            aria-label="Search issues"
-          />
-          {localSearch && (
-            <button
-              onClick={() => {
-                clearTimeout(searchTimer.current);
-                setLocalSearch("");
-                setField("search", "");
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Clear search"
-            >
-              &times;
-            </button>
+      {/* Search */}
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={localSearch}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder="Search issues... (/)"
+          className={cn(
+            "h-8 rounded border border-border bg-background pl-3 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
+            isMobile ? "w-full min-h-[44px]" : "w-56",
           )}
-        </div>
-
-        {/* Status filter */}
-        <MultiSelect
-          label="status"
-          options={ALL_STATUSES}
-          selected={filters.status}
-          labels={STATUS_LABELS}
-          onChange={(v) => setField("status", v)}
+          aria-label="Search issues"
         />
-
-        {/* Priority filter */}
-        <MultiSelect
-          label="priority"
-          options={ALL_PRIORITIES}
-          selected={filters.priority}
-          labels={PRIORITY_LABELS}
-          onChange={(v) => setField("priority", v)}
-        />
-
-        {/* Type filter */}
-        <MultiSelect
-          label="type"
-          options={ALL_TYPES}
-          selected={filters.issue_type}
-          labels={TYPE_LABELS}
-          onChange={(v) => setField("issue_type", v)}
-        />
-
-        {/* Labels */}
-        <LabelPicker
-          selected={filters.labels}
-          selectedColors={{}}
-          onChange={handleLabelsChange}
-          allowCreate={false}
-          placeholder="Labels"
-          className={isMobile ? "w-full" : "w-48"}
-        />
-
-        {/* Structural filters */}
-        <CustomSelect<StructuralFilter>
-          value={null}
-          options={STRUCTURAL_FILTER_OPTIONS.map((opt) => ({
-            value: opt,
-            label: STRUCTURAL_FILTER_LABELS[opt],
-            disabled: filters.structural.includes(opt),
-          }))}
-          onChange={(value) => {
-            if (!filters.structural.includes(value)) {
-              onChange({ ...filters, structural: [...filters.structural, value] });
-            }
-          }}
-          placeholder="Properties..."
-          aria-label="Filter by properties"
-          className="min-w-[120px]"
-        />
-
-        {/* Group by with None option — hidden on Board (columns are always by status) */}
-        {!hideGroupBy && (
-          <CustomSelect<GroupByField | "__none__">
-            value={filters.groupBy}
-            options={groupByOptions}
-            onChange={(value) =>
-              onChange({
-                ...filters,
-                groupBy: value === ("__none__" as string) ? null : (value as GroupByField),
-              })
-            }
-            placeholder="Group by..."
-            aria-label="Group by"
-            className="min-w-[100px]"
-          />
-        )}
-
-        {/* More filters toggle */}
-        {!showMore && (
-          <button
-            onClick={() => setShowMore(true)}
-            className={cn(
-              "h-8 rounded border border-dashed border-border px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors",
-              isMobile && "min-h-[44px]",
-            )}
-          >
-            More filters
-          </button>
-        )}
-
-        {/* Assignee (hidden by default) */}
-        {showMore && (
-          <input
-            type="text"
-            value={localAssignee}
-            onChange={(e) => handleAssigneeChange(e.target.value)}
-            placeholder="Assignee"
-            className={cn(
-              "h-8 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
-              isMobile ? "w-full min-h-[44px]" : "w-32",
-            )}
-            aria-label="Filter by assignee"
-          />
-        )}
-
-        {/* Date range (hidden by default) */}
-        {showMore && (
-          <CustomSelect<DateRange>
-            value={null}
-            options={DATE_RANGE_OPTIONS.map((opt) => ({
-              value: opt,
-              label: DATE_RANGE_LABELS[opt],
-              disabled: filters.dateRanges.includes(opt),
-            }))}
-            onChange={(value) => {
-              if (!filters.dateRanges.includes(value)) {
-                onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
-              }
-            }}
-            placeholder="Date filter..."
-            aria-label="Filter by date range"
-            className="min-w-[120px]"
-          />
-        )}
-
-        {hasActiveFilters(filters) && (
+        {localSearch && (
           <button
             onClick={() => {
-              onChange(SHOW_ALL_FILTERS);
-              setShowMore(false);
+              clearTimeout(searchTimer.current);
+              setLocalSearch("");
+              setField("search", "");
             }}
-            className={cn(
-              "h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
-              isMobile && "min-h-[44px]",
-            )}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
           >
-            Clear all
+            &times;
           </button>
         )}
       </div>
+
+      {/* Status filter */}
+      <MultiSelect
+        label="status"
+        options={ALL_STATUSES}
+        selected={filters.status}
+        labels={STATUS_LABELS}
+        onChange={(v) => setField("status", v)}
+      />
+
+      {/* Priority filter */}
+      <MultiSelect
+        label="priority"
+        options={ALL_PRIORITIES}
+        selected={filters.priority}
+        labels={PRIORITY_LABELS}
+        onChange={(v) => setField("priority", v)}
+      />
+
+      {/* Type filter */}
+      <MultiSelect
+        label="type"
+        options={ALL_TYPES}
+        selected={filters.issue_type}
+        labels={TYPE_LABELS}
+        onChange={(v) => setField("issue_type", v)}
+      />
+
+      {/* Labels */}
+      <LabelPicker
+        selected={filters.labels}
+        selectedColors={{}}
+        onChange={handleLabelsChange}
+        allowCreate={false}
+        placeholder="Labels"
+        className={isMobile ? "w-full" : "w-48"}
+      />
+
+      {/* Structural filters */}
+      <CustomSelect<StructuralFilter>
+        value={null}
+        options={STRUCTURAL_FILTER_OPTIONS.map((opt) => ({
+          value: opt,
+          label: STRUCTURAL_FILTER_LABELS[opt],
+          disabled: filters.structural.includes(opt),
+        }))}
+        onChange={(value) => {
+          if (!filters.structural.includes(value)) {
+            onChange({ ...filters, structural: [...filters.structural, value] });
+          }
+        }}
+        placeholder="Properties..."
+        aria-label="Filter by properties"
+        className="min-w-[120px]"
+      />
+
+      {/* Group by with None option — hidden on Board (columns are always by status) */}
+      {!hideGroupBy && (
+        <CustomSelect<GroupByField | "__none__">
+          value={filters.groupBy}
+          options={groupByOptions}
+          onChange={(value) =>
+            onChange({
+              ...filters,
+              groupBy: value === ("__none__" as string) ? null : (value as GroupByField),
+            })
+          }
+          placeholder="Group by..."
+          aria-label="Group by"
+          className="min-w-[100px]"
+        />
+      )}
+
+      {/* More filters toggle */}
+      {!showMore && (
+        <button
+          onClick={() => setShowMore(true)}
+          className={cn(
+            "h-8 rounded border border-dashed border-border px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors",
+            isMobile && "min-h-[44px]",
+          )}
+        >
+          More filters
+        </button>
+      )}
+
+      {/* Assignee (hidden by default) */}
+      {showMore && (
+        <input
+          type="text"
+          value={localAssignee}
+          onChange={(e) => handleAssigneeChange(e.target.value)}
+          placeholder="Assignee"
+          className={cn(
+            "h-8 rounded border border-border bg-background px-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring",
+            isMobile ? "w-full min-h-[44px]" : "w-32",
+          )}
+          aria-label="Filter by assignee"
+        />
+      )}
+
+      {/* Date range (hidden by default) */}
+      {showMore && (
+        <CustomSelect<DateRange>
+          value={null}
+          options={DATE_RANGE_OPTIONS.map((opt) => ({
+            value: opt,
+            label: DATE_RANGE_LABELS[opt],
+            disabled: filters.dateRanges.includes(opt),
+          }))}
+          onChange={(value) => {
+            if (!filters.dateRanges.includes(value)) {
+              onChange({ ...filters, dateRanges: [...filters.dateRanges, value] });
+            }
+          }}
+          placeholder="Date filter..."
+          aria-label="Filter by date range"
+          className="min-w-[120px]"
+        />
+      )}
+
+      {hasActiveFilters(filters) && (
+        <button
+          onClick={() => {
+            onChange(SHOW_ALL_FILTERS);
+            setShowMore(false);
+          }}
+          className={cn(
+            "h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+            isMobile && "min-h-[44px]",
+          )}
+        >
+          Clear all
+        </button>
+      )}
     </>
   );
 
@@ -365,19 +361,20 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
             </button>
           )}
         </div>
-        {filtersExpanded && filterControls}
+        {filtersExpanded && <div className="flex flex-col items-stretch gap-2">{filterInputs}</div>}
         <FilterPills filters={filters} setField={setField} />
       </div>
     );
   }
 
-  // Desktop: always visible
+  // Desktop: single toolbar row with preset + all controls, pills below
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <PresetDropdown filters={filters} onChange={onChange} />
+        <div className="h-5 w-px bg-border" aria-hidden="true" />
+        {filterInputs}
       </div>
-      {filterControls}
       <FilterPills filters={filters} setField={setField} />
     </div>
   );
