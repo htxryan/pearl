@@ -139,7 +139,7 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
   const activeCount = countActiveFilters(filters);
 
   const groupByOptions: { value: GroupByField | "__none__"; label: string }[] = [
-    { value: "__none__" as GroupByField, label: "None" },
+    { value: "__none__", label: "None" },
     ...(Object.keys(GROUP_BY_LABELS) as GroupByField[]).map((key) => ({
       value: key,
       label: GROUP_BY_LABELS[key],
@@ -236,12 +236,12 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
       {/* Group by with None option — hidden on Board (columns are always by status) */}
       {!hideGroupBy && (
         <CustomSelect<GroupByField | "__none__">
-          value={filters.groupBy}
+          value={filters.groupBy ?? "__none__"}
           options={groupByOptions}
           onChange={(value) =>
             onChange({
               ...filters,
-              groupBy: value === ("__none__" as string) ? null : (value as GroupByField),
+              groupBy: value === "__none__" ? null : (value as GroupByField),
             })
           }
           placeholder="Group by..."
