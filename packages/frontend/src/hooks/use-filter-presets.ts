@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import type { FilterState } from "@/lib/query-syntax";
-import { EMPTY_FILTERS, SHOW_ALL_FILTERS } from "@/lib/query-syntax";
+import { SHOW_ALL_FILTERS } from "@/lib/query-syntax";
 
 export interface FilterPreset {
   id: string;
@@ -9,15 +9,37 @@ export interface FilterPreset {
 }
 
 const STORAGE_KEY = "pearl-filter-presets";
+const ACTIVE_PRESET_KEY = "pearl-active-preset-id";
 
 // ─── External store ────────────────────────────────────
 let presets: FilterPreset[] = loadFromStorage();
+let activePresetId: string | null = loadActivePresetId();
 let version = 0;
 const listeners = new Set<() => void>();
 
 function notify() {
   version++;
   for (const l of [...listeners]) l();
+}
+
+function loadActivePresetId(): string | null {
+  try {
+    return localStorage.getItem(ACTIVE_PRESET_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function saveActivePresetId(id: string | null) {
+  try {
+    if (id) {
+      localStorage.setItem(ACTIVE_PRESET_KEY, id);
+    } else {
+      localStorage.removeItem(ACTIVE_PRESET_KEY);
+    }
+  } catch {
+    // localStorage unavailable
+  }
 }
 
 function subscribe(listener: () => void) {
@@ -139,13 +161,19 @@ export function useFilterPresets() {
   const save = useCallback((name: string, filters: FilterState) => {
     const id = `preset-${++idCounter}`;
     presets = [...presets, { id, name, filters }];
+    activePresetId = id;
     saveToStorage();
+    saveActivePresetId(id);
     notify();
     return id;
   }, []);
 
   const remove = useCallback((id: string) => {
     presets = presets.filter((p) => p.id !== id);
+    if (activePresetId === id) {
+      activePresetId = null;
+      saveActivePresetId(null);
+    }
     saveToStorage();
     notify();
   }, []);
@@ -162,5 +190,20 @@ export function useFilterPresets() {
     notify();
   }, []);
 
-  return { presets, save, remove, rename, update };
+  const selectPreset = useCallback((id: string | null) => {
+    activePresetId = id;
+    saveActivePresetId(id);
+    notify();
+  }, []);
+
+  return { presets, activePresetId, save, remove, rename, update, selectPreset };
+}
+
+export function _resetForTesting() {
+  presets = defaultPresets();
+  activePresetId = null;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(ACTIVE_PRESET_KEY);
+  version = 0;
+  notify();
 }

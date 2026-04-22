@@ -2,6 +2,7 @@ import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { LabelPicker } from "@/components/ui/label-picker";
+import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { useIsMobile } from "@/hooks/use-media-query";
 import {
   DATE_RANGE_LABELS,
@@ -23,6 +24,7 @@ import {
   PresetDropdown,
   STATUS_LABELS,
   TYPE_LABELS,
+  UnsavedChangesBar,
 } from "./filter-bar-parts";
 import type { FilterState, GroupByField } from "./filter-bar-types";
 import {
@@ -57,6 +59,7 @@ export function FilterBar({
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = searchInputRef ?? internalRef;
   const isMobile = useIsMobile();
+  const { selectPreset } = useFilterPresets();
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   // Local state for debounced text inputs
@@ -308,6 +311,7 @@ export function FilterBar({
         <button
           onClick={() => {
             onChange(SHOW_ALL_FILTERS);
+            selectPreset(null);
             setShowMore(false);
           }}
           className={cn(
@@ -329,6 +333,7 @@ export function FilterBar({
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <PresetDropdown filters={filters} onChange={onChange} />
+          <UnsavedChangesBar filters={filters} onChange={onChange} />
           <button
             onClick={() => setFiltersExpanded((prev) => !prev)}
             className={cn(
@@ -362,7 +367,10 @@ export function FilterBar({
           </button>
           {hasActiveFilters(filters) && (
             <button
-              onClick={() => onChange(SHOW_ALL_FILTERS)}
+              onClick={() => {
+                onChange(SHOW_ALL_FILTERS);
+                selectPreset(null);
+              }}
               className="h-9 min-h-[44px] rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               Clear
@@ -380,6 +388,7 @@ export function FilterBar({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2 flex-wrap">
         <PresetDropdown filters={filters} onChange={onChange} />
+        <UnsavedChangesBar filters={filters} onChange={onChange} />
         <div className="h-5 w-px bg-border" aria-hidden="true" />
         {filterInputs}
       </div>

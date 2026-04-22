@@ -235,14 +235,12 @@ export function PresetDropdown({
 }) {
   const {
     presets,
+    activePresetId,
     save: savePreset,
     remove: removePreset,
-    update: updatePreset,
+    selectPreset,
   } = useFilterPresets();
   const [open, setOpen] = useState(false);
-  const [showSaveAs, setShowSaveAs] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -250,36 +248,26 @@ export function PresetDropdown({
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
-        setShowSaveAs(false);
-        setNewName("");
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  const activePreset = presets.find((p) => filtersMatch(p.filters, filters));
-  const selectedPreset = selectedPresetId ? presets.find((p) => p.id === selectedPresetId) : null;
+  const exactMatch = presets.find((p) => filtersMatch(p.filters, filters));
+  const selectedPreset = activePresetId ? presets.find((p) => p.id === activePresetId) : null;
   const hasUnsavedChanges =
-    selectedPreset &&
-    isUserPreset(selectedPreset.id) &&
-    !filtersMatch(selectedPreset.filters, filters);
-  const label = activePreset
-    ? activePreset.name
-    : filtersMatch(filters, ACTIVE_FILTERS)
-      ? "Active Issues"
-      : hasActiveFilters(filters)
-        ? "Custom"
-        : "All Issues";
+    selectedPreset && !exactMatch && !filtersMatch(selectedPreset.filters, filters);
 
-  const handleSaveAs = useCallback(() => {
-    if (!newName.trim()) return;
-    savePreset(newName.trim(), filters);
-    addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
-    setNewName("");
-    setShowSaveAs(false);
-    setOpen(false);
-  }, [newName, savePreset, filters]);
+  const label = exactMatch
+    ? exactMatch.name
+    : selectedPreset && hasUnsavedChanges
+      ? selectedPreset.name
+      : filtersMatch(filters, ACTIVE_FILTERS)
+        ? "Active Issues"
+        : hasActiveFilters(filters)
+          ? "Custom"
+          : "All Issues";
 
   return (
     <div ref={containerRef} className="relative inline-block">
@@ -288,9 +276,11 @@ export function PresetDropdown({
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "inline-flex items-center gap-1.5 h-8 rounded border px-3 text-sm font-medium transition-colors",
-          activePreset
+          exactMatch
             ? "border-primary/50 bg-primary/5 text-primary hover:border-primary/70"
-            : "border-border text-foreground hover:border-foreground/30",
+            : hasUnsavedChanges
+              ? "border-amber-500/50 bg-amber-500/5 text-amber-700 dark:text-amber-400 hover:border-amber-500/70"
+              : "border-border text-foreground hover:border-foreground/30",
         )}
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -310,6 +300,13 @@ export function PresetDropdown({
           <line x1="6" y1="12" x2="10" y2="12" />
         </svg>
         {label}
+        {hasUnsavedChanges && (
+          <span
+            className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"
+            role="img"
+            aria-label="Modified"
+          />
+        )}
         <svg
           width="12"
           height="12"
@@ -333,12 +330,12 @@ export function PresetDropdown({
             type="button"
             onClick={() => {
               onChange(ACTIVE_FILTERS);
-              setSelectedPresetId(null);
+              selectPreset(null);
               setOpen(false);
             }}
             className={cn(
               "flex w-full items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent",
-              !activePreset && !hasActiveFilters(filters) && "font-medium",
+              !exactMatch && !hasActiveFilters(filters) && "font-medium",
             )}
           >
             Active Issues
@@ -353,15 +350,20 @@ export function PresetDropdown({
                 type="button"
                 onClick={() => {
                   onChange(preset.filters);
-                  setSelectedPresetId(preset.id);
+                  selectPreset(preset.id);
                   setOpen(false);
                 }}
                 className={cn(
                   "flex-1 text-left px-3 py-1.5 text-sm hover:bg-accent",
-                  activePreset?.id === preset.id && "font-medium text-primary",
+                  (exactMatch?.id === preset.id ||
+                    (hasUnsavedChanges && activePresetId === preset.id)) &&
+                    "font-medium text-primary",
                 )}
               >
                 {preset.name}
+                {hasUnsavedChanges && activePresetId === preset.id && (
+                  <span className="ml-1.5 text-xs text-amber-500">(modified)</span>
+                )}
               </button>
               {isUserPreset(preset.id) ? (
                 <button
@@ -380,63 +382,195 @@ export function PresetDropdown({
             </div>
           ))}
 
-          {/* Save actions */}
-          {hasActiveFilters(filters) && (
+          {/* Save as new filter (always available when there are active filters) */}
+          {hasActiveFilters(filters) && !exactMatch && (
             <>
               <div className="my-1 border-t border-border" />
-
-              {hasUnsavedChanges && selectedPreset && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    updatePreset(selectedPreset.id, filters);
-                    addToast({ message: `Updated "${selectedPreset.name}"`, variant: "success" });
-                    setOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-primary hover:bg-accent"
-                >
-                  Save changes to "{selectedPreset.name}"
-                </button>
-              )}
-
-              {!showSaveAs ? (
-                <button
-                  type="button"
-                  onClick={() => setShowSaveAs(true)}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent"
-                >
-                  Save as new filter...
-                </button>
-              ) : (
-                <div className="flex items-center gap-1 px-3 py-1.5">
-                  <input
-                    autoFocus
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSaveAs();
-                      if (e.key === "Escape") {
-                        setShowSaveAs(false);
-                        setNewName("");
-                      }
-                    }}
-                    placeholder="Filter name..."
-                    className="h-7 flex-1 min-w-0 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSaveAs}
-                    disabled={!newName.trim()}
-                    className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
-                  >
-                    Save
-                  </button>
-                </div>
-              )}
+              <SaveAsInline
+                filters={filters}
+                savePreset={savePreset}
+                selectPreset={selectPreset}
+                onClose={() => setOpen(false)}
+              />
             </>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function SaveAsInline({
+  filters,
+  savePreset,
+  selectPreset,
+  onClose,
+}: {
+  filters: FilterState;
+  savePreset: (name: string, filters: FilterState) => string;
+  selectPreset: (id: string | null) => void;
+  onClose: () => void;
+}) {
+  const [showInput, setShowInput] = useState(false);
+  const [newName, setNewName] = useState("");
+
+  const handleSave = useCallback(() => {
+    if (!newName.trim()) return;
+    const id = savePreset(newName.trim(), filters);
+    selectPreset(id);
+    addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
+    setNewName("");
+    setShowInput(false);
+    onClose();
+  }, [newName, savePreset, selectPreset, filters, onClose]);
+
+  if (!showInput) {
+    return (
+      <button
+        type="button"
+        onClick={() => setShowInput(true)}
+        className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent"
+      >
+        Save as new filter...
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1 px-3 py-1.5">
+      <input
+        autoFocus
+        value={newName}
+        onChange={(e) => setNewName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSave();
+          if (e.key === "Escape") {
+            setShowInput(false);
+            setNewName("");
+          }
+        }}
+        placeholder="Filter name..."
+        className="h-7 flex-1 min-w-0 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={!newName.trim()}
+        className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
+      >
+        Save
+      </button>
+    </div>
+  );
+}
+
+// ─── UnsavedChangesBar ───────────────────────────────
+
+export function UnsavedChangesBar({
+  filters,
+  onChange,
+}: {
+  filters: FilterState;
+  onChange: (filters: FilterState) => void;
+}) {
+  const {
+    presets,
+    activePresetId,
+    save: savePreset,
+    update: updatePreset,
+    selectPreset,
+  } = useFilterPresets();
+  const [showSaveAs, setShowSaveAs] = useState(false);
+  const [newName, setNewName] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const exactMatch = presets.find((p) => filtersMatch(p.filters, filters));
+  const selectedPreset = activePresetId ? presets.find((p) => p.id === activePresetId) : null;
+  const hasUnsavedChanges =
+    selectedPreset && !exactMatch && !filtersMatch(selectedPreset.filters, filters);
+
+  if (!hasUnsavedChanges || !selectedPreset) return null;
+
+  const handleSave = () => {
+    updatePreset(selectedPreset.id, filters);
+    addToast({ message: `Updated "${selectedPreset.name}"`, variant: "success" });
+  };
+
+  const handleDiscard = () => {
+    onChange(selectedPreset.filters);
+  };
+
+  const handleSaveAs = () => {
+    if (!newName.trim()) return;
+    const id = savePreset(newName.trim(), filters);
+    selectPreset(id);
+    addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
+    setNewName("");
+    setShowSaveAs(false);
+  };
+
+  return (
+    <div ref={containerRef} className="flex items-center gap-1.5">
+      <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">Modified</span>
+
+      {isUserPreset(selectedPreset.id) && (
+        <button
+          type="button"
+          onClick={handleSave}
+          className="h-7 rounded border border-primary/30 bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+        >
+          Save
+        </button>
+      )}
+
+      {!showSaveAs ? (
+        <button
+          type="button"
+          onClick={() => setShowSaveAs(true)}
+          className="h-7 rounded border border-border px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+        >
+          Save As
+        </button>
+      ) : (
+        <div className="flex items-center gap-1">
+          <input
+            autoFocus
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSaveAs();
+              if (e.key === "Escape") {
+                setShowSaveAs(false);
+                setNewName("");
+              }
+            }}
+            onBlur={() => {
+              if (!newName.trim()) {
+                setShowSaveAs(false);
+                setNewName("");
+              }
+            }}
+            placeholder="Filter name..."
+            className="h-7 w-32 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          <button
+            type="button"
+            onClick={handleSaveAs}
+            disabled={!newName.trim()}
+            className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
+          >
+            Save
+          </button>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={handleDiscard}
+        className="h-7 rounded border border-border px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+      >
+        Discard
+      </button>
     </div>
   );
 }
