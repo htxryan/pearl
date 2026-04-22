@@ -20,15 +20,14 @@ import { IssueTable } from "@/components/issue-table/issue-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
-import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { prefetchIssueDetail, useCreateIssue, useIssues } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
-import { useIsCompact, useIsMobile } from "@/hooks/use-media-query";
+import { useIsMobile } from "@/hooks/use-media-query";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useToastActions } from "@/hooks/use-toast";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
-import { ListPanelOverlay, ListSidePanel } from "@/views/list-panel-overlay";
 import { useListBulkActions } from "@/views/use-list-bulk-actions";
 import { useListEpicHierarchy } from "@/views/use-list-epic-hierarchy";
 import { useListFieldHandlers } from "@/views/use-list-field-handlers";
@@ -63,11 +62,9 @@ export function ListView() {
 
   // Responsive hooks
   const isMobile = useIsMobile();
-  const isCompact = useIsCompact();
 
-  // Split-pane detail panel
-  const [panelIssueId, setPanelIssueId] = useState<string | null>(null);
-  const [panelMode, setPanelMode] = usePersistedState<boolean>("beads:panel-mode", false);
+  // Shared detail panel
+  const { openIssueId: panelIssueId, openDetail, closeDetail } = useDetailPanel();
 
   // Mutations
   const {
@@ -165,13 +162,9 @@ export function ListView() {
   // Handlers
   const handleRowClick = useCallback(
     (id: string) => {
-      if (panelMode) {
-        setPanelIssueId(id);
-      } else {
-        navigate(`/issues/${id}`, { state: { from: "/list" } });
-      }
+      openDetail(id);
     },
-    [navigate, panelMode],
+    [openDetail],
   );
 
   const handleRowHover = useCallback(
@@ -326,163 +319,109 @@ export function ListView() {
 
   useCommandPaletteActions("list-view", paletteActions);
 
-  // On compact viewports (<1024px), panel is a slide-over overlay instead of side-by-side
-  const panelIsOverlay = isCompact;
-
-  // Focus trap for slide-over overlay panel
-  const slideOverRef = useRef<HTMLDivElement>(null);
-  const slideOverActive = !!(panelMode && panelIssueId && panelIsOverlay);
-  useFocusTrap(slideOverRef, slideOverActive);
-
-  // Force panelMode off on mobile
-  useEffect(() => {
-    if (isMobile && panelMode) setPanelMode(false);
-  }, [isMobile, panelMode, setPanelMode]);
-
   return (
-    <div className="flex h-full relative">
-      {/* Main list area */}
-      <div
-        className={cn(
-          "flex flex-col",
-          panelIssueId && panelMode && !panelIsOverlay ? "flex-1 min-w-0" : "w-full",
-        )}
-      >
-        {/* Toolbar */}
-        <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
-          <div className={cn("flex items-start gap-4", isMobile ? "flex-col" : "justify-between")}>
-            <FilterBar
-              filters={filters}
-              onChange={setFilters}
-              searchInputRef={searchInputRef}
-              trailingSlot={isMobile ? undefined : <ColumnVisibilityMenu table={table} />}
-            />
-            {!isMobile && (
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  onClick={() => setTopLevelOnly((prev) => !prev)}
-                  className={`h-8 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
-                    topLevelOnly
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                  aria-pressed={topLevelOnly}
-                >
-                  Top-level only
-                </button>
-                <button
-                  onClick={() => {
-                    setPanelMode((prev) => !prev);
-                    if (!panelMode) setPanelIssueId(null);
-                  }}
-                  className={`h-8 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
-                    panelMode
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                  aria-pressed={panelMode}
-                  title="Toggle split-pane detail panel"
-                >
-                  Panel
-                </button>
-              </div>
-            )}
-          </div>
+    <div className="flex flex-col h-full w-full">
+      {/* Toolbar */}
+      <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
+        <div className={cn("flex items-start gap-4", isMobile ? "flex-col" : "justify-between")}>
+          <FilterBar
+            filters={filters}
+            onChange={setFilters}
+            searchInputRef={searchInputRef}
+            trailingSlot={isMobile ? undefined : <ColumnVisibilityMenu table={table} />}
+          />
           {!isMobile && (
-            <BulkActionBar
-              selectedCount={selectedIds.length}
-              onClose={() => setShowBulkCloseConfirm(true)}
-              onClearSelection={handleClearSelection}
-              onReassign={handleBulkReassign}
-              onReprioritize={handleBulkReprioritize}
-              onChangeStatus={handleBulkChangeStatus}
-              onAddLabel={handleBulkAddLabel}
-              onRemoveLabel={handleBulkRemoveLabel}
-              isClosing={isClosing}
-              isUpdating={isUpdating}
-            />
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={() => setTopLevelOnly((prev) => !prev)}
+                className={`h-8 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
+                  topLevelOnly
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground"
+                }`}
+                aria-pressed={topLevelOnly}
+              >
+                Top-level only
+              </button>
+            </div>
           )}
         </div>
+        {!isMobile && (
+          <BulkActionBar
+            selectedCount={selectedIds.length}
+            onClose={() => setShowBulkCloseConfirm(true)}
+            onClearSelection={handleClearSelection}
+            onReassign={handleBulkReassign}
+            onReprioritize={handleBulkReprioritize}
+            onChangeStatus={handleBulkChangeStatus}
+            onAddLabel={handleBulkAddLabel}
+            onRemoveLabel={handleBulkRemoveLabel}
+            isClosing={isClosing}
+            isUpdating={isUpdating}
+          />
+        )}
+      </div>
 
-        {/* Quick-add */}
-        <div className="shrink-0 bg-muted/20 px-4 py-2">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-sm">+</span>
-            <input
-              ref={quickAddRef}
-              value={quickAddTitle}
-              onChange={(e) => setQuickAddTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleQuickAdd();
-                }
-                if (e.key === "Escape") {
-                  setQuickAddTitle("");
-                  quickAddRef.current?.blur();
-                }
-              }}
-              placeholder="Quick add issue... (Enter to create)"
+      {/* Quick-add */}
+      <div className="shrink-0 bg-muted/20 px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-sm">+</span>
+          <input
+            ref={quickAddRef}
+            value={quickAddTitle}
+            onChange={(e) => setQuickAddTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleQuickAdd();
+              }
+              if (e.key === "Escape") {
+                setQuickAddTitle("");
+                quickAddRef.current?.blur();
+              }
+            }}
+            placeholder="Quick add issue... (Enter to create)"
+            disabled={createMutation.isPending}
+            className="flex-1 h-8 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+            aria-label="Quick add issue"
+          />
+          {quickAddTitle.trim() && (
+            <button
+              onClick={handleQuickAdd}
               disabled={createMutation.isPending}
-              className="flex-1 h-8 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
-              aria-label="Quick add issue"
-            />
-            {quickAddTitle.trim() && (
-              <button
-                onClick={handleQuickAdd}
-                disabled={createMutation.isPending}
-                className="h-7 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
-              >
-                {createMutation.isPending ? "Creating..." : "Create"}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Table (desktop) or Card List (mobile) */}
-        <div className="flex-1 overflow-auto">
-          {isMobile ? (
-            <IssueCardList
-              issues={tableIssues}
-              isLoading={isLoading}
-              onCardClick={handleRowClick}
-            />
-          ) : filters.groupBy ? (
-            <GroupedIssueTable
-              issues={tableIssues}
-              groupBy={filters.groupBy}
-              table={table}
-              isLoading={isLoading}
-              onRowClick={handleRowClick}
-              onRowHover={handleRowHover}
-              highlightedIds={highlightedIds}
-            />
-          ) : (
-            <IssueTable
-              table={table}
-              isLoading={isLoading}
-              activeRowIndex={activeRowIndex}
-              onRowClick={handleRowClick}
-              onRowHover={handleRowHover}
-              highlightedIds={highlightedIds}
-            />
+              className="h-7 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+            >
+              {createMutation.isPending ? "Creating..." : "Create"}
+            </button>
           )}
         </div>
       </div>
 
-      {/* Split-pane detail panel — desktop side panel */}
-      {panelMode && panelIssueId && !panelIsOverlay && (
-        <ListSidePanel panelIssueId={panelIssueId} onClose={() => setPanelIssueId(null)} />
-      )}
-
-      {/* Slide-over overlay for tablet/mobile */}
-      {panelMode && panelIssueId && panelIsOverlay && (
-        <ListPanelOverlay
-          panelIssueId={panelIssueId}
-          slideOverRef={slideOverRef}
-          onClose={() => setPanelIssueId(null)}
-        />
-      )}
+      {/* Table (desktop) or Card List (mobile) */}
+      <div className="flex-1 overflow-auto">
+        {isMobile ? (
+          <IssueCardList issues={tableIssues} isLoading={isLoading} onCardClick={handleRowClick} />
+        ) : filters.groupBy ? (
+          <GroupedIssueTable
+            issues={tableIssues}
+            groupBy={filters.groupBy}
+            table={table}
+            isLoading={isLoading}
+            onRowClick={handleRowClick}
+            onRowHover={handleRowHover}
+            highlightedIds={highlightedIds}
+          />
+        ) : (
+          <IssueTable
+            table={table}
+            isLoading={isLoading}
+            activeRowIndex={activeRowIndex}
+            onRowClick={handleRowClick}
+            onRowHover={handleRowHover}
+            highlightedIds={highlightedIds}
+          />
+        )}
+      </div>
 
       <ConfirmDialog
         isOpen={showBulkCloseConfirm}

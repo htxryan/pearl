@@ -10,6 +10,20 @@ vi.mock("react-router", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+// ─── Mock detail panel ──────────────────────────────────
+const mockOpenDetail = vi.fn();
+vi.mock("@/hooks/use-detail-panel", () => ({
+  DetailPanelProvider: ({ children }: { children: React.ReactNode }) => children,
+  useDetailPanel: () => ({
+    openIssueId: null,
+    mode: "panel" as const,
+    openDetail: mockOpenDetail,
+    closeDetail: vi.fn(),
+    toggleMode: vi.fn(),
+    setMode: vi.fn(),
+  }),
+}));
+
 // ─── Mock API client ─────────────────────────────────────
 vi.mock("@/lib/api-client", () => ({
   fetchLabels: vi.fn().mockResolvedValue([]),
@@ -351,7 +365,7 @@ describe("keyboard scope registration per view", () => {
     expect(document.activeElement).toBe(searchInput);
   });
 
-  it("ListView Enter binding navigates to issue detail when a row is active", () => {
+  it("ListView Enter binding opens issue detail when a row is active", () => {
     renderApp("/list");
 
     // Press "j" to activate first row (index 0)
@@ -360,10 +374,7 @@ describe("keyboard scope registration per view", () => {
     // Press Enter to open the active issue
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/list" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
   it("BoardView registers board scope with / binding", () => {
@@ -435,7 +446,7 @@ describe("view switching via keyboard", () => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 describe("click-to-detail from views", () => {
-  it("ListView: clicking a row navigates to /issues/:id", () => {
+  it("ListView: clicking a row opens detail panel", () => {
     renderApp("/list");
 
     // The table renders rows with the issue data.
@@ -444,35 +455,26 @@ describe("click-to-detail from views", () => {
     expect(row).toBeTruthy();
     fireEvent.click(row!);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/list" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
-  it("BoardView: clicking a card navigates to /issues/:id", () => {
+  it("BoardView: clicking a card opens detail panel", () => {
     renderApp("/board");
 
     // Board renders cards as buttons with aria-roledescription
     const card = screen.getByRole("button", { name: /test-001: Test Issue 1/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/board" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
-  it("GraphView: double-clicking a node navigates to /issues/:id", () => {
+  it("GraphView: double-clicking a node opens detail panel", () => {
     renderApp("/graph");
 
     const node = screen.getByTestId("node-test-001");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/graph" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 });
 

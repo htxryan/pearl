@@ -116,6 +116,19 @@ vi.mock("react-router", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+// Mock detail panel
+vi.mock("@/hooks/use-detail-panel", () => ({
+  DetailPanelProvider: ({ children }: { children: React.ReactNode }) => children,
+  useDetailPanel: () => ({
+    openIssueId: null,
+    mode: "panel" as const,
+    openDetail: vi.fn(),
+    closeDetail: vi.fn(),
+    toggleMode: vi.fn(),
+    setMode: vi.fn(),
+  }),
+}));
+
 import type { HealthResponse, IssueListItem } from "@pearl/shared";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { HealthBanner } from "@/components/health-banner";

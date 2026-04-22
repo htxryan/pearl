@@ -21,9 +21,11 @@ import { useToastActions } from "@/hooks/use-toast";
 interface IssuePanelProps {
   issueId: string;
   onClose: () => void;
+  onToggleMode?: () => void;
+  currentMode?: "panel" | "modal";
 }
 
-export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
+export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: IssuePanelProps) {
   const navigate = useNavigate();
   const { data: issue, isLoading, error } = useIssue(issueId);
   const { data: comments = [] } = useComments(issueId);
@@ -81,6 +83,17 @@ export function IssuePanel({ issueId, onClose }: IssuePanelProps) {
   return (
     <div className="h-full flex flex-col">
       <PanelHeader onClose={onClose}>
+        {onToggleMode && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleMode}
+            title={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+            aria-label={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+          >
+            {currentMode === "panel" ? "Modal" : "Panel"}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

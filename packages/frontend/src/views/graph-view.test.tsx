@@ -4,12 +4,19 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock navigation
-const mockNavigate = vi.fn();
-vi.mock("react-router", async () => {
-  const actual = await vi.importActual("react-router");
-  return { ...actual, useNavigate: () => mockNavigate };
-});
+// Mock detail panel
+const mockOpenDetail = vi.fn();
+vi.mock("@/hooks/use-detail-panel", () => ({
+  DetailPanelProvider: ({ children }: { children: React.ReactNode }) => children,
+  useDetailPanel: () => ({
+    openIssueId: null,
+    mode: "panel" as const,
+    openDetail: mockOpenDetail,
+    closeDetail: vi.fn(),
+    toggleMode: vi.fn(),
+    setMode: vi.fn(),
+  }),
+}));
 
 // Mock API module
 vi.mock("@/lib/api-client", () => ({
@@ -397,10 +404,7 @@ describe("GraphView", () => {
 
     // Click Open detail
     fireEvent.click(screen.getByText("Open detail"));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/beads-001",
-      expect.objectContaining({ state: { from: "/graph" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("beads-001");
   });
 
   it("shows performance cap message when over 200 issues", () => {
@@ -447,10 +451,7 @@ describe("GraphView", () => {
     const node = screen.getByTestId("node-beads-002");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/beads-002",
-      expect.objectContaining({ state: { from: "/graph" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("beads-002");
   });
 
   it("deselects node when clicking the same node again", () => {

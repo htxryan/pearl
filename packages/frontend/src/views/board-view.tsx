@@ -14,12 +14,12 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { type IssueListItem, type IssueStatus, SETTABLE_STATUSES } from "@pearl/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
 import { KanbanColumn } from "@/components/board/kanban-column";
 import { FilterBar, SHOW_ALL_FILTERS } from "@/components/issue-table/filter-bar";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
+import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { useCreateIssue, useIssues, useUpdateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -36,7 +36,7 @@ const DROPPABLE_STATUSES: Set<IssueStatus> = new Set(SETTABLE_STATUSES);
 const COLUMN_ORDER: readonly IssueStatus[] = SETTABLE_STATUSES;
 
 export function BoardView() {
-  const navigate = useNavigate();
+  const { openDetail } = useDetailPanel();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Shared URL filter state (same as List view)
@@ -219,12 +219,12 @@ export function BoardView() {
     setOverColumnStatus(null);
   }, []);
 
-  // Card click → Detail view
+  // Card click → Detail panel
   const handleCardClick = useCallback(
     (id: string) => {
-      navigate(`/issues/${id}`, { state: { from: "/board" } });
+      openDetail(id);
     },
-    [navigate],
+    [openDetail],
   );
 
   // Keyboard shortcuts

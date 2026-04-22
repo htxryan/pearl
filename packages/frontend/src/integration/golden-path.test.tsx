@@ -24,6 +24,20 @@ vi.mock("react-router", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+// ─── Mock detail panel ──────────────────────────────────
+const mockOpenDetail = vi.fn();
+vi.mock("@/hooks/use-detail-panel", () => ({
+  DetailPanelProvider: ({ children }: { children: React.ReactNode }) => children,
+  useDetailPanel: () => ({
+    openIssueId: null,
+    mode: "panel" as const,
+    openDetail: mockOpenDetail,
+    closeDetail: vi.fn(),
+    toggleMode: vi.fn(),
+    setMode: vi.fn(),
+  }),
+}));
+
 // ─── Mock API client ─────────────────────────────────────
 vi.mock("@/lib/api-client", () => ({
   fetchLabels: vi.fn().mockResolvedValue([]),
@@ -753,10 +767,7 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Press Enter to open detail
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/list" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
   it("Enter on second row opens correct issue", () => {
@@ -770,10 +781,7 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Press Enter
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-002",
-      expect.objectContaining({ state: { from: "/list" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-002");
   });
 
   it("1/2/3 keys switch between views (shell scope)", () => {
@@ -952,7 +960,7 @@ describe("SC9+SC2: Command palette create", () => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 describe("View composition: List -> Detail -> Back", () => {
-  it("clicking a row in ListView navigates to /issues/:id", () => {
+  it("clicking a row in ListView opens detail panel", () => {
     setupIssuesMock(mockIssues);
     renderApp("/list");
 
@@ -961,13 +969,10 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(issueRow).toBeTruthy();
     fireEvent.click(issueRow!);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/list" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
-  it("clicking second issue row navigates to correct detail", () => {
+  it("clicking second issue row opens correct detail", () => {
     setupIssuesMock(mockIssues);
     renderApp("/list");
 
@@ -975,10 +980,7 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(issueRow).toBeTruthy();
     fireEvent.click(issueRow!);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-002",
-      expect.objectContaining({ state: { from: "/list" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-002");
   });
 
   it("DetailView renders back button that navigates to /list", () => {
@@ -1038,30 +1040,24 @@ describe("View composition: List -> Detail -> Back", () => {
     expect(screen.getByText("Priority")).toBeInTheDocument();
   });
 
-  it("BoardView card click navigates to detail", () => {
+  it("BoardView card click opens detail panel", () => {
     setupIssuesMock(mockIssues);
     renderApp("/board");
 
     const card = screen.getByRole("button", { name: /test-001: Open Issue/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/board" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
-  it("GraphView node double-click navigates to detail", () => {
+  it("GraphView node double-click opens detail panel", () => {
     setupIssuesMock(mockIssues);
     renderApp("/graph");
 
     const node = screen.getByTestId("node-test-001");
     fireEvent.doubleClick(node);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/test-001",
-      expect.objectContaining({ state: { from: "/graph" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 });
 

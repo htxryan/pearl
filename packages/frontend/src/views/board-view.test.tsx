@@ -4,12 +4,19 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock navigation
-const mockNavigate = vi.fn();
-vi.mock("react-router", async () => {
-  const actual = await vi.importActual("react-router");
-  return { ...actual, useNavigate: () => mockNavigate };
-});
+// Mock detail panel
+const mockOpenDetail = vi.fn();
+vi.mock("@/hooks/use-detail-panel", () => ({
+  DetailPanelProvider: ({ children }: { children: React.ReactNode }) => children,
+  useDetailPanel: () => ({
+    openIssueId: null,
+    mode: "panel" as const,
+    openDetail: mockOpenDetail,
+    closeDetail: vi.fn(),
+    toggleMode: vi.fn(),
+    setMode: vi.fn(),
+  }),
+}));
 
 // Mock API module
 vi.mock("@/lib/api-client", () => ({
@@ -308,10 +315,7 @@ describe("BoardView", () => {
     const card = screen.getByRole("button", { name: /beads-001: Fix login bug/ });
     fireEvent.click(card);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/issues/beads-001",
-      expect.objectContaining({ state: { from: "/board" } }),
-    );
+    expect(mockOpenDetail).toHaveBeenCalledWith("beads-001");
   });
 
   it("collapses closed column when clicking the header", () => {

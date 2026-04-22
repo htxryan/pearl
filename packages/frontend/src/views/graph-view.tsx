@@ -1,4 +1,4 @@
-import type { Dependency, IssueListItem } from "@pearl/shared";
+import type { Dependency } from "@pearl/shared";
 import {
   Background,
   type ColorMode,
@@ -11,12 +11,12 @@ import {
   useNodesState,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import { GraphNode, type GraphNodeType } from "@/components/graph/graph-node";
 import { FilterBar, SHOW_ALL_FILTERS } from "@/components/issue-table/filter-bar";
 import { Button } from "@/components/ui/button";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
+import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { useIssues } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -42,7 +42,7 @@ const nodeTypes = { graphNode: GraphNode };
 // ─── Main Component ───────────────────────────────────
 
 export function GraphView() {
-  const navigate = useNavigate();
+  const { openDetail } = useDetailPanel();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { theme } = useTheme();
 
@@ -247,7 +247,7 @@ export function GraphView() {
     setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
   }, []);
 
-  // Double-click → toggle cluster for epics, navigate for others
+  // Double-click → toggle cluster for epics, open detail for others
   const handleNodeDoubleClick: NodeMouseHandler<GraphNodeType> = useCallback(
     (_event, node) => {
       const cluster = clusters.get(node.id);
@@ -262,10 +262,10 @@ export function GraphView() {
           return next;
         });
       } else {
-        navigate(`/issues/${node.id}`, { state: { from: "/graph" } });
+        openDetail(node.id);
       }
     },
-    [navigate, clusters],
+    [openDetail, clusters],
   );
 
   // MiniMap styling
@@ -432,7 +432,7 @@ export function GraphView() {
             </button>
             <span className="text-border">|</span>
             <button
-              onClick={() => navigate(`/issues/${selectedNodeId}`, { state: { from: "/graph" } })}
+              onClick={() => openDetail(selectedNodeId)}
               className="text-xs underline hover:text-foreground"
             >
               Open detail
