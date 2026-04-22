@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
+import { CloseIcon } from "@/components/ui/close-icon";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -58,24 +59,6 @@ function SidebarIcon() {
     >
       <rect x="2" y="2" width="12" height="12" rx="2" />
       <path d="M10 2v12" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 4l8 8M12 4l-8 8" />
     </svg>
   );
 }
@@ -358,7 +341,7 @@ function PanelHeader({
           </Button>
         )}
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close panel">
-          <CloseIcon />
+          <CloseIcon size={14} />
         </Button>
       </div>
     </div>

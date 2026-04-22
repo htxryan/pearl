@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toggleKeyboardHelp } from "@/components/keyboard-help";
+import { CloseIcon } from "@/components/ui/close-icon";
 import {
   useAllAttachmentRefs,
   useAttachmentBlob,
@@ -140,7 +141,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
           aria-label="Close"
           className="absolute -top-2 -right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
         >
-          <CloseIcon />
+          <CloseIcon strokeWidth={2} />
         </button>
 
         {/* Image */}
@@ -250,21 +251,6 @@ function LightboxImage({ ref_ }: { ref_: string }) {
       className="max-w-[85vw] max-h-[75vh] rounded-lg object-contain motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150 select-none"
       draggable={false}
     />
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      className="h-4 w-4"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-    >
-      <path d="M4 4l8 8M12 4l-8 8" strokeLinecap="round" />
-    </svg>
   );
 }
 

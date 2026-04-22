@@ -16,6 +16,7 @@ import { FieldEditor } from "@/components/detail/field-editor";
 import { Lightbox } from "@/components/detail/lightbox";
 import { MarkdownSection } from "@/components/detail/markdown-section";
 import { Button } from "@/components/ui/button";
+import { CloseIcon } from "@/components/ui/close-icon";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LabelPicker } from "@/components/ui/label-picker";
@@ -51,24 +52,6 @@ import {
   SelectField,
   statusLabel,
 } from "@/views/detail-components";
-
-function CloseIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M4 4l8 8M12 4l-8 8" />
-    </svg>
-  );
-}
 
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
@@ -136,9 +119,9 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Determine where the user came from for breadcrumbs
   const fromPath = (location.state as { from?: string } | null)?.from;
-  const fromPathname = fromPath?.split("?")[0] ?? "";
-  const backPath = fromPath && VIEW_LABELS[fromPathname] ? fromPath : "/list";
-  const backLabel = VIEW_LABELS[fromPathname] || VIEW_LABELS[backPath] || "List";
+  const fromPathname = fromPath?.split("?")[0];
+  const backPath = fromPathname && VIEW_LABELS[fromPathname] ? fromPath! : "/list";
+  const backLabel = (fromPathname && VIEW_LABELS[fromPathname]) || VIEW_LABELS[backPath] || "List";
 
   // Data fetching
   const { data: issue, isLoading, error } = useIssue(id);
@@ -303,24 +286,27 @@ function DetailViewContent({ id }: { id: string }) {
     );
   }, [id, updateMutation.mutate, toast]);
 
+  // Guarded navigation that checks for unsaved changes before leaving
+  const handleNavigateBack = useCallback(() => {
+    if (isDirty) {
+      if (window.confirm("You have unsaved changes. Discard them?")) {
+        navigate(backPath);
+      }
+    } else {
+      navigate(backPath);
+    }
+  }, [isDirty, navigate, backPath]);
+
   // Keyboard shortcuts
   const keyBindings = useMemo(
     () => [
       {
         key: "Escape",
-        handler: () => {
-          if (isDirty) {
-            if (window.confirm("You have unsaved changes. Discard them?")) {
-              navigate(backPath);
-            }
-          } else {
-            navigate(backPath);
-          }
-        },
+        handler: handleNavigateBack,
         description: "Close detail panel",
       },
     ],
-    [navigate, isDirty, backPath],
+    [handleNavigateBack],
   );
 
   useKeyboardScope("detail", keyBindings);
@@ -333,15 +319,7 @@ function DetailViewContent({ id }: { id: string }) {
         label: "Close panel / Back to list",
         shortcut: "Esc",
         group: "Detail",
-        handler: () => {
-          if (isDirty) {
-            if (window.confirm("You have unsaved changes. Discard them?")) {
-              navigate(backPath);
-            }
-          } else {
-            navigate(backPath);
-          }
-        },
+        handler: handleNavigateBack,
       },
       {
         id: "detail-claim",
@@ -350,7 +328,7 @@ function DetailViewContent({ id }: { id: string }) {
         handler: handleClaim,
       },
     ],
-    [navigate, handleClaim, isDirty, backPath],
+    [handleNavigateBack, handleClaim],
   );
 
   useCommandPaletteActions("detail-view", paletteActions);
@@ -383,7 +361,7 @@ function DetailViewContent({ id }: { id: string }) {
               {/* Breadcrumb */}
               <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
                 <button
-                  onClick={() => navigate(backPath)}
+                  onClick={handleNavigateBack}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {backLabel}
@@ -431,7 +409,7 @@ function DetailViewContent({ id }: { id: string }) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(backPath)}
+                onClick={handleNavigateBack}
                 aria-label="Close detail view"
                 title="Close (Esc)"
               >

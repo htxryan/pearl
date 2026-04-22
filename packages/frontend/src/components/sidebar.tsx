@@ -1,5 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { NavLink, useLocation, useSearchParams } from "react-router";
+import { CloseIcon } from "@/components/ui/close-icon";
 import { VIEW_PATHS } from "@/hooks/use-filter-sync";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useHealth } from "@/hooks/use-issues";
@@ -133,23 +134,6 @@ function HamburgerIcon() {
       <line x1="3" y1="5" x2="17" y2="5" />
       <line x1="3" y1="10" x2="17" y2="10" />
       <line x1="3" y1="15" x2="17" y2="15" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    >
-      <line x1="5" y1="5" x2="15" y2="15" />
-      <line x1="15" y1="5" x2="5" y2="15" />
     </svg>
   );
 }
@@ -382,7 +366,7 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             aria-label="Close navigation menu"
           >
-            <CloseIcon />
+            <CloseIcon size={20} />
           </button>
         </div>
         <nav className="flex flex-1 flex-col p-2">
