@@ -62,6 +62,24 @@ function SidebarIcon() {
   );
 }
 
+function CloseIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 4l8 8M12 4l-8 8" />
+    </svg>
+  );
+}
+
 export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: IssuePanelProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -124,7 +142,11 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
         onClose={onClose}
         onToggleMode={onToggleMode}
         currentMode={currentMode}
-        onExpand={() => navigate(`/issues/${issueId}`, { state: { from: location.pathname } })}
+        onExpand={() =>
+          navigate(`/issues/${issueId}`, {
+            state: { from: location.pathname + location.search },
+          })
+        }
       />
 
       <div className="flex-1 overflow-auto p-4 space-y-5">
@@ -209,7 +231,9 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
               <button
                 type="button"
                 onClick={() =>
-                  navigate(`/issues/${issueId}`, { state: { from: location.pathname } })
+                  navigate(`/issues/${issueId}`, {
+                    state: { from: location.pathname + location.search },
+                  })
                 }
                 className="underline hover:text-foreground"
               >
@@ -334,7 +358,7 @@ function PanelHeader({
           </Button>
         )}
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close panel">
-          &times;
+          <CloseIcon />
         </Button>
       </div>
     </div>

@@ -52,6 +52,24 @@ import {
   statusLabel,
 } from "@/views/detail-components";
 
+function CloseIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 4l8 8M12 4l-8 8" />
+    </svg>
+  );
+}
+
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/list" replace />;
@@ -118,8 +136,9 @@ function DetailViewContent({ id }: { id: string }) {
 
   // Determine where the user came from for breadcrumbs
   const fromPath = (location.state as { from?: string } | null)?.from;
-  const backPath = fromPath && VIEW_LABELS[fromPath] ? fromPath : "/list";
-  const backLabel = VIEW_LABELS[backPath] ?? "List";
+  const fromPathname = fromPath?.split("?")[0] ?? "";
+  const backPath = fromPath && VIEW_LABELS[fromPathname] ? fromPath : "/list";
+  const backLabel = VIEW_LABELS[fromPathname] || VIEW_LABELS[backPath] || "List";
 
   // Data fetching
   const { data: issue, isLoading, error } = useIssue(id);
@@ -407,6 +426,16 @@ function DetailViewContent({ id }: { id: string }) {
                 className="text-destructive hover:bg-destructive/10 border-destructive/30"
               >
                 Delete
+              </Button>
+              <div className="w-px h-5 bg-border" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(backPath)}
+                aria-label="Close detail view"
+                title="Close (Esc)"
+              >
+                <CloseIcon />
               </Button>
             </div>
           </div>
