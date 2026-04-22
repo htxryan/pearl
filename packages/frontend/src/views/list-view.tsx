@@ -353,10 +353,10 @@ export function ListView() {
           <div className={cn("flex items-start gap-4", isMobile ? "flex-col" : "justify-between")}>
             <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
             {!isMobile && (
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   onClick={() => setTopLevelOnly((prev) => !prev)}
-                  className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
+                  className={`h-8 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
                     topLevelOnly
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:text-foreground"
@@ -370,7 +370,7 @@ export function ListView() {
                     setPanelMode((prev) => !prev);
                     if (!panelMode) setPanelIssueId(null);
                   }}
-                  className={`h-8 rounded border px-3 text-xs font-medium transition-colors ${
+                  className={`h-8 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
                     panelMode
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:text-foreground"

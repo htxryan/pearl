@@ -1124,3 +1124,36 @@ describe("Cross-view data consistency", () => {
     expect(screen.getByText("No issues match the current filters.")).toBeInTheDocument();
   });
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Top-level only toggle alignment
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe("Top-level only toggle", () => {
+  it("renders with no-wrap and no-shrink classes to prevent layout wrapping", () => {
+    setupIssuesMock(mockIssues);
+    renderApp("/list");
+
+    const toggleBtn = screen.getByRole("button", { name: "Top-level only" });
+    expect(toggleBtn).toBeInTheDocument();
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+    expect(toggleBtn.className).toContain("whitespace-nowrap");
+
+    const container = toggleBtn.parentElement!;
+    expect(container.className).toContain("shrink-0");
+  });
+
+  it("toggles aria-pressed state on click", () => {
+    setupIssuesMock(mockIssues);
+    renderApp("/list");
+
+    const toggleBtn = screen.getByRole("button", { name: "Top-level only" });
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(toggleBtn);
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(toggleBtn);
+    expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+  });
+});
