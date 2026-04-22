@@ -671,7 +671,8 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     // (ListView's handleBulkClose reads from cache for blocked snapshot)
     queryClient.setQueryData(["issues", "list", ""], mockIssues);
 
-    // Select test-001 via keyboard
+    // Select first visual row via keyboard — default sort is priority asc,
+    // so first row is test-003 (priority 0)
     fireEvent.keyDown(window, { key: "j" }); // activate row 0
     fireEvent.keyDown(window, { key: "x" }); // select row 0
 
@@ -683,9 +684,9 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     const confirmBtn = await screen.findByRole("button", { name: /close 1 issue/i });
     fireEvent.click(confirmBtn);
 
-    // Verify closeMutation was called
+    // Verify closeMutation was called with the visually-first row
     await waitFor(() => {
-      expect(mockCloseMutateAsync).toHaveBeenCalledWith({ id: "test-001" });
+      expect(mockCloseMutateAsync).toHaveBeenCalledWith({ id: "test-003" });
     });
   });
 
@@ -705,7 +706,8 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
 
     queryClient.setQueryData(["issues", "list", ""], issuesWithBlocked);
 
-    // Select test-001
+    // Select first visual row — default sort is priority asc,
+    // so first row is test-003 (priority 0)
     fireEvent.keyDown(window, { key: "j" });
     fireEvent.keyDown(window, { key: "x" });
 
@@ -719,7 +721,7 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
 
     await waitFor(() => {
       expect(mockCloseMutateAsync).toHaveBeenCalledTimes(1);
-      expect(mockCloseMutateAsync).toHaveBeenCalledWith({ id: "test-001" });
+      expect(mockCloseMutateAsync).toHaveBeenCalledWith({ id: "test-003" });
     });
   });
 });
@@ -764,10 +766,11 @@ describe("SC11+SC13: Keyboard navigation", () => {
     // Navigate to first row
     fireEvent.keyDown(window, { key: "j" });
 
-    // Press Enter to open detail
+    // Press Enter to open detail — default sort is priority asc,
+    // so first visual row is test-003 (priority 0)
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-003");
   });
 
   it("Enter on second row opens correct issue", () => {
@@ -778,10 +781,10 @@ describe("SC11+SC13: Keyboard navigation", () => {
     fireEvent.keyDown(window, { key: "j" });
     fireEvent.keyDown(window, { key: "j" });
 
-    // Press Enter
+    // Press Enter — second visual row is test-001 (priority 1)
     fireEvent.keyDown(window, { key: "Enter" });
 
-    expect(mockOpenDetail).toHaveBeenCalledWith("test-002");
+    expect(mockOpenDetail).toHaveBeenCalledWith("test-001");
   });
 
   it("1/2/3 keys switch between views (shell scope)", () => {

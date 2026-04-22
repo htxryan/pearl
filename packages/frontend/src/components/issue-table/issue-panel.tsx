@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import Markdown from "react-markdown";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ interface IssuePanelProps {
 
 export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: IssuePanelProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: issue, isLoading, error } = useIssue(issueId);
   const { data: comments = [] } = useComments(issueId);
   const { data: dependencies = [] } = useDependencies(issueId);
@@ -97,7 +98,7 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(`/issues/${issueId}`, { state: { from: "/list" } })}
+          onClick={() => navigate(`/issues/${issueId}`, { state: { from: location.pathname } })}
           title="Open full detail view"
         >
           Expand
@@ -185,7 +186,9 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
               Showing last 5 of {comments.length} comments.{" "}
               <button
                 type="button"
-                onClick={() => navigate(`/issues/${issueId}`, { state: { from: "/list" } })}
+                onClick={() =>
+                  navigate(`/issues/${issueId}`, { state: { from: location.pathname } })
+                }
                 className="underline hover:text-foreground"
               >
                 View all

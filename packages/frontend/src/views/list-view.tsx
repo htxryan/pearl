@@ -128,14 +128,14 @@ export function ListView() {
     return () => clearTimeout(timer);
   }, [highlightedIds]);
 
-  // Clamp activeRowIndex when issues list changes
+  // Clamp activeRowIndex when visible rows change
   useEffect(() => {
     setActiveRowIndex((prev) => {
       if (prev < 0) return prev;
-      if (issues.length === 0) return -1;
-      return Math.min(prev, issues.length - 1);
+      if (tableIssues.length === 0) return -1;
+      return Math.min(prev, tableIssues.length - 1);
     });
-  }, [issues]);
+  }, [tableIssues]);
 
   // Bulk action state
   const [showBulkCloseConfirm, setShowBulkCloseConfirm] = useState(false);
@@ -249,7 +249,7 @@ export function ListView() {
     () => [
       {
         key: "j",
-        handler: () => setActiveRowIndex((prev) => Math.min(prev + 1, issues.length - 1)),
+        handler: () => setActiveRowIndex((prev) => Math.min(prev + 1, tableIssues.length - 1)),
         description: "Move to next row",
       },
       {
@@ -260,8 +260,9 @@ export function ListView() {
       {
         key: "Enter",
         handler: () => {
-          if (activeRowIndex >= 0 && activeRowIndex < issues.length) {
-            handleRowClick(issues[activeRowIndex].id);
+          const rows = table.getRowModel().rows;
+          if (activeRowIndex >= 0 && activeRowIndex < rows.length) {
+            handleRowClick(rows[activeRowIndex].original.id);
           }
         },
         description: "Open selected issue",
@@ -274,15 +275,16 @@ export function ListView() {
       {
         key: "x",
         handler: () => {
-          if (activeRowIndex >= 0 && activeRowIndex < issues.length) {
-            const id = issues[activeRowIndex].id;
+          const rows = table.getRowModel().rows;
+          if (activeRowIndex >= 0 && activeRowIndex < rows.length) {
+            const id = rows[activeRowIndex].original.id;
             setRowSelection((prev) => ({ ...prev, [id]: !prev[id] }));
           }
         },
         description: "Toggle row selection",
       },
     ],
-    [issues, activeRowIndex, handleRowClick],
+    [tableIssues, activeRowIndex, handleRowClick, table],
   );
 
   useKeyboardScope("list", keyBindings);

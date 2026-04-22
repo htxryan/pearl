@@ -1,4 +1,12 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export type DetailPanelMode = "panel" | "modal";
@@ -15,11 +23,13 @@ interface DetailPanelContextValue {
 const DetailPanelContext = createContext<DetailPanelContextValue | null>(null);
 
 export function DetailPanelProvider({ children }: { children: ReactNode }) {
-  const [openIssueId, setOpenIssueId] = usePersistedState<string | null>(
-    "beads:detail-panel-issue",
-    null,
-  );
+  const [openIssueId, setOpenIssueId] = useState<string | null>(null);
   const [mode, setMode] = usePersistedState<DetailPanelMode>("beads:detail-panel-mode", "panel");
+
+  useEffect(() => {
+    localStorage.removeItem("beads:detail-panel-issue");
+    localStorage.removeItem("beads:panel-mode");
+  }, []);
 
   const openDetail = useCallback(
     (id: string) => {

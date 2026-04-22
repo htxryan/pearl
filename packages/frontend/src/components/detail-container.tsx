@@ -15,13 +15,16 @@ export function DetailContainer() {
   useFocusTrap(containerRef, isOpen && isOverlay);
 
   useEffect(() => {
-    if (!isOpen || !isOverlay) return;
+    if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeDetail();
+      if (e.key === "Escape" && !e.defaultPrevented) {
+        e.stopPropagation();
+        closeDetail();
+      }
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [isOpen, isOverlay, closeDetail]);
+  }, [isOpen, closeDetail]);
 
   if (!isOpen || !openIssueId) return null;
 
