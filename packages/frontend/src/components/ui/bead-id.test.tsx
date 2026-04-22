@@ -71,9 +71,16 @@ describe("BeadId", () => {
 
   it("applies custom className", () => {
     render(withQueryClient(<BeadId id="beads-gui-abc" className="text-xs font-mono" />));
-    const btn = screen.getByText("abc");
-    expect(btn.className).toContain("text-xs");
-    expect(btn.className).toContain("font-mono");
+    const el = screen.getByText("abc");
+    expect(el.className).toContain("text-xs");
+    expect(el.className).toContain("font-mono");
+  });
+
+  it("renders as span with role=button, not a button element", () => {
+    render(withQueryClient(<BeadId id="beads-gui-abc" />));
+    const el = screen.getByText("abc");
+    expect(el.tagName).toBe("SPAN");
+    expect(el.getAttribute("role")).toBe("button");
   });
 
   it("stops event propagation on click", () => {
@@ -87,5 +94,25 @@ describe("BeadId", () => {
     );
     fireEvent.click(screen.getByText("abc"));
     expect(parentHandler).not.toHaveBeenCalled();
+  });
+
+  it("renders plain span without click handler when interactive=false", () => {
+    const parentHandler = vi.fn();
+    render(
+      withQueryClient(
+        <div onClick={parentHandler}>
+          <BeadId id="beads-gui-abc" interactive={false} />
+        </div>,
+      ),
+    );
+    fireEvent.click(screen.getByText("abc"));
+    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    expect(parentHandler).toHaveBeenCalled();
+  });
+
+  it("uses full ID as aria-label when display label is empty", () => {
+    render(withQueryClient(<BeadId id="beads-gui-" />));
+    const el = screen.getByLabelText("beads-gui-");
+    expect(el).toBeDefined();
   });
 });

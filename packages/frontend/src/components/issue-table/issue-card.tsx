@@ -21,7 +21,11 @@ export const IssueCard = memo(function IssueCard({ issue, onClick }: IssueCardPr
     >
       {/* Top row: ID + Priority */}
       <div className="flex items-center justify-between gap-2">
-        <BeadId id={issue.id} className="text-xs text-muted-foreground font-mono truncate" />
+        <BeadId
+          id={issue.id}
+          interactive={false}
+          className="text-xs text-muted-foreground font-mono truncate"
+        />
         <PriorityIndicator priority={issue.priority} />
       </div>
 

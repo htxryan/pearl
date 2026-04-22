@@ -315,7 +315,11 @@ function DependencyAutocomplete({
               <PriorityIndicator priority={issue.priority} />
               <StatusBadge status={issue.status} />
               <span className="truncate flex-1">{issue.title}</span>
-              <BeadId id={issue.id} className="shrink-0 text-[11px] text-muted-foreground/60" />
+              <BeadId
+                id={issue.id}
+                interactive={false}
+                className="shrink-0 text-[11px] text-muted-foreground/60"
+              />
             </button>
           ))}
         </div>
