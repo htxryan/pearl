@@ -464,6 +464,8 @@ export function GraphView() {
             onPaneClick={handlePaneClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
+            nodesDraggable={false}
+            nodesConnectable={false}
             colorMode={colorMode}
             fitView
             fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 2 }}

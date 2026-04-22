@@ -78,11 +78,22 @@ vi.mock("@xyflow/react", async () => {
 
   return {
     ...actual,
-    ReactFlow: ({ nodes, edges, onNodeClick, onNodeDoubleClick, onPaneClick, children }: any) => (
+    ReactFlow: ({
+      nodes,
+      edges,
+      onNodeClick,
+      onNodeDoubleClick,
+      onPaneClick,
+      nodesDraggable,
+      nodesConnectable,
+      children,
+    }: any) => (
       <div
         data-testid="react-flow"
         data-node-count={nodes?.length ?? 0}
         data-edge-count={edges?.length ?? 0}
+        data-nodes-draggable={String(nodesDraggable ?? true)}
+        data-nodes-connectable={String(nodesConnectable ?? true)}
         onClick={(e) => {
           // Only fire pane click if the click target is the react-flow div itself (not a child node)
           if ((e.target as HTMLElement).getAttribute("data-testid") === "react-flow") {
@@ -481,6 +492,15 @@ describe("GraphView", () => {
     const flow = screen.getByTestId("react-flow");
     fireEvent.click(flow);
     expect(screen.queryByText(/Highlighting blocking chain/)).not.toBeInTheDocument();
+  });
+
+  it("disables node dragging and connecting (read-only graph)", () => {
+    setupMocks();
+    renderGraph();
+
+    const flow = screen.getByTestId("react-flow");
+    expect(flow).toHaveAttribute("data-nodes-draggable", "false");
+    expect(flow).toHaveAttribute("data-nodes-connectable", "false");
   });
 
   it("renders critical path toggle button", () => {
