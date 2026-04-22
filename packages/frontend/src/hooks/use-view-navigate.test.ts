@@ -9,6 +9,7 @@ vi.mock("react-router", async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+import { saveFilterParams } from "./use-filter-sync";
 import { useViewNavigate } from "./use-view-navigate";
 
 function wrapper(initialEntry: string) {
@@ -19,6 +20,7 @@ function wrapper(initialEntry: string) {
 describe("useViewNavigate", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    localStorage.clear();
   });
 
   it("navigates to view path without params when URL has no search params", () => {
@@ -56,5 +58,23 @@ describe("useViewNavigate", () => {
     expect(params.get("status")).toBe("blocked");
     expect(params.get("sort")).toBe("created_at");
     expect(params.get("dir")).toBe("desc");
+  });
+
+  it("restores saved params from localStorage when on a non-view path", () => {
+    saveFilterParams("status=open&priority=0,1");
+    const { result } = renderHook(() => useViewNavigate(), {
+      wrapper: wrapper("/issues/test-001"),
+    });
+    result.current("/list");
+    expect(mockNavigate).toHaveBeenCalledWith("/list?status=open&priority=0,1");
+  });
+
+  it("does not restore from localStorage when already on a view path", () => {
+    saveFilterParams("status=blocked");
+    const { result } = renderHook(() => useViewNavigate(), {
+      wrapper: wrapper("/list"),
+    });
+    result.current("/board");
+    expect(mockNavigate).toHaveBeenCalledWith("/board");
   });
 });

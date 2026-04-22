@@ -33,28 +33,33 @@ export function loadFilterParams(): string | null {
 }
 
 /**
- * Syncs URL filter params to localStorage. On fresh navigation to a view
+ * Syncs URL filter params to localStorage. On navigation to a view
  * path with no filter params, restores from localStorage.
  * Must be called once in AppShell.
  */
 export function useFilterSync() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const didRestore = useRef(false);
+  const prevPathRef = useRef("");
 
-  // On mount: if we're on a view path with no filter params, restore from storage
+  // Restore from localStorage when arriving at a view path without filter params
+  // from a non-view path (e.g., detail view → list view).
   useEffect(() => {
-    if (didRestore.current) return;
-    didRestore.current = true;
+    const wasViewPath = isViewPath(prevPathRef.current);
+    const isNowViewPath = isViewPath(location.pathname);
+    prevPathRef.current = location.pathname;
 
-    if (!isViewPath(location.pathname)) return;
+    if (!isNowViewPath) return;
     if (hasFilterParams(searchParams)) return;
+
+    // Only restore when first entering a view path (app load, or from non-view path)
+    if (wasViewPath) return;
 
     const saved = loadFilterParams();
     if (saved) {
       setSearchParams(new URLSearchParams(saved), { replace: true });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname, searchParams, setSearchParams]);
 
   // Save filter params to localStorage whenever they change on a view path
   useEffect(() => {
