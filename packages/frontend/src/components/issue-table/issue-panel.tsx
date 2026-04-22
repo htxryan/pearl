@@ -25,6 +25,43 @@ interface IssuePanelProps {
   currentMode?: "panel" | "modal";
 }
 
+function MaximizeIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10 2h4v4M6 14H2v-4M14 2L9.5 6.5M2 14l4.5-4.5" />
+    </svg>
+  );
+}
+
+function SidebarIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="12" height="12" rx="2" />
+      <path d="M10 2v12" />
+    </svg>
+  );
+}
+
 export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: IssuePanelProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,7 +92,7 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
   if (isLoading) {
     return (
       <div className="h-full flex flex-col">
-        <PanelHeader onClose={onClose} />
+        <PanelHeader onClose={onClose} onToggleMode={onToggleMode} currentMode={currentMode} />
         <div className="flex-1 p-4 space-y-4">
           <div className="h-6 skeleton-shimmer rounded w-3/4" />
           <div className="h-4 skeleton-shimmer rounded w-1/2" />
@@ -68,7 +105,7 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
   if (error || !issue) {
     return (
       <div className="h-full flex flex-col">
-        <PanelHeader onClose={onClose} />
+        <PanelHeader onClose={onClose} onToggleMode={onToggleMode} currentMode={currentMode} />
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <p className="font-semibold">Issue not found</p>
@@ -83,27 +120,12 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
 
   return (
     <div className="h-full flex flex-col">
-      <PanelHeader onClose={onClose}>
-        {onToggleMode && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleMode}
-            title={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
-            aria-label={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
-          >
-            {currentMode === "panel" ? "Modal" : "Panel"}
-          </Button>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(`/issues/${issueId}`, { state: { from: location.pathname } })}
-          title="Open full detail view"
-        >
-          Expand
-        </Button>
-      </PanelHeader>
+      <PanelHeader
+        onClose={onClose}
+        onToggleMode={onToggleMode}
+        currentMode={currentMode}
+        onExpand={() => navigate(`/issues/${issueId}`, { state: { from: location.pathname } })}
+      />
 
       <div className="flex-1 overflow-auto p-4 space-y-5">
         {/* Title and badges */}
@@ -276,14 +298,41 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
   );
 }
 
-function PanelHeader({ onClose, children }: { onClose: () => void; children?: React.ReactNode }) {
+function PanelHeader({
+  onClose,
+  onToggleMode,
+  currentMode,
+  onExpand,
+}: {
+  onClose: () => void;
+  onToggleMode?: () => void;
+  currentMode?: "panel" | "modal";
+  onExpand?: () => void;
+}) {
   return (
     <div className="shrink-0 flex items-center justify-between border-b border-border px-4 py-2">
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-        Detail
-      </span>
       <div className="flex items-center gap-1">
-        {children}
+        {onToggleMode && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleMode}
+            title={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+            aria-label={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+          >
+            {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
+          </Button>
+        )}
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+          Detail
+        </span>
+      </div>
+      <div className="flex items-center gap-1">
+        {onExpand && (
+          <Button variant="ghost" size="sm" onClick={onExpand} title="Open full detail view">
+            Expand
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close panel">
           &times;
         </Button>
