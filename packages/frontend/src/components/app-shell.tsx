@@ -20,7 +20,7 @@ import { HealthBanner } from "./health-banner";
 import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 import { OnboardingBanner } from "./onboarding";
 import { PageTransition } from "./page-transition";
-import { MobileDrawer, MobileMenuButton, Sidebar } from "./sidebar";
+import { MobileDrawer, MobileMenuButton, Sidebar, toggleSidebar } from "./sidebar";
 import { ToastContainer } from "./toast-container";
 
 export function AppShell() {
@@ -78,6 +78,11 @@ export function AppShell() {
         handler: () => navigate("/settings"),
         description: "Go to Settings",
       },
+      {
+        key: "[",
+        handler: () => toggleSidebar(),
+        description: "Toggle sidebar",
+      },
     ],
     [navigate],
   );
@@ -120,6 +125,13 @@ export function AppShell() {
         label: "Create Issue",
         group: "Actions",
         handler: openCreateDialog,
+      },
+      {
+        id: "toggle-sidebar",
+        label: "Toggle sidebar",
+        shortcut: "[",
+        group: "Actions",
+        handler: () => toggleSidebar(),
       },
       {
         id: "keyboard-help",

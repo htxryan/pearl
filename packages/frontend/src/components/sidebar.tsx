@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useHealth } from "@/hooks/use-issues";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { cn } from "@/lib/utils";
 
 // Inline SVG icons — consistent 16x16, stroke-based
@@ -81,6 +82,42 @@ function SettingsIcon() {
   );
 }
 
+function CollapseIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="10 3 5 8 10 13" />
+    </svg>
+  );
+}
+
+function ExpandIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 3 11 8 6 13" />
+    </svg>
+  );
+}
+
 function HamburgerIcon() {
   return (
     <svg
@@ -132,32 +169,49 @@ const settingsItem = {
 function NavItem({
   item,
   mobile,
+  collapsed,
 }: {
   item: { to: string; label: string; shortcut: string; icon: () => ReactNode };
   mobile?: boolean;
+  collapsed?: boolean;
 }) {
   return (
     <NavLink
       to={item.to}
+      title={collapsed ? item.label : undefined}
       className={({ isActive }) =>
         cn(
-          "flex items-center justify-between rounded-[var(--radius)] px-3 text-sm font-medium transition-colors",
+          "flex items-center rounded-[var(--radius)] text-sm font-medium transition-colors",
           mobile ? "py-3 min-h-[44px]" : "py-2",
+          collapsed ? "justify-center px-2" : "justify-between px-3",
           isActive
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
         )
       }
     >
-      <span className="flex items-center gap-2">
-        {item.icon()}
-        {item.label}
-      </span>
-      <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-        {item.shortcut}
-      </kbd>
+      {collapsed ? (
+        <span className="flex items-center">{item.icon()}</span>
+      ) : (
+        <>
+          <span className="flex items-center gap-2">
+            {item.icon()}
+            <span className="truncate">{item.label}</span>
+          </span>
+          <kbd className="shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+            {item.shortcut}
+          </kbd>
+        </>
+      )}
     </NavLink>
   );
+}
+
+const SIDEBAR_COLLAPSED_KEY = "pearl:sidebar-collapsed";
+const TOGGLE_EVENT = "pearl:toggle-sidebar";
+
+export function toggleSidebar() {
+  window.dispatchEvent(new CustomEvent(TOGGLE_EVENT));
 }
 
 /** Desktop sidebar — always visible at >= 768px */
@@ -165,29 +219,55 @@ export function Sidebar() {
   const isMobile = useIsMobile();
   const { data: health } = useHealth();
   const projectPrefix = health?.project_prefix;
+  const [collapsed, setCollapsed] = usePersistedState(SIDEBAR_COLLAPSED_KEY, false);
+
+  useEffect(() => {
+    const handler = () => setCollapsed((prev) => !prev);
+    window.addEventListener(TOGGLE_EVENT, handler);
+    return () => window.removeEventListener(TOGGLE_EVENT, handler);
+  }, [setCollapsed]);
 
   if (isMobile) return null;
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col bg-surface-raised border-r border-border">
-      <div className="flex h-14 items-center px-4">
-        <div className="flex flex-col">
-          <span className="text-lg font-semibold tracking-tight leading-tight">
-            {projectPrefix ?? "Pearl"}
-          </span>
-          {projectPrefix && (
-            <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
+    <aside
+      className={cn(
+        "flex shrink-0 flex-col bg-surface-raised border-r border-border transition-[width] duration-200 ease-in-out",
+        collapsed ? "w-14" : "w-56",
+      )}
+    >
+      <div className="flex h-14 items-center justify-between px-3">
+        {!collapsed && (
+          <div className="flex flex-col overflow-hidden">
+            <span className="text-lg font-semibold tracking-tight leading-tight truncate">
+              {projectPrefix ?? "Pearl"}
+            </span>
+            {projectPrefix && (
+              <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
+            )}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => setCollapsed((prev) => !prev)}
+          className={cn(
+            "inline-flex items-center justify-center h-8 w-8 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0",
+            collapsed && "mx-auto",
           )}
-        </div>
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ExpandIcon /> : <CollapseIcon />}
+        </button>
       </div>
-      <nav className="flex flex-1 flex-col p-2">
+      <nav className="flex flex-1 flex-col p-2 overflow-hidden">
         <div className="flex flex-col gap-1">
           {mainNavItems.map((item) => (
-            <NavItem key={item.to} item={item} />
+            <NavItem key={item.to} item={item} collapsed={collapsed} />
           ))}
         </div>
         <div className="mt-auto border-t border-border pt-2">
-          <NavItem item={settingsItem} />
+          <NavItem item={settingsItem} collapsed={collapsed} />
         </div>
       </nav>
     </aside>
