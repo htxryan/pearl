@@ -1,5 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { NavLink, useLocation, useSearchParams } from "react-router";
+import { VIEW_PATHS } from "@/hooks/use-filter-sync";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useHealth } from "@/hooks/use-issues";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -165,8 +166,6 @@ const settingsItem = {
   shortcut: "4",
   icon: () => <SettingsIcon />,
 };
-
-const VIEW_PATHS = new Set(["/list", "/board", "/graph"]);
 
 function NavItem({
   item,

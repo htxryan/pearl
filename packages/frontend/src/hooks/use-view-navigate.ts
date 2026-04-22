@@ -1,8 +1,6 @@
 import { useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
-import { loadFilterParams } from "./use-filter-sync";
-
-const VIEW_PATHS = new Set(["/list", "/board", "/graph"]);
+import { loadFilterParams, VIEW_PATHS } from "./use-filter-sync";
 
 /**
  * Returns a navigate function that carries current URL search params

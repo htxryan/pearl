@@ -2,18 +2,29 @@ import { useEffect, useRef } from "react";
 import { useLocation, useSearchParams } from "react-router";
 
 const STORAGE_KEY = "pearl:filter-params";
+const NON_FILTER_KEYS = new Set(["sort", "dir"]);
 
-const VIEW_PATHS = new Set(["/list", "/board", "/graph"]);
+export const VIEW_PATHS = new Set(["/list", "/board", "/graph"]);
 
-function isViewPath(pathname: string): boolean {
+export function isViewPath(pathname: string): boolean {
   return VIEW_PATHS.has(pathname);
 }
 
-function hasFilterParams(params: URLSearchParams): boolean {
+export function hasFilterParams(params: URLSearchParams): boolean {
   for (const key of params.keys()) {
-    if (key !== "sort" && key !== "dir") return true;
+    if (!NON_FILTER_KEYS.has(key)) return true;
   }
   return false;
+}
+
+function filterOnlyParams(params: URLSearchParams): string {
+  const filtered = new URLSearchParams();
+  for (const [key, value] of params) {
+    if (!NON_FILTER_KEYS.has(key)) {
+      filtered.append(key, value);
+    }
+  }
+  return filtered.toString();
 }
 
 export function saveFilterParams(params: string) {
@@ -21,6 +32,14 @@ export function saveFilterParams(params: string) {
     localStorage.setItem(STORAGE_KEY, params);
   } catch {
     // localStorage full or unavailable
+  }
+}
+
+export function clearFilterParams() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // localStorage unavailable
   }
 }
 
@@ -42,17 +61,13 @@ export function useFilterSync() {
   const location = useLocation();
   const prevPathRef = useRef("");
 
-  // Restore from localStorage when arriving at a view path without filter params
-  // from a non-view path (e.g., detail view → list view).
   useEffect(() => {
     const wasViewPath = isViewPath(prevPathRef.current);
     const isNowViewPath = isViewPath(location.pathname);
     prevPathRef.current = location.pathname;
 
     if (!isNowViewPath) return;
-    if (hasFilterParams(searchParams)) return;
-
-    // Only restore when first entering a view path (app load, or from non-view path)
+    if (searchParams.toString()) return;
     if (wasViewPath) return;
 
     const saved = loadFilterParams();
@@ -61,11 +76,12 @@ export function useFilterSync() {
     }
   }, [location.pathname, searchParams, setSearchParams]);
 
-  // Save filter params to localStorage whenever they change on a view path
   useEffect(() => {
     if (!isViewPath(location.pathname)) return;
     if (hasFilterParams(searchParams)) {
-      saveFilterParams(searchParams.toString());
+      saveFilterParams(filterOnlyParams(searchParams));
+    } else {
+      clearFilterParams();
     }
   }, [searchParams, location.pathname]);
 }
