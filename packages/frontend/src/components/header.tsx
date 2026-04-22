@@ -37,18 +37,6 @@ export function Header({
   return (
     <header className="flex h-14 items-center bg-surface-raised border-b border-border px-4 gap-2">
       {mobileMenuButton}
-      {onCreateIssue && (
-        <button
-          type="button"
-          onClick={onCreateIssue}
-          disabled={isReadOnly}
-          className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          data-testid="create-issue-btn"
-        >
-          <PlusIcon />
-          <span className="hidden sm:inline">Create Issue</span>
-        </button>
-      )}
       <span className="text-sm text-muted-foreground hidden sm:inline">
         Press{" "}
         <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
@@ -56,7 +44,19 @@ export function Header({
         </kbd>{" "}
         for command palette
       </span>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        {onCreateIssue && (
+          <button
+            type="button"
+            onClick={onCreateIssue}
+            disabled={isReadOnly}
+            className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            data-testid="create-issue-btn"
+          >
+            <PlusIcon />
+            <span className="hidden sm:inline">Create Issue</span>
+          </button>
+        )}
         <NotificationBell />
       </div>
     </header>
