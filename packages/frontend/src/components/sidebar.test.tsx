@@ -36,8 +36,8 @@ describe("Sidebar", () => {
     renderSidebar();
     const toggle = screen.getByRole("button", { name: /collapse sidebar/i });
     fireEvent.click(toggle);
-    expect(screen.queryByText("List")).not.toBeInTheDocument();
-    expect(screen.queryByText("Board")).not.toBeInTheDocument();
+    expect(screen.getByText("List")).toHaveClass("opacity-0");
+    expect(screen.getByText("Board")).toHaveClass("opacity-0");
     expect(screen.getByRole("button", { name: /expand sidebar/i })).toBeInTheDocument();
   });
 
@@ -59,7 +59,7 @@ describe("Sidebar", () => {
   it("restores collapsed state from localStorage", () => {
     localStorage.setItem("pearl:sidebar-collapsed", "true");
     renderSidebar();
-    expect(screen.queryByText("List")).not.toBeInTheDocument();
+    expect(screen.getByText("List")).toHaveClass("opacity-0");
     expect(screen.getByRole("button", { name: /expand sidebar/i })).toBeInTheDocument();
   });
 
@@ -67,7 +67,7 @@ describe("Sidebar", () => {
     renderSidebar();
     expect(screen.getByText("List")).toBeInTheDocument();
     act(() => toggleSidebar());
-    expect(screen.queryByText("List")).not.toBeInTheDocument();
+    expect(screen.getByText("List")).toHaveClass("opacity-0");
   });
 
   it("shows tooltips on nav items when collapsed", () => {

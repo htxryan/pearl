@@ -191,20 +191,28 @@ function NavItem({
         )
       }
     >
-      {collapsed ? (
-        <span className="flex items-center">{item.icon()}</span>
-      ) : (
-        <>
-          <span className="flex items-center gap-2">
-            {item.icon()}
-            <span className="truncate">{item.label}</span>
-          </span>
-          {!mobile && (
-            <kbd className="shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-              {item.shortcut}
-            </kbd>
+      <span className="flex items-center">
+        <span className="shrink-0">{item.icon()}</span>
+        <span
+          className={cn(
+            "truncate overflow-hidden transition-[opacity,max-width,margin] duration-200",
+            collapsed ? "max-w-0 opacity-0 ml-0" : "max-w-48 opacity-100 ml-2",
           )}
-        </>
+        >
+          {item.label}
+        </span>
+      </span>
+      {!mobile && (
+        <kbd
+          className={cn(
+            "rounded border bg-muted text-xs text-muted-foreground overflow-hidden whitespace-nowrap transition-[opacity,max-width,padding,border-color] duration-200",
+            collapsed
+              ? "max-w-0 opacity-0 px-0 py-0 border-transparent"
+              : "max-w-10 opacity-100 px-1.5 py-0.5 border-border",
+          )}
+        >
+          {item.shortcut}
+        </kbd>
       )}
     </NavLink>
   );
@@ -241,16 +249,19 @@ export function Sidebar() {
       )}
     >
       <div className="flex h-14 items-center justify-between px-3">
-        {!collapsed && (
-          <div className="flex flex-col overflow-hidden">
-            <span className="text-lg font-semibold tracking-tight leading-tight truncate">
-              {projectPrefix ?? "Pearl"}
-            </span>
-            {projectPrefix && (
-              <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
-            )}
-          </div>
-        )}
+        <div
+          className={cn(
+            "flex flex-col overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
+            collapsed ? "max-w-0 opacity-0" : "max-w-48 opacity-100",
+          )}
+        >
+          <span className="text-lg font-semibold tracking-tight leading-tight truncate">
+            {projectPrefix ?? "Pearl"}
+          </span>
+          {projectPrefix && (
+            <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setCollapsed((prev) => !prev)}
