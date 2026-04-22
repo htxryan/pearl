@@ -351,7 +351,12 @@ export function ListView() {
         {/* Toolbar */}
         <div className="shrink-0 bg-muted/30 px-4 py-3 space-y-2">
           <div className={cn("flex items-start gap-4", isMobile ? "flex-col" : "justify-between")}>
-            <FilterBar filters={filters} onChange={setFilters} searchInputRef={searchInputRef} />
+            <FilterBar
+              filters={filters}
+              onChange={setFilters}
+              searchInputRef={searchInputRef}
+              trailingSlot={<ColumnVisibilityMenu table={table} />}
+            />
             {!isMobile && (
               <div className="flex shrink-0 items-center gap-2">
                 <button
@@ -380,7 +385,6 @@ export function ListView() {
                 >
                   Panel
                 </button>
-                <ColumnVisibilityMenu table={table} />
               </div>
             )}
           </div>

@@ -44,9 +44,16 @@ interface FilterBarProps {
   onChange: (filters: FilterState) => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   hideGroupBy?: boolean;
+  trailingSlot?: React.ReactNode;
 }
 
-export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: FilterBarProps) {
+export function FilterBar({
+  filters,
+  onChange,
+  searchInputRef,
+  hideGroupBy,
+  trailingSlot,
+}: FilterBarProps) {
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = searchInputRef ?? internalRef;
   const isMobile = useIsMobile();
@@ -311,6 +318,8 @@ export function FilterBar({ filters, onChange, searchInputRef, hideGroupBy }: Fi
           Clear all
         </button>
       )}
+
+      {trailingSlot}
     </>
   );
 

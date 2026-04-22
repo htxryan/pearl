@@ -37,12 +37,27 @@ export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
   return (
     <div className="relative" ref={menuRef}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="h-8 rounded border border-border bg-background px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        className="h-8 w-8 inline-flex items-center justify-center rounded border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         aria-label="Toggle column visibility"
         aria-expanded={open}
+        title="Columns"
       >
-        Columns
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="2" y="2" width="4.5" height="12" rx="1" />
+          <rect x="9.5" y="2" width="4.5" height="12" rx="1" />
+        </svg>
       </button>
       {mounted && (
         <div
