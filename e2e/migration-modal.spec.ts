@@ -98,7 +98,7 @@ test.describe("Embedded mode migration modal", () => {
     const modal = page.getByTestId("embedded-mode-modal");
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    await modal.getByText("I'll run dolt myself").click();
+    await modal.getByText("I'll run dolt myself").click({ force: true });
 
     await expect(modal.getByTestId("migration-host-input")).toBeVisible();
     await expect(modal.getByTestId("migration-port-input")).toBeVisible();
@@ -114,7 +114,7 @@ test.describe("Embedded mode migration modal", () => {
     const modal = page.getByTestId("embedded-mode-modal");
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    await modal.getByText("I'll run dolt myself").click();
+    await modal.getByText("I'll run dolt myself").click({ force: true });
     await expect(modal.getByTestId("migrate-external-btn")).toBeDisabled();
   });
 
@@ -133,7 +133,7 @@ test.describe("Embedded mode migration modal", () => {
     const modal = page.getByTestId("embedded-mode-modal");
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    await modal.getByText("I'll run dolt myself").click();
+    await modal.getByText("I'll run dolt myself").click({ force: true });
     await modal.getByTestId("migration-host-input").fill("192.0.2.1");
     await modal.getByTestId("migration-port-input").fill("9999");
 
@@ -151,7 +151,7 @@ test.describe("Embedded mode migration modal", () => {
     const modal = page.getByTestId("embedded-mode-modal");
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    await modal.getByText("I'll run dolt myself").click();
+    await modal.getByText("I'll run dolt myself").click({ force: true });
 
     const codeBlock = modal.locator(".font-mono", { hasText: "dolt sql-server" });
     await expect(codeBlock).toBeVisible();

@@ -53,16 +53,21 @@ test.describe("Command Palette", () => {
 });
 
 test.describe("Search Palette", () => {
-  test("opens with Cmd+F", async ({ seededPage: page }) => {
+  // Ctrl+F / Cmd+F is intercepted by Chromium's native Find dialog in CI, so we
+  // open the search palette via the header button instead of the keyboard shortcut.
+  async function openSearchPalette(page: Parameters<typeof test>[1]) {
     await page.waitForLoadState("networkidle");
-    await page.keyboard.press(CMD_F);
+    await page.getByRole("button", { name: "Open search" }).click();
+  }
+
+  test("opens via header search button", async ({ seededPage: page }) => {
+    await openSearchPalette(page);
     const input = page.getByPlaceholder("Search issues...");
     await expect(input).toBeVisible({ timeout: 5_000 });
   });
 
   test("closes with Escape", async ({ seededPage: page }) => {
-    await page.waitForLoadState("networkidle");
-    await page.keyboard.press(CMD_F);
+    await openSearchPalette(page);
     const input = page.getByPlaceholder("Search issues...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
@@ -71,16 +76,14 @@ test.describe("Search Palette", () => {
   });
 
   test("shows recent issues by default", async ({ seededPage: page }) => {
-    await page.waitForLoadState("networkidle");
-    await page.keyboard.press(CMD_F);
+    await openSearchPalette(page);
     await expect(page.getByPlaceholder("Search issues...")).toBeVisible({ timeout: 5_000 });
 
     await expect(page.getByText("Recent issues")).toBeVisible({ timeout: 5_000 });
   });
 
   test("search filters issues by query", async ({ seededPage: page }) => {
-    await page.waitForLoadState("networkidle");
-    await page.keyboard.press(CMD_F);
+    await openSearchPalette(page);
     const input = page.getByPlaceholder("Search issues...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
@@ -90,8 +93,7 @@ test.describe("Search Palette", () => {
   });
 
   test("selecting an issue navigates to detail", async ({ seededPage: page }) => {
-    await page.waitForLoadState("networkidle");
-    await page.keyboard.press(CMD_F);
+    await openSearchPalette(page);
     const input = page.getByPlaceholder("Search issues...");
     await expect(input).toBeVisible({ timeout: 5_000 });
 
