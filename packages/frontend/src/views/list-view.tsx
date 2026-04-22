@@ -355,7 +355,7 @@ export function ListView() {
               filters={filters}
               onChange={setFilters}
               searchInputRef={searchInputRef}
-              trailingSlot={<ColumnVisibilityMenu table={table} />}
+              trailingSlot={isMobile ? undefined : <ColumnVisibilityMenu table={table} />}
             />
             {!isMobile && (
               <div className="flex shrink-0 items-center gap-2">

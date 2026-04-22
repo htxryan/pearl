@@ -18,9 +18,10 @@ export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
       setMounted(true);
       const raf = requestAnimationFrame(() => setAnimateIn(true));
       return () => cancelAnimationFrame(raf);
-    } else {
-      setAnimateIn(false);
     }
+    setAnimateIn(false);
+    const timeout = setTimeout(() => setMounted(false), 200);
+    return () => clearTimeout(timeout);
   }, [open]);
 
   useEffect(() => {
