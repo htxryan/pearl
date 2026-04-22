@@ -2,8 +2,11 @@ import { expect, test } from "./fixtures";
 
 /** Platform-aware shortcut for opening the command palette (navigation commands). */
 const CMD_K = process.platform === "darwin" ? "Meta+k" : "Control+k";
-/** Platform-aware shortcut for opening the issue search palette. */
-const CMD_F = process.platform === "darwin" ? "Meta+f" : "Control+f";
+/**
+ * Keyboard shortcut for the search palette. Uses Shift to avoid Chromium's
+ * native Ctrl+F find-in-page dialog intercepting the event on Linux/Windows.
+ */
+const CMD_SHIFT_F = process.platform === "darwin" ? "Meta+Shift+f" : "Control+Shift+f";
 
 test.describe("Command Palette", () => {
   test("opens with Cmd+K", async ({ seededPage: page }) => {
@@ -58,48 +61,62 @@ test.describe("Search Palette", () => {
   async function openSearchPalette(page: Parameters<typeof test>[1]) {
     await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Open search" }).click();
+    // Wait for the palette dialog to appear before returning
+    await expect(page.getByRole("dialog", { name: "Search issues" })).toBeVisible({
+      timeout: 5_000,
+    });
+  }
+
+  /** The search palette dialog — scopes all locators away from the filter-bar input. */
+  function searchDialog(page: Parameters<typeof test>[1]) {
+    return page.getByRole("dialog", { name: "Search issues" });
   }
 
   test("opens via header search button", async ({ seededPage: page }) => {
     await openSearchPalette(page);
-    const input = page.getByPlaceholder("Search issues...");
+    const input = searchDialog(page).getByPlaceholder("Search issues...");
     await expect(input).toBeVisible({ timeout: 5_000 });
+  });
+
+  test("opens with Cmd+Shift+F shortcut", async ({ seededPage: page }) => {
+    await page.waitForLoadState("networkidle");
+    await page.keyboard.press(CMD_SHIFT_F);
+    await expect(searchDialog(page)).toBeVisible({ timeout: 5_000 });
   });
 
   test("closes with Escape", async ({ seededPage: page }) => {
     await openSearchPalette(page);
-    const input = page.getByPlaceholder("Search issues...");
-    await expect(input).toBeVisible({ timeout: 5_000 });
+    const dialog = searchDialog(page);
+    await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     await page.keyboard.press("Escape");
-    await expect(input).not.toBeVisible({ timeout: 5_000 });
+    await expect(dialog).not.toBeVisible({ timeout: 5_000 });
   });
 
   test("shows recent issues by default", async ({ seededPage: page }) => {
     await openSearchPalette(page);
-    await expect(page.getByPlaceholder("Search issues...")).toBeVisible({ timeout: 5_000 });
+    const dialog = searchDialog(page);
 
-    await expect(page.getByText("Recent issues")).toBeVisible({ timeout: 5_000 });
+    await expect(dialog.getByText("Recent issues")).toBeVisible({ timeout: 5_000 });
   });
 
   test("search filters issues by query", async ({ seededPage: page }) => {
     await openSearchPalette(page);
-    const input = page.getByPlaceholder("Search issues...");
-    await expect(input).toBeVisible({ timeout: 5_000 });
+    const dialog = searchDialog(page);
+    const input = dialog.getByPlaceholder("Search issues...");
 
     await input.fill("dashboard");
 
-    await expect(page.getByText(/issues matching/i)).toBeVisible({ timeout: 10_000 });
+    await expect(dialog.getByText(/issues matching/i)).toBeVisible({ timeout: 10_000 });
   });
 
   test("selecting an issue navigates to detail", async ({ seededPage: page }) => {
     await openSearchPalette(page);
-    const input = page.getByPlaceholder("Search issues...");
-    await expect(input).toBeVisible({ timeout: 5_000 });
+    const dialog = searchDialog(page);
 
-    await expect(page.getByText("Recent issues")).toBeVisible({ timeout: 5_000 });
+    await expect(dialog.getByText("Recent issues")).toBeVisible({ timeout: 5_000 });
 
-    const firstItem = page.locator("[cmdk-item]").first();
+    const firstItem = dialog.locator("[cmdk-item]").first();
     await firstItem.click();
 
     await page.waitForURL("**/issues/**", { timeout: 10_000 });

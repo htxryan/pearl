@@ -58,6 +58,15 @@ export function AppShell() {
         skipInInput: true,
       },
       {
+        // Ctrl+Shift+F / Cmd+Shift+F — Chrome does not intercept this in-page,
+        // unlike Ctrl+F which triggers the browser's native find dialog on Linux.
+        key: "f",
+        modifiers: ["meta" as const, "shift" as const],
+        handler: () => toggleSearchPalette(),
+        description: "Toggle issue search (alternate shortcut)",
+        skipInInput: true,
+      },
+      {
         key: "z",
         modifiers: ["meta" as const],
         handler: () => {
