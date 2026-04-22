@@ -126,6 +126,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   };
 
   const handleCancel = () => {
+    // No resetForm() — draft must survive cancel; auto-save would flush empty state to localStorage
     onClose();
   };
 

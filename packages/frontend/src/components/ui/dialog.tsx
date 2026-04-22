@@ -33,18 +33,19 @@ export const Dialog = forwardRef<DialogRef, DialogProps>(
     }));
 
     useEffect(() => {
+      const el = dialogRef.current;
+      if (!el) return;
       if (isOpen) {
-        dialogRef.current?.showModal();
-      } else {
-        dialogRef.current?.close();
+        el.showModal();
+      } else if (el.open) {
+        el.close();
       }
     }, [isOpen]);
-
-    if (!isOpen) return null;
 
     return (
       <dialog
         ref={dialogRef}
+        aria-modal="true"
         className={cn(
           "fixed inset-0 z-50 m-auto w-full rounded-xl border border-border bg-background text-foreground p-0 shadow-xl backdrop:bg-black/50",
           sizeStyles[size],
@@ -58,7 +59,7 @@ export const Dialog = forwardRef<DialogRef, DialogProps>(
           }
         }}
       >
-        {children}
+        {isOpen ? children : null}
       </dialog>
     );
   },

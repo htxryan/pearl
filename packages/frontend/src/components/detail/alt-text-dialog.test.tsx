@@ -8,11 +8,12 @@ beforeAll(() => {
 });
 
 describe("AltTextDialog", () => {
-  it("renders nothing when closed", () => {
+  it("keeps dialog mounted but renders no children when closed", () => {
     const { container } = render(
       <AltTextDialog isOpen={false} fileName="test.png" onSubmit={vi.fn()} onSkip={vi.fn()} />,
     );
-    expect(container.innerHTML).toBe("");
+    expect(container.querySelector("dialog")).toBeInTheDocument();
+    expect(container.querySelector("dialog")?.innerHTML).toBe("");
   });
 
   it("renders dialog with file name when open", () => {

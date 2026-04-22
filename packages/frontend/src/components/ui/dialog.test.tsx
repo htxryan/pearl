@@ -8,13 +8,14 @@ beforeAll(() => {
 });
 
 describe("Dialog", () => {
-  it("renders nothing when closed", () => {
+  it("keeps dialog mounted but renders no children when closed", () => {
     const { container } = render(
       <Dialog isOpen={false} onClose={vi.fn()}>
         <p>Content</p>
       </Dialog>,
     );
-    expect(container.innerHTML).toBe("");
+    expect(container.querySelector("dialog")).toBeInTheDocument();
+    expect(container.querySelector("dialog")?.innerHTML).toBe("");
   });
 
   it("renders children when open", () => {
