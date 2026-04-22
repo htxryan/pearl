@@ -50,7 +50,8 @@ export function Header({
             type="button"
             onClick={onCreateIssue}
             disabled={isReadOnly}
-            className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Create Issue"
+            className="inline-flex h-11 sm:h-auto items-center justify-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             data-testid="create-issue-btn"
           >
             <PlusIcon />
