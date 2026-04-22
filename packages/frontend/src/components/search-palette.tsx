@@ -18,17 +18,23 @@ export function SearchPalette() {
   const [isVisible, setIsVisible] = useState<boolean | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (open) {
       setIsMounted(true);
       setSearch("");
       setIssues([]);
+      setIsSearching(false);
+      abortRef.current?.abort();
+      abortRef.current = null;
       requestAnimationFrame(() => {
         setIsVisible(true);
         inputRef.current?.focus();
       });
     } else {
+      abortRef.current?.abort();
+      abortRef.current = null;
       if (isVisible !== null) setIsVisible(false);
       const timer = setTimeout(() => setIsMounted(false), 150);
       return () => clearTimeout(timer);
@@ -41,28 +47,45 @@ export function SearchPalette() {
       return;
     }
 
+    setIsSearching(true);
+
     const timer = setTimeout(
-      async () => {
-        setIsSearching(true);
-        try {
-          const params = new URLSearchParams();
-          if (search.trim()) {
-            params.set("search", search.trim());
-          }
-          params.set("sort", "updated_at");
-          params.set("direction", "desc");
-          const results = await api.fetchIssues(params);
-          setIssues(results.slice(0, 10));
-        } catch {
-          setIssues([]);
-        } finally {
-          setIsSearching(false);
+      () => {
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        const params = new URLSearchParams();
+        if (search.trim()) {
+          params.set("search", search.trim());
         }
+        params.set("sort", "updated_at");
+        params.set("direction", "desc");
+        params.set("limit", "10");
+
+        api
+          .fetchIssues(params)
+          .then((results) => {
+            if (!controller.signal.aborted) {
+              setIssues(results.slice(0, 10));
+              setIsSearching(false);
+            }
+          })
+          .catch(() => {
+            if (!controller.signal.aborted) {
+              setIssues([]);
+              setIsSearching(false);
+            }
+          });
       },
       search ? 200 : 0,
     );
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
   }, [open, search]);
 
   const handleIssueSelect = (id: string) => {
@@ -80,6 +103,9 @@ export function SearchPalette() {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search issues"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
@@ -146,10 +172,12 @@ export function SearchPalette() {
         </div>
 
         <Command.List className="max-h-80 overflow-auto p-2">
-          <Command.Empty className="px-4 py-8 text-center">
-            <p className="text-sm text-muted-foreground">No issues found.</p>
-            <p className="mt-1 text-xs text-muted-foreground/60">Try a different search term.</p>
-          </Command.Empty>
+          {!isSearching && (
+            <Command.Empty className="px-4 py-8 text-center">
+              <p className="text-sm text-muted-foreground">No issues found.</p>
+              <p className="mt-1 text-xs text-muted-foreground/60">Try a different search term.</p>
+            </Command.Empty>
+          )}
 
           <Command.Group heading={issueHeading} className={groupHeadingClass}>
             {isSearching && issues.length === 0 && (

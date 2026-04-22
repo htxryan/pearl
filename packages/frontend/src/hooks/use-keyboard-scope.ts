@@ -5,6 +5,7 @@ export interface KeyBinding {
   modifiers?: Array<"meta" | "ctrl" | "shift" | "alt">;
   handler: () => void;
   description?: string;
+  skipInInput?: boolean;
 }
 
 interface ScopeEntry {
@@ -47,9 +48,10 @@ function handleKeyDown(e: KeyboardEvent) {
     const entry = scopeStack[i];
     for (const binding of entry.bindings) {
       if (matchesBinding(e, binding)) {
-        // Skip number shortcuts when typing in inputs
+        // Skip unmodified shortcuts in inputs; also skip bindings that opt in via skipInInput
         const hasNoModifiers = !binding.modifiers?.length;
         if (hasNoModifiers && isInputElement(e.target)) continue;
+        if (binding.skipInInput && isInputElement(e.target)) continue;
 
         e.preventDefault();
         e.stopPropagation();

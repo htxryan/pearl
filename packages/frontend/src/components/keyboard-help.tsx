@@ -1,4 +1,5 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { isMacPlatform } from "@/lib/utils";
 
 // ─── State ─────────────────────────────────────────────
 let isOpen = false;
@@ -37,54 +38,58 @@ interface ShortcutGroup {
   shortcuts: { key: string; description: string }[];
 }
 
-const SHORTCUT_GROUPS: ShortcutGroup[] = [
-  {
-    name: "Global",
-    shortcuts: [
-      { key: "⌘K", description: "Open command palette" },
-      { key: "⌘F", description: "Search issues" },
-      { key: "⌘Z", description: "Undo last action" },
-      { key: "1", description: "Go to List view" },
-      { key: "2", description: "Go to Board view" },
-      { key: "3", description: "Go to Graph view" },
-      { key: "?", description: "Show keyboard shortcuts" },
-    ],
-  },
-  {
-    name: "List View",
-    shortcuts: [
-      { key: "j", description: "Move to next row" },
-      { key: "k", description: "Move to previous row" },
-      { key: "Enter", description: "Open selected issue" },
-      { key: "x", description: "Toggle row selection" },
-      { key: "/", description: "Focus search" },
-    ],
-  },
-  {
-    name: "Board View",
-    shortcuts: [{ key: "/", description: "Focus search" }],
-  },
-  {
-    name: "Detail View",
-    shortcuts: [{ key: "Esc", description: "Close detail / back to list" }],
-  },
-  {
-    name: "Image Attachments",
-    shortcuts: [
-      { key: "Enter", description: "Open lightbox (on focused pill or gallery tile)" },
-      { key: "→", description: "Next image in lightbox" },
-      { key: "←", description: "Previous image in lightbox" },
-      { key: "Home", description: "First image" },
-      { key: "End", description: "Last image" },
-      { key: "Esc", description: "Close lightbox" },
-      { key: "?", description: "Show shortcuts (while lightbox is open)" },
-    ],
-  },
-];
+function buildShortcutGroups(isMac: boolean): ShortcutGroup[] {
+  const mod = isMac ? "⌘" : "Ctrl+";
+  return [
+    {
+      name: "Global",
+      shortcuts: [
+        { key: `${mod}K`, description: "Open command palette" },
+        { key: `${mod}F`, description: "Search issues" },
+        { key: `${mod}Z`, description: "Undo last action" },
+        { key: "1", description: "Go to List view" },
+        { key: "2", description: "Go to Board view" },
+        { key: "3", description: "Go to Graph view" },
+        { key: "?", description: "Show keyboard shortcuts" },
+      ],
+    },
+    {
+      name: "List View",
+      shortcuts: [
+        { key: "j", description: "Move to next row" },
+        { key: "k", description: "Move to previous row" },
+        { key: "Enter", description: "Open selected issue" },
+        { key: "x", description: "Toggle row selection" },
+        { key: "/", description: "Focus search" },
+      ],
+    },
+    {
+      name: "Board View",
+      shortcuts: [{ key: "/", description: "Focus search" }],
+    },
+    {
+      name: "Detail View",
+      shortcuts: [{ key: "Esc", description: "Close detail / back to list" }],
+    },
+    {
+      name: "Image Attachments",
+      shortcuts: [
+        { key: "Enter", description: "Open lightbox (on focused pill or gallery tile)" },
+        { key: "→", description: "Next image in lightbox" },
+        { key: "←", description: "Previous image in lightbox" },
+        { key: "Home", description: "First image" },
+        { key: "End", description: "Last image" },
+        { key: "Esc", description: "Close lightbox" },
+        { key: "?", description: "Show shortcuts (while lightbox is open)" },
+      ],
+    },
+  ];
+}
 
 // ─── Component ─────────────────────────────────────────
 export function KeyboardHelpOverlay() {
   const open = useKeyboardHelpOpen();
+  const shortcutGroups = useMemo(() => buildShortcutGroups(isMacPlatform()), []);
 
   // Close on Escape key at document level
   useEffect(() => {
@@ -127,7 +132,7 @@ export function KeyboardHelpOverlay() {
         </div>
 
         <div className="max-h-[60vh] overflow-auto px-6 py-4 space-y-6">
-          {SHORTCUT_GROUPS.map((group) => (
+          {shortcutGroups.map((group) => (
             <div key={group.name}>
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
                 {group.name}

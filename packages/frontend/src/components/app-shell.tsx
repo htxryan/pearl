@@ -49,6 +49,7 @@ export function AppShell() {
         modifiers: ["meta" as const],
         handler: () => toggleSearchPalette(),
         description: "Toggle issue search",
+        skipInInput: true,
       },
       {
         key: "z",

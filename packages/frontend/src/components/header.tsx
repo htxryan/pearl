@@ -1,11 +1,7 @@
 import type { ReactNode } from "react";
 import { useIsEmbeddedMode } from "@/hooks/use-embedded-mode";
+import { isMacPlatform } from "@/lib/utils";
 import { NotificationBell } from "./notification-bell";
-
-function isMacPlatform(): boolean {
-  const platform = (navigator as any).userAgentData?.platform ?? navigator.userAgent;
-  return /mac/i.test(platform);
-}
 
 function PlusIcon() {
   return (

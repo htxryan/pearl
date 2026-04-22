@@ -8,99 +8,121 @@ export interface CommandAction {
   handler: () => void;
 }
 
-// ─── Command palette state ──────────────────────────────
-let isOpen = false;
-const listeners = new Set<() => void>();
-const registeredActions = new Map<string, CommandAction[]>();
+// ─── Separate listener sets ────────────────────────────
+const openListeners = new Set<() => void>();
+const actionListeners = new Set<() => void>();
 let actionsVersion = 0;
 
-function notify() {
-  actionsVersion++;
-  const snapshot = [...listeners];
-  snapshot.forEach((l) => l());
+function notifyOpen() {
+  for (const l of [...openListeners]) l();
 }
 
-function subscribe(listener: () => void) {
-  listeners.add(listener);
+function notifyActions() {
+  actionsVersion++;
+  for (const l of [...actionListeners]) l();
+}
+
+function subscribeOpen(listener: () => void) {
+  openListeners.add(listener);
   return () => {
-    listeners.delete(listener);
+    openListeners.delete(listener);
   };
 }
 
+function subscribeActions(listener: () => void) {
+  actionListeners.add(listener);
+  return () => {
+    actionListeners.delete(listener);
+  };
+}
+
+// ─── Command palette state ─────────────────────────────
+let isOpen = false;
+
+const registeredActions = new Map<string, CommandAction[]>();
+
 export function openCommandPalette() {
+  if (isSearchOpen) {
+    isSearchOpen = false;
+  }
   isOpen = true;
-  notify();
+  notifyOpen();
 }
 
 export function closeCommandPalette() {
   isOpen = false;
-  notify();
+  notifyOpen();
 }
 
 export function toggleCommandPalette() {
+  if (isSearchOpen) {
+    isSearchOpen = false;
+  }
   isOpen = !isOpen;
-  notify();
+  notifyOpen();
 }
 
 export function useCommandPaletteOpen() {
-  return useSyncExternalStore(subscribe, () => isOpen);
+  return useSyncExternalStore(subscribeOpen, () => isOpen);
 }
 
-// ─── Search palette state ───────────────────────────────
+// ─── Search palette state ──────────────────────────────
 let isSearchOpen = false;
 
 export function openSearchPalette() {
+  if (isOpen) {
+    isOpen = false;
+  }
   isSearchOpen = true;
-  notify();
+  notifyOpen();
 }
 
 export function closeSearchPalette() {
   isSearchOpen = false;
-  notify();
+  notifyOpen();
 }
 
 export function toggleSearchPalette() {
+  if (isOpen) {
+    isOpen = false;
+  }
   isSearchOpen = !isSearchOpen;
-  notify();
+  notifyOpen();
 }
 
 export function useSearchPaletteOpen() {
-  return useSyncExternalStore(subscribe, () => isSearchOpen);
+  return useSyncExternalStore(subscribeOpen, () => isSearchOpen);
 }
 
-// ─── Action Registration ────────────────────────────────
+// ─── Action Registration ───────────────────────────────
 export function useCommandPaletteActions(sourceId: string, actions: CommandAction[]) {
   const sourceIdRef = useRef(sourceId);
   const mountedRef = useRef(false);
 
-  // Register on mount, cleanup on unmount — avoids double-notify on re-registration
   useEffect(() => {
     sourceIdRef.current = sourceId;
     registeredActions.set(sourceId, actions);
-    notify();
+    notifyActions();
 
     return () => {
       registeredActions.delete(sourceIdRef.current);
-      notify();
+      notifyActions();
     };
-    // Only re-register when sourceId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceId]);
 
-  // Update actions in-place without cleanup/setup cycle (single notify).
-  // Skip the first run — Effect 1 already handled initial registration.
   useEffect(() => {
     if (!mountedRef.current) {
       mountedRef.current = true;
       return;
     }
     registeredActions.set(sourceIdRef.current, actions);
-    notify();
+    notifyActions();
   }, [actions]);
 }
 
 export function useAllCommandActions(): CommandAction[] {
-  useSyncExternalStore(subscribe, () => actionsVersion);
+  useSyncExternalStore(subscribeActions, () => actionsVersion);
   const all: CommandAction[] = [];
   for (const actions of registeredActions.values()) {
     all.push(...actions);

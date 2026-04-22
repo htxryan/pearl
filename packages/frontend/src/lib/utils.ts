@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function isMacPlatform(): boolean {
+  const platform = (navigator as any).userAgentData?.platform ?? navigator.userAgent;
+  return /mac/i.test(platform);
+}
+
 export function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60000);
