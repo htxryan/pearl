@@ -14,7 +14,7 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
 
   function handleClick(e: React.MouseEvent) {
     e.stopPropagation();
-    navigator.clipboard?.writeText(id).then(
+    navigator.clipboard?.writeText(id)?.then(
       () => addToast({ message: "Copied!", variant: "success", duration: 1500 }),
       () => {},
     );

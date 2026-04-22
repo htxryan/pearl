@@ -115,4 +115,10 @@ describe("BeadId", () => {
     const el = screen.getByLabelText("beads-gui-");
     expect(el).toBeDefined();
   });
+
+  it("does not crash when navigator.clipboard is undefined", () => {
+    vi.stubGlobal("navigator", {});
+    render(withQueryClient(<BeadId id="beads-gui-abc" />));
+    expect(() => fireEvent.click(screen.getByText("abc"))).not.toThrow();
+  });
 });
