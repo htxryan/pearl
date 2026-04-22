@@ -16,7 +16,6 @@ let actionsVersion = 0;
 
 function notify() {
   actionsVersion++;
-  // Snapshot the set so removals during iteration are safe
   const snapshot = [...listeners];
   snapshot.forEach((l) => l());
 }
@@ -45,6 +44,28 @@ export function toggleCommandPalette() {
 
 export function useCommandPaletteOpen() {
   return useSyncExternalStore(subscribe, () => isOpen);
+}
+
+// ─── Search palette state ───────────────────────────────
+let isSearchOpen = false;
+
+export function openSearchPalette() {
+  isSearchOpen = true;
+  notify();
+}
+
+export function closeSearchPalette() {
+  isSearchOpen = false;
+  notify();
+}
+
+export function toggleSearchPalette() {
+  isSearchOpen = !isSearchOpen;
+  notify();
+}
+
+export function useSearchPaletteOpen() {
+  return useSyncExternalStore(subscribe, () => isSearchOpen);
 }
 
 // ─── Action Registration ────────────────────────────────

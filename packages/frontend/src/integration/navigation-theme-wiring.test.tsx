@@ -280,9 +280,9 @@ describe("Header theme toggle removed", () => {
     expect(screen.queryByRole("button", { name: /change theme/i })).toBeNull();
   });
 
-  it("header still shows the command palette keyboard shortcut hint", () => {
+  it("header still shows the keyboard shortcut hints", () => {
     renderApp("/list");
-    expect(screen.getByText(/command palette/i)).toBeInTheDocument();
+    expect(screen.getByText(/for commands/i)).toBeInTheDocument();
   });
 });
 

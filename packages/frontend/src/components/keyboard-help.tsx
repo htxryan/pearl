@@ -42,6 +42,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     name: "Global",
     shortcuts: [
       { key: "⌘K", description: "Open command palette" },
+      { key: "⌘F", description: "Search issues" },
       { key: "⌘Z", description: "Undo last action" },
       { key: "1", description: "Go to List view" },
       { key: "2", description: "Go to Board view" },

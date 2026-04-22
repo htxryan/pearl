@@ -28,9 +28,18 @@ describe("Header", () => {
     expect(screen.queryByRole("button", { name: /create issue/i })).not.toBeInTheDocument();
   });
 
-  it("renders the command palette shortcut hint", () => {
+  it("renders the keyboard shortcut hints", () => {
     render(<Header />);
-    expect(screen.getByText(/for command palette/)).toBeInTheDocument();
+    expect(screen.getByText(/for commands/)).toBeInTheDocument();
+    expect(screen.getByText(/to search/)).toBeInTheDocument();
+  });
+
+  it("renders the search issues button when onSearchIssues is provided", () => {
+    const onSearch = vi.fn();
+    render(<Header onSearchIssues={onSearch} />);
+    const searchButton = screen.getByRole("button", { name: /search issues/i });
+    fireEvent.click(searchButton);
+    expect(onSearch).toHaveBeenCalledOnce();
   });
 
   it("renders the notification bell", () => {

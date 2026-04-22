@@ -1,17 +1,20 @@
+import type { IssueListItem } from "@pearl/shared";
 import { Command } from "cmdk";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  closeCommandPalette,
-  useAllCommandActions,
-  useCommandPaletteOpen,
-} from "@/hooks/use-command-palette";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { closeSearchPalette, useSearchPaletteOpen } from "@/hooks/use-command-palette";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import * as api from "@/lib/api-client";
 
-export function CommandPalette() {
-  const open = useCommandPaletteOpen();
-  const actions = useAllCommandActions();
+export function SearchPalette() {
+  const open = useSearchPaletteOpen();
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [issues, setIssues] = useState<IssueListItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isVisible, setIsVisible] = useState<boolean | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -20,6 +23,7 @@ export function CommandPalette() {
     if (open) {
       setIsMounted(true);
       setSearch("");
+      setIssues([]);
       requestAnimationFrame(() => {
         setIsVisible(true);
         inputRef.current?.focus();
@@ -31,18 +35,44 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  const groups = useMemo(() => {
-    const grouped = new Map<string, typeof actions>();
-    for (const action of actions) {
-      const group = action.group ?? "Actions";
-      const existing = grouped.get(group) ?? [];
-      existing.push(action);
-      grouped.set(group, existing);
+  useEffect(() => {
+    if (!open) {
+      setIssues([]);
+      return;
     }
-    return grouped;
-  }, [actions]);
+
+    const timer = setTimeout(
+      async () => {
+        setIsSearching(true);
+        try {
+          const params = new URLSearchParams();
+          if (search.trim()) {
+            params.set("search", search.trim());
+          }
+          params.set("sort", "updated_at");
+          params.set("direction", "desc");
+          const results = await api.fetchIssues(params);
+          setIssues(results.slice(0, 10));
+        } catch {
+          setIssues([]);
+        } finally {
+          setIsSearching(false);
+        }
+      },
+      search ? 200 : 0,
+    );
+
+    return () => clearTimeout(timer);
+  }, [open, search]);
+
+  const handleIssueSelect = (id: string) => {
+    closeSearchPalette();
+    navigate(`/issues/${id}`);
+  };
 
   if (!open && !isMounted) return null;
+
+  const issueHeading = search.trim() ? `Issues matching "${search.trim()}"` : "Recent issues";
 
   const groupHeadingClass =
     "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground/70 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider";
@@ -53,13 +83,13 @@ export function CommandPalette() {
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
-          closeCommandPalette();
+          closeSearchPalette();
         }
       }}
     >
       <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-150 ${isVisible ? "opacity-100" : "opacity-0"}`}
-        onClick={closeCommandPalette}
+        onClick={closeSearchPalette}
       />
 
       <Command
@@ -83,11 +113,15 @@ export function CommandPalette() {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
           <Command.Input
             ref={inputRef}
-            placeholder="Type a command..."
+            placeholder="Search issues..."
             value={search}
             onValueChange={setSearch}
             className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
@@ -113,38 +147,28 @@ export function CommandPalette() {
 
         <Command.List className="max-h-80 overflow-auto p-2">
           <Command.Empty className="px-4 py-8 text-center">
-            <p className="text-sm text-muted-foreground">No commands found.</p>
+            <p className="text-sm text-muted-foreground">No issues found.</p>
+            <p className="mt-1 text-xs text-muted-foreground/60">Try a different search term.</p>
           </Command.Empty>
 
-          {[...groups.entries()].map(([group, groupActions]) => {
-            const filterText = search.trim().toLowerCase();
-            const filtered = filterText
-              ? groupActions.filter((a) => a.label.toLowerCase().includes(filterText))
-              : groupActions;
-            if (filtered.length === 0) return null;
-            return (
-              <Command.Group key={group} heading={group} className={groupHeadingClass}>
-                {filtered.map((action) => (
-                  <Command.Item
-                    key={action.id}
-                    value={action.label}
-                    onSelect={() => {
-                      closeCommandPalette();
-                      action.handler();
-                    }}
-                    className="flex cursor-pointer items-center justify-between rounded-[var(--radius)] px-2 py-2 text-sm transition-colors duration-100 aria-selected:bg-accent aria-selected:text-accent-foreground"
-                  >
-                    <span>{action.label}</span>
-                    {action.shortcut && (
-                      <kbd className="ml-auto rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground/70 font-mono">
-                        {action.shortcut}
-                      </kbd>
-                    )}
-                  </Command.Item>
-                ))}
-              </Command.Group>
-            );
-          })}
+          <Command.Group heading={issueHeading} className={groupHeadingClass}>
+            {isSearching && issues.length === 0 && (
+              <div className="px-2 py-2 text-sm text-muted-foreground">Searching...</div>
+            )}
+            {issues.map((issue) => (
+              <Command.Item
+                key={issue.id}
+                value={`${issue.id} ${issue.title}`}
+                onSelect={() => handleIssueSelect(issue.id)}
+                className="flex cursor-pointer items-center gap-2 rounded-[var(--radius)] px-2 py-2 text-sm transition-colors duration-100 aria-selected:bg-accent aria-selected:text-accent-foreground"
+              >
+                <PriorityIndicator priority={issue.priority} />
+                <StatusBadge status={issue.status} />
+                <span className="truncate flex-1">{issue.title}</span>
+                <code className="shrink-0 text-[11px] text-muted-foreground/60">{issue.id}</code>
+              </Command.Item>
+            ))}
+          </Command.Group>
         </Command.List>
       </Command>
     </div>

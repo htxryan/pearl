@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router";
 import {
   type CommandAction,
   toggleCommandPalette,
+  toggleSearchPalette,
   useCommandPaletteActions,
 } from "@/hooks/use-command-palette";
 import { EmbeddedModeProvider, useEmbeddedModeDetection } from "@/hooks/use-embedded-mode";
@@ -20,6 +21,7 @@ import { HealthBanner } from "./health-banner";
 import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 import { OnboardingBanner } from "./onboarding";
 import { PageTransition } from "./page-transition";
+import { SearchPalette } from "./search-palette";
 import { MobileDrawer, MobileMenuButton, Sidebar, toggleSidebar } from "./sidebar";
 import { ToastContainer } from "./toast-container";
 
@@ -32,10 +34,8 @@ export function AppShell() {
   const { setTheme } = useTheme();
   const { isEmbedded, showModal } = useEmbeddedModeDetection();
 
-  // Start polling for notification changes
   useNotificationPoller();
 
-  // Global keyboard shortcuts
   const bindings = useMemo(
     () => [
       {
@@ -43,6 +43,12 @@ export function AppShell() {
         modifiers: ["meta" as const],
         handler: () => toggleCommandPalette(),
         description: "Toggle command palette",
+      },
+      {
+        key: "f",
+        modifiers: ["meta" as const],
+        handler: () => toggleSearchPalette(),
+        description: "Toggle issue search",
       },
       {
         key: "z",
@@ -89,9 +95,15 @@ export function AppShell() {
 
   useKeyboardScope("shell", bindings);
 
-  // Register navigation commands in command palette
   const commands: CommandAction[] = useMemo(
     () => [
+      {
+        id: "search-issues",
+        label: "Search Issues",
+        shortcut: "⌘F",
+        group: "Actions",
+        handler: () => toggleSearchPalette(),
+      },
       {
         id: "nav-list",
         label: "Go to List View",
@@ -171,7 +183,6 @@ export function AppShell() {
     <EmbeddedModeProvider value={isEmbedded}>
       <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
         {showModal && <EmbeddedModeModal />}
-        {/* Skip to content link */}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
@@ -182,7 +193,6 @@ export function AppShell() {
         >
           Skip to content
         </a>
-        {/* Route change announcer for screen readers */}
         <div
           ref={announcerRef}
           role="status"
@@ -197,6 +207,7 @@ export function AppShell() {
           <Header
             mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />}
             onCreateIssue={openCreateDialog}
+            onSearchIssues={() => toggleSearchPalette()}
           />
           <OnboardingBanner />
           <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
@@ -206,6 +217,7 @@ export function AppShell() {
           </main>
         </div>
         <CommandPalette />
+        <SearchPalette />
         <CreateIssueDialog isOpen={createDialogOpen} onClose={() => setCreateDialogOpen(false)} />
         <KeyboardHelpOverlay />
         <ToastContainer />
