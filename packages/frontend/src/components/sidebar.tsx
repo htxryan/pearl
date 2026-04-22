@@ -179,6 +179,7 @@ function NavItem({
     <NavLink
       to={item.to}
       title={collapsed ? item.label : undefined}
+      aria-label={collapsed ? item.label : undefined}
       className={({ isActive }) =>
         cn(
           "flex items-center rounded-[var(--radius)] text-sm font-medium transition-colors",
@@ -198,9 +199,11 @@ function NavItem({
             {item.icon()}
             <span className="truncate">{item.label}</span>
           </span>
-          <kbd className="shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-            {item.shortcut}
-          </kbd>
+          {!mobile && (
+            <kbd className="shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+              {item.shortcut}
+            </kbd>
+          )}
         </>
       )}
     </NavLink>
@@ -222,10 +225,11 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = usePersistedState(SIDEBAR_COLLAPSED_KEY, false);
 
   useEffect(() => {
+    if (isMobile) return;
     const handler = () => setCollapsed((prev) => !prev);
     window.addEventListener(TOGGLE_EVENT, handler);
     return () => window.removeEventListener(TOGGLE_EVENT, handler);
-  }, [setCollapsed]);
+  }, [setCollapsed, isMobile]);
 
   if (isMobile) return null;
 
