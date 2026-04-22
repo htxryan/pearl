@@ -17,6 +17,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useAddComment: vi.fn(),
   useAddDependency: vi.fn(),
   useRemoveDependency: vi.fn(),
+  useHealth: () => ({ data: { project_prefix: "pearl-beads" } }),
 }));
 
 // Import the mocked hooks
@@ -153,8 +154,8 @@ describe("DetailView", () => {
 
     renderWithProviders("pearl-beads-test");
 
-    // Issue ID (short form) and title
-    expect(screen.getByText("beads-test")).toBeDefined();
+    // Issue ID (prefix-stripped form) and title
+    expect(screen.getByText("test")).toBeDefined();
     expect(screen.getByText("Test Issue")).toBeDefined();
 
     // Metadata

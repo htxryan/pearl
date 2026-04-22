@@ -1,5 +1,6 @@
 import type { Dependency, IssueListItem } from "@pearl/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
@@ -314,7 +315,7 @@ function DependencyAutocomplete({
               <PriorityIndicator priority={issue.priority} />
               <StatusBadge status={issue.status} />
               <span className="truncate flex-1">{issue.title}</span>
-              <code className="shrink-0 text-[11px] text-muted-foreground/60">{issue.id}</code>
+              <BeadId id={issue.id} className="shrink-0 text-[11px] text-muted-foreground/60" />
             </button>
           ))}
         </div>
@@ -331,7 +332,7 @@ function DependencyRow({ targetId, onRemove }: { targetId: string; onRemove: () 
     <>
       <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-1.5">
         <div className="flex items-center gap-2 min-w-0">
-          <code className="text-xs text-muted-foreground shrink-0">{targetId}</code>
+          <BeadId id={targetId} className="text-xs text-muted-foreground shrink-0" />
           {issue && (
             <>
               <StatusBadge status={issue.status} />

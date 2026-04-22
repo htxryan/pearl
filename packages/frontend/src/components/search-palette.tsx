@@ -2,6 +2,7 @@ import type { IssueListItem } from "@pearl/shared";
 import { Command } from "cmdk";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { BeadId } from "@/components/ui/bead-id";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { closeSearchPalette, useSearchPaletteOpen } from "@/hooks/use-command-palette";
@@ -193,7 +194,7 @@ export function SearchPalette() {
                 <PriorityIndicator priority={issue.priority} />
                 <StatusBadge status={issue.status} />
                 <span className="truncate flex-1">{issue.title}</span>
-                <code className="shrink-0 text-[11px] text-muted-foreground/60">{issue.id}</code>
+                <BeadId id={issue.id} className="shrink-0 text-[11px] text-muted-foreground/60" />
               </Command.Item>
             ))}
           </Command.Group>

@@ -1,5 +1,7 @@
 import type { IssueListItem } from "@pearl/shared";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 // Mock @xyflow/react — only Handle is used directly in GraphNode
@@ -10,6 +12,11 @@ vi.mock("@xyflow/react", () => ({
 }));
 
 import { GraphNode, NODE_HEIGHT, NODE_WIDTH } from "./graph-node";
+
+function withQueryClient(ui: ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={qc}>{ui}</QueryClientProvider>;
+}
 
 function makeIssue(overrides: Partial<IssueListItem> = {}): IssueListItem {
   return {
@@ -59,7 +66,7 @@ function renderNode(
     zIndex: 0,
   } as any;
 
-  return render(<GraphNode {...props} />);
+  return render(withQueryClient(<GraphNode {...props} />));
 }
 
 describe("GraphNode", () => {

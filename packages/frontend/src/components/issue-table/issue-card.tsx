@@ -1,5 +1,6 @@
 import type { IssueListItem, LabelColor } from "@pearl/shared";
 import { memo } from "react";
+import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -20,7 +21,7 @@ export const IssueCard = memo(function IssueCard({ issue, onClick }: IssueCardPr
     >
       {/* Top row: ID + Priority */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted-foreground font-mono truncate">{issue.id}</span>
+        <BeadId id={issue.id} className="text-xs text-muted-foreground font-mono truncate" />
         <PriorityIndicator priority={issue.priority} />
       </div>
 

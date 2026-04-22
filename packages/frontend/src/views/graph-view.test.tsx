@@ -49,6 +49,7 @@ vi.mock("@/lib/api-client", () => ({
 // Mock use-issues hooks
 vi.mock("@/hooks/use-issues", () => ({
   useIssues: vi.fn(),
+  useHealth: () => ({ data: { project_prefix: "beads" } }),
   issueKeys: {
     all: ["issues"],
     lists: () => ["issues", "list"],

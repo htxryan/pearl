@@ -1,6 +1,7 @@
 import type { IssueListItem, IssueStatus, LabelColor } from "@pearl/shared";
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { memo, useCallback, useState } from "react";
+import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
@@ -89,7 +90,7 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
       <div className="pl-3.5 pr-3 py-2.5">
         {/* Row 1: ID + Priority */}
         <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[10px] text-muted-foreground font-mono truncate">{issue.id}</span>
+          <BeadId id={issue.id} className="text-[10px] text-muted-foreground font-mono truncate" />
           <PriorityIndicator priority={issue.priority} />
         </div>
 

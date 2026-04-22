@@ -15,6 +15,7 @@ import { DependencyList } from "@/components/detail/dependency-list";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { Lightbox } from "@/components/detail/lightbox";
 import { MarkdownSection } from "@/components/detail/markdown-section";
+import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
 import { CloseIcon } from "@/components/ui/close-icon";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -43,7 +44,6 @@ import { useIsMobile } from "@/hooks/use-media-query";
 import { useParseField } from "@/hooks/use-parse-field";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
-import { shortId } from "@/lib/format-id";
 import {
   DetailErrorView,
   DetailSections,
@@ -367,9 +367,7 @@ function DetailViewContent({ id }: { id: string }) {
                   {backLabel}
                 </button>
                 <span className="text-muted-foreground">/</span>
-                <code className="text-muted-foreground" title={issue.id}>
-                  {shortId(issue.id)}
-                </code>
+                <BeadId id={issue.id} className="text-muted-foreground" />
               </nav>
               <StatusBadge status={issue.status} />
               <PriorityIndicator priority={issue.priority} />

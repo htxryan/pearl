@@ -1,4 +1,5 @@
 import type { IssueListItem } from "@pearl/shared";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   type ColumnOrderState,
   getCoreRowModel,
@@ -9,9 +10,19 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { buildColumns } from "./columns";
 import { IssueTable } from "./issue-table";
+
+vi.mock("@/hooks/use-issues", () => ({
+  useHealth: () => ({ data: { project_prefix: "beads" } }),
+}));
+
+function withQueryClient(ui: ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={qc}>{ui}</QueryClientProvider>;
+}
 
 const mockIssues: IssueListItem[] = [
   {
@@ -75,14 +86,14 @@ function TableWrapper({
     getRowId: (row) => row.id,
   });
 
-  return (
+  return withQueryClient(
     <IssueTable
       table={table}
       isLoading={isLoading}
       activeRowIndex={activeRowIndex}
       onRowClick={vi.fn()}
       highlightedIds={highlightedIds}
-    />
+    />,
   );
 }
 

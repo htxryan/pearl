@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import { useLocation, useNavigate } from "react-router";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
+import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
 import { CloseIcon } from "@/components/ui/close-icon";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
@@ -140,7 +141,7 @@ export function IssuePanel({ issueId, onClose, onToggleMode, currentMode }: Issu
             <StatusBadge status={issue.status} />
             <PriorityIndicator priority={issue.priority} />
             <TypeBadge type={issue.issue_type} />
-            <code className="text-[10px] text-muted-foreground">{issue.id}</code>
+            <BeadId id={issue.id} className="text-[10px] text-muted-foreground" />
           </div>
         </div>
 

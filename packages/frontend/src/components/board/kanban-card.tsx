@@ -3,10 +3,10 @@ import { CSS } from "@dnd-kit/utilities";
 import type { IssueListItem, IssueStatus, LabelColor } from "@pearl/shared";
 import { memo } from "react";
 import { AttachmentIcon } from "@/components/ui/attachment-icon";
+import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypeBadge } from "@/components/ui/type-badge";
-import { shortId } from "@/lib/format-id";
 import { cn } from "@/lib/utils";
 
 interface KanbanCardProps {
@@ -83,9 +83,7 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isBlocked }
       <div className="pl-3.5 pr-3 py-3">
         {/* Header: ID + Priority + Blocked pill */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground font-mono truncate" title={issue.id}>
-            {shortId(issue.id)}
-          </span>
+          <BeadId id={issue.id} className="text-xs text-muted-foreground font-mono truncate" />
           <div className="flex items-center gap-1.5">
             {isBlocked && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
@@ -149,9 +147,7 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
       <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusAccentColor[issue.status])} />
       <div className="pl-3.5 pr-3 py-3">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground font-mono truncate" title={issue.id}>
-            {shortId(issue.id)}
-          </span>
+          <BeadId id={issue.id} className="text-xs text-muted-foreground font-mono truncate" />
           <div className="flex items-center gap-1.5">
             {issue.has_attachments && <AttachmentIcon className="h-3.5 w-3.5" />}
             <PriorityIndicator priority={issue.priority} />

@@ -58,6 +58,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useIssues: vi.fn(),
   useUpdateIssue: () => mockUseUpdateIssue(),
   useCreateIssue: () => ({ mutate: vi.fn(), isPending: false }),
+  useHealth: () => ({ data: { project_prefix: "beads" } }),
   issueKeys: {
     all: ["issues"],
     lists: () => ["issues", "list"],

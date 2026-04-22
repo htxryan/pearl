@@ -3,6 +3,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AssigneePicker } from "@/components/ui/assignee-picker";
 import { AttachmentIcon } from "@/components/ui/attachment-icon";
+import { BeadId } from "@/components/ui/bead-id";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LabelBadge } from "@/components/ui/label-badge";
@@ -11,7 +12,6 @@ import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TypeBadge } from "@/components/ui/type-badge";
-import { shortId } from "@/lib/format-id";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -361,12 +361,10 @@ export function buildColumns({
     col.accessor("id", {
       header: "ID",
       cell: (info) => (
-        <code
+        <BeadId
+          id={info.getValue()}
           className="whitespace-nowrap text-[11px] text-muted-foreground/70"
-          title={info.getValue()}
-        >
-          {shortId(info.getValue())}
-        </code>
+        />
       ),
       size: 140,
       minSize: 120,
