@@ -62,12 +62,9 @@ export function ColumnVisibilityMenu({ table }: ColumnVisibilityMenuProps) {
       </button>
       {mounted && (
         <div
-          onTransitionEnd={() => {
-            if (!open) setMounted(false);
-          }}
           className={cn(
-            "absolute right-0 top-full mt-1 z-20 min-w-[180px] rounded border border-border bg-background p-2 shadow-lg",
-            "transition-all duration-150 ease-out origin-top-right",
+            "absolute left-0 top-full mt-1 z-20 min-w-[180px] rounded border border-border bg-background p-2 shadow-lg",
+            "transition-all duration-150 ease-out origin-top-left",
             animateIn ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-1",
           )}
         >
