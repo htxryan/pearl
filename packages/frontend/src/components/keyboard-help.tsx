@@ -42,14 +42,19 @@ function buildShortcutGroups(isMac: boolean): ShortcutGroup[] {
   const mod = isMac ? "⌘" : "Ctrl+";
   return [
     {
-      name: "Global",
+      name: "Navigation",
+      shortcuts: [
+        { key: "1", description: "Go to List view" },
+        { key: "2", description: "Go to Board view" },
+        { key: "3", description: "Go to Graph view" },
+      ],
+    },
+    {
+      name: "Actions",
       shortcuts: [
         { key: `${mod}K`, description: "Open command palette" },
         { key: `${mod}F`, description: "Search issues" },
         { key: `${mod}Z`, description: "Undo last action" },
-        { key: "1", description: "Go to List view" },
-        { key: "2", description: "Go to Board view" },
-        { key: "3", description: "Go to Graph view" },
         { key: "c", description: "Create new issue" },
         { key: "?", description: "Show keyboard shortcuts" },
       ],

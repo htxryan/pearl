@@ -34,7 +34,8 @@ test.describe("Keyboard Shortcuts", () => {
       timeout: 5_000,
     });
 
-    await expect(page.getByRole("heading", { name: "Global" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Navigation" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Actions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "List View" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Board View" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Detail View" })).toBeVisible();
@@ -117,5 +118,17 @@ test.describe("Keyboard Shortcuts", () => {
     await quickAdd.click();
     await page.keyboard.press("/");
     await expect(quickAdd).toBeFocused();
+  });
+
+  test("pressing c opens the create issue dialog", async ({ seededPage: page }) => {
+    await page.keyboard.press("c");
+    await expect(page.getByRole("dialog", { name: /create/i })).toBeVisible({ timeout: 5_000 });
+  });
+
+  test("c does not open dialog when focused on an input", async ({ seededPage: page }) => {
+    const quickAdd = page.getByPlaceholder(/quick add/i);
+    await quickAdd.click();
+    await page.keyboard.press("c");
+    await expect(page.getByRole("dialog", { name: /create/i })).not.toBeVisible({ timeout: 1_000 });
   });
 });
