@@ -271,7 +271,7 @@ jobs:
         run: pnpm test:e2e
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
@@ -279,7 +279,7 @@ jobs:
           retention-days: 14
 
       - name: Upload failure screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-failure-artifacts
