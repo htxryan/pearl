@@ -1,12 +1,7 @@
 import Fastify from "fastify";
 import { describe, expect, it } from "vitest";
 
-// Minimal route-schema regression for inline-attachment-mode field sizing.
-// Reproduces the constraint that broke beads-gui-0t2c: a 50KB inline image
-// produces ~70KB of base64+wrapping, which must be accepted by description /
-// notes / design / acceptance_criteria fields and the comment text field.
-
-const FIELD_MAX_LENGTH = 4_000_000;
+import { FIELD_MAX_LENGTH } from "./issues.js";
 
 const updateIssueSchema = {
   body: {

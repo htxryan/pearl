@@ -21,7 +21,7 @@ const ISSUE_STATUSES = ["open", "in_progress", "closed", "blocked", "deferred"];
 
 // Field size cap chosen to fit MEDIUMTEXT (~16MB) while still rejecting
 // pathological payloads. Inline base64 image attachments need >>10KB headroom.
-const FIELD_MAX_LENGTH = 4_000_000;
+export const FIELD_MAX_LENGTH = 4_000_000;
 
 const createIssueSchema = {
   body: {
@@ -175,7 +175,7 @@ export async function ensureMediumtextAttachmentFields(
   try {
     await queryWithRetry(getConfig(), async (conn) => {
       const [rows] = await conn.query<RowDataPacket[]>(
-        `SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+        `SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE
          FROM INFORMATION_SCHEMA.COLUMNS
          WHERE TABLE_SCHEMA = DATABASE()
            AND ((TABLE_NAME = 'issues' AND COLUMN_NAME IN (?, ?, ?, ?))
@@ -186,12 +186,12 @@ export async function ensureMediumtextAttachmentFields(
         TABLE_NAME: string;
         COLUMN_NAME: string;
         DATA_TYPE: string;
+        IS_NULLABLE: string;
       }>) {
         if (row.DATA_TYPE.toLowerCase() !== "text") continue;
-        // ALTER COLUMN preserves data; MEDIUMTEXT supports up to ~16MB which fits
-        // inline base64 images well within the 1MB raw maxBytes default.
+        const nullable = row.IS_NULLABLE === "YES" ? "" : " NOT NULL";
         await conn.query(
-          `ALTER TABLE \`${row.TABLE_NAME}\` MODIFY \`${row.COLUMN_NAME}\` MEDIUMTEXT NOT NULL`,
+          `ALTER TABLE \`${row.TABLE_NAME}\` MODIFY \`${row.COLUMN_NAME}\` MEDIUMTEXT${nullable}`,
         );
       }
     });
