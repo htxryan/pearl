@@ -360,12 +360,7 @@ export function buildColumns({
     }),
     col.accessor("id", {
       header: "ID",
-      cell: (info) => (
-        <BeadId
-          id={info.getValue()}
-          className="whitespace-nowrap text-[11px] text-muted-foreground/70"
-        />
-      ),
+      cell: (info) => <BeadId id={info.getValue()} className="whitespace-nowrap text-[11px]" />,
       size: 140,
       minSize: 120,
     }),

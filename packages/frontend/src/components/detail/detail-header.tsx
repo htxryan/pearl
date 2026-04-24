@@ -94,7 +94,7 @@ export function DetailHeader({
               {backLabel}
             </button>
             <span className="text-muted-foreground">/</span>
-            <BeadId id={issue.id} className="text-muted-foreground" />
+            <BeadId id={issue.id} className="text-xs" />
           </nav>
           <StatusBadge status={issue.status} />
           <PriorityIndicator priority={issue.priority} />

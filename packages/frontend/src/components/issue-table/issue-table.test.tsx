@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { buildColumns } from "./columns";
 import { IssueTable } from "./issue-table";
@@ -21,7 +22,11 @@ vi.mock("@/hooks/use-issues", () => ({
 
 function withQueryClient(ui: ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return <QueryClientProvider client={qc}>{ui}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>
+  );
 }
 
 function makeMockIssue(i: number): IssueListItem {

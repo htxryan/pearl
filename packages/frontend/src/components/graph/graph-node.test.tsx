@@ -2,6 +2,7 @@ import type { IssueListItem } from "@pearl/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 // Mock @xyflow/react — only Handle is used directly in GraphNode
@@ -15,7 +16,11 @@ import { GraphNode, NODE_HEIGHT, NODE_WIDTH } from "./graph-node";
 
 function withQueryClient(ui: ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return <QueryClientProvider client={qc}>{ui}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>
+  );
 }
 
 function makeIssue(overrides: Partial<IssueListItem> = {}): IssueListItem {
