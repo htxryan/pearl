@@ -1,6 +1,14 @@
 import type { IssueListItem, IssueStatus, LabelColor, Priority } from "@pearl/shared";
-import { createColumnHelper } from "@tanstack/react-table";
+import { createColumnHelper, type RowData } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+declare module "@tanstack/react-table" {
+  // biome-ignore lint/correctness/noUnusedVariables: required for module augmentation
+  interface ColumnMeta<TData extends RowData, TValue> {
+    flex?: boolean;
+  }
+}
+
 import { AssigneePicker } from "@/components/ui/assignee-picker";
 import { AttachmentIcon } from "@/components/ui/attachment-icon";
 import { BeadId } from "@/components/ui/bead-id";
@@ -95,7 +103,7 @@ function InlineTitleEditor({
 
   return (
     <span
-      className="font-medium truncate max-w-[400px] block"
+      className="min-w-0 flex-1 font-medium truncate block"
       onDoubleClick={(e) => {
         e.stopPropagation();
         setIsEditing(true);
@@ -361,8 +369,7 @@ export function buildColumns({
     col.accessor("id", {
       header: "ID",
       cell: (info) => <BeadId id={info.getValue()} className="whitespace-nowrap text-[11px]" />,
-      size: 140,
-      minSize: 120,
+      enableResizing: false,
     }),
     col.accessor("title", {
       header: "Title",
@@ -371,7 +378,7 @@ export function buildColumns({
         const progress = epicProgress?.get(issue.id);
         const isExpanded = expandedEpics?.has(issue.id);
         return (
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 w-full">
             {progress && onToggleExpand && (
               <button
                 onClick={(e) => {
@@ -391,7 +398,7 @@ export function buildColumns({
                 onTitleChange={onTitleChange}
               />
             ) : (
-              <span className="font-medium truncate max-w-[400px] block">{info.getValue()}</span>
+              <span className="min-w-0 flex-1 font-medium truncate block">{info.getValue()}</span>
             )}
             {progress && (
               <span
@@ -405,7 +412,9 @@ export function buildColumns({
         );
       },
       size: 320,
-      minSize: 150,
+      minSize: 40,
+      enableResizing: true,
+      meta: { flex: true },
     }),
     col.accessor("status", {
       header: "Status",
@@ -431,7 +440,7 @@ export function buildColumns({
         }
         return <StatusBadge status={status} />;
       },
-      size: 120,
+      enableResizing: false,
     }),
     col.accessor("priority", {
       header: "Priority",
@@ -463,12 +472,12 @@ export function buildColumns({
         }
         return <PriorityIndicator priority={priority} />;
       },
-      size: 80,
+      enableResizing: false,
     }),
     col.accessor("issue_type", {
       header: "Type",
       cell: (info) => <TypePill type={info.getValue()} />,
-      size: 80,
+      enableResizing: false,
     }),
     col.accessor("assignee", {
       header: "Assignee",
@@ -489,14 +498,14 @@ export function buildColumns({
           <span className="text-xs text-muted-foreground/50 italic">—</span>
         );
       },
-      size: 120,
+      enableResizing: false,
     }),
     col.accessor("created_at", {
       header: "Created",
       cell: (info) => (
         <RelativeTime iso={info.getValue()} className="text-xs text-muted-foreground" />
       ),
-      size: 90,
+      enableResizing: false,
     }),
     col.accessor("due_at", {
       header: "Due",
@@ -520,7 +529,7 @@ export function buildColumns({
           </span>
         );
       },
-      size: 90,
+      enableResizing: false,
     }),
     col.accessor("labels", {
       header: "Labels",
@@ -554,14 +563,14 @@ export function buildColumns({
           </div>
         );
       },
-      size: 160,
+      enableResizing: false,
       enableSorting: false,
     }),
     col.accessor("has_attachments", {
       id: "has_attachments",
       header: () => <AttachmentIcon />,
       cell: (info) => (info.getValue() ? <AttachmentIcon /> : null),
-      size: 40,
+      enableResizing: false,
       enableSorting: false,
     }),
   ];

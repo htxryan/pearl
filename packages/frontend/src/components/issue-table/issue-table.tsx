@@ -4,6 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
+import { getCellStyle, getColumnStyle } from "./column-style";
 
 const ROW_HEIGHT = 41; // px – matches py-2.5 + border
 const VIRTUALIZATION_THRESHOLD = 100;
@@ -61,7 +62,7 @@ function TableHeader({ table }: { table: Table<IssueListItem> }) {
                 "relative px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider select-none",
                 header.column.getCanSort() && "cursor-pointer hover:text-foreground",
               )}
-              style={{ width: header.getSize() }}
+              style={getColumnStyle(header, table)}
               onClick={header.column.getToggleSortingHandler()}
             >
               <div className="flex items-center gap-1">
@@ -94,6 +95,7 @@ function TableHeader({ table }: { table: Table<IssueListItem> }) {
 
 function TableRow({
   row,
+  table,
   index,
   activeRowIndex,
   highlightedIds,
@@ -104,6 +106,7 @@ function TableRow({
   style,
 }: {
   row: Row<IssueListItem>;
+  table: Table<IssueListItem>;
   index: number;
   activeRowIndex: number;
   highlightedIds?: Set<string>;
@@ -131,7 +134,7 @@ function TableRow({
       aria-selected={index === activeRowIndex}
     >
       {row.getVisibleCells().map((cell) => (
-        <td key={cell.id} className="px-3 py-2.5" style={{ width: cell.column.getSize() }}>
+        <td key={cell.id} className="px-3 py-2.5" style={getCellStyle(cell, table)}>
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </td>
       ))}
@@ -212,7 +215,7 @@ export function IssueTable({
                 <th
                   key={header.id}
                   className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                  style={{ width: header.getSize() }}
+                  style={getColumnStyle(header, table)}
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
                 </th>
@@ -263,6 +266,7 @@ export function IssueTable({
                 <TableRow
                   key={row.id}
                   row={row}
+                  table={table}
                   index={virtualRow.index}
                   activeRowIndex={activeRowIndex}
                   highlightedIds={highlightedIds}
@@ -304,6 +308,7 @@ export function IssueTable({
             <TableRow
               key={row.id}
               row={row}
+              table={table}
               index={index}
               activeRowIndex={activeRowIndex}
               highlightedIds={highlightedIds}

@@ -2,6 +2,7 @@ import type { IssueListItem, IssueStatus, IssueType, Priority } from "@pearl/sha
 import { flexRender, type Row, type Table } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { getCellStyle, getColumnStyle } from "./column-style";
 import type { GroupByField } from "./filter-bar";
 
 const PRIORITY_LABELS: Record<Priority, string> = { 0: "P0", 1: "P1", 2: "P2", 3: "P3", 4: "P4" };
@@ -114,7 +115,7 @@ export function GroupedIssueTable({
                 <th
                   key={header.id}
                   className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                  style={{ width: header.getSize() }}
+                  style={getColumnStyle(header, table)}
                 >
                   {header.isPlaceholder
                     ? null
@@ -159,7 +160,7 @@ export function GroupedIssueTable({
                   "relative px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider select-none",
                   header.column.getCanSort() && "cursor-pointer hover:text-foreground",
                 )}
-                style={{ width: header.getSize() }}
+                style={getColumnStyle(header, table)}
                 onClick={header.column.getToggleSortingHandler()}
               >
                 {header.isPlaceholder
@@ -185,6 +186,7 @@ export function GroupedIssueTable({
                 key={group.key}
                 group={group}
                 rows={groupRows}
+                table={table}
                 isCollapsed={isCollapsed}
                 onToggle={() => toggleGroup(group.key)}
                 colCount={colCount}
@@ -203,6 +205,7 @@ export function GroupedIssueTable({
 function GroupSection({
   group,
   rows,
+  table,
   isCollapsed,
   onToggle,
   colCount,
@@ -212,6 +215,7 @@ function GroupSection({
 }: {
   group: IssueGroup;
   rows: ReturnType<Table<IssueListItem>["getRowModel"]>["rows"];
+  table: Table<IssueListItem>;
   isCollapsed: boolean;
   onToggle: () => void;
   colCount: number;
@@ -265,7 +269,7 @@ function GroupSection({
               onMouseEnter={() => onRowHover?.(row.original.id)}
             >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-3 py-2.5" style={{ width: cell.column.getSize() }}>
+                <td key={cell.id} className="px-3 py-2.5" style={getCellStyle(cell, table)}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
