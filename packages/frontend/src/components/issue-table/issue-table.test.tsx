@@ -24,6 +24,25 @@ function withQueryClient(ui: ReactElement) {
   return <QueryClientProvider client={qc}>{ui}</QueryClientProvider>;
 }
 
+function makeMockIssue(i: number): IssueListItem {
+  return {
+    id: `beads-${String(i).padStart(3, "0")}`,
+    title: `Issue ${i}`,
+    status: "open",
+    priority: 2,
+    issue_type: "task",
+    assignee: null,
+    owner: "alice",
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    due_at: null,
+    pinned: false,
+    has_attachments: false,
+    labels: [],
+    labelColors: {},
+  };
+}
+
 const mockIssues: IssueListItem[] = [
   {
     id: "beads-001",
@@ -165,5 +184,21 @@ describe("IssueTable", () => {
     render(<TableWrapper />);
 
     expect(screen.getByRole("table")).toHaveAttribute("aria-label", "Issue list");
+  });
+
+  it("renders all rows for lists at the 100-item threshold (non-virtualized)", () => {
+    const data = Array.from({ length: 100 }, (_, i) => makeMockIssue(i));
+    render(<TableWrapper data={data} />);
+    const rows = document.querySelectorAll("tbody tr");
+    expect(rows.length).toBe(100);
+  });
+
+  it("virtualizes lists above the 100-item threshold — DOM rows < data rows", () => {
+    const data = Array.from({ length: 101 }, (_, i) => makeMockIssue(i));
+    render(<TableWrapper data={data} />);
+    const rows = document.querySelectorAll("tbody tr");
+    // In virtualized mode the DOM holds only the visible window (+ overscan),
+    // not all 101 rows. jsdom has no real viewport so visible=0 + overscan=20 = ~20.
+    expect(rows.length).toBeLessThan(101);
   });
 });

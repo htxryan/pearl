@@ -20,10 +20,9 @@ test.describe("Prefetch on hover", () => {
     const firstRow = table.locator("tbody tr").first();
     await expect(firstRow).toBeVisible();
 
-    // Get the issue ID from the row (second cell contains ID)
-    const idCell = firstRow.locator("td").nth(1);
-    const issueId = (await idCell.textContent())?.trim() ?? "";
-    expect(issueId.length).toBeGreaterThan(0);
+    // Get the full issue ID from the data-issue-id attribute (displayed ID is stripped)
+    const issueId = await firstRow.getAttribute("data-issue-id");
+    expect(issueId).toBeTruthy();
 
     // Listen for the detail API call
     const prefetchPromise = page.waitForRequest(
@@ -48,9 +47,9 @@ test.describe("Prefetch on hover", () => {
     const firstRow = table.locator("tbody tr").first();
     await expect(firstRow).toBeVisible();
 
-    // Get the issue ID
-    const idCell = firstRow.locator("td").nth(1);
-    const issueId = (await idCell.textContent())?.trim() ?? "";
+    // Get the full issue ID from data-issue-id (displayed ID is stripped)
+    const issueId = await firstRow.getAttribute("data-issue-id");
+    expect(issueId).toBeTruthy();
 
     // Hover to trigger prefetch
     await firstRow.hover();
@@ -61,19 +60,22 @@ test.describe("Prefetch on hover", () => {
       { timeout: 5_000 },
     );
 
-    // Now click — the detail should load instantly from React Query cache
+    // Now click — the in-place panel should open immediately from React Query cache
     const startTime = Date.now();
-    await firstRow.locator("td").nth(2).click();
-    await page.waitForURL("**/issues/**");
+    await firstRow.click();
 
-    // The detail heading should appear almost immediately (from cache)
-    const heading = page.locator("h1").first();
-    await expect(heading).toBeVisible({ timeout: 3_000 });
+    // Row clicks open the in-place detail panel (not URL navigation)
+    const closeBtn = page.getByRole("button", { name: "Close panel" });
+    await expect(closeBtn).toBeVisible({ timeout: 3_000 });
+
+    // The panel title (h2) should be visible from cached data
+    const panelTitle = page.locator("h2").first();
+    await expect(panelTitle).toBeVisible({ timeout: 3_000 });
     const loadTime = Date.now() - startTime;
 
     await page.screenshot({ path: `${PROOF_DIR}/08-instant-detail-from-cache.png` });
 
-    // The cached load should be fast (under 1s, typically <100ms)
+    // The cached load should be fast (under 2s, typically <100ms)
     expect(loadTime).toBeLessThan(2000);
   });
 });
