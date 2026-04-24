@@ -16,7 +16,7 @@ export type Direction = "left" | "right" | "drill-in" | "drill-out" | "fade";
 
 export function getDirection(from: string, to: string): Direction {
   // Settings always fades
-  if (to === "/settings" || from === "/settings") return "fade";
+  if (to.startsWith("/settings") || from.startsWith("/settings")) return "fade";
 
   const toIsDetail = to.startsWith("/issues/");
   const fromIsDetail = from.startsWith("/issues/");

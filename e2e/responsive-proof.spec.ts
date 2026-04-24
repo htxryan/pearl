@@ -282,7 +282,9 @@ test.describe("No horizontal overflow", () => {
     test(`${name} (${vp.width}px): no horizontal scroll on /settings`, async ({ page }) => {
       await page.setViewportSize(vp);
       await seedAndNavigate(page, "/settings");
-      await expect(page.getByText("Appearance")).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByRole("heading", { name: "Appearance", level: 2 })).toBeVisible({
+        timeout: 15_000,
+      });
 
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
@@ -301,8 +303,10 @@ test.describe("No horizontal overflow", () => {
 test.describe("Settings theme grid adapts", () => {
   test("375px: theme cards single column", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.mobile);
-    await seedAndNavigate(page, "/settings");
-    await expect(page.getByText("Appearance")).toBeVisible({ timeout: 15_000 });
+    await seedAndNavigate(page, "/settings/appearance");
+    await expect(page.getByRole("heading", { name: "Appearance", level: 2 })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // Verify theme grid renders as single column at 375px
     const themeGrid = page.getByRole("group", { name: "Available themes" });
@@ -322,8 +326,10 @@ test.describe("Settings theme grid adapts", () => {
 
   test("1440px: theme cards multi-column", async ({ page }) => {
     await page.setViewportSize(VIEWPORTS.desktop_lg);
-    await seedAndNavigate(page, "/settings");
-    await expect(page.getByText("Appearance")).toBeVisible({ timeout: 15_000 });
+    await seedAndNavigate(page, "/settings/appearance");
+    await expect(page.getByRole("heading", { name: "Appearance", level: 2 })).toBeVisible({
+      timeout: 15_000,
+    });
 
     // Verify theme grid renders multiple columns at 1440px
     const themeGrid = page.getByRole("group", { name: "Available themes" });

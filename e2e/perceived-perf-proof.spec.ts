@@ -121,7 +121,7 @@ test.describe("Code splitting & lazy loading", () => {
     // Navigate to settings
     const sidebar = page.locator("aside");
     await sidebar.getByRole("link", { name: /settings/i }).click();
-    await page.waitForURL("**/settings");
+    await page.waitForURL(/\/settings(\/|$)/);
 
     // Wait for the lazy chunk to load
     await page.waitForTimeout(500);
@@ -244,7 +244,7 @@ test.describe("Stale-while-revalidate", () => {
     // Navigate away to settings
     const sidebar = page.locator("aside");
     await sidebar.getByRole("link", { name: /settings/i }).click();
-    await page.waitForURL("**/settings");
+    await page.waitForURL(/\/settings(\/|$)/);
 
     await page.screenshot({ path: `${PROOF_DIR}/16-swr-navigated-away.png` });
 

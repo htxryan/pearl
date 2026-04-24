@@ -17,6 +17,15 @@ const DetailView = lazy(() =>
 const SettingsView = lazy(() =>
   import("@/views/settings-view").then((m) => ({ default: m.SettingsView })),
 );
+const AppearanceSettingsTab = lazy(() =>
+  import("@/views/settings-view").then((m) => ({ default: m.AppearanceSettingsTab })),
+);
+const AttachmentsSettingsTab = lazy(() =>
+  import("@/views/settings-view").then((m) => ({ default: m.AttachmentsSettingsTab })),
+);
+const NotificationsSettingsTab = lazy(() =>
+  import("@/views/settings-view").then((m) => ({ default: m.NotificationsSettingsTab })),
+);
 const NotFoundView = lazy(() =>
   import("@/views/not-found-view").then((m) => ({ default: m.NotFoundView })),
 );
@@ -71,7 +80,33 @@ export function App() {
                       <SettingsView />
                     </Suspense>
                   }
-                />
+                >
+                  <Route index element={<Navigate to="/settings/appearance" replace />} />
+                  <Route
+                    path="appearance"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <AppearanceSettingsTab />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="attachments"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <AttachmentsSettingsTab />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="notifications"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <NotificationsSettingsTab />
+                      </Suspense>
+                    }
+                  />
+                </Route>
                 <Route
                   path="*"
                   element={

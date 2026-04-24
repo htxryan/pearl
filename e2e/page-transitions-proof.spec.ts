@@ -78,7 +78,7 @@ test.describe("Route transitions", () => {
     await page.waitForTimeout(50);
     await page.screenshot({ path: `${PROOF_DIR}/08-list-to-settings-mid-fade.png` });
 
-    await page.waitForURL("**/settings");
+    await page.waitForURL(/\/settings(\/|$)/);
     await page.waitForTimeout(300);
     await page.screenshot({ path: `${PROOF_DIR}/09-settings-view.png` });
   });

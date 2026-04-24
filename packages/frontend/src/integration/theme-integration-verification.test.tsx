@@ -206,7 +206,12 @@ import { solarizedDark } from "@/themes/definitions/solarized-dark";
 import { solarizedLight } from "@/themes/definitions/solarized-light";
 import { COLOR_TOKENS } from "@/themes/types";
 import { ListView } from "@/views/list-view";
-import { SettingsView } from "@/views/settings-view";
+import {
+  AppearanceSettingsTab,
+  AttachmentsSettingsTab,
+  NotificationsSettingsTab,
+  SettingsView,
+} from "@/views/settings-view";
 
 // ─── Derived constants (avoid magic numbers in assertions) ──
 const EXPECTED_THEME_COUNT = getAllThemes().length;
@@ -228,7 +233,12 @@ function renderApp(initialPath = "/list") {
           <Route element={<AppShell />}>
             <Route index element={<Navigate to="/list" replace />} />
             <Route path="list" element={<ListView />} />
-            <Route path="settings" element={<SettingsView />} />
+            <Route path="settings" element={<SettingsView />}>
+              <Route index element={<Navigate to="/settings/appearance" replace />} />
+              <Route path="appearance" element={<AppearanceSettingsTab />} />
+              <Route path="attachments" element={<AttachmentsSettingsTab />} />
+              <Route path="notifications" element={<NotificationsSettingsTab />} />
+            </Route>
             <Route path="*" element={<Navigate to="/list" replace />} />
           </Route>
         </Routes>
