@@ -61,7 +61,7 @@ test.describe("Optimistic mutations", () => {
     expect(updatedStatus).not.toBe(originalStatus);
 
     release();
-    await page.unrouteAll();
+    // No unrouteAll — each test has a fresh page; routes are torn down automatically.
   });
 
   test("failed status change rolls back to original value", async ({ seededPage: page }) => {
@@ -89,8 +89,6 @@ test.describe("Optimistic mutations", () => {
 
     // After rollback the combobox should show the original value again
     await expect(statusCombobox).toHaveText(originalStatus!, { timeout: 5_000 });
-
-    await page.unrouteAll();
   });
 
   test("priority change updates UI before network responds", async ({ seededPage: page }) => {
@@ -110,6 +108,6 @@ test.describe("Optimistic mutations", () => {
     expect(updatedPriority).not.toBe(originalPriority);
 
     release();
-    await page.unrouteAll();
+    // No unrouteAll — each test has a fresh page; routes are torn down automatically.
   });
 });
