@@ -19,6 +19,7 @@ import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useParseField } from "@/hooks/use-parse-field";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
+import { markIssueOpened } from "@/lib/issue-recency";
 
 const VIEW_LABELS: Record<string, string> = {
   "/list": "List",
@@ -53,6 +54,10 @@ export function useDetailView(id: string, options: UseDetailViewOptions = {}) {
   const { data: comments = [] } = useComments(id);
   const { data: events = [] } = useEvents(id);
   const { data: dependencies = [] } = useDependencies(id);
+
+  useEffect(() => {
+    if (issue?.id) markIssueOpened(issue.id);
+  }, [issue?.id]);
 
   const descParsed = useParseField(issue?.description);
   const designParsed = useParseField(issue?.design);

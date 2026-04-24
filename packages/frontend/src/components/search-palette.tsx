@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { closeSearchPalette, useSearchPaletteOpen } from "@/hooks/use-command-palette";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import * as api from "@/lib/api-client";
+import { getRecencyMap, markIssueOpened, sortByRecency } from "@/lib/issue-recency";
 
 export function SearchPalette() {
   const open = useSearchPaletteOpen();
@@ -57,18 +58,25 @@ export function SearchPalette() {
         abortRef.current = controller;
 
         const params = new URLSearchParams();
+        const isEmptyQuery = !search.trim();
         if (search.trim()) {
           params.set("search", search.trim());
         }
         params.set("sort", "updated_at");
         params.set("direction", "desc");
-        params.set("limit", "10");
+        // For the empty-query "Recent issues" list we re-rank locally by
+        // last-opened (viewed-or-modified) — fetch a larger pool so locally
+        // recent issues that have a stale server updated_at can still surface.
+        params.set("limit", isEmptyQuery ? "100" : "10");
 
         api
           .fetchIssues(params)
           .then((results) => {
             if (!controller.signal.aborted) {
-              setIssues(results.slice(0, 10));
+              const ranked = isEmptyQuery
+                ? sortByRecency(results, getRecencyMap()).slice(0, 10)
+                : results.slice(0, 10);
+              setIssues(ranked);
               setIsSearching(false);
             }
           })
@@ -90,6 +98,7 @@ export function SearchPalette() {
   }, [open, search]);
 
   const handleIssueSelect = (id: string) => {
+    markIssueOpened(id);
     closeSearchPalette();
     navigate(`/issues/${id}`);
   };
