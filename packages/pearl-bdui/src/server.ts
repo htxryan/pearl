@@ -109,7 +109,9 @@ export async function createServer(initialConfig: Config) {
   // ─── Content type ─────────────────────────────────────
   app.addContentTypeParser(
     "application/json",
-    { parseAs: "string", bodyLimit: 1048576 },
+    // 8MB caps inline-attachment PATCH bodies (base64 image + prose) without
+    // letting pathological payloads through. See FIELD_MAX_LENGTH in routes/issues.ts.
+    { parseAs: "string", bodyLimit: 8 * 1024 * 1024 },
     (_req, body, done) => {
       try {
         const json = body ? JSON.parse(body as string) : {};

@@ -19,13 +19,17 @@ import { fetchLabelColors } from "./labels.js";
 const ISSUE_TYPES = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
 const ISSUE_STATUSES = ["open", "in_progress", "closed", "blocked", "deferred"];
 
+// Field size cap chosen to fit MEDIUMTEXT (~16MB) while still rejecting
+// pathological payloads. Inline base64 image attachments need >>10KB headroom.
+const FIELD_MAX_LENGTH = 4_000_000;
+
 const createIssueSchema = {
   body: {
     type: "object",
     required: ["title"],
     properties: {
       title: { type: "string", minLength: 1, maxLength: 500 },
-      description: { type: "string", maxLength: 10000 },
+      description: { type: "string", maxLength: FIELD_MAX_LENGTH },
       issue_type: { type: "string", enum: ISSUE_TYPES },
       priority: { type: "integer", minimum: 0, maximum: 4 },
       assignee: { type: "string", maxLength: 200 },
@@ -47,7 +51,7 @@ const updateIssueSchema = {
     type: "object",
     properties: {
       title: { type: "string", minLength: 1, maxLength: 500 },
-      description: { type: "string", maxLength: 10000 },
+      description: { type: "string", maxLength: FIELD_MAX_LENGTH },
       status: { type: "string", enum: ISSUE_STATUSES },
       priority: { type: "integer", minimum: 0, maximum: 4 },
       issue_type: { type: "string", enum: ISSUE_TYPES },
@@ -58,9 +62,9 @@ const updateIssueSchema = {
         maxLength: 30,
         pattern: "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}(:\\d{2})?)?$",
       },
-      notes: { type: "string", maxLength: 10000 },
-      design: { type: "string", maxLength: 10000 },
-      acceptance_criteria: { type: "string", maxLength: 10000 },
+      notes: { type: "string", maxLength: FIELD_MAX_LENGTH },
+      design: { type: "string", maxLength: FIELD_MAX_LENGTH },
+      acceptance_criteria: { type: "string", maxLength: FIELD_MAX_LENGTH },
       claim: { type: "boolean" },
       pinned: { type: "boolean" },
       estimated_minutes: { type: ["integer", "null"], minimum: 0, maximum: 525600 },
@@ -135,7 +139,7 @@ const addCommentSchema = {
     type: "object",
     required: ["text"],
     properties: {
-      text: { type: "string", minLength: 1, maxLength: 10000 },
+      text: { type: "string", minLength: 1, maxLength: FIELD_MAX_LENGTH },
     },
     additionalProperties: false,
   },
@@ -161,6 +165,41 @@ export async function ensureHasAttachmentsColumn(
   }
 }
 
+// TEXT (64KB) is too small for inline base64 image attachments — promote to
+// MEDIUMTEXT (16MB). Idempotent: only runs ALTER if a target column is still TEXT.
+export async function ensureMediumtextAttachmentFields(
+  getConfig: () => Config,
+  log?: { warn: (obj: unknown, msg: string) => void },
+): Promise<void> {
+  const issueCols = ["description", "design", "acceptance_criteria", "notes"] as const;
+  try {
+    await queryWithRetry(getConfig(), async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND ((TABLE_NAME = 'issues' AND COLUMN_NAME IN (?, ?, ?, ?))
+             OR (TABLE_NAME = 'comments' AND COLUMN_NAME = 'text'))`,
+        [...issueCols],
+      );
+      for (const row of rows as Array<{
+        TABLE_NAME: string;
+        COLUMN_NAME: string;
+        DATA_TYPE: string;
+      }>) {
+        if (row.DATA_TYPE.toLowerCase() !== "text") continue;
+        // ALTER COLUMN preserves data; MEDIUMTEXT supports up to ~16MB which fits
+        // inline base64 images well within the 1MB raw maxBytes default.
+        await conn.query(
+          `ALTER TABLE \`${row.TABLE_NAME}\` MODIFY \`${row.COLUMN_NAME}\` MEDIUMTEXT NOT NULL`,
+        );
+      }
+    });
+  } catch (err) {
+    log?.warn({ err }, "ensureMediumtextAttachmentFields failed — columns unchanged");
+  }
+}
+
 export function registerIssueRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
@@ -168,6 +207,7 @@ export function registerIssueRoutes(
 ): void {
   app.addHook("onReady", async () => {
     await ensureHasAttachmentsColumn(getConfig, app.log);
+    await ensureMediumtextAttachmentFields(getConfig, app.log);
   });
   // GET /api/issues — list with filtering, sorting, column projection
   app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
