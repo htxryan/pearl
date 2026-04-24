@@ -36,10 +36,13 @@ export function useDetailView(id: string, options: UseDetailViewOptions = {}) {
   const location = useLocation();
   const { onExit } = options;
 
-  const fromPath = (location.state as { from?: string } | null)?.from;
+  const isInlineMode = !!onExit;
+  const fromPath = isInlineMode ? undefined : (location.state as { from?: string } | null)?.from;
   const fromPathname = fromPath?.split("?")[0];
   const backPath = fromPathname && VIEW_LABELS[fromPathname] ? fromPath! : "/list";
-  const backLabel = (fromPathname && VIEW_LABELS[fromPathname]) || VIEW_LABELS[backPath] || "List";
+  const backLabel = isInlineMode
+    ? VIEW_LABELS[location.pathname] || "List"
+    : (fromPathname && VIEW_LABELS[fromPathname]) || VIEW_LABELS[backPath] || "List";
 
   const exitDetail = useCallback(() => {
     if (onExit) onExit();

@@ -1,6 +1,6 @@
 import type { LabelColor } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { AttachmentsGallery } from "@/components/detail/attachments-gallery";
 import { CommentThread } from "@/components/detail/comment-thread";
@@ -14,6 +14,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
+import type { CloseGuard } from "@/hooks/use-detail-panel";
 import { useIsMobile } from "@/hooks/use-media-query";
 import {
   DetailErrorView,
@@ -41,6 +42,8 @@ export interface IssueDetailProps {
   currentMode?: "panel" | "modal";
   /** When provided, shows an "Expand" button that opens the full-page route. */
   onExpand?: () => void;
+  /** Register a guard that is checked before the container closes or switches issues. */
+  onSetCloseGuard?: (guard: CloseGuard | null) => void;
 }
 
 export function IssueDetail({
@@ -49,6 +52,7 @@ export function IssueDetail({
   onToggleMode,
   currentMode,
   onExpand,
+  onSetCloseGuard,
 }: IssueDetailProps) {
   const isMobile = useIsMobile();
 
@@ -82,6 +86,20 @@ export function IssueDetail({
     handleClaim,
     handleNavigateBack,
   } = useDetailView(id, { onExit: onClose });
+
+  const isDirtyRef = useRef(isDirty);
+  isDirtyRef.current = isDirty;
+
+  useEffect(() => {
+    if (!onSetCloseGuard) return;
+    onSetCloseGuard(() => {
+      if (isDirtyRef.current) {
+        return window.confirm("You have unsaved changes. Discard them?");
+      }
+      return true;
+    });
+    return () => onSetCloseGuard(null);
+  }, [onSetCloseGuard]);
 
   if (isLoading) return <DetailSkeleton />;
 

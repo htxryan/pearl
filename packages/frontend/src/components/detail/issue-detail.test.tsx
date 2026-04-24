@@ -145,13 +145,13 @@ describe("IssueDetail (shared component)", () => {
     expect(screen.getByRole("button", { name: /expand/i })).toBeDefined();
   });
 
-  it("close panel button is present in both contexts", () => {
-    // Full-page
+  it("close button has context-aware aria-label", () => {
+    // Full-page → "Close detail view"
     const { unmount } = renderDetail(<IssueDetail id="pearl-beads-test" />);
-    expect(screen.getByLabelText("Close panel")).toBeDefined();
+    expect(screen.getByLabelText("Close detail view")).toBeDefined();
     unmount();
 
-    // Modal/panel
+    // Modal/panel → "Close panel"
     renderDetail(
       <IssueDetail
         id="pearl-beads-test"

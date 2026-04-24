@@ -146,7 +146,7 @@ export function DetailHeader({
             variant="ghost"
             size="sm"
             onClick={onNavigateBack}
-            aria-label="Close panel"
+            aria-label={currentMode ? "Close panel" : "Close detail view"}
             title="Close (Esc)"
           >
             <CloseIcon />
