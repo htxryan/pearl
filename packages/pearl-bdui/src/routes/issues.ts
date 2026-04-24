@@ -229,8 +229,8 @@ export function registerIssueRoutes(
 
     // Filter: search (title + description full-text)
     if (query.search) {
-      sql += ` AND (i.title LIKE ? OR i.description LIKE ?)`;
-      const escaped = query.search.replace(/[%_\\]/g, "\\$&");
+      sql += ` AND (LOWER(i.title) LIKE ? OR LOWER(i.description) LIKE ?)`;
+      const escaped = query.search.toLowerCase().replace(/[%_\\]/g, "\\$&");
       const searchTerm = `%${escaped}%`;
       params.push(searchTerm, searchTerm);
     }
