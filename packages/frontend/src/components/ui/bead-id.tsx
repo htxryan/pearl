@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useHealth } from "@/hooks/use-issues";
 import { displayId } from "@/lib/format-id";
 import { cn } from "@/lib/utils";
@@ -7,19 +7,12 @@ import { cn } from "@/lib/utils";
 interface BeadIdProps {
   id: string;
   className?: string;
-  /**
-   * When false, renders a visual-only pill (no link, no copy button).
-   * Use for contexts where the pill is nested inside an already-clickable
-   * parent (e.g. a card button or command-palette row) where nested
-   * interactive controls would be confusing.
-   */
   interactive?: boolean;
 }
 
 export function BeadId({ id, className, interactive = true }: BeadIdProps) {
   const { data: health } = useHealth();
   const label = displayId(id, health?.project_prefix);
-  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -32,7 +25,6 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
   const pillBase =
     "inline-flex items-center gap-1 rounded-full bg-muted/60 px-1.5 py-0.5 font-mono align-middle max-w-full";
 
-  // Visual-only pill (no click handlers) — used inside clickable parents.
   if (!interactive) {
     return (
       <span
@@ -46,19 +38,12 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
     );
   }
 
-  function handleLinkClick(e: React.MouseEvent | React.KeyboardEvent) {
+  function handleCopyClick(e: React.MouseEvent) {
     e.stopPropagation();
-    if ("preventDefault" in e) e.preventDefault();
-    navigate(`/issues/${encodeURIComponent(id)}`);
-  }
-
-  function handleCopyClick(e: React.MouseEvent | React.KeyboardEvent) {
-    e.stopPropagation();
-    if ("preventDefault" in e) e.preventDefault();
-    const writer = navigator.clipboard?.writeText;
-    if (!writer) return;
-    writer
-      .call(navigator.clipboard, id)
+    e.preventDefault();
+    if (!navigator.clipboard?.writeText) return;
+    navigator.clipboard
+      .writeText(id)
       .then(() => {
         setCopied(true);
         if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -67,55 +52,35 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
       .catch(() => {});
   }
 
-  if (copied) {
-    return (
-      <span
-        className={cn(
-          pillBase,
-          "text-success-foreground bg-success/20 dark:bg-success/30",
-          className,
-        )}
-        role="status"
-        aria-live="polite"
-      >
-        <CheckIcon className="shrink-0" />
-        <span>Copied</span>
-      </span>
-    );
-  }
-
   return (
     <span
-      className={cn(pillBase, "text-muted-foreground", className)}
+      className={cn(
+        pillBase,
+        "text-muted-foreground",
+        copied && "bg-success/20 dark:bg-success/30",
+        className,
+      )}
       title={id}
       data-bead-id-pill=""
     >
       <TagIcon className="shrink-0 opacity-70" aria-hidden="true" />
-      <span
-        role="link"
-        tabIndex={0}
-        onClick={handleLinkClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") handleLinkClick(e);
-        }}
-        className="truncate cursor-pointer hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
+      <Link
+        to={`/issues/${encodeURIComponent(id)}`}
+        onClick={(e) => e.stopPropagation()}
+        className="truncate hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
         aria-label={`Open ${id}`}
       >
         {label || id}
-      </span>
-      <span
-        role="button"
-        tabIndex={0}
+      </Link>
+      <button
+        type="button"
         onClick={handleCopyClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") handleCopyClick(e);
-        }}
         className="shrink-0 inline-flex items-center justify-center opacity-60 hover:opacity-100 hover:text-foreground cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
-        aria-label={`Copy ${id}`}
-        title={`Copy ${id}`}
+        aria-label={copied ? `Copied ${id}` : `Copy ${id}`}
+        title={copied ? `Copied ${id}` : `Copy ${id}`}
       >
-        <CopyIcon />
-      </span>
+        {copied ? <CheckIcon /> : <CopyIcon />}
+      </button>
     </span>
   );
 }

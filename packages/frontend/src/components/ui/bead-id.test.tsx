@@ -123,12 +123,12 @@ describe("BeadId", () => {
       fireEvent.click(copyBtn);
       await Promise.resolve();
     });
-    expect(screen.getByText("Copied")).toBeDefined();
+    expect(screen.getByRole("button", { name: /Copied beads-gui-abc/ })).toBeDefined();
+    expect(screen.getByText("abc")).toBeDefined();
     await act(async () => {
       vi.advanceTimersByTime(2100);
     });
-    expect(screen.queryByText("Copied")).toBeNull();
-    expect(screen.getByText("abc")).toBeDefined();
+    expect(screen.getByRole("button", { name: /Copy beads-gui-abc/ })).toBeDefined();
   });
 
   it("applies custom className to the pill wrapper", () => {
@@ -199,19 +199,27 @@ describe("BeadId", () => {
     }).not.toThrow();
   });
 
-  it("activates link on Enter key", () => {
+  it("renders link with correct href for native keyboard activation", () => {
     render(withWrappers(<BeadId id="beads-gui-abc" />, "/list"));
     const link = screen.getByRole("link", { name: /Open beads-gui-abc/ });
-    fireEvent.keyDown(link, { key: "Enter" });
-    expect(screen.getByTestId("location").textContent).toBe("/issues/beads-gui-abc");
+    expect(link.tagName).toBe("A");
+    expect(link.getAttribute("href")).toBe("/issues/beads-gui-abc");
   });
 
-  it("activates copy on Space key", async () => {
+  it("renders copy as a native button for keyboard accessibility", () => {
     render(withWrappers(<BeadId id="beads-gui-abc" />));
     const copyBtn = screen.getByRole("button", { name: /Copy beads-gui-abc/ });
+    expect(copyBtn.tagName).toBe("BUTTON");
+  });
+
+  it("preserves pill marker and title during copied state", async () => {
+    const { container } = render(withWrappers(<BeadId id="beads-gui-abc" />));
     await act(async () => {
-      fireEvent.keyDown(copyBtn, { key: " " });
+      fireEvent.click(screen.getByRole("button", { name: /Copy beads-gui-abc/ }));
+      await Promise.resolve();
     });
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("beads-gui-abc");
+    const pill = container.querySelector("[data-bead-id-pill]") as HTMLElement;
+    expect(pill).not.toBeNull();
+    expect(pill.getAttribute("title")).toBe("beads-gui-abc");
   });
 });

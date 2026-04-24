@@ -83,7 +83,11 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isBlocked }
       <div className="pl-3.5 pr-3 py-3">
         {/* Header: ID + Priority + Blocked pill */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <BeadId id={issue.id} className="text-xs text-muted-foreground font-mono truncate" />
+          <BeadId
+            id={issue.id}
+            interactive={false}
+            className="text-xs text-muted-foreground font-mono truncate"
+          />
           <div className="flex items-center gap-1.5">
             {isBlocked && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
@@ -147,7 +151,11 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
       <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusAccentColor[issue.status])} />
       <div className="pl-3.5 pr-3 py-3">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <BeadId id={issue.id} className="text-xs text-muted-foreground font-mono truncate" />
+          <BeadId
+            id={issue.id}
+            interactive={false}
+            className="text-xs text-muted-foreground font-mono truncate"
+          />
           <div className="flex items-center gap-1.5">
             {issue.has_attachments && <AttachmentIcon className="h-3.5 w-3.5" />}
             <PriorityIndicator priority={issue.priority} />
