@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
-import { IssuePanel } from "@/components/issue-table/issue-panel";
+import { useCallback, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router";
+import { IssueDetail } from "@/components/detail/issue-detail";
 import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useIsCompact } from "@/hooks/use-media-query";
@@ -7,6 +8,8 @@ import { useIsCompact } from "@/hooks/use-media-query";
 export function DetailContainer() {
   const { openIssueId, mode, closeDetail, toggleMode } = useDetailPanel();
   const isCompact = useIsCompact();
+  const navigate = useNavigate();
+  const location = useLocation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isOpen = openIssueId !== null;
@@ -26,6 +29,14 @@ export function DetailContainer() {
     return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen, closeDetail]);
 
+  const handleExpand = useCallback(() => {
+    if (!openIssueId) return;
+    closeDetail();
+    navigate(`/issues/${openIssueId}`, {
+      state: { from: location.pathname + location.search },
+    });
+  }, [openIssueId, closeDetail, navigate, location]);
+
   if (!isOpen || !openIssueId) return null;
 
   if (mode === "modal" || isCompact) {
@@ -39,12 +50,13 @@ export function DetailContainer() {
       >
         <div className="absolute inset-0 bg-black/50" onClick={closeDetail} aria-hidden="true" />
         <div className="absolute inset-4 sm:inset-8 lg:inset-12 bg-background rounded-lg shadow-2xl overflow-hidden animate-modal-enter flex flex-col">
-          <IssuePanel
+          <IssueDetail
             key={openIssueId}
-            issueId={openIssueId}
+            id={openIssueId}
             onClose={closeDetail}
             onToggleMode={toggleMode}
             currentMode={mode}
+            onExpand={handleExpand}
           />
         </div>
       </div>
@@ -53,12 +65,13 @@ export function DetailContainer() {
 
   return (
     <div className="w-[420px] shrink-0 border-l border-border bg-background overflow-hidden animate-slide-in-right">
-      <IssuePanel
+      <IssueDetail
         key={openIssueId}
-        issueId={openIssueId}
+        id={openIssueId}
         onClose={closeDetail}
         onToggleMode={toggleMode}
         currentMode={mode}
+        onExpand={handleExpand}
       />
     </div>
   );

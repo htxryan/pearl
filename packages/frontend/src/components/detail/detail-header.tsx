@@ -20,6 +20,48 @@ interface DetailHeaderProps {
   onFieldUpdate: (field: string, value: unknown) => void;
   isDirty: boolean;
   dirtyFields: Set<string>;
+  /** When provided, shows a mode toggle (panel ↔ modal). Container-mode-specific. */
+  onToggleMode?: () => void;
+  currentMode?: "panel" | "modal";
+  /** When provided, shows an "Expand" button that opens the full-page route. */
+  onExpand?: () => void;
+}
+
+function MaximizeIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10 2h4v4M6 14H2v-4M14 2L9.5 6.5M2 14l4.5-4.5" />
+    </svg>
+  );
+}
+
+function SidebarIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="12" height="12" rx="2" />
+      <path d="M10 2v12" />
+    </svg>
+  );
 }
 
 export function DetailHeader({
@@ -35,10 +77,13 @@ export function DetailHeader({
   onFieldUpdate,
   isDirty,
   dirtyFields,
+  onToggleMode,
+  currentMode,
+  onExpand,
 }: DetailHeaderProps) {
   return (
     <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
             <button
@@ -55,7 +100,7 @@ export function DetailHeader({
           <PriorityIndicator priority={issue.priority} />
           <TypeBadge type={issue.issue_type} />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {issue.status !== "closed" && (
             <>
               <Button variant="outline" size="sm" onClick={onClaim} disabled={isUpdatePending}>
@@ -81,11 +126,27 @@ export function DetailHeader({
             Delete
           </Button>
           <div className="w-px h-5 bg-border" />
+          {onToggleMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleMode}
+              title={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+              aria-label={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+            >
+              {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
+            </Button>
+          )}
+          {onExpand && (
+            <Button variant="ghost" size="sm" onClick={onExpand} title="Open full detail view">
+              Expand
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
             onClick={onNavigateBack}
-            aria-label="Close detail view"
+            aria-label="Close panel"
             title="Close (Esc)"
           >
             <CloseIcon />

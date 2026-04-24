@@ -26,14 +26,25 @@ const VIEW_LABELS: Record<string, string> = {
   "/graph": "Graph",
 };
 
-export function useDetailView(id: string) {
+export interface UseDetailViewOptions {
+  /** Override the "exit detail" action — e.g. close a modal instead of navigating. */
+  onExit?: () => void;
+}
+
+export function useDetailView(id: string, options: UseDetailViewOptions = {}) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { onExit } = options;
 
   const fromPath = (location.state as { from?: string } | null)?.from;
   const fromPathname = fromPath?.split("?")[0];
   const backPath = fromPathname && VIEW_LABELS[fromPathname] ? fromPath! : "/list";
   const backLabel = (fromPathname && VIEW_LABELS[fromPathname]) || VIEW_LABELS[backPath] || "List";
+
+  const exitDetail = useCallback(() => {
+    if (onExit) onExit();
+    else navigate(backPath);
+  }, [onExit, navigate, backPath]);
 
   const { data: issue, isLoading, error } = useIssue(id);
   const { data: comments = [] } = useComments(id);
@@ -142,14 +153,14 @@ export function useDetailView(id: string) {
       {
         onSuccess: () => {
           undo.recordClose(id, issue?.title ?? id, prevStatus);
-          navigate(backPath);
+          exitDetail();
         },
         onError: () => {
           toast.error("Failed to close issue. Please try again.");
         },
       },
     );
-  }, [id, issue, closeMutation.mutate, navigate, backPath, undo, toast]);
+  }, [id, issue, closeMutation.mutate, exitDetail, undo, toast]);
 
   const handleDelete = useCallback(() => {
     deleteMutation.mutate(
@@ -158,7 +169,7 @@ export function useDetailView(id: string) {
         onSuccess: () => {
           setShowDeleteConfirm(false);
           toast.success("Issue deleted.");
-          navigate(backPath);
+          exitDetail();
         },
         onError: () => {
           setShowDeleteConfirm(false);
@@ -166,7 +177,7 @@ export function useDetailView(id: string) {
         },
       },
     );
-  }, [id, deleteMutation.mutate, navigate, backPath, toast]);
+  }, [id, deleteMutation.mutate, exitDetail, toast]);
 
   const handleClaim = useCallback(() => {
     updateMutation.mutate(
@@ -180,11 +191,11 @@ export function useDetailView(id: string) {
 
   const handleNavigateBack = useCallback(() => {
     if (isDirty) {
-      if (window.confirm("You have unsaved changes. Discard them?")) navigate(backPath);
+      if (window.confirm("You have unsaved changes. Discard them?")) exitDetail();
     } else {
-      navigate(backPath);
+      exitDetail();
     }
-  }, [isDirty, navigate, backPath]);
+  }, [isDirty, exitDetail]);
 
   const keyBindings = useMemo(
     () => [{ key: "Escape", handler: handleNavigateBack, description: "Close detail panel" }],
