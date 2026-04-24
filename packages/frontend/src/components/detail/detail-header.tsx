@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CloseIcon } from "@/components/ui/close-icon";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { TypeBadge } from "@/components/ui/type-badge";
+import { TypePill } from "@/components/ui/type-pill";
 
 interface DetailHeaderProps {
   issue: Issue;
@@ -98,7 +98,7 @@ export function DetailHeader({
           </nav>
           <StatusBadge status={issue.status} />
           <PriorityIndicator priority={issue.priority} />
-          <TypeBadge type={issue.issue_type} />
+          <TypePill type={issue.issue_type} />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {issue.status !== "closed" && (

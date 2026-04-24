@@ -4,7 +4,7 @@ import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { TypeBadge } from "@/components/ui/type-badge";
+import { TypePill } from "@/components/ui/type-pill";
 
 interface IssueCardProps {
   issue: IssueListItem;
@@ -53,7 +53,7 @@ export const IssueCard = memo(function IssueCard({ issue, onClick }: IssueCardPr
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <StatusBadge status={issue.status} />
-          <TypeBadge type={issue.issue_type} />
+          <TypePill type={issue.issue_type} />
         </div>
         {issue.assignee && (
           <span

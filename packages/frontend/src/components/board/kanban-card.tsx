@@ -6,7 +6,7 @@ import { AttachmentIcon } from "@/components/ui/attachment-icon";
 import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
-import { TypeBadge } from "@/components/ui/type-badge";
+import { TypePill } from "@/components/ui/type-pill";
 import { cn } from "@/lib/utils";
 
 interface KanbanCardProps {
@@ -107,7 +107,7 @@ export const KanbanCard = memo(function KanbanCard({ issue, onClick, isBlocked }
         {/* Footer: Type + Assignee + Labels */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
-            <TypeBadge type={issue.issue_type} />
+            <TypePill type={issue.issue_type} />
             {issue.labels.length > 0 && (
               <div
                 className="flex items-center gap-1 truncate max-w-[120px]"
@@ -164,7 +164,7 @@ export function KanbanCardOverlay({ issue }: { issue: IssueListItem }) {
         <p className="text-sm font-medium leading-snug line-clamp-2 mb-2">{issue.title}</p>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
-            <TypeBadge type={issue.issue_type} />
+            <TypePill type={issue.issue_type} />
             {issue.labels.length > 0 && (
               <div
                 className="flex items-center gap-1 truncate max-w-[120px]"

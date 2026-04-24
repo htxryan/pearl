@@ -11,7 +11,7 @@ import { LabelPicker } from "@/components/ui/label-picker";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { TypeBadge } from "@/components/ui/type-badge";
+import { TypePill } from "@/components/ui/type-pill";
 
 const col = createColumnHelper<IssueListItem>();
 
@@ -467,7 +467,7 @@ export function buildColumns({
     }),
     col.accessor("issue_type", {
       header: "Type",
-      cell: (info) => <TypeBadge type={info.getValue()} />,
+      cell: (info) => <TypePill type={info.getValue()} />,
       size: 80,
     }),
     col.accessor("assignee", {

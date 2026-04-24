@@ -4,7 +4,7 @@ import { memo, useCallback, useState } from "react";
 import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
-import { TypeBadge } from "@/components/ui/type-badge";
+import { TypePill } from "@/components/ui/type-pill";
 import { cn } from "@/lib/utils";
 
 export const NODE_WIDTH = 260;
@@ -111,7 +111,7 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
         {/* Row 3: Type + Labels + Assignee */}
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
-            <TypeBadge type={issue.issue_type} className="text-[10px] shrink-0" />
+            <TypePill type={issue.issue_type} className="text-[10px] shrink-0" />
             {issue.labels.length > 0 && (
               <div
                 className="flex items-center gap-1 truncate max-w-[100px]"
