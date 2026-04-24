@@ -9,57 +9,58 @@ import { expect, test } from "./fixtures";
 
 const DATA_ROW = 'table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])';
 
+/** Hold all PATCH requests until the returned function is called. */
+async function interceptPatch(page: import("@playwright/test").Page) {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/issues/**", async (route) => {
+    if (route.request().method() === "PATCH") {
+      await gate;
+      await route.continue();
+    } else {
+      await route.continue();
+    }
+  });
+  return release;
+}
+
+/** Pick the first listbox option that is NOT currently selected. */
+async function pickDifferentOption(page: import("@playwright/test").Page) {
+  const listbox = page.getByRole("listbox");
+  await expect(listbox).toBeVisible({ timeout: 3_000 });
+  const options = listbox.getByRole("option");
+  const count = await options.count();
+  for (let i = 0; i < count; i++) {
+    const opt = options.nth(i);
+    const selected = await opt.getAttribute("aria-selected");
+    if (selected !== "true") {
+      await opt.click();
+      return;
+    }
+  }
+  throw new Error("No unselected option found in listbox");
+}
+
 test.describe("Optimistic mutations", () => {
   test("status change updates UI before network responds", async ({ seededPage: page }) => {
     const firstRow = page.locator(DATA_ROW).first();
     await expect(firstRow).toBeVisible();
 
-    // Capture the current status shown in the row's combobox trigger
-    const statusCombobox = firstRow.getByRole("combobox");
+    const statusCombobox = firstRow.getByRole("combobox", { name: /Change status for/i });
     const originalStatus = await statusCombobox.textContent();
-    expect(originalStatus).toBeTruthy();
 
-    // Intercept the PATCH with a 3s delay so we can assert before it resolves
-    let releaseHold!: () => void;
-    const holdPromise = new Promise<void>((resolve) => {
-      releaseHold = resolve;
-    });
-    await page.route("**/api/issues/**", async (route) => {
-      if (route.request().method() === "PATCH") {
-        await holdPromise; // block until we release
-        await route.continue();
-      } else {
-        await route.continue();
-      }
-    });
+    const release = await interceptPatch(page);
 
-    // Open the status combobox and pick a different status
     await statusCombobox.click();
-    const listbox = page.getByRole("listbox");
-    await expect(listbox).toBeVisible({ timeout: 3_000 });
+    await pickDifferentOption(page);
 
-    // Pick the first option that differs from the current value
-    const options = listbox.getByRole("option");
-    const count = await options.count();
-    let clicked = false;
-    for (let i = 0; i < count; i++) {
-      const opt = options.nth(i);
-      const text = await opt.textContent();
-      if (text && !originalStatus?.includes(text.trim())) {
-        await opt.click();
-        clicked = true;
-        break;
-      }
-    }
-    expect(clicked).toBe(true);
-
-    // IMMEDIATELY check that the UI reflects the new value (optimistic update)
-    // The API hold is still in place — no network response has come back yet.
+    // IMMEDIATELY check the UI — PATCH is still held, no server response yet
     const updatedStatus = await statusCombobox.textContent();
     expect(updatedStatus).not.toBe(originalStatus);
 
-    // Release the held request and let it complete normally
-    releaseHold();
+    release();
     await page.unrouteAll();
   });
 
@@ -67,11 +68,10 @@ test.describe("Optimistic mutations", () => {
     const firstRow = page.locator(DATA_ROW).first();
     await expect(firstRow).toBeVisible();
 
-    const statusCombobox = firstRow.getByRole("combobox");
+    const statusCombobox = firstRow.getByRole("combobox", { name: /Change status for/i });
     const originalStatus = await statusCombobox.textContent();
-    expect(originalStatus).toBeTruthy();
 
-    // Intercept PATCH and return a server error
+    // Return a server error for the PATCH
     await page.route("**/api/issues/**", async (route) => {
       if (route.request().method() === "PATCH") {
         await route.fulfill({ status: 500, body: "Internal Server Error" });
@@ -80,27 +80,14 @@ test.describe("Optimistic mutations", () => {
       }
     });
 
-    // Change status to something different
     await statusCombobox.click();
-    const listbox = page.getByRole("listbox");
-    await expect(listbox).toBeVisible({ timeout: 3_000 });
+    await pickDifferentOption(page);
 
-    const options = listbox.getByRole("option");
-    const count = await options.count();
-    for (let i = 0; i < count; i++) {
-      const opt = options.nth(i);
-      const text = await opt.textContent();
-      if (text && !originalStatus?.includes(text.trim())) {
-        await opt.click();
-        break;
-      }
-    }
-
-    // Wait for the error toast (the mutation's onError fires)
+    // The mutation error toast should appear
     const errorToast = page.getByText(/failed to update/i);
     await expect(errorToast).toBeVisible({ timeout: 10_000 });
 
-    // The optimistic update should have been rolled back to the original value
+    // After rollback the combobox should show the original value again
     await expect(statusCombobox).toHaveText(originalStatus!, { timeout: 5_000 });
 
     await page.unrouteAll();
@@ -110,48 +97,19 @@ test.describe("Optimistic mutations", () => {
     const firstRow = page.locator(DATA_ROW).first();
     await expect(firstRow).toBeVisible();
 
-    // Find the priority combobox in this row
-    const priorityCombobox = firstRow.getByRole("combobox").nth(1);
+    const priorityCombobox = firstRow.getByRole("combobox", { name: /Change priority for/i });
     const originalPriority = await priorityCombobox.textContent();
 
-    // Hold the PATCH response
-    let releaseHold!: () => void;
-    const holdPromise = new Promise<void>((resolve) => {
-      releaseHold = resolve;
-    });
-    await page.route("**/api/issues/**", async (route) => {
-      if (route.request().method() === "PATCH") {
-        await holdPromise;
-        await route.continue();
-      } else {
-        await route.continue();
-      }
-    });
+    const release = await interceptPatch(page);
 
-    // Open priority picker and select a different priority
     await priorityCombobox.click();
-    const listbox = page.getByRole("listbox");
-    await expect(listbox).toBeVisible({ timeout: 3_000 });
+    await pickDifferentOption(page);
 
-    const options = listbox.getByRole("option");
-    const count = await options.count();
-    let clicked = false;
-    for (let i = 0; i < count; i++) {
-      const opt = options.nth(i);
-      const text = await opt.textContent();
-      if (text && !originalPriority?.includes(text.trim())) {
-        await opt.click();
-        clicked = true;
-        break;
-      }
-    }
-    expect(clicked).toBe(true);
-
-    // UI should already reflect the new priority (optimistic update)
+    // IMMEDIATELY check — PATCH still held
     const updatedPriority = await priorityCombobox.textContent();
     expect(updatedPriority).not.toBe(originalPriority);
 
-    releaseHold();
+    release();
     await page.unrouteAll();
   });
 });
