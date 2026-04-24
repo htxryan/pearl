@@ -71,7 +71,7 @@ function parseSorting(params: URLSearchParams): SortingState {
 /** Serialize FilterState + SortingState into URLSearchParams. */
 function serializeToParams(filters: FilterState, sorting: SortingState): URLSearchParams {
   const params = new URLSearchParams();
-  if (filters.status.length) params.set("status", filters.status.join(","));
+  params.set("status", filters.status.join(","));
   if (filters.priority.length) params.set("priority", filters.priority.join(","));
   if (filters.issue_type.length) params.set("type", filters.issue_type.join(","));
   if (filters.assignee) params.set("assignee", filters.assignee);

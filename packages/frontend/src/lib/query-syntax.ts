@@ -95,7 +95,6 @@ export const EMPTY_FILTERS: FilterState = {
 
 export const SHOW_ALL_FILTERS: FilterState = {
   ...EMPTY_FILTERS,
-  status: [...ISSUE_STATUSES] as IssueStatus[],
 };
 
 export const DEFAULT_ACTIVE_STATUSES: IssueStatus[] = [
@@ -111,6 +110,7 @@ export const ACTIVE_FILTERS: FilterState = {
 };
 
 export function isShowingAllStatuses(statuses: IssueStatus[]): boolean {
+  if (statuses.length === 0) return true;
   if (statuses.length !== ISSUE_STATUSES.length) return false;
   const set = new Set(statuses);
   return ISSUE_STATUSES.every((s) => set.has(s));
