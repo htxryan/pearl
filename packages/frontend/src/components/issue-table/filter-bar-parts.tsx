@@ -256,25 +256,24 @@ export function PresetDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  // The active preset is derived from filter state, not tracked separately.
+  // This avoids stale activePresetId (from HMR, navigation, manual URL edits)
+  // causing false "Modified" badges — the label always reflects the current filters.
   const exactMatch = presets.find((p) => filtersMatch(p.filters, filters));
-  const selectedPreset = activePresetId ? presets.find((p) => p.id === activePresetId) : null;
-  const hasUnsavedChanges = selectedPreset && !exactMatch;
 
+  // Keep the external store in sync so other components observe the same value.
   useEffect(() => {
-    if (exactMatch && exactMatch.id !== activePresetId) {
-      selectPreset(exactMatch.id);
-    }
+    const nextId = exactMatch ? exactMatch.id : null;
+    if (nextId !== activePresetId) selectPreset(nextId);
   }, [exactMatch, activePresetId, selectPreset]);
 
   const label = exactMatch
     ? exactMatch.name
-    : selectedPreset && hasUnsavedChanges
-      ? selectedPreset.name
-      : filtersMatch(filters, ACTIVE_FILTERS)
-        ? "Active Issues"
-        : hasActiveFilters(filters)
-          ? "Custom"
-          : "All Issues";
+    : filtersMatch(filters, ACTIVE_FILTERS)
+      ? "Active Issues"
+      : hasActiveFilters(filters)
+        ? "Custom"
+        : "All Issues";
 
   return (
     <div ref={containerRef} className="relative inline-block">
@@ -285,9 +284,7 @@ export function PresetDropdown({
           "inline-flex items-center gap-1.5 h-8 rounded border px-3 text-sm font-medium transition-colors",
           exactMatch
             ? "border-primary/50 bg-primary/5 text-primary hover:border-primary/70"
-            : hasUnsavedChanges
-              ? "border-amber-500/50 bg-amber-500/5 text-amber-700 dark:text-amber-400 hover:border-amber-500/70"
-              : "border-border text-foreground hover:border-foreground/30",
+            : "border-border text-foreground hover:border-foreground/30",
         )}
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -307,13 +304,6 @@ export function PresetDropdown({
           <line x1="6" y1="12" x2="10" y2="12" />
         </svg>
         {label}
-        {hasUnsavedChanges && (
-          <span
-            className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"
-            role="img"
-            aria-label="Modified"
-          />
-        )}
         <svg
           width="12"
           height="12"
@@ -362,15 +352,10 @@ export function PresetDropdown({
                 }}
                 className={cn(
                   "flex-1 text-left px-3 py-1.5 text-sm hover:bg-accent",
-                  (exactMatch?.id === preset.id ||
-                    (hasUnsavedChanges && activePresetId === preset.id)) &&
-                    "font-medium text-primary",
+                  exactMatch?.id === preset.id && "font-medium text-primary",
                 )}
               >
                 {preset.name}
-                {hasUnsavedChanges && activePresetId === preset.id && (
-                  <span className="ml-1.5 text-xs text-amber-500">(modified)</span>
-                )}
               </button>
               {isUserPreset(preset.id) ? (
                 <button
@@ -482,105 +467,15 @@ function SaveAsInline({
 }
 
 // ─── UnsavedChangesBar ───────────────────────────────
+// The preset dropdown now derives active preset ID from exact filter match, so
+// filters and preset always agree — there's no "Modified" state to surface.
+// Kept as a typed no-op so callers don't need to change.
 
-export function UnsavedChangesBar({
-  filters,
-  onChange,
-}: {
+export function UnsavedChangesBar(_props: {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
 }) {
-  const { presets, activePresetId, save: savePreset, update: updatePreset } = useFilterPresets();
-  const [showSaveAs, setShowSaveAs] = useState(false);
-  const [newName, setNewName] = useState("");
-
-  const exactMatch = presets.find((p) => filtersMatch(p.filters, filters));
-  const selectedPreset = activePresetId ? presets.find((p) => p.id === activePresetId) : null;
-  const hasUnsavedChanges = selectedPreset && !exactMatch;
-
-  if (!hasUnsavedChanges || !selectedPreset) return null;
-
-  const handleSave = () => {
-    updatePreset(selectedPreset.id, filters);
-    addToast({ message: `Updated "${selectedPreset.name}"`, variant: "success" });
-  };
-
-  const handleDiscard = () => {
-    onChange(selectedPreset.filters);
-  };
-
-  const handleSaveAs = () => {
-    if (!newName.trim()) return;
-    savePreset(newName.trim(), filters);
-    addToast({ message: `Saved filter "${newName.trim()}"`, variant: "success" });
-    setNewName("");
-    setShowSaveAs(false);
-  };
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">Modified</span>
-
-      {isUserPreset(selectedPreset.id) && (
-        <button
-          type="button"
-          onClick={handleSave}
-          className="h-7 rounded border border-primary/30 bg-primary/10 px-2.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
-        >
-          Save
-        </button>
-      )}
-
-      {!showSaveAs ? (
-        <button
-          type="button"
-          onClick={() => setShowSaveAs(true)}
-          className="h-7 rounded border border-border px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-        >
-          Save As
-        </button>
-      ) : (
-        <div className="flex items-center gap-1">
-          <input
-            autoFocus
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSaveAs();
-              if (e.key === "Escape") {
-                setShowSaveAs(false);
-                setNewName("");
-              }
-            }}
-            onBlur={() => {
-              if (!newName.trim()) {
-                setShowSaveAs(false);
-                setNewName("");
-              }
-            }}
-            placeholder="Filter name..."
-            className="h-7 w-32 rounded border border-border bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-          <button
-            type="button"
-            onClick={handleSaveAs}
-            disabled={!newName.trim()}
-            className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
-          >
-            Save
-          </button>
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={handleDiscard}
-        className="h-7 rounded border border-border px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
-      >
-        Discard
-      </button>
-    </div>
-  );
+  return null;
 }
 
 export function hasActiveFilters(filters: FilterState): boolean {

@@ -56,22 +56,12 @@ describe("useFilterPresets", () => {
     expect(result.current.activePresetId).toBeNull();
   });
 
-  it("selectPreset persists to localStorage", () => {
+  it("activePresetId is in-memory only (not persisted across reloads)", () => {
     const { result } = renderHook(() => useFilterPresets());
     act(() => {
       result.current.selectPreset("preset-blocked");
     });
-    expect(localStorage.getItem("pearl-active-preset-id")).toBe("preset-blocked");
-  });
-
-  it("selectPreset(null) removes from localStorage", () => {
-    const { result } = renderHook(() => useFilterPresets());
-    act(() => {
-      result.current.selectPreset("preset-blocked");
-    });
-    act(() => {
-      result.current.selectPreset(null);
-    });
+    expect(result.current.activePresetId).toBe("preset-blocked");
     expect(localStorage.getItem("pearl-active-preset-id")).toBeNull();
   });
 
@@ -82,7 +72,6 @@ describe("useFilterPresets", () => {
       newId = result.current.save("My Filter", testFilters);
     });
     expect(result.current.activePresetId).toBe(newId!);
-    expect(localStorage.getItem("pearl-active-preset-id")).toBe(newId!);
   });
 
   it("remove clears activePresetId when removing the active preset", () => {
