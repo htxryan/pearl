@@ -1,49 +1,21 @@
-import type { IssueStatus, LabelColor, ParsedField } from "@pearl/shared";
-import {
-  hasAttachmentSyntax,
-  ISSUE_PRIORITIES,
-  ISSUE_TYPES,
-  parseField,
-  SETTABLE_STATUSES,
-} from "@pearl/shared";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate, useLocation, useNavigate, useParams } from "react-router";
+import type { LabelColor } from "@pearl/shared";
+import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
+import { type ReactNode, useEffect, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { AttachmentsGallery } from "@/components/detail/attachments-gallery";
 import { CommentThread } from "@/components/detail/comment-thread";
 import { DependencyList } from "@/components/detail/dependency-list";
+import { DetailHeader } from "@/components/detail/detail-header";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { Lightbox } from "@/components/detail/lightbox";
 import { MarkdownSection } from "@/components/detail/markdown-section";
-import { BeadId } from "@/components/ui/bead-id";
-import { Button } from "@/components/ui/button";
-import { CloseIcon } from "@/components/ui/close-icon";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LabelPicker } from "@/components/ui/label-picker";
-import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { RelativeTime } from "@/components/ui/relative-time";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { TypeBadge } from "@/components/ui/type-badge";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
-import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
-import {
-  useAddComment,
-  useAddDependency,
-  useCloseIssue,
-  useComments,
-  useDeleteIssue,
-  useDependencies,
-  useEvents,
-  useIssue,
-  useRemoveDependency,
-  useUpdateIssue,
-} from "@/hooks/use-issues";
-import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
-import { useParseField } from "@/hooks/use-parse-field";
-import { useToastActions } from "@/hooks/use-toast";
-import { useUndoActions } from "@/hooks/use-undo";
 import {
   DetailErrorView,
   DetailSections,
@@ -52,18 +24,13 @@ import {
   SelectField,
   statusLabel,
 } from "@/views/detail-components";
+import { useDetailView } from "@/views/use-detail-view";
 
 export function DetailView() {
   const { id } = useParams<{ id: string }>();
   if (!id) return <Navigate to="/list" replace />;
   return <DetailViewContent id={id} />;
 }
-
-const VIEW_LABELS: Record<string, string> = {
-  "/list": "List",
-  "/board": "Board",
-  "/graph": "Graph",
-};
 
 /** Collapsible wrapper for detail sections on mobile. On desktop, renders children directly. */
 function CollapsibleSection({
@@ -114,231 +81,41 @@ function CollapsibleSection({
 
 function DetailViewContent({ id }: { id: string }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const isMobile = useIsMobile();
 
-  // Determine where the user came from for breadcrumbs
-  const fromPath = (location.state as { from?: string } | null)?.from;
-  const fromPathname = fromPath?.split("?")[0];
-  const backPath = fromPathname && VIEW_LABELS[fromPathname] ? fromPath! : "/list";
-  const backLabel = (fromPathname && VIEW_LABELS[fromPathname]) || VIEW_LABELS[backPath] || "List";
+  const {
+    issue,
+    isLoading,
+    error,
+    comments,
+    events,
+    dependencies,
+    parsedFields,
+    backPath,
+    backLabel,
+    showCloseConfirm,
+    setShowCloseConfirm,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    lightboxRef,
+    setLightboxRef,
+    isDirty,
+    dirtyFields,
+    updateMutation,
+    closeMutation,
+    deleteMutation,
+    addCommentMutation,
+    addDepMutation,
+    removeDepMutation,
+    handleFieldUpdate,
+    handleClose,
+    handleDelete,
+    handleClaim,
+    handleNavigateBack,
+  } = useDetailView(id);
 
-  // Data fetching
-  const { data: issue, isLoading, error } = useIssue(id);
-  const { data: comments = [] } = useComments(id);
-  const { data: events = [] } = useEvents(id);
-  const { data: dependencies = [] } = useDependencies(id);
+  if (isLoading) return <DetailSkeleton />;
 
-  // Attachment field parsing
-  const descParsed = useParseField(issue?.description);
-  const designParsed = useParseField(issue?.design);
-  const acceptanceParsed = useParseField(issue?.acceptance_criteria);
-  const notesParsed = useParseField(issue?.notes);
-  const commentParsedFields = useMemo(() => {
-    const results: { parsed: ParsedField; sourceLabel: string }[] = [];
-    let commentIdx = 0;
-    for (const comment of comments) {
-      commentIdx++;
-      if (comment.text && hasAttachmentSyntax(comment.text)) {
-        try {
-          results.push({
-            parsed: parseField(comment.text),
-            sourceLabel: `Comment #${commentIdx}`,
-          });
-        } catch {
-          // skip unparseable comments
-        }
-      }
-    }
-    return results;
-  }, [comments]);
-
-  const parsedFields = useMemo(() => {
-    const labeled: { parsed: ParsedField; sourceLabel: string }[] = [];
-    if (descParsed.parsed) labeled.push({ parsed: descParsed.parsed, sourceLabel: "Description" });
-    if (designParsed.parsed)
-      labeled.push({ parsed: designParsed.parsed, sourceLabel: "Design Notes" });
-    if (acceptanceParsed.parsed)
-      labeled.push({ parsed: acceptanceParsed.parsed, sourceLabel: "Acceptance Criteria" });
-    if (notesParsed.parsed) labeled.push({ parsed: notesParsed.parsed, sourceLabel: "Notes" });
-    labeled.push(...commentParsedFields);
-    return labeled;
-  }, [
-    descParsed.parsed,
-    designParsed.parsed,
-    acceptanceParsed.parsed,
-    notesParsed.parsed,
-    commentParsedFields,
-  ]);
-
-  // Mutations
-  const updateMutation = useUpdateIssue();
-  const closeMutation = useCloseIssue();
-  const addCommentMutation = useAddComment();
-  const deleteMutation = useDeleteIssue();
-  const addDepMutation = useAddDependency();
-  const removeDepMutation = useRemoveDependency();
-
-  const toast = useToastActions();
-  const undo = useUndoActions();
-
-  // Confirmation dialog state
-  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  // Lightbox state
-  const [lightboxRef, setLightboxRef] = useState<string | null>(null);
-
-  // Dirty state for unsaved changes warning
-  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
-  const isDirty = dirtyFields.size > 0;
-
-  // Unsaved changes warning (beforeunload)
-  useEffect(() => {
-    if (!isDirty) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
-
-  // Field update handler
-  const handleFieldUpdate = useCallback(
-    (field: string, value: unknown) => {
-      const oldValue = issue ? (issue as unknown as Record<string, unknown>)[field] : undefined;
-      setDirtyFields((prev) => new Set(prev).add(field));
-      updateMutation.mutate(
-        { id, data: { [field]: value } },
-        {
-          onSuccess: () => {
-            setDirtyFields((prev) => {
-              const next = new Set(prev);
-              next.delete(field);
-              return next;
-            });
-            if (issue && oldValue !== value) {
-              undo.recordFieldEdit(id, issue.title, field, oldValue);
-            }
-          },
-          onError: () => {
-            setDirtyFields((prev) => {
-              const next = new Set(prev);
-              next.delete(field);
-              return next;
-            });
-            toast.error(`Failed to update ${field}.`);
-          },
-        },
-      );
-    },
-    [id, issue, updateMutation.mutate, undo, toast],
-  );
-
-  // Close handler
-  const handleClose = useCallback(() => {
-    const prevStatus = issue?.status ?? "open";
-    closeMutation.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          undo.recordClose(id, issue?.title ?? id, prevStatus);
-          navigate(backPath);
-        },
-        onError: () => {
-          toast.error("Failed to close issue. Please try again.");
-        },
-      },
-    );
-  }, [id, issue, closeMutation.mutate, navigate, backPath, undo, toast]);
-
-  // Delete handler (permanent)
-  const handleDelete = useCallback(() => {
-    deleteMutation.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          setShowDeleteConfirm(false);
-          toast.success("Issue deleted.");
-          navigate(backPath);
-        },
-        onError: () => {
-          setShowDeleteConfirm(false);
-          toast.error("Failed to delete issue. Please try again.");
-        },
-      },
-    );
-  }, [id, deleteMutation.mutate, navigate, backPath, toast]);
-
-  // Claim handler
-  const handleClaim = useCallback(() => {
-    updateMutation.mutate(
-      { id, data: { claim: true } },
-      {
-        onSuccess: () => {
-          toast.success("Issue claimed.");
-        },
-        onError: () => {
-          toast.error("Failed to claim issue. Please try again.");
-        },
-      },
-    );
-  }, [id, updateMutation.mutate, toast]);
-
-  // Guarded navigation that checks for unsaved changes before leaving
-  const handleNavigateBack = useCallback(() => {
-    if (isDirty) {
-      if (window.confirm("You have unsaved changes. Discard them?")) {
-        navigate(backPath);
-      }
-    } else {
-      navigate(backPath);
-    }
-  }, [isDirty, navigate, backPath]);
-
-  // Keyboard shortcuts
-  const keyBindings = useMemo(
-    () => [
-      {
-        key: "Escape",
-        handler: handleNavigateBack,
-        description: "Close detail panel",
-      },
-    ],
-    [handleNavigateBack],
-  );
-
-  useKeyboardScope("detail", keyBindings);
-
-  // Command palette actions
-  const paletteActions: CommandAction[] = useMemo(
-    () => [
-      {
-        id: "detail-close",
-        label: "Close panel / Back to list",
-        shortcut: "Esc",
-        group: "Detail",
-        handler: handleNavigateBack,
-      },
-      {
-        id: "detail-claim",
-        label: "Claim this issue",
-        group: "Detail",
-        handler: handleClaim,
-      },
-    ],
-    [handleNavigateBack, handleClaim],
-  );
-
-  useCommandPaletteActions("detail-view", paletteActions);
-
-  // Loading state
-  if (isLoading) {
-    return <DetailSkeleton />;
-  }
-
-  // Error state
   if (error || !issue) {
     return (
       <DetailErrorView
@@ -354,92 +131,23 @@ function DetailViewContent({ id }: { id: string }) {
   return (
     <AttachmentProvider parsedFields={parsedFields} onPillClick={setLightboxRef}>
       <div className="flex flex-col h-full overflow-hidden">
-        {/* Header bar */}
-        <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 min-w-0 flex-wrap">
-              {/* Breadcrumb */}
-              <nav className="flex items-center gap-1.5 text-sm shrink-0" aria-label="Breadcrumb">
-                <button
-                  onClick={handleNavigateBack}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {backLabel}
-                </button>
-                <span className="text-muted-foreground">/</span>
-                <BeadId id={issue.id} className="text-muted-foreground" />
-              </nav>
-              <StatusBadge status={issue.status} />
-              <PriorityIndicator priority={issue.priority} />
-              <TypeBadge type={issue.issue_type} />
-            </div>
-            <div className="flex items-center gap-2">
-              {issue.status !== "closed" && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClaim}
-                    disabled={updateMutation.isPending}
-                  >
-                    Claim
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setShowCloseConfirm(true)}
-                    disabled={closeMutation.isPending}
-                  >
-                    Close
-                  </Button>
-                </>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={deleteMutation.isPending}
-                className="text-destructive hover:bg-destructive/10 border-destructive/30"
-              >
-                Delete
-              </Button>
-              <div className="w-px h-5 bg-border" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNavigateBack}
-                aria-label="Close detail view"
-                title="Close (Esc)"
-              >
-                <CloseIcon />
-              </Button>
-            </div>
-          </div>
+        <DetailHeader
+          issue={issue}
+          backLabel={backLabel}
+          onNavigateBack={handleNavigateBack}
+          onClaim={handleClaim}
+          onRequestClose={() => setShowCloseConfirm(true)}
+          onRequestDelete={() => setShowDeleteConfirm(true)}
+          isUpdatePending={updateMutation.isPending}
+          isClosePending={closeMutation.isPending}
+          isDeletePending={deleteMutation.isPending}
+          onFieldUpdate={handleFieldUpdate}
+          isDirty={isDirty}
+          dirtyFields={dirtyFields}
+        />
 
-          {/* Title (click-to-edit) */}
-          <FieldEditor
-            value={issue.title}
-            field="title"
-            onSave={(val) => handleFieldUpdate("title", val)}
-            className="mt-3"
-            renderDisplay={(val) => (
-              <h1 className="text-2xl font-semibold cursor-pointer hover:text-muted-foreground transition-colors">
-                {val}
-              </h1>
-            )}
-          />
-
-          {isDirty && (
-            <div className="mt-2 text-xs text-warning-foreground">
-              Unsaved changes in: {Array.from(dirtyFields).join(", ")}
-            </div>
-          )}
-        </div>
-
-        {/* Main content */}
         <div className="flex-1 overflow-auto">
           <DetailSections>
-            {/* Metadata fields */}
             <section>
               <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest mb-3">
                 Fields
@@ -512,7 +220,6 @@ function DetailViewContent({ id }: { id: string }) {
               </div>
             </section>
 
-            {/* Description */}
             <CollapsibleSection title="Description" hasContent={!!issue.description}>
               <MarkdownSection
                 title="Description"
@@ -523,7 +230,6 @@ function DetailViewContent({ id }: { id: string }) {
               />
             </CollapsibleSection>
 
-            {/* Design Notes */}
             {(issue.design || issue.status !== "closed") && (
               <CollapsibleSection title="Design Notes" hasContent={!!issue.design}>
                 <MarkdownSection
@@ -536,7 +242,6 @@ function DetailViewContent({ id }: { id: string }) {
               </CollapsibleSection>
             )}
 
-            {/* Acceptance Criteria */}
             {(issue.acceptance_criteria || issue.status !== "closed") && (
               <CollapsibleSection
                 title="Acceptance Criteria"
@@ -552,7 +257,6 @@ function DetailViewContent({ id }: { id: string }) {
               </CollapsibleSection>
             )}
 
-            {/* Notes */}
             {(issue.notes || issue.status !== "closed") && (
               <CollapsibleSection title="Notes" hasContent={!!issue.notes}>
                 <MarkdownSection
@@ -565,7 +269,6 @@ function DetailViewContent({ id }: { id: string }) {
               </CollapsibleSection>
             )}
 
-            {/* Attachments Gallery */}
             <CollapsibleSection
               title="Attachments"
               hasContent={parsedFields.some((p) => p.parsed.blocks.size > 0)}
@@ -573,7 +276,6 @@ function DetailViewContent({ id }: { id: string }) {
               <AttachmentsGallery onThumbnailClick={setLightboxRef} />
             </CollapsibleSection>
 
-            {/* Dependencies */}
             <CollapsibleSection title="Dependencies" hasContent={dependencies.length > 0}>
               <DependencyList
                 issueId={id}
@@ -589,7 +291,6 @@ function DetailViewContent({ id }: { id: string }) {
               />
             </CollapsibleSection>
 
-            {/* Comments */}
             <CollapsibleSection title="Comments" hasContent={comments.length > 0}>
               <CommentThread
                 comments={comments}
@@ -599,7 +300,6 @@ function DetailViewContent({ id }: { id: string }) {
               />
             </CollapsibleSection>
 
-            {/* Activity Timeline */}
             <ActivityTimeline events={events} />
           </DetailSections>
         </div>
@@ -619,9 +319,7 @@ function DetailViewContent({ id }: { id: string }) {
 
         <ConfirmDialog
           isOpen={showDeleteConfirm}
-          onConfirm={() => {
-            handleDelete();
-          }}
+          onConfirm={handleDelete}
           onCancel={() => setShowDeleteConfirm(false)}
           title="Delete issue permanently?"
           description={`This will permanently delete "${issue.title}" and remove all its dependency links. This cannot be undone.`}
