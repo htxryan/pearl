@@ -5,6 +5,7 @@ const routeLabels: Record<string, string> = {
   "/list": "List View",
   "/board": "Board View",
   "/graph": "Graph View",
+  "/settings": "Settings",
   "/settings/appearance": "Settings — Appearance",
   "/settings/attachments": "Settings — Attachments",
   "/settings/notifications": "Settings — Notifications",
