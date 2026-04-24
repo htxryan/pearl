@@ -1,13 +1,6 @@
 import type { IssueListItem, IssueStatus, LabelColor, Priority } from "@pearl/shared";
-import { createColumnHelper, type RowData } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-declare module "@tanstack/react-table" {
-  // biome-ignore lint/correctness/noUnusedVariables: required for module augmentation
-  interface ColumnMeta<TData extends RowData, TValue> {
-    flex?: boolean;
-  }
-}
 
 import { AssigneePicker } from "@/components/ui/assignee-picker";
 import { AttachmentIcon } from "@/components/ui/attachment-icon";

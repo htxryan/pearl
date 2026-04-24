@@ -2,7 +2,7 @@ import type { IssueListItem, IssueStatus, IssueType, Priority } from "@pearl/sha
 import { flexRender, type Row, type Table } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { getCellStyle, getColumnStyle } from "./column-style";
+import { getColumnStyle } from "./column-style";
 import type { GroupByField } from "./filter-bar";
 
 const PRIORITY_LABELS: Record<Priority, string> = { 0: "P0", 1: "P1", 2: "P2", 3: "P3", 4: "P4" };
@@ -128,8 +128,8 @@ export function GroupedIssueTable({
         <tbody>
           {Array.from({ length: 8 }, (_, i) => (
             <tr key={i} className="border-b border-border">
-              {Array.from({ length: colCount }, (_, j) => (
-                <td key={j} className="px-3 py-2.5">
+              {headerGroups[0]?.headers.map((header) => (
+                <td key={header.id} className="px-3 py-2.5" style={getColumnStyle(header, table)}>
                   <div className="h-4 w-20 rounded skeleton-shimmer" />
                 </td>
               ))}
@@ -269,7 +269,7 @@ function GroupSection({
               onMouseEnter={() => onRowHover?.(row.original.id)}
             >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-3 py-2.5" style={getCellStyle(cell, table)}>
+                <td key={cell.id} className="px-3 py-2.5" style={getColumnStyle(cell, table)}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

@@ -4,7 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
-import { getCellStyle, getColumnStyle } from "./column-style";
+import { getColumnStyle } from "./column-style";
 
 const ROW_HEIGHT = 41; // px – matches py-2.5 + border
 const VIRTUALIZATION_THRESHOLD = 100;
@@ -18,30 +18,26 @@ export interface IssueTableProps {
   highlightedIds?: Set<string>;
 }
 
-function SkeletonRow({ colCount }: { colCount: number }) {
+function SkeletonRow({ table }: { table: Table<IssueListItem> }) {
+  const headers = table.getHeaderGroups()[0]?.headers ?? [];
   return (
     <tr className="border-b border-border">
-      {Array.from({ length: colCount }, (_, i) => (
-        <td key={i} className="px-3 py-2.5">
+      {headers.map((header) => (
+        <td key={header.id} className="px-3 py-2.5" style={getColumnStyle(header, table)}>
           <div
             className={cn(
               "rounded skeleton-shimmer",
-              i === 0
+              header.column.id === "select"
                 ? "h-4 w-4 rounded-sm"
-                : // checkbox
-                  i === 1
+                : header.column.id === "id"
                   ? "h-3.5 w-20 rounded"
-                  : // ID (short, mono)
-                    i === 2
+                  : header.column.id === "title"
                     ? "h-4 w-full max-w-[240px] rounded"
-                    : // title (long)
-                      i === 3
+                    : header.column.id === "status"
                       ? "h-5 w-16 rounded-full"
-                      : // status badge
-                        i === 4
+                      : header.column.id === "priority"
                         ? "h-5 w-8 rounded"
-                        : // priority
-                          "h-3.5 w-14 rounded", // other cols
+                        : "h-3.5 w-14 rounded",
             )}
           />
         </td>
@@ -134,7 +130,7 @@ function TableRow({
       aria-selected={index === activeRowIndex}
     >
       {row.getVisibleCells().map((cell) => (
-        <td key={cell.id} className="px-3 py-2.5" style={getCellStyle(cell, table)}>
+        <td key={cell.id} className="px-3 py-2.5" style={getColumnStyle(cell, table)}>
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </td>
       ))}
@@ -205,7 +201,6 @@ export function IssueTable({
 
   // Loading state
   if (isLoading && rows.length === 0) {
-    const visibleColCount = table.getVisibleFlatColumns().length;
     return (
       <div className="overflow-auto">
         <table className="w-full border-collapse text-sm" aria-label="Issue list">
@@ -224,7 +219,7 @@ export function IssueTable({
           </thead>
           <tbody>
             {Array.from({ length: 8 }, (_, i) => (
-              <SkeletonRow key={i} colCount={visibleColCount} />
+              <SkeletonRow key={i} table={table} />
             ))}
           </tbody>
         </table>
