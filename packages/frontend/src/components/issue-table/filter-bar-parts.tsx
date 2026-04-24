@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
@@ -241,6 +242,7 @@ export function PresetDropdown({
     selectPreset,
   } = useFilterPresets();
   const [open, setOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -375,8 +377,8 @@ export function PresetDropdown({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    removePreset(preset.id);
-                    addToast({ message: `Removed "${preset.name}"`, variant: "info" });
+                    setPendingDelete({ id: preset.id, name: preset.name });
+                    setOpen(false);
                   }}
                   className="hidden group-hover:inline-flex items-center justify-center w-6 h-6 mr-1 text-muted-foreground hover:text-destructive"
                   aria-label={`Remove ${preset.name}`}
@@ -400,6 +402,20 @@ export function PresetDropdown({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={pendingDelete !== null}
+        title="Delete saved filter?"
+        description={`Are you sure you want to delete "${pendingDelete?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          removePreset(pendingDelete.id);
+          addToast({ message: `Removed "${pendingDelete.name}"`, variant: "info" });
+          setPendingDelete(null);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
