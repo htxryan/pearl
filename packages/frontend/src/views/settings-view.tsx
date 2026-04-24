@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { NavLink, Outlet } from "react-router";
+import { Navigate, NavLink, Route, Routes } from "react-router";
 import { AttachmentSettings } from "@/components/attachment-settings";
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { SettingsSection } from "@/components/settings-section";
@@ -12,9 +11,9 @@ interface SettingsTab {
 }
 
 const SETTINGS_TABS: SettingsTab[] = [
-  { to: "appearance", label: "Appearance" },
-  { to: "attachments", label: "Attachments" },
-  { to: "notifications", label: "Notifications" },
+  { to: "/settings/appearance", label: "Appearance" },
+  { to: "/settings/attachments", label: "Attachments" },
+  { to: "/settings/notifications", label: "Notifications" },
 ];
 
 function SettingsTabLink({ tab }: { tab: SettingsTab }) {
@@ -49,58 +48,48 @@ export function SettingsView() {
           ))}
         </nav>
         <div className="min-w-0 flex-1">
-          <Outlet />
+          <Routes>
+            <Route index element={<Navigate to="appearance" replace />} />
+            <Route path="appearance" element={<AppearanceSettingsTab />} />
+            <Route path="attachments" element={<AttachmentsSettingsTab />} />
+            <Route path="notifications" element={<NotificationsSettingsTab />} />
+            <Route path="*" element={<Navigate to="appearance" replace />} />
+          </Routes>
         </div>
       </div>
     </div>
   );
 }
 
-function SettingsTabContent({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-}) {
+function AppearanceSettingsTab() {
   return (
-    <SettingsSection title={title} description={description}>
-      {children}
-    </SettingsSection>
-  );
-}
-
-export function AppearanceSettingsTab() {
-  return (
-    <SettingsTabContent
+    <SettingsSection
       title="Appearance"
       description="Choose a theme for the interface. Changes apply immediately."
     >
       <ThemePicker />
-    </SettingsTabContent>
+    </SettingsSection>
   );
 }
 
-export function AttachmentsSettingsTab() {
+function AttachmentsSettingsTab() {
   return (
-    <SettingsTabContent
+    <SettingsSection
       title="Attachments"
       description="Configure how image attachments are stored and processed."
     >
       <AttachmentSettings />
-    </SettingsTabContent>
+    </SettingsSection>
   );
 }
 
-export function NotificationsSettingsTab() {
+function NotificationsSettingsTab() {
   return (
-    <SettingsTabContent
+    <SettingsSection
       title="Notifications"
       description="Choose which notifications you'd like to receive."
     >
       <NotificationPreferences />
-    </SettingsTabContent>
+    </SettingsSection>
   );
 }

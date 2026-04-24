@@ -1,13 +1,8 @@
 import { DEFAULT_SETTINGS } from "@pearl/shared";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { MemoryRouter, Navigate, Route, Routes } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  AppearanceSettingsTab,
-  AttachmentsSettingsTab,
-  NotificationsSettingsTab,
-  SettingsView,
-} from "./settings-view";
+import { SettingsView } from "./settings-view";
 
 // Mock useSettings hook
 const mockMutate = vi.fn();
@@ -91,12 +86,7 @@ function renderSettings(initialPath = "/settings/appearance") {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
-        <Route path="/settings" element={<SettingsView />}>
-          <Route index element={<Navigate to="/settings/appearance" replace />} />
-          <Route path="appearance" element={<AppearanceSettingsTab />} />
-          <Route path="attachments" element={<AttachmentsSettingsTab />} />
-          <Route path="notifications" element={<NotificationsSettingsTab />} />
-        </Route>
+        <Route path="/settings/*" element={<SettingsView />} />
       </Routes>
     </MemoryRouter>,
   );
