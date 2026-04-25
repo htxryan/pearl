@@ -66,34 +66,32 @@ export function PrimitiveShowcase() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon-xs" variant="outline" aria-label="Icon XS">
-                  +
-                </Button>
+              <TooltipTrigger
+                render={<Button size="icon-xs" variant="outline" aria-label="Icon XS" />}
+              >
+                +
               </TooltipTrigger>
               <TooltipContent>Icon XS</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon-sm" variant="outline" aria-label="Icon SM">
-                  +
-                </Button>
+              <TooltipTrigger
+                render={<Button size="icon-sm" variant="outline" aria-label="Icon SM" />}
+              >
+                +
               </TooltipTrigger>
               <TooltipContent>Icon SM</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon" variant="outline" aria-label="Icon">
-                  +
-                </Button>
+              <TooltipTrigger render={<Button size="icon" variant="outline" aria-label="Icon" />}>
+                +
               </TooltipTrigger>
               <TooltipContent>Icon</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon-lg" variant="outline" aria-label="Icon LG">
-                  +
-                </Button>
+              <TooltipTrigger
+                render={<Button size="icon-lg" variant="outline" aria-label="Icon LG" />}
+              >
+                +
               </TooltipTrigger>
               <TooltipContent>Icon LG</TooltipContent>
             </Tooltip>
@@ -176,9 +174,7 @@ export function PrimitiveShowcase() {
       <section data-testid="showcase-tooltip">
         <h2 className="text-lg font-semibold mb-4">Tooltip</h2>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline">Hover me</Button>
-          </TooltipTrigger>
+          <TooltipTrigger render={<Button variant="outline" />}>Hover me</TooltipTrigger>
           <TooltipContent>This is a tooltip</TooltipContent>
         </Tooltip>
       </section>

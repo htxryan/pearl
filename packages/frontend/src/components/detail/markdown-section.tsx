@@ -222,20 +222,22 @@ export function MarkdownSection({
         )}
         {!isEditing && (
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => {
-                  setEditValue(content ?? "");
-                  setIsEditing(true);
-                  setActiveTab("write");
-                }}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label={`Edit ${title}`}
-              >
-                <PencilIcon />
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => {
+                    setEditValue(content ?? "");
+                    setIsEditing(true);
+                    setActiveTab("write");
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={`Edit ${title}`}
+                />
+              }
+            >
+              <PencilIcon />
             </TooltipTrigger>
             <TooltipContent>Edit {title}</TooltipContent>
           </Tooltip>

@@ -65,44 +65,50 @@ export function GraphControls() {
     <Panel position="top-right">
       <div className="flex flex-col gap-1 bg-background/80 backdrop-blur-sm rounded-lg border border-border p-1 shadow-sm">
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              className="h-8 w-8"
-              onClick={() => zoomIn()}
-              aria-label="Zoom in"
-            >
-              <ZoomInIcon />
-            </Button>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="h-8 w-8"
+                onClick={() => zoomIn()}
+                aria-label="Zoom in"
+              />
+            }
+          >
+            <ZoomInIcon />
           </TooltipTrigger>
           <TooltipContent>Zoom in</TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              className="h-8 w-8"
-              onClick={() => zoomOut()}
-              aria-label="Zoom out"
-            >
-              <ZoomOutIcon />
-            </Button>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="h-8 w-8"
+                onClick={() => zoomOut()}
+                aria-label="Zoom out"
+              />
+            }
+          >
+            <ZoomOutIcon />
           </TooltipTrigger>
           <TooltipContent>Zoom out</TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              className="h-8 w-8"
-              onClick={() => fitView({ padding: 0.3, minZoom: 0.5, maxZoom: 2 })}
-              aria-label="Fit view"
-            >
-              <FitViewIcon />
-            </Button>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="outline"
+                size="icon-sm"
+                className="h-8 w-8"
+                onClick={() => fitView({ padding: 0.3, minZoom: 0.5, maxZoom: 2 })}
+                aria-label="Fit view"
+              />
+            }
+          >
+            <FitViewIcon />
           </TooltipTrigger>
           <TooltipContent>Fit view</TooltipContent>
         </Tooltip>

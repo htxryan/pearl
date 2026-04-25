@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toggleKeyboardHelp } from "@/components/keyboard-help";
 import { Dialog, DialogOverlay, DialogPopup, DialogPortal } from "@/components/ui/dialog";
-import { XIcon } from "@/components/ui/icons";
+import { BrokenImageIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "@/components/ui/icons";
 import {
   useAllAttachmentRefs,
   useAttachmentBlob,
@@ -127,7 +127,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
                 aria-label="Previous image"
                 className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
               >
-                <ChevronLeftIcon />
+                <ChevronLeftIcon size={20} />
               </button>
 
               <div className="flex flex-col items-center gap-0.5">
@@ -143,7 +143,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
                 aria-label="Next image"
                 className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
               >
-                <ChevronRightIcon />
+                <ChevronRightIcon size={20} />
               </button>
             </div>
 
@@ -210,7 +210,7 @@ function LightboxImage({ ref_ }: { ref_: string }) {
   if (status === "error") {
     return (
       <div className="w-64 h-64 rounded-lg bg-white/10 border border-white/20 flex flex-col items-center justify-center gap-2">
-        <BrokenImageIcon />
+        <BrokenImageIcon size={32} className="text-white/40" />
         <span className="text-white/70 text-sm font-mono">{ref_.slice(0, 8)}</span>
         <span className="text-white/50 text-xs">{error ?? "Load failed"}</span>
       </div>
@@ -224,51 +224,5 @@ function LightboxImage({ ref_ }: { ref_: string }) {
       className="max-w-[85vw] max-h-[75vh] rounded-lg object-contain motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150 select-none"
       draggable={false}
     />
-  );
-}
-
-function ChevronLeftIcon() {
-  return (
-    <svg
-      className="h-5 w-5"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-    >
-      <path d="M10 3l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg
-      className="h-5 w-5"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-    >
-      <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function BrokenImageIcon() {
-  return (
-    <svg
-      className="h-8 w-8 text-white/40"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden="true"
-    >
-      <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" />
-      <path d="M4 5l8 6M12 5l-8 6" strokeLinecap="round" />
-    </svg>
   );
 }

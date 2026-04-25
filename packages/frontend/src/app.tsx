@@ -39,7 +39,7 @@ export function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={300}>
+        <TooltipProvider delay={300}>
           <BrowserRouter>
             <Routes>
               <Route

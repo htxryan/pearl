@@ -112,17 +112,19 @@ export function DetailHeader({
           <div className="w-px h-5 bg-border" />
           {onToggleMode && (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onToggleMode}
-                  aria-label={
-                    currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"
-                  }
-                >
-                  {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
-                </Button>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onToggleMode}
+                    aria-label={
+                      currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"
+                    }
+                  />
+                }
+              >
+                {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
               </TooltipTrigger>
               <TooltipContent>
                 {currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
@@ -130,15 +132,17 @@ export function DetailHeader({
             </Tooltip>
           )}
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={onNavigateBack}
-                aria-label={currentMode ? "Close panel" : "Close detail view"}
-              >
-                <XIcon size={16} />
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onNavigateBack}
+                  aria-label={currentMode ? "Close panel" : "Close detail view"}
+                />
+              }
+            >
+              <XIcon size={16} />
             </TooltipTrigger>
             <TooltipContent>Close (Esc)</TooltipContent>
           </Tooltip>

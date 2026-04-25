@@ -333,3 +333,20 @@ export function ImageIcon({ size = 14, className }: IconProps = {}) {
     </svg>
   );
 }
+
+export function BrokenImageIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" />
+      <path d="M4 5l8 6M12 5l-8 6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function CircleIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <circle cx="8" cy="8" r="4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
