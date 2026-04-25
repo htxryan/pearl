@@ -1,7 +1,37 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { type ComponentProps, cloneElement, isValidElement, type ReactElement } from "react";
+import {
+  type ComponentProps,
+  cloneElement,
+  isValidElement,
+  type MutableRefObject,
+  type ReactElement,
+  type Ref,
+} from "react";
 
 import { cn } from "@/lib/utils";
+
+function mergeRefs<T>(...refs: (Ref<T> | undefined)[]): Ref<T> | undefined {
+  const filtered = refs.filter(Boolean) as Ref<T>[];
+  if (filtered.length === 0) return undefined;
+  if (filtered.length === 1) return filtered[0];
+  return (value: T | null) => {
+    for (const ref of filtered) {
+      if (typeof ref === "function") ref(value);
+      else if (ref && typeof ref === "object") (ref as MutableRefObject<T | null>).current = value;
+    }
+  };
+}
+
+function chainHandlers<E>(
+  ...handlers: (((e: E) => void) | undefined)[]
+): ((e: E) => void) | undefined {
+  const filtered = handlers.filter(Boolean) as ((e: E) => void)[];
+  if (filtered.length === 0) return undefined;
+  if (filtered.length === 1) return filtered[0];
+  return (e: E) => {
+    for (const handler of filtered) handler(e);
+  };
+}
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius)] text-sm font-medium transition-all duration-150 ease-out active:scale-[0.97] active:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0",
@@ -13,7 +43,7 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 hover:shadow-md hover:shadow-destructive/25",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md hover:shadow-destructive/25",
         outline:
           "border border-border bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/30",
         link: "text-primary underline-offset-4 hover:underline",
@@ -46,14 +76,26 @@ function Button({ className, variant, size, render, ref, ...props }: ButtonProps
   const classes = cn(buttonVariants({ variant, size, className }));
 
   if (render && isValidElement(render)) {
-    return cloneElement(render as ReactElement<Record<string, unknown>>, {
-      ...props,
-      className: cn(classes, (render.props as { className?: string }).className),
-      ref,
-    });
+    const renderProps = render.props as Record<string, unknown>;
+    const merged: Record<string, unknown> = { ...props };
+    merged.className = cn(classes, renderProps.className as string | undefined);
+    merged.ref = mergeRefs(ref, renderProps.ref as Ref<unknown> | undefined);
+    for (const key of Object.keys(renderProps)) {
+      if (
+        key.startsWith("on") &&
+        typeof renderProps[key] === "function" &&
+        typeof merged[key] === "function"
+      ) {
+        merged[key] = chainHandlers(
+          renderProps[key] as (e: unknown) => void,
+          merged[key] as (e: unknown) => void,
+        );
+      }
+    }
+    return cloneElement(render as ReactElement<Record<string, unknown>>, merged);
   }
 
-  return <button ref={ref} className={classes} {...props} />;
+  return <button type="button" ref={ref} className={classes} {...props} />;
 }
 
 export { Button, buttonVariants };

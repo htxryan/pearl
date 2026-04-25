@@ -248,6 +248,7 @@ export function MarkdownSection({
           <div className="flex items-center justify-between border-b border-border">
             <div className="flex">
               <button
+                type="button"
                 onClick={() => setActiveTab("write")}
                 className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
                   activeTab === "write"
@@ -258,6 +259,7 @@ export function MarkdownSection({
                 Write
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab("preview")}
                 className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${
                   activeTab === "preview"

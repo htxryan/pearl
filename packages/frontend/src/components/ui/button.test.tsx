@@ -85,7 +85,27 @@ describe("Button", () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
-  it("passes through native button attributes (type, aria-label, data-testid)", () => {
+  it("render prop preserves pre-existing onClick on the render element", () => {
+    const existingHandler = vi.fn();
+    const buttonHandler = vi.fn();
+    render(
+      // biome-ignore lint/a11y/useAnchorContent: children injected by Button render prop
+      <Button render={<a href="/somewhere" onClick={existingHandler} />} onClick={buttonHandler}>
+        Link
+      </Button>,
+    );
+    const el = screen.getByText("Link");
+    fireEvent.click(el);
+    expect(existingHandler).toHaveBeenCalledOnce();
+    expect(buttonHandler).toHaveBeenCalledOnce();
+  });
+
+  it("defaults to type=button to prevent accidental form submission", () => {
+    render(<Button>Default</Button>);
+    expect(screen.getByRole("button", { name: "Default" }).getAttribute("type")).toBe("button");
+  });
+
+  it("allows type override to submit", () => {
     render(
       <Button type="submit" aria-label="Submit form" data-testid="submit-btn">
         Submit
