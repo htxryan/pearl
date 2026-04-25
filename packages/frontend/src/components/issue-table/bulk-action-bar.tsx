@@ -1,6 +1,12 @@
 import type { IssueStatus, Priority } from "@pearl/shared";
 import { ISSUE_STATUSES } from "@pearl/shared";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
@@ -52,41 +58,78 @@ export function BulkActionBar({
   const [labelInput, setLabelInput] = useState("");
   const [removeLabelInput, setRemoveLabelInput] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const assigneeInputRef = useRef<HTMLInputElement>(null);
   const labelInputRef = useRef<HTMLInputElement>(null);
   const removeLabelInputRef = useRef<HTMLInputElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     if (view === null) return;
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setView(null);
+        triggerRef.current?.focus();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [view]);
 
-  // Close on Escape
   useEffect(() => {
     if (view === null) return;
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        if (view === "menu") setView(null);
-        else setView("menu");
+        if (view === "menu") {
+          setView(null);
+          triggerRef.current?.focus();
+        } else {
+          setView("menu");
+        }
       }
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [view]);
 
-  // Focus inputs when their sub-view opens
+  // Focus inputs or first menu item when sub-view opens
   useEffect(() => {
     if (view === "reassign") assigneeInputRef.current?.focus();
     else if (view === "addLabel") labelInputRef.current?.focus();
     else if (view === "removeLabel") removeLabelInputRef.current?.focus();
+    else if (view === "menu" && menuRef.current) {
+      const first = menuRef.current.querySelector<HTMLButtonElement>(
+        '[role="menuitem"]:not(:disabled)',
+      );
+      first?.focus();
+    }
   }, [view]);
+
+  const handleMenuKeyDown = useCallback((e: ReactKeyboardEvent<HTMLDivElement>) => {
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
+      '[role="menuitem"]:not(:disabled)',
+    );
+    if (!items?.length) return;
+
+    const current = document.activeElement as HTMLElement;
+    const idx = Array.from(items).indexOf(current as HTMLButtonElement);
+
+    let next: number | undefined;
+    if (e.key === "ArrowDown") {
+      next = idx < items.length - 1 ? idx + 1 : 0;
+    } else if (e.key === "ArrowUp") {
+      next = idx > 0 ? idx - 1 : items.length - 1;
+    } else if (e.key === "Home") {
+      next = 0;
+    } else if (e.key === "End") {
+      next = items.length - 1;
+    }
+
+    if (next !== undefined) {
+      e.preventDefault();
+      items[next].focus();
+    }
+  }, []);
 
   const handleReassignSubmit = useCallback(() => {
     const value = assigneeInput.trim();
@@ -125,6 +168,7 @@ export function BulkActionBar({
 
       <div className="relative" ref={containerRef}>
         <Button
+          ref={triggerRef}
           variant="outline"
           size="sm"
           onClick={() => setView(isOpen ? null : "menu")}
@@ -140,7 +184,9 @@ export function BulkActionBar({
 
         {view === "menu" && (
           <div
+            ref={menuRef}
             role="menu"
+            onKeyDown={handleMenuKeyDown}
             className="absolute top-full left-0 z-50 mt-1 w-56 rounded border border-border bg-popover py-1 shadow-md"
           >
             <MenuItem
@@ -170,7 +216,7 @@ export function BulkActionBar({
               label="Remove label"
               onClick={() => setView("removeLabel")}
             />
-            <div className="my-1 h-px bg-border" />
+            <hr className="my-1 border-border" />
             <MenuItem
               icon={<CloseSelectedIcon />}
               label={isClosing ? "Closing..." : "Close selected"}
@@ -359,9 +405,10 @@ function MenuItem({ icon, label, onClick, disabled, destructive, hasSubmenu }: M
     <button
       type="button"
       role="menuitem"
+      tabIndex={-1}
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent focus:bg-accent focus:outline-none disabled:opacity-50 disabled:pointer-events-none ${
+      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent focus:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none ${
         destructive ? "text-destructive" : ""
       }`}
     >
