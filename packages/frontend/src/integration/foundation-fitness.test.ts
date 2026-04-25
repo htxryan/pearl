@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { COLOR_TOKENS } from "@/themes/types";
 
 const indexCss = readFileSync(resolve(__dirname, "../index.css"), "utf8");
+const indexHtml = readFileSync(resolve(__dirname, "../../index.html"), "utf8");
 
 describe("F1: Theme definition keys match :root declarations", () => {
   it("every COLOR_TOKEN has a matching :root CSS variable declaration", () => {
@@ -43,6 +44,15 @@ describe("F1: Theme definition keys match :root declarations", () => {
 describe("F3: #root has isolation:isolate", () => {
   it("index.css contains #root { isolation: isolate }", () => {
     expect(indexCss).toMatch(/#root\s*\{[^}]*isolation:\s*isolate/s);
+  });
+});
+
+describe("F4: Boot script validTokens matches COLOR_TOKENS", () => {
+  it("index.html validTokens array is in sync with COLOR_TOKENS", () => {
+    const match = indexHtml.match(/validTokens\s*=\s*\[([^\]]+)\]/);
+    expect(match, "validTokens array not found in index.html").toBeTruthy();
+    const htmlTokens = match![1].split(",").map((t) => t.trim().replace(/^"|"$/g, ""));
+    expect(htmlTokens.sort()).toEqual([...COLOR_TOKENS].sort());
   });
 });
 

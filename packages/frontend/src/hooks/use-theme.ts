@@ -75,6 +75,13 @@ function persistTheme(theme: ThemeDefinition) {
 
 if (typeof document !== "undefined") {
   applyTheme(getEffectiveTheme());
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (getStoredThemeId()) return;
+    currentSnapshot = getDefaultTheme();
+    applyTheme(currentSnapshot);
+    emitChange();
+  });
 }
 
 let currentSnapshot = getEffectiveTheme();
