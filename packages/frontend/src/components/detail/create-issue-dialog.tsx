@@ -1,10 +1,12 @@
 import type { IssueType, Priority } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_TYPES } from "@pearl/shared";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
+
+const DatePicker = lazy(() => import("@/components/ui/date-picker"));
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
@@ -273,11 +275,15 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Due Date</label>
-              <DatePicker
-                value={due || null}
-                onChange={(date) => setDue(date ?? "")}
-                placeholder="Set due date"
-              />
+              <Suspense
+                fallback={<span className="text-sm text-muted-foreground">Loading...</span>}
+              >
+                <DatePicker
+                  value={due || null}
+                  onChange={(date) => setDue(date ?? "")}
+                  placeholder="Set due date"
+                />
+              </Suspense>
             </div>
           </div>
 

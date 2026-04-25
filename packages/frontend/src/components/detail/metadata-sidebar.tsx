@@ -1,8 +1,10 @@
 import type { Issue, LabelColor } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
-import { useCallback, useEffect, useId, useRef } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useRef } from "react";
 import { FieldEditor } from "@/components/detail/field-editor";
-import { DatePicker } from "@/components/ui/date-picker";
+
+const DatePicker = lazy(() => import("@/components/ui/date-picker"));
+
 import { LabelPicker } from "@/components/ui/label-picker";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { usePersistedState } from "@/hooks/use-persisted-state";
@@ -294,10 +296,12 @@ function FieldsList({
         </span>
       </FieldRow>
       <FieldRow label="Due Date">
-        <DatePicker
-          value={issue.due_at ? issue.due_at.slice(0, 10) : null}
-          onChange={(date) => onFieldUpdate("due", date)}
-        />
+        <Suspense fallback={<span className="text-sm text-muted-foreground">—</span>}>
+          <DatePicker
+            value={issue.due_at ? issue.due_at.slice(0, 10) : null}
+            onChange={(date) => onFieldUpdate("due", date)}
+          />
+        </Suspense>
       </FieldRow>
       <FieldRow label="Assignee">
         <FieldEditor

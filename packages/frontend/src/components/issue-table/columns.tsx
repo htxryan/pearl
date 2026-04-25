@@ -1,11 +1,13 @@
 import type { IssueListItem, IssueStatus, LabelColor, Priority } from "@pearl/shared";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import { AssigneePicker } from "@/components/ui/assignee-picker";
 import { AttachmentIcon } from "@/components/ui/attachment-icon";
 import { BeadId } from "@/components/ui/bead-id";
-import { DatePicker } from "@/components/ui/date-picker";
+
+const DatePicker = lazy(() => import("@/components/ui/date-picker"));
+
 import { LabelBadge } from "@/components/ui/label-badge";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
@@ -298,16 +300,18 @@ function InlineDateEditor({
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <DatePicker
-        value={value}
-        onChange={handleChange}
-        placeholder="—"
-        className={
-          isOverdue
-            ? "[&_button]:text-destructive [&_button]:font-medium"
-            : "[&_button]:text-muted-foreground"
-        }
-      />
+      <Suspense fallback={<span className="text-xs text-muted-foreground">—</span>}>
+        <DatePicker
+          value={value}
+          onChange={handleChange}
+          placeholder="—"
+          className={
+            isOverdue
+              ? "[&_button]:text-destructive [&_button]:font-medium"
+              : "[&_button]:text-muted-foreground"
+          }
+        />
+      </Suspense>
     </div>
   );
 }
