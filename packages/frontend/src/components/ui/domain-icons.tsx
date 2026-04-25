@@ -1,12 +1,11 @@
 import type { SVGProps } from "react";
 
-type IconProps = SVGProps<SVGSVGElement> & { size?: number | string };
+type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
-function svgDefaults(size: number | string): SVGProps<SVGSVGElement> {
-  const s = Number(size);
+function svgDefaults(size: number): SVGProps<SVGSVGElement> {
   return {
-    width: s,
-    height: s,
+    width: size,
+    height: size,
     viewBox: "0 0 16 16",
     fill: "none",
     stroke: "currentColor",

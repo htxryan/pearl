@@ -22,6 +22,9 @@
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css}": [
       "biome check --write --no-errors-on-unmatched"
+    ],
+    "packages/frontend/src/**/*.{ts,tsx}": [
+      "bash scripts/lint-lucide-imports.sh"
     ]
   },
   "devDependencies": {

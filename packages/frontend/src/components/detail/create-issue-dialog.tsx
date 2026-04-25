@@ -1,14 +1,14 @@
 import type { IssueType, Priority } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_TYPES } from "@pearl/shared";
+import { Plus, X } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const DatePicker = lazy(() => import("@/components/ui/date-picker"));
 
-import { Plus, X } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LabelPicker } from "@/components/ui/label-picker";
 import {
   Select,

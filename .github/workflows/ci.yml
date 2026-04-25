@@ -66,6 +66,7 @@ jobs:
           fail-on-cache-miss: true
 
       - run: pnpm lint
+      - run: pnpm lint:lucide
 
   lint-deps:
     name: Dependency boundaries
