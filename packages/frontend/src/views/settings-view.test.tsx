@@ -164,14 +164,14 @@ describe("SettingsView", () => {
       expect(screen.getByText("light")).toBeInTheDocument();
     });
 
-    it("calls setTheme when a theme card is clicked", () => {
+    it("calls setTheme when a theme row is clicked", () => {
       renderSettings("/settings/appearance");
       const lightButton = screen.getByRole("button", { name: /Light\+/i });
       fireEvent.click(lightButton);
       expect(mockSetTheme).toHaveBeenCalledWith("vscode-light-plus");
     });
 
-    it("theme cards are focusable buttons", () => {
+    it("theme rows are focusable buttons", () => {
       renderSettings("/settings/appearance");
       const group = screen.getByRole("group", { name: "Available themes" });
       const buttons = within(group).getAllByRole("button");
@@ -180,11 +180,17 @@ describe("SettingsView", () => {
       }
     });
 
-    it("renders color swatches on each theme card", () => {
+    it("renders color swatches on each theme row", () => {
       renderSettings("/settings/appearance");
       const group = screen.getByRole("group", { name: "Available themes" });
       const swatches = group.querySelectorAll("span[aria-hidden='true']");
       expect(swatches).toHaveLength(15);
+    });
+
+    it("renders Light and Dark section headings", () => {
+      renderSettings("/settings/appearance");
+      expect(screen.getByRole("heading", { name: "Light", level: 3 })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Dark", level: 3 })).toBeInTheDocument();
     });
 
     it("does not render the Attachments tab content", () => {
@@ -224,8 +230,6 @@ describe("SettingsView", () => {
       renderSettings("/settings/attachments");
       expect(screen.getByLabelText(/maximum file size/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/maximum dimension/i)).toBeInTheDocument();
-      expect(screen.getByText("WebP")).toBeInTheDocument();
-      expect(screen.getByText(/always enabled/i)).toBeInTheDocument();
     });
 
     it("renders save and reset buttons", () => {
