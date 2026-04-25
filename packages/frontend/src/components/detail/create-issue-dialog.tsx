@@ -4,11 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
-import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCreateIssue } from "@/hooks/use-issues";
 import { cn } from "@/lib/utils";
 
@@ -209,31 +215,45 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <span className="block text-sm font-medium mb-1">Type</span>
-              <CustomSelect<IssueType>
+              <Select
                 value={issueType}
-                options={ISSUE_TYPES.map((t) => ({
-                  value: t,
-                  label: t.charAt(0).toUpperCase() + t.slice(1),
-                }))}
-                onChange={setIssueType}
-                aria-label="Issue type"
-                className="w-full"
-                triggerClassName="w-full rounded-lg px-3 py-2"
-              />
+                onValueChange={(v) => {
+                  if (v) setIssueType(v as IssueType);
+                }}
+                modal={false}
+              >
+                <SelectTrigger className="w-full rounded-lg px-3 py-2" aria-label="Issue type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ISSUE_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <span className="block text-sm font-medium mb-1">Priority</span>
-              <CustomSelect<Priority>
+              <Select
                 value={priority}
-                options={ISSUE_PRIORITIES.map((p) => ({
-                  value: p,
-                  label: `P${p}`,
-                }))}
-                onChange={setPriority}
-                aria-label="Priority"
-                className="w-full"
-                triggerClassName="w-full rounded-lg px-3 py-2"
-              />
+                onValueChange={(v) => {
+                  if (v != null) setPriority(v as Priority);
+                }}
+                modal={false}
+              >
+                <SelectTrigger className="w-full rounded-lg px-3 py-2" aria-label="Priority">
+                  <SelectValue>
+                    {(v: number | null) => (v != null ? `P${v}` : "Priority")}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {ISSUE_PRIORITIES.map((p) => (
+                    <SelectItem key={p} value={p}>{`P${p}`}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

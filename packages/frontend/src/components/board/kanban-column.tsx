@@ -2,7 +2,13 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { memo, useRef, useState } from "react";
-import { CustomSelect } from "@/components/ui/custom-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 import { BOARD_SORT_MODES, type BoardSortMode } from "@/views/board-sort";
@@ -116,14 +122,28 @@ export const KanbanColumn = memo(function KanbanColumn({
             onKeyDown={(e) => e.stopPropagation()}
             role="presentation"
           >
-            <CustomSelect<BoardSortMode>
-              options={BOARD_SORT_MODES.map((o) => ({ value: o.value, label: o.label }))}
+            <Select
               value={sortMode}
-              onChange={(value) => onSortChange(status, value)}
-              size="sm"
-              triggerClassName="border-transparent bg-transparent hover:bg-muted/60"
-              aria-label={`Sort ${status} column`}
-            />
+              onValueChange={(value) => {
+                if (value) onSortChange(status, value as BoardSortMode);
+              }}
+              modal={false}
+            >
+              <SelectTrigger
+                size="sm"
+                className="border-transparent bg-transparent hover:bg-muted/60"
+                aria-label={`Sort ${status} column`}
+              >
+                <SelectValue placeholder="Sort..." />
+              </SelectTrigger>
+              <SelectContent>
+                {BOARD_SORT_MODES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
       </div>

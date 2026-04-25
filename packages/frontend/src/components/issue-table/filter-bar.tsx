@@ -1,8 +1,14 @@
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CustomSelect } from "@/components/ui/custom-select";
 import { FilterIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { useIsMobile } from "@/hooks/use-media-query";
 import {
@@ -224,39 +230,56 @@ export function FilterBar({
       />
 
       {/* Structural filters */}
-      <CustomSelect<StructuralFilter>
+      <Select
         value={null}
-        options={STRUCTURAL_FILTER_OPTIONS.map((opt) => ({
-          value: opt,
-          label: STRUCTURAL_FILTER_LABELS[opt],
-          disabled: filters.structural.includes(opt),
-        }))}
-        onChange={(value) => {
+        onValueChange={(value) => {
+          if (!value) return;
           const current = filtersRef.current.structural;
-          if (!current.includes(value)) {
-            onChangeRef.current({ ...filtersRef.current, structural: [...current, value] });
+          if (!current.includes(value as StructuralFilter)) {
+            onChangeRef.current({
+              ...filtersRef.current,
+              structural: [...current, value as StructuralFilter],
+            });
           }
         }}
-        placeholder="Properties..."
-        aria-label="Filter by properties"
-        className="min-w-[120px]"
-      />
+        modal={false}
+      >
+        <SelectTrigger className="min-w-[120px]" size="sm" aria-label="Filter by properties">
+          <SelectValue placeholder="Properties..." />
+        </SelectTrigger>
+        <SelectContent>
+          {STRUCTURAL_FILTER_OPTIONS.map((opt) => (
+            <SelectItem key={opt} value={opt} disabled={filters.structural.includes(opt)}>
+              {STRUCTURAL_FILTER_LABELS[opt]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* Group by with None option — hidden on Board (columns are always by status) */}
       {!hideGroupBy && (
-        <CustomSelect<GroupByField | "__none__">
+        <Select
           value={filters.groupBy ?? "__none__"}
-          options={groupByOptions}
-          onChange={(value) =>
+          onValueChange={(value) => {
+            if (!value) return;
             onChangeRef.current({
               ...filtersRef.current,
               groupBy: value === "__none__" ? null : (value as GroupByField),
-            })
-          }
-          placeholder="Group by..."
-          aria-label="Group by"
-          className="min-w-[100px]"
-        />
+            });
+          }}
+          modal={false}
+        >
+          <SelectTrigger className="min-w-[100px]" size="sm" aria-label="Group by">
+            <SelectValue placeholder="Group by..." />
+          </SelectTrigger>
+          <SelectContent>
+            {groupByOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
 
       {/* More filters toggle */}
@@ -291,23 +314,31 @@ export function FilterBar({
 
       {/* Date range (hidden by default) */}
       {showMore && (
-        <CustomSelect<DateRange>
+        <Select
           value={null}
-          options={DATE_RANGE_OPTIONS.map((opt) => ({
-            value: opt,
-            label: DATE_RANGE_LABELS[opt],
-            disabled: filters.dateRanges.includes(opt),
-          }))}
-          onChange={(value) => {
+          onValueChange={(value) => {
+            if (!value) return;
             const current = filtersRef.current.dateRanges;
-            if (!current.includes(value)) {
-              onChangeRef.current({ ...filtersRef.current, dateRanges: [...current, value] });
+            if (!current.includes(value as DateRange)) {
+              onChangeRef.current({
+                ...filtersRef.current,
+                dateRanges: [...current, value as DateRange],
+              });
             }
           }}
-          placeholder="Date filter..."
-          aria-label="Filter by date range"
-          className="min-w-[120px]"
-        />
+          modal={false}
+        >
+          <SelectTrigger className="min-w-[120px]" size="sm" aria-label="Filter by date range">
+            <SelectValue placeholder="Date filter..." />
+          </SelectTrigger>
+          <SelectContent>
+            {DATE_RANGE_OPTIONS.map((opt) => (
+              <SelectItem key={opt} value={opt} disabled={filters.dateRanges.includes(opt)}>
+                {DATE_RANGE_LABELS[opt]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
 
       {hasActiveFilters(filters) && (

@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { CustomSelect } from "@/components/ui/custom-select";
 import { PlusIcon, SaveIcon } from "@/components/ui/icons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
 import {
@@ -56,21 +62,39 @@ export function MultiSelect<T extends string | number>({
   labels: Record<string & T, string> | Record<number & T, string>;
   onChange: (values: T[]) => void;
 }) {
-  const selectOptions = options.map((opt) => ({
-    value: opt,
-    label: (labels as Record<string, string>)[String(opt)],
-  }));
+  const displayLabel = label.charAt(0).toUpperCase() + label.slice(1);
+  const labelsMap = labels as Record<string, string>;
 
   return (
-    <CustomSelect<T>
+    <Select
       multiple
       value={selected}
-      options={selectOptions}
-      onChange={onChange}
-      placeholder={label.charAt(0).toUpperCase() + label.slice(1)}
-      aria-label={`Filter by ${label}`}
-      className="min-w-[100px]"
-    />
+      onValueChange={(values) => {
+        onChange(values as T[]);
+      }}
+      modal={false}
+    >
+      <SelectTrigger
+        size="sm"
+        className={cn(
+          "min-w-[100px]",
+          selected.length > 0 &&
+            "border-primary/50 bg-primary/5 text-primary hover:border-primary/70",
+        )}
+        aria-label={`Filter by ${label}`}
+      >
+        <SelectValue placeholder={displayLabel}>
+          {() => (selected.length > 0 ? `${displayLabel} (${selected.length})` : displayLabel)}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) => (
+          <SelectItem key={String(opt)} value={opt}>
+            {labelsMap[String(opt)]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 

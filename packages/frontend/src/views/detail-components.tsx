@@ -1,8 +1,14 @@
 import type { IssueStatus } from "@pearl/shared";
 import { Children } from "react";
 import { Button } from "@/components/ui/button";
-import { CustomSelect } from "@/components/ui/custom-select";
 import { ArrowLeftIcon } from "@/components/ui/icons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 // ─── Helper Components ─────────────────────────────────
@@ -54,7 +60,26 @@ export function SelectField({
   onChange: (value: string) => void;
   label: string;
 }) {
-  return <CustomSelect value={value} options={options} onChange={onChange} aria-label={label} />;
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        if (v) onChange(v);
+      }}
+      modal={false}
+    >
+      <SelectTrigger aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 export function DetailSkeleton() {

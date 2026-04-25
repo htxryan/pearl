@@ -1,9 +1,15 @@
 import type { Event } from "@pearl/shared";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CustomSelect } from "@/components/ui/custom-select";
 import { ChevronDownIcon } from "@/components/ui/icons";
 import { RelativeTime } from "@/components/ui/relative-time";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface ActivityTimelineProps {
@@ -109,16 +115,27 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
             Activity ({groupedEvents.length})
           </h2>
         )}
-        <CustomSelect
+        <Select
           value={filterType}
-          options={EVENT_FILTER_OPTIONS}
-          onChange={(value) => {
-            setFilterType(value);
-            setVisibleCount(PAGE_SIZE);
+          onValueChange={(value) => {
+            if (value) {
+              setFilterType(value);
+              setVisibleCount(PAGE_SIZE);
+            }
           }}
-          aria-label="Filter events by type"
-          size="sm"
-        />
+          modal={false}
+        >
+          <SelectTrigger size="sm" aria-label="Filter events by type">
+            <SelectValue placeholder="All events" />
+          </SelectTrigger>
+          <SelectContent>
+            {EVENT_FILTER_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {visibleGroups.length > 0 ? (
