@@ -125,7 +125,8 @@ export function useDetailView(id: string, options: UseDetailViewOptions = {}) {
 
   const handleFieldUpdate = useCallback(
     (field: string, value: unknown) => {
-      const oldValue = issue ? (issue as unknown as Record<string, unknown>)[field] : undefined;
+      const issueKey = field === "due" ? "due_at" : field;
+      const oldValue = issue ? (issue as unknown as Record<string, unknown>)[issueKey] : undefined;
       setDirtyFields((prev) => new Set(prev).add(field));
       updateMutation.mutate(
         { id, data: { [field]: value } },

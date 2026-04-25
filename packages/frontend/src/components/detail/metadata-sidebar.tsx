@@ -1,6 +1,6 @@
 import type { Issue, LabelColor } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_TYPES, SETTABLE_STATUSES } from "@pearl/shared";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useId, useRef } from "react";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LabelPicker } from "@/components/ui/label-picker";
@@ -16,9 +16,14 @@ export const MAX_SIDEBAR_WIDTH = 480;
 
 export function useMetadataSidebarState() {
   const [collapsed, setCollapsed] = usePersistedState<boolean>(COLLAPSED_KEY, false);
-  const [width, setWidth] = usePersistedState<number>(WIDTH_KEY, DEFAULT_SIDEBAR_WIDTH);
-  const clampedWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
-  return { collapsed, setCollapsed, width: clampedWidth, setWidth };
+  const [rawWidth, setRawWidth] = usePersistedState<number>(WIDTH_KEY, DEFAULT_SIDEBAR_WIDTH);
+  const clamp = useCallback(
+    (v: number) => Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, v)),
+    [],
+  );
+  const width = clamp(rawWidth);
+  const setWidth = useCallback((v: number) => setRawWidth(clamp(v)), [setRawWidth, clamp]);
+  return { collapsed, setCollapsed, width, setWidth };
 }
 
 export type MetadataSidebarLayout = "sidebar" | "inline";
@@ -124,7 +129,10 @@ function SidebarMetadata({
 
   if (collapsed) {
     return (
-      <div className="shrink-0 w-8 border-l border-border bg-muted/20 flex flex-col items-center py-2">
+      <aside
+        className="shrink-0 w-8 border-l border-border bg-muted/20 flex flex-col items-center py-2"
+        aria-label="Issue metadata"
+      >
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -141,7 +149,7 @@ function SidebarMetadata({
         >
           Fields
         </div>
-      </div>
+      </aside>
     );
   }
 
@@ -153,13 +161,24 @@ function SidebarMetadata({
     >
       <button
         type="button"
-        role="slider"
+        role="separator"
         aria-orientation="vertical"
         aria-label="Resize metadata sidebar"
         aria-valuemin={MIN_SIDEBAR_WIDTH}
         aria-valuemax={MAX_SIDEBAR_WIDTH}
         aria-valuenow={width}
+        tabIndex={0}
         onMouseDown={onDragStart}
+        onKeyDown={(e) => {
+          const step = e.shiftKey ? 40 : 10;
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            onWidthChange(Math.min(MAX_SIDEBAR_WIDTH, width + step));
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            onWidthChange(Math.max(MIN_SIDEBAR_WIDTH, width - step));
+          }
+        }}
         className="absolute left-0 top-0 bottom-0 w-1 -translate-x-1/2 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-colors z-10"
       />
 
@@ -197,13 +216,14 @@ function InlineMetadata({
   collapsed: boolean;
   onToggleCollapsed: () => void;
 }) {
+  const fieldsId = useId();
   return (
     <div className="bg-muted/10">
       <button
         type="button"
         onClick={onToggleCollapsed}
         aria-expanded={!collapsed}
-        aria-controls="metadata-inline-fields"
+        aria-controls={fieldsId}
         className="flex items-center justify-between w-full px-4 sm:px-6 py-3 text-left hover:bg-muted/30 transition-colors"
       >
         <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
@@ -226,7 +246,7 @@ function InlineMetadata({
         </svg>
       </button>
       {!collapsed && (
-        <div id="metadata-inline-fields" className="px-4 sm:px-6 pb-4 space-y-3">
+        <div id={fieldsId} className="px-4 sm:px-6 pb-4 space-y-3">
           <FieldsList issue={issue} onFieldUpdate={onFieldUpdate} />
         </div>
       )}

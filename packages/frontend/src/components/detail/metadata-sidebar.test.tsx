@@ -150,7 +150,7 @@ describe("MetadataSidebar (sidebar layout)", () => {
         onWidthChange={onWidthChange}
       />,
     );
-    const separator = screen.getByRole("slider", { name: /resize metadata sidebar/i });
+    const separator = screen.getByRole("separator", { name: /resize metadata sidebar/i });
     expect(separator).toBeDefined();
 
     fireEvent.mouseDown(separator, { clientX: 500 });
@@ -175,7 +175,7 @@ describe("MetadataSidebar (inline layout)", () => {
       />,
     );
     expect(screen.getByText("Fields")).toBeDefined();
-    expect(screen.queryByRole("slider", { name: /resize metadata sidebar/i })).toBeNull();
+    expect(screen.queryByRole("separator", { name: /resize metadata sidebar/i })).toBeNull();
     expect(screen.getByText("Assignee")).toBeDefined();
   });
 
