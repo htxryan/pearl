@@ -75,7 +75,6 @@ export function BulkActionBar({
   const labelInputRef = useRef<HTMLInputElement>(null);
   const removeLabelInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus the input when entering an input sub-view.
   useEffect(() => {
     if (view === "reassign") assigneeInputRef.current?.focus();
     else if (view === "addLabel") labelInputRef.current?.focus();
@@ -119,66 +118,68 @@ export function BulkActionBar({
       </span>
 
       <DropdownMenu open={view !== null} onOpenChange={(next) => setView(next ? "menu" : null)}>
-        <DropdownMenuTrigger>
-          {(p) => (
-            <Button {...p} variant="outline" size="sm" disabled={busy} className="gap-1.5">
-              <ActionsIcon />
-              Actions
-              <ChevronDownIcon />
-            </Button>
-          )}
+        <DropdownMenuTrigger
+          render={<Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />}
+        >
+          <ActionsIcon />
+          Actions
+          <ChevronDownIcon />
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent width={width}>
+        <DropdownMenuContent className={width}>
           {view === "menu" && (
             <>
               <DropdownMenuItem
-                icon={<ReassignIcon />}
                 onClick={() => setView("reassign")}
-                closeOnSelect={false}
+                closeOnClick={false}
+                className="gap-2"
               >
+                <ReassignIcon className="size-4" />
                 Reassign
               </DropdownMenuItem>
               <DropdownMenuItem
-                icon={<PriorityIcon />}
                 onClick={() => setView("priority")}
-                hasSubmenu
-                closeOnSelect={false}
+                closeOnClick={false}
+                className="gap-2"
               >
+                <PriorityIcon className="size-4" />
                 Set priority
               </DropdownMenuItem>
               <DropdownMenuItem
-                icon={<StatusIcon />}
                 onClick={() => setView("status")}
-                hasSubmenu
-                closeOnSelect={false}
+                closeOnClick={false}
+                className="gap-2"
               >
+                <StatusIcon className="size-4" />
                 Set status
               </DropdownMenuItem>
               <DropdownMenuItem
-                icon={<TagPlusIcon />}
                 onClick={() => setView("addLabel")}
-                closeOnSelect={false}
+                closeOnClick={false}
+                className="gap-2"
               >
+                <TagPlusIcon className="size-4" />
                 Add label
               </DropdownMenuItem>
               <DropdownMenuItem
-                icon={<TagMinusIcon />}
                 onClick={() => setView("removeLabel")}
-                closeOnSelect={false}
+                closeOnClick={false}
+                className="gap-2"
               >
+                <TagMinusIcon className="size-4" />
                 Remove label
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem icon={<CloseIssueIcon />} onClick={onClose} disabled={isClosing}>
+              <DropdownMenuItem onClick={onClose} disabled={isClosing} className="gap-2">
+                <CloseIssueIcon className="size-4" />
                 {isClosing ? "Closing..." : "Close selected"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                icon={<TrashIcon />}
                 onClick={onDelete}
                 disabled={isDeleting}
-                destructive
+                className="gap-2 text-destructive focus:text-destructive"
               >
+                <TrashIcon className="size-4" />
                 {isDeleting ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </>

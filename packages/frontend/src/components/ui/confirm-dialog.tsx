@@ -1,6 +1,12 @@
-import { useEffect, useRef } from "react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
 import { CheckIcon, TrashIcon, XIcon } from "@/components/ui/icons";
 
 interface ConfirmDialogProps {
@@ -26,27 +32,20 @@ export function ConfirmDialog({
   variant = "destructive",
   isPending = false,
 }: ConfirmDialogProps) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      cancelRef.current?.focus();
-    }
-  }, [isOpen]);
-
   return (
-    <Dialog isOpen={isOpen} onClose={onCancel} size="sm">
-      <div className="p-6 animate-modal-enter">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-        <div className="mt-6 flex items-center justify-end gap-2">
-          <Button
-            ref={cancelRef}
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isPending}
-            className="gap-1.5"
-          >
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onCancel();
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="ghost" onClick={onCancel} disabled={isPending} className="gap-1.5">
             <XIcon />
             {cancelLabel}
           </Button>
@@ -54,8 +53,8 @@ export function ConfirmDialog({
             {variant === "destructive" ? <TrashIcon /> : <CheckIcon />}
             {isPending ? "..." : confirmLabel}
           </Button>
-        </div>
-      </div>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

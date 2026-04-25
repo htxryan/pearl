@@ -44,46 +44,45 @@ export function DetailActionsMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        {(triggerProps) => (
-          <Button {...triggerProps} variant="outline" size="sm" disabled={busy} className="gap-1.5">
-            <ActionsIcon />
-            Actions
-            <ChevronDownIcon />
-          </Button>
-        )}
+      <DropdownMenuTrigger
+        render={<Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />}
+      >
+        <ActionsIcon />
+        Actions
+        <ChevronDownIcon />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
         {!isClosed && (
           <>
             <DropdownMenuItem
-              icon={<CheckIcon />}
               onClick={() => {
                 setIsClaimPending(true);
                 onClaim();
               }}
               disabled={isUpdatePending}
+              className="gap-2"
             >
+              <CheckIcon className="size-4" />
               {isClaimPending ? "Claiming..." : "Claim"}
             </DropdownMenuItem>
             <DropdownMenuItem
-              icon={<CloseIssueIcon />}
               onClick={onRequestClose}
               disabled={isClosePending}
-              destructive
+              className="gap-2 text-destructive focus:text-destructive"
             >
+              <CloseIssueIcon className="size-4" />
               {isClosePending ? "Closing..." : "Close"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         )}
         <DropdownMenuItem
-          icon={<TrashIcon />}
           onClick={onRequestDelete}
           disabled={isDeletePending}
-          destructive
+          className="gap-2 text-destructive focus:text-destructive"
         >
+          <TrashIcon className="size-4" />
           {isDeletePending ? "Deleting..." : "Delete"}
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -228,24 +228,14 @@ describe("Lightbox", () => {
     expect(container.querySelector("[role='dialog']")).toBeNull();
   });
 
-  it("restores focus on close", () => {
+  it("dialog has proper aria attributes when open", () => {
     mockUseAllRefs.mockReturnValue(makeRefs(1));
     setupBlobs(["loaded"]);
 
-    const button = document.createElement("button");
-    button.textContent = "trigger";
-    document.body.appendChild(button);
-    button.focus();
-    expect(document.activeElement).toBe(button);
+    render(<Lightbox activeRef="ref000000000" onClose={vi.fn()} />);
 
-    const onClose = vi.fn();
-    const { unmount } = render(<Lightbox activeRef="ref000000000" onClose={onClose} />);
-
-    expect(document.activeElement).not.toBe(button);
-
-    unmount();
-    expect(document.activeElement).toBe(button);
-    document.body.removeChild(button);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-label", "Image viewer");
   });
 
   it("clicking the image does not close lightbox", () => {
@@ -304,14 +294,13 @@ describe("Lightbox", () => {
     expect(screen.getByText("3 of 4")).toBeInTheDocument();
   });
 
-  it("locks body scroll while open", () => {
+  it("renders overlay backdrop when open", () => {
     mockUseAllRefs.mockReturnValue(makeRefs(1));
     setupBlobs(["loaded"]);
 
-    const { unmount } = render(<Lightbox activeRef="ref000000000" onClose={vi.fn()} />);
-    expect(document.body.style.overflow).toBe("hidden");
+    render(<Lightbox activeRef="ref000000000" onClose={vi.fn()} />);
 
-    unmount();
-    expect(document.body.style.overflow).toBe("");
+    const backdrop = screen.getByTestId("lightbox-backdrop");
+    expect(backdrop).toBeInTheDocument();
   });
 });

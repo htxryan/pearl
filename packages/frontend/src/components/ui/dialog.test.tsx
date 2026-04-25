@@ -1,156 +1,63 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
-import { Dialog } from "./dialog";
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = vi.fn();
-  HTMLDialogElement.prototype.close = vi.fn();
-});
+import { describe, expect, it, vi } from "vitest";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "./dialog";
 
 describe("Dialog", () => {
-  it("keeps dialog mounted but renders no children when closed", () => {
-    const { container } = render(
-      <Dialog isOpen={false} onClose={vi.fn()}>
-        <p>Content</p>
+  it("renders content when open", () => {
+    render(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>Test Title</DialogTitle>
+          <DialogDescription>Test Description</DialogDescription>
+        </DialogContent>
       </Dialog>,
     );
-    expect(container.querySelector("dialog")).toBeInTheDocument();
-    expect(container.querySelector("dialog")?.innerHTML).toBe("");
+    expect(screen.getByText("Test Title")).toBeInTheDocument();
+    expect(screen.getByText("Test Description")).toBeInTheDocument();
   });
 
-  it("renders children when open", () => {
+  it("does not render content when closed", () => {
     render(
-      <Dialog isOpen={true} onClose={vi.fn()}>
-        <p>Hello Dialog</p>
+      <Dialog open={false}>
+        <DialogContent>
+          <DialogTitle>Hidden</DialogTitle>
+        </DialogContent>
       </Dialog>,
     );
-    expect(screen.getByText("Hello Dialog")).toBeInTheDocument();
+    expect(screen.queryByText("Hidden")).not.toBeInTheDocument();
   });
 
-  it("calls showModal when opened", () => {
+  it("calls onOpenChange with false when close button is clicked", () => {
+    const onOpenChange = vi.fn();
     render(
-      <Dialog isOpen={true} onClose={vi.fn()}>
-        <p>Content</p>
+      <Dialog open onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogTitle>Close Test</DialogTitle>
+          <DialogClose data-testid="close-btn">Close</DialogClose>
+        </DialogContent>
       </Dialog>,
     );
-    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("close-btn"));
+    expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything());
   });
 
-  it("applies text-foreground class for dark-mode compatibility", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()}>
-        <p>Content</p>
+  it("uses controlled open state", () => {
+    const { rerender } = render(
+      <Dialog open={false}>
+        <DialogContent>
+          <DialogTitle>Controlled</DialogTitle>
+        </DialogContent>
       </Dialog>,
     );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("text-foreground");
-  });
+    expect(screen.queryByText("Controlled")).not.toBeInTheDocument();
 
-  it("applies bg-background and border-border theme tokens", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()}>
-        <p>Content</p>
+    rerender(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>Controlled</DialogTitle>
+        </DialogContent>
       </Dialog>,
     );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("bg-background");
-    expect(dialog?.className).toContain("border-border");
-  });
-
-  it("applies size-sm by default", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()}>
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("max-w-sm");
-  });
-
-  it("applies size-lg when specified", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()} size="lg">
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("max-w-lg");
-  });
-
-  it("applies size-xl when specified", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()} size="xl">
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("max-w-xl");
-  });
-
-  it("applies size-2xl when specified", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()} size="2xl">
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("max-w-2xl");
-  });
-
-  it("calls onClose when dialog fires close event", () => {
-    const onClose = vi.fn();
-    render(
-      <Dialog isOpen={true} onClose={onClose}>
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog")!;
-    fireEvent(dialog, new Event("close", { bubbles: false }));
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it("calls onClose on backdrop click", () => {
-    const onClose = vi.fn();
-    render(
-      <Dialog isOpen={true} onClose={onClose}>
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog")!;
-    fireEvent.click(dialog);
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it("does not call onClose when clicking content inside dialog", () => {
-    const onClose = vi.fn();
-    render(
-      <Dialog isOpen={true} onClose={onClose}>
-        <p>Content</p>
-      </Dialog>,
-    );
-    fireEvent.click(screen.getByText("Content"));
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it("forwards onCancel to dialog element", () => {
-    const onCancel = vi.fn((e: React.SyntheticEvent) => e.preventDefault());
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()} onCancel={onCancel}>
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog")!;
-    fireEvent(dialog, new Event("cancel", { bubbles: true }));
-    expect(onCancel).toHaveBeenCalled();
-  });
-
-  it("merges custom className", () => {
-    render(
-      <Dialog isOpen={true} onClose={vi.fn()} className="custom-test-class">
-        <p>Content</p>
-      </Dialog>,
-    );
-    const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("custom-test-class");
+    expect(screen.getByText("Controlled")).toBeInTheDocument();
   });
 });

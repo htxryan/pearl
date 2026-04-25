@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { XIcon } from "@/components/ui/icons";
 import { isMacPlatform } from "@/lib/utils";
 
@@ -107,46 +114,21 @@ export function KeyboardHelpOverlay() {
   const open = useKeyboardHelpOpen();
   const shortcutGroups = useMemo(() => buildShortcutGroups(isMacPlatform()), []);
 
-  // Close on Escape key at document level
-  useEffect(() => {
-    if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeKeyboardHelp();
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
-
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="keyboard-help-title"
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) closeKeyboardHelp();
+      }}
     >
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/70" onClick={closeKeyboardHelp} />
-
-      {/* Modal */}
-      <div className="relative z-[60] w-full max-w-lg rounded-xl border border-border bg-background shadow-2xl overflow-hidden animate-modal-enter">
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 id="keyboard-help-title" className="text-lg font-semibold">
-            Keyboard Shortcuts
-          </h2>
-          <button
-            type="button"
-            onClick={closeKeyboardHelp}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Close"
-          >
+      <DialogContent className="max-w-lg overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-4">
+          <DialogTitle>Keyboard Shortcuts</DialogTitle>
+          <DialogClose className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors">
             <XIcon size={16} />
-          </button>
-        </div>
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogHeader>
 
         <div className="max-h-[60vh] overflow-auto px-6 py-4 space-y-6">
           {shortcutGroups.map((group) => (
@@ -167,7 +149,7 @@ export function KeyboardHelpOverlay() {
             </div>
           ))}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

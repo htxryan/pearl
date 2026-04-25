@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowRightIcon, CheckIcon, PlugIcon } from "@/components/ui/icons";
 import * as api from "@/lib/api-client";
 
@@ -18,25 +25,6 @@ export function EmbeddedModeModal() {
   const [connectionOk, setConnectionOk] = useState(false);
   const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
-    };
-  }, []);
-
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-  }, []);
-
-  // Managed migration: fire POST and schedule a reload. A fallback timer reloads
-  // even if the fetch never resolves — works around a Chrome renderer freeze that
-  // can occur between the pointer-event click and the fetch response.
   const handleManagedMigration = useCallback(() => {
     setState("migrating");
     setError("");
@@ -99,29 +87,19 @@ export function EmbeddedModeModal() {
   const isBusy = state === "migrating" || state === "testing";
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="migration-modal-title"
-      onClick={handleBackdropClick}
-      data-testid="embedded-mode-modal"
-    >
-      <div
-        className="w-full max-w-lg rounded-xl border border-border bg-background p-6 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning-foreground text-lg">
-            !
+    <AlertDialog open>
+      <AlertDialogContent data-testid="embedded-mode-modal">
+        <AlertDialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning-foreground text-lg">
+              !
+            </div>
+            <div>
+              <AlertDialogTitle>Migration Required</AlertDialogTitle>
+              <AlertDialogDescription>Embedded mode is deprecated</AlertDialogDescription>
+            </div>
           </div>
-          <div>
-            <h2 id="migration-modal-title" className="text-lg font-semibold">
-              Migration Required
-            </h2>
-            <p className="text-sm text-muted-foreground">Embedded mode is deprecated</p>
-          </div>
-        </div>
+        </AlertDialogHeader>
 
         <p className="text-sm text-muted-foreground mb-6">
           Pearl now requires a Dolt SQL server for reliable data access. Choose how you'd like to
@@ -262,7 +240,7 @@ export function EmbeddedModeModal() {
             {error}
           </div>
         )}
-      </div>
-    </div>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

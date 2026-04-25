@@ -186,11 +186,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
   const visible = notifications.slice(0, 20);
 
   return (
-    <div
-      className="absolute right-0 top-full z-50 mt-1 w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-border bg-background shadow-lg"
-      role="dialog"
-      aria-label="Notifications"
-    >
+    <div className="overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <h3 className="text-sm font-semibold">

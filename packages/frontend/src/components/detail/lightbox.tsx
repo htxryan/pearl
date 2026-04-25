@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toggleKeyboardHelp } from "@/components/keyboard-help";
+import { Dialog, DialogOverlay, DialogPopup, DialogPortal } from "@/components/ui/dialog";
 import { XIcon } from "@/components/ui/icons";
 import {
   useAllAttachmentRefs,
@@ -8,7 +8,6 @@ import {
   useAttachmentCacheCheck,
   useAttachmentSourceLabel,
 } from "@/hooks/use-attachment-context";
-import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface LightboxProps {
   activeRef: string | null;
@@ -19,26 +18,15 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
   const allRefs = useAllAttachmentRefs();
   const refs = useMemo(() => allRefs.map((a) => a.ref), [allRefs]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const checkCache = useAttachmentCacheCheck();
 
   const isOpen = activeRef !== null && refs.length > 0;
-
-  useFocusTrap(dialogRef, isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
     const idx = refs.indexOf(activeRef);
     setCurrentIndex(idx >= 0 ? idx : 0);
   }, [activeRef, refs, isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
 
   const navigateBy = useCallback(
     (delta: number) => {
@@ -58,10 +46,6 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
-        case "Escape":
-          e.preventDefault();
-          onClose();
-          break;
         case "ArrowRight":
         case "l":
         case "j":
@@ -96,7 +80,6 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
           break;
         case "?":
         case "/":
-          // Shift+/ produces "?"; allow plain "/" as a fallback
           if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
             e.preventDefault();
             toggleKeyboardHelp();
@@ -104,109 +87,91 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
           break;
       }
     },
-    [onClose, navigateBy, refs, checkCache],
-  );
-
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose],
+    [navigateBy, refs, checkCache],
   );
 
   if (!isOpen) return null;
 
   const currentRef = refs[currentIndex];
 
-  return createPortal(
-    <div
-      ref={dialogRef}
-      role="dialog"
-      aria-label="Image viewer"
-      aria-modal="true"
-      tabIndex={-1}
-      onKeyDown={handleKeyDown}
-      className="fixed inset-0 z-50 flex items-center justify-center outline-none"
+  return (
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      {/* Backdrop */}
-      <div
-        data-testid="lightbox-backdrop"
-        className="absolute inset-0 bg-black/80 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200"
-        onClick={handleBackdropClick}
-        aria-hidden="true"
-      />
-
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-4 max-w-[90vw] max-h-[90vh]">
-        {/* Close button */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute -top-2 -right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+      <DialogPortal>
+        <DialogOverlay data-testid="lightbox-backdrop" className="bg-black/80" />
+        <DialogPopup
+          aria-label="Image viewer"
+          onKeyDown={handleKeyDown}
+          className="fixed inset-0 z-50 flex items-center justify-center outline-none bg-transparent"
         >
-          <XIcon size={16} />
-        </button>
+          <div className="relative z-10 flex flex-col items-center gap-4 max-w-[90vw] max-h-[90vh]">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute -top-2 -right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+            >
+              <XIcon size={16} />
+            </button>
 
-        {/* Image */}
-        <LightboxImage ref_={currentRef} />
+            <LightboxImage ref_={currentRef} />
 
-        {/* Controls bar */}
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => navigateBy(-1)}
-            aria-label="Previous image"
-            className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
-          >
-            <ChevronLeftIcon />
-          </button>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => navigateBy(-1)}
+                aria-label="Previous image"
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+              >
+                <ChevronLeftIcon />
+              </button>
 
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-sm text-white font-medium tabular-nums select-none">
-              {currentIndex + 1} of {refs.length}
-            </span>
-            <LightboxSourceTag ref_={currentRef} />
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-sm text-white font-medium tabular-nums select-none">
+                  {currentIndex + 1} of {refs.length}
+                </span>
+                <LightboxSourceTag ref_={currentRef} />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigateBy(1)}
+                aria-label="Next image"
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+              >
+                <ChevronRightIcon />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-white/60 select-none">
+              <Kbd>j</Kbd>
+              <Kbd>k</Kbd>
+              <Kbd>←</Kbd>
+              <Kbd>→</Kbd>
+              <span>navigate</span>
+              <span className="opacity-40">·</span>
+              <Kbd>Home</Kbd>
+              <Kbd>End</Kbd>
+              <span>jump</span>
+              <span className="opacity-40">·</span>
+              <Kbd>Esc</Kbd>
+              <span>close</span>
+              <span className="opacity-40">·</span>
+              <Kbd>?</Kbd>
+              <span>all shortcuts</span>
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => navigateBy(1)}
-            aria-label="Next image"
-            className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
-          >
-            <ChevronRightIcon />
-          </button>
-        </div>
-
-        {/* Keyboard hint footer — subtle, discoverable */}
-        <div className="flex items-center gap-2 text-[11px] text-white/60 select-none">
-          <Kbd>j</Kbd>
-          <Kbd>k</Kbd>
-          <Kbd>←</Kbd>
-          <Kbd>→</Kbd>
-          <span>navigate</span>
-          <span className="opacity-40">·</span>
-          <Kbd>Home</Kbd>
-          <Kbd>End</Kbd>
-          <span>jump</span>
-          <span className="opacity-40">·</span>
-          <Kbd>Esc</Kbd>
-          <span>close</span>
-          <span className="opacity-40">·</span>
-          <Kbd>?</Kbd>
-          <span>all shortcuts</span>
-        </div>
-      </div>
-
-      {/* Screen reader announcement */}
-      <div role="status" aria-live="polite" className="sr-only">
-        Image {currentIndex + 1} of {refs.length}
-      </div>
-    </div>,
-    document.body,
+          <div role="status" aria-live="polite" className="sr-only">
+            Image {currentIndex + 1} of {refs.length}
+          </div>
+        </DialogPopup>
+      </DialogPortal>
+    </Dialog>
   );
 }
 

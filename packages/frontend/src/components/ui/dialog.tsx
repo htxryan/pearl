@@ -1,75 +1,111 @@
-import { forwardRef, type ReactNode, useEffect, useImperativeHandle, useRef } from "react";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
+import type * as React from "react";
+
 import { cn } from "@/lib/utils";
 
-type DialogSize = "sm" | "md" | "lg" | "xl" | "2xl";
+const Dialog = DialogPrimitive.Root;
 
-const sizeStyles: Record<DialogSize, string> = {
-  sm: "max-w-sm",
-  md: "max-w-md",
-  lg: "max-w-lg",
-  xl: "max-w-xl",
-  "2xl": "max-w-2xl",
-};
+const DialogTrigger = DialogPrimitive.Trigger;
 
-export interface DialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  size?: DialogSize;
-  children: ReactNode;
-  className?: string;
-  onCancel?: (e: React.SyntheticEvent<HTMLDialogElement>) => void;
-  "aria-label"?: string;
+const DialogClose = DialogPrimitive.Close;
+
+function DialogPortal(props: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return <DialogPrimitive.Portal {...props} />;
 }
 
-export interface DialogRef {
-  element: HTMLDialogElement | null;
+function DialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Backdrop>) {
+  return (
+    <DialogPrimitive.Backdrop
+      className={cn(
+        "fixed inset-0 z-50 bg-black/80",
+        "transition-opacity duration-200 ease-out",
+        "data-[starting-style]:opacity-0",
+        "data-[ending-style]:opacity-0",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
-export const Dialog = forwardRef<DialogRef, DialogProps>(
-  (
-    { isOpen, onClose, size = "sm", children, className, onCancel, "aria-label": ariaLabel },
-    ref,
-  ) => {
-    const dialogRef = useRef<HTMLDialogElement>(null);
-
-    useImperativeHandle(ref, () => ({
-      get element() {
-        return dialogRef.current;
-      },
-    }));
-
-    useEffect(() => {
-      const el = dialogRef.current;
-      if (!el) return;
-      if (isOpen) {
-        el.showModal();
-      } else if (el.open) {
-        el.close();
-      }
-    }, [isOpen]);
-
-    return (
-      <dialog
-        ref={dialogRef}
-        aria-modal="true"
-        aria-label={ariaLabel}
+function DialogContent({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Popup>) {
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Popup
         className={cn(
-          "fixed inset-0 z-50 m-auto w-full rounded-xl border border-border bg-background text-foreground p-0 shadow-xl backdrop:bg-black/50",
-          sizeStyles[size],
+          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-background p-6 shadow-lg sm:rounded-lg",
+          "transition-[opacity,transform] duration-200 ease-out",
+          "data-[starting-style]:opacity-0 data-[starting-style]:scale-95",
+          "data-[ending-style]:opacity-0 data-[ending-style]:scale-95",
           className,
         )}
-        onClose={onClose}
-        onCancel={onCancel}
-        onClick={(e) => {
-          if (e.target === dialogRef.current) {
-            onClose();
-          }
-        }}
+        {...props}
       >
-        {isOpen ? children : null}
-      </dialog>
-    );
-  },
-);
+        {children}
+      </DialogPrimitive.Popup>
+    </DialogPortal>
+  );
+}
 
-Dialog.displayName = "Dialog";
+function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  );
+}
+
+const DialogPopup = DialogPrimitive.Popup;
+
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPopup,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+};
