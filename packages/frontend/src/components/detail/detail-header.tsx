@@ -1,4 +1,5 @@
 import type { Issue } from "@pearl/shared";
+import { DetailActionsMenu } from "@/components/detail/detail-actions-menu";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
@@ -101,30 +102,15 @@ export function DetailHeader({
           <TypePill type={issue.issue_type} />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {issue.status !== "closed" && (
-            <>
-              <Button variant="outline" size="sm" onClick={onClaim} disabled={isUpdatePending}>
-                Claim
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onRequestClose}
-                disabled={isClosePending}
-              >
-                Close
-              </Button>
-            </>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRequestDelete}
-            disabled={isDeletePending}
-            className="text-destructive hover:bg-destructive/10 border-destructive/30"
-          >
-            Delete
-          </Button>
+          <DetailActionsMenu
+            isClosed={issue.status === "closed"}
+            onClaim={onClaim}
+            onRequestClose={onRequestClose}
+            onRequestDelete={onRequestDelete}
+            isUpdatePending={isUpdatePending}
+            isClosePending={isClosePending}
+            isDeletePending={isDeletePending}
+          />
           <div className="w-px h-5 bg-border" />
           {onToggleMode && (
             <Button

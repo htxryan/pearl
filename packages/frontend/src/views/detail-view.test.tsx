@@ -1,6 +1,6 @@
 import type { Comment, Dependency, Event, Issue } from "@pearl/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DetailView } from "./detail-view";
@@ -168,9 +168,13 @@ describe("DetailView", () => {
     expect(screen.getByText("Activity (0)")).toBeDefined();
     expect(screen.getByText("Dependencies (0)")).toBeDefined();
 
-    // Action buttons
-    expect(screen.getByText("Claim")).toBeDefined();
-    expect(screen.getByText("Close")).toBeDefined();
+    // Action buttons (collapsed under a single Actions menu)
+    const actionsBtn = screen.getByRole("button", { name: /actions/i });
+    expect(actionsBtn).toBeDefined();
+    fireEvent.click(actionsBtn);
+    expect(screen.getByRole("menuitem", { name: /claim/i })).toBeDefined();
+    expect(screen.getByRole("menuitem", { name: /^close$/i })).toBeDefined();
+    expect(screen.getByRole("menuitem", { name: /^delete$/i })).toBeDefined();
   });
 
   it("renders comments when present", () => {
@@ -247,7 +251,11 @@ describe("DetailView", () => {
 
     renderWithProviders("pearl-beads-test");
 
-    expect(screen.queryByText("Claim")).toBeNull();
-    expect(screen.queryByText("Close")).toBeNull();
+    // Open the Actions menu — only Delete should be present, no Claim or Close.
+    const actionsBtn = screen.getByRole("button", { name: /actions/i });
+    fireEvent.click(actionsBtn);
+    expect(screen.queryByRole("menuitem", { name: /claim/i })).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: /^close$/i })).toBeNull();
+    expect(screen.getByRole("menuitem", { name: /^delete$/i })).toBeDefined();
   });
 });

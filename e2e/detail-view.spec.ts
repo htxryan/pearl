@@ -112,9 +112,13 @@ test.describe("Detail View", () => {
     await navigateToFirstIssue(page);
     await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
 
-    const closeBtn = page.getByRole("button", { name: "Close" }).first();
-    await expect(closeBtn).toBeVisible();
-    await closeBtn.click();
+    await page
+      .getByRole("button", { name: /actions/i })
+      .first()
+      .click();
+    const closeItem = page.getByRole("menuitem", { name: "Close", exact: true });
+    await expect(closeItem).toBeVisible();
+    await closeItem.click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();

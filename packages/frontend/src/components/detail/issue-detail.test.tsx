@@ -117,8 +117,8 @@ describe("IssueDetail (shared component)", () => {
     expect(screen.getByText(/Comments \(0\)/)).toBeDefined();
     expect(screen.getByText(/Activity \(0\)/)).toBeDefined();
     expect(screen.getByText(/Dependencies \(0\)/)).toBeDefined();
-    expect(screen.getByText("Claim")).toBeDefined();
-    expect(screen.getByText("Delete")).toBeDefined();
+    // Actions menu collapses Claim/Close/Delete behind a single button.
+    expect(screen.getByRole("button", { name: /actions/i })).toBeDefined();
   });
 
   it("does not render mode toggle or expand when in full-page mode (no props)", () => {

@@ -17,9 +17,13 @@ test.describe("Close Issue", () => {
     await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
-    const closeBtn = page.getByRole("button", { name: "Close", exact: true }).first();
-    await expect(closeBtn).toBeVisible();
-    await closeBtn.click();
+    await page
+      .getByRole("button", { name: /actions/i })
+      .first()
+      .click();
+    const closeMenuItem = page.getByRole("menuitem", { name: "Close", exact: true });
+    await expect(closeMenuItem).toBeVisible();
+    await closeMenuItem.click();
 
     // Confirmation dialog should appear
     const dialog = page.getByRole("dialog");
@@ -36,8 +40,9 @@ test.describe("Close Issue", () => {
     await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
-    const closeBtn = page.getByRole("button", { name: "Close", exact: true }).first();
-    await closeBtn.click();
+    const actionsBtn = page.getByRole("button", { name: /actions/i }).first();
+    await actionsBtn.click();
+    await page.getByRole("menuitem", { name: "Close", exact: true }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
@@ -48,8 +53,8 @@ test.describe("Close Issue", () => {
 
     // Issue should still be on the detail page (not navigated away)
     await expect(page.getByLabel("Breadcrumb")).toBeVisible();
-    // Close button should still be present (issue not closed)
-    await expect(closeBtn).toBeVisible();
+    // Actions menu should still be present (issue not closed)
+    await expect(actionsBtn).toBeVisible();
   });
 
   test("confirming close navigates back to list", async ({ seededPage: page }) => {
@@ -60,8 +65,11 @@ test.describe("Close Issue", () => {
     await page.waitForTimeout(2_000);
     await navigateToIssue(page, CLOSEABLE_ISSUE_ID);
 
-    const closeBtn = page.getByRole("button", { name: "Close", exact: true }).first();
-    await closeBtn.click();
+    await page
+      .getByRole("button", { name: /actions/i })
+      .first()
+      .click();
+    await page.getByRole("menuitem", { name: "Close", exact: true }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
@@ -81,8 +89,12 @@ test.describe("Close Issue", () => {
 
     await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
 
-    // Close and Claim buttons should NOT be visible for closed issues
-    const closeBtn = page.getByRole("button", { name: "Close", exact: true });
-    await expect(closeBtn).not.toBeVisible({ timeout: 3_000 });
+    // Open the Actions menu — Close menu item should NOT be present for closed issues.
+    await page
+      .getByRole("button", { name: /actions/i })
+      .first()
+      .click();
+    const closeItem = page.getByRole("menuitem", { name: "Close", exact: true });
+    await expect(closeItem).toHaveCount(0, { timeout: 3_000 });
   });
 });
