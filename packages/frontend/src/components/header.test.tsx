@@ -28,16 +28,32 @@ describe("Header", () => {
     expect(screen.queryByRole("button", { name: /create issue/i })).not.toBeInTheDocument();
   });
 
-  it("renders the keyboard shortcut hints", () => {
-    render(<Header />);
+  it("renders the keyboard shortcut hints when handlers are provided", () => {
+    render(<Header onOpenCommands={() => {}} onSearchIssues={() => {}} />);
     expect(screen.getByText(/for commands/)).toBeInTheDocument();
     expect(screen.getByText(/to search/)).toBeInTheDocument();
   });
 
-  it("renders the search issues button when onSearchIssues is provided", () => {
+  it("invokes onOpenCommands when the ⌘K hint is clicked", () => {
+    const onOpenCommands = vi.fn();
+    render(<Header onOpenCommands={onOpenCommands} />);
+    const hintButton = screen.getByTestId("header-hint-commands");
+    fireEvent.click(hintButton);
+    expect(onOpenCommands).toHaveBeenCalledOnce();
+  });
+
+  it("invokes onSearchIssues when the ⌘F hint is clicked", () => {
+    const onSearchIssues = vi.fn();
+    render(<Header onSearchIssues={onSearchIssues} />);
+    const hintButton = screen.getByTestId("header-hint-search");
+    fireEvent.click(hintButton);
+    expect(onSearchIssues).toHaveBeenCalledOnce();
+  });
+
+  it("renders the mobile search icon button when onSearchIssues is provided", () => {
     const onSearch = vi.fn();
     render(<Header onSearchIssues={onSearch} />);
-    const searchButton = screen.getByRole("button", { name: /open search/i });
+    const searchButton = screen.getByTestId("search-issues-btn");
     fireEvent.click(searchButton);
     expect(onSearch).toHaveBeenCalledOnce();
   });

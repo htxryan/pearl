@@ -231,6 +231,7 @@ export function AppShell() {
               mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />}
               onCreateIssue={openCreateDialog}
               onSearchIssues={() => toggleSearchPalette()}
+              onOpenCommands={() => toggleCommandPalette()}
             />
             <OnboardingBanner />
             <div className="flex flex-1 overflow-hidden">
