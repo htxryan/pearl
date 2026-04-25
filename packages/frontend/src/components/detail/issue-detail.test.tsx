@@ -121,28 +121,25 @@ describe("IssueDetail (shared component)", () => {
     expect(screen.getByRole("button", { name: /actions/i })).toBeDefined();
   });
 
-  it("does not render mode toggle or expand when in full-page mode (no props)", () => {
+  it("does not render mode toggle when in full-page mode (no props)", () => {
     renderDetail(<IssueDetail id="pearl-beads-test" />);
 
     expect(screen.queryByLabelText(/switch to modal view/i)).toBeNull();
     expect(screen.queryByLabelText(/switch to panel view/i)).toBeNull();
-    expect(screen.queryByRole("button", { name: /expand/i })).toBeNull();
   });
 
-  it("renders mode toggle and expand when container passes the props", () => {
+  it("renders mode toggle when container passes the props", () => {
     renderDetail(
       <IssueDetail
         id="pearl-beads-test"
         onClose={() => {}}
         onToggleMode={() => {}}
         currentMode="panel"
-        onExpand={() => {}}
       />,
     );
 
     // Panel mode → maximize icon shown with "switch to modal" label
     expect(screen.getByLabelText(/switch to modal view/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /expand/i })).toBeDefined();
   });
 
   it("close button has context-aware aria-label", () => {

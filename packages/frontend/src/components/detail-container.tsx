@@ -1,5 +1,4 @@
-import { useCallback, useRef } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useRef } from "react";
 import { IssueDetail } from "@/components/detail/issue-detail";
 import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
@@ -9,22 +8,12 @@ export function DetailContainer() {
   const { openIssueId, mode, closeDetail, guardedClose, toggleMode, setCloseGuard } =
     useDetailPanel();
   const isCompact = useIsCompact();
-  const navigate = useNavigate();
-  const location = useLocation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isOpen = openIssueId !== null;
   const isOverlay = mode === "modal" || isCompact;
 
   useFocusTrap(containerRef, isOpen && isOverlay);
-
-  const handleExpand = useCallback(() => {
-    if (!openIssueId) return;
-    if (!guardedClose()) return;
-    navigate(`/issues/${openIssueId}`, {
-      state: { from: location.pathname + location.search },
-    });
-  }, [openIssueId, guardedClose, navigate, location]);
 
   if (!isOpen || !openIssueId) return null;
 
@@ -49,7 +38,6 @@ export function DetailContainer() {
             onClose={closeDetail}
             onToggleMode={toggleMode}
             currentMode={mode}
-            onExpand={handleExpand}
             onSetCloseGuard={setCloseGuard}
           />
         </div>
@@ -65,7 +53,6 @@ export function DetailContainer() {
         onClose={closeDetail}
         onToggleMode={toggleMode}
         currentMode={mode}
-        onExpand={handleExpand}
         onSetCloseGuard={setCloseGuard}
       />
     </div>

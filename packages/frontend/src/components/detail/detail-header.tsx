@@ -24,8 +24,6 @@ interface DetailHeaderProps {
   /** When provided, shows a mode toggle (panel ↔ modal). Container-mode-specific. */
   onToggleMode?: () => void;
   currentMode?: "panel" | "modal";
-  /** When provided, shows an "Expand" button that opens the full-page route. */
-  onExpand?: () => void;
 }
 
 function MaximizeIcon() {
@@ -80,7 +78,6 @@ export function DetailHeader({
   dirtyFields,
   onToggleMode,
   currentMode,
-  onExpand,
 }: DetailHeaderProps) {
   return (
     <div className="shrink-0 bg-muted/30 px-4 sm:px-6 py-4">
@@ -121,11 +118,6 @@ export function DetailHeader({
               aria-label={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
             >
               {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
-            </Button>
-          )}
-          {onExpand && (
-            <Button variant="ghost" size="sm" onClick={onExpand} title="Open full detail view">
-              Expand
             </Button>
           )}
           <Button

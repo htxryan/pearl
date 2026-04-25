@@ -40,8 +40,6 @@ export interface IssueDetailProps {
   /** When provided, shows a mode toggle (panel ↔ modal) in the header. */
   onToggleMode?: () => void;
   currentMode?: "panel" | "modal";
-  /** When provided, shows an "Expand" button that opens the full-page route. */
-  onExpand?: () => void;
   /** Register a guard that is checked before the container closes or switches issues. */
   onSetCloseGuard?: (guard: CloseGuard | null) => void;
 }
@@ -51,7 +49,6 @@ export function IssueDetail({
   onClose,
   onToggleMode,
   currentMode,
-  onExpand,
   onSetCloseGuard,
 }: IssueDetailProps) {
   const isMobile = useIsMobile();
@@ -133,7 +130,6 @@ export function IssueDetail({
           dirtyFields={dirtyFields}
           onToggleMode={onToggleMode}
           currentMode={currentMode}
-          onExpand={onExpand}
         />
 
         <div className="flex-1 overflow-auto">
