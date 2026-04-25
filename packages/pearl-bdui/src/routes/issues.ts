@@ -207,6 +207,49 @@ export async function ensureMediumtextAttachmentFields(
   }
 }
 
+// CLI creates parent deps as (issue_id=child, depends_on_id=parent, type='parent-child').
+// The web UI convention is (issue_id=parent, depends_on_id=child, type='contains').
+// Normalize legacy rows so filters only need to check one representation.
+export async function normalizeParentChildDeps(
+  getConfig: () => Config,
+  log?: { warn: (obj: unknown, msg: string) => void },
+): Promise<void> {
+  try {
+    await queryWithRetry(getConfig(), async (conn) => {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT issue_id, depends_on_id, created_by, created_at
+         FROM dependencies WHERE type = 'parent-child'`,
+      );
+      if ((rows as unknown[]).length === 0) return;
+      await conn.beginTransaction();
+      try {
+        for (const row of rows as Array<{
+          issue_id: string;
+          depends_on_id: string;
+          created_by: string;
+          created_at: Date;
+        }>) {
+          await conn.execute(`DELETE FROM dependencies WHERE issue_id = ? AND depends_on_id = ?`, [
+            row.issue_id,
+            row.depends_on_id,
+          ]);
+          await conn.execute(
+            `INSERT IGNORE INTO dependencies (issue_id, depends_on_id, type, created_by, created_at)
+             VALUES (?, ?, 'contains', ?, ?)`,
+            [row.depends_on_id, row.issue_id, row.created_by, row.created_at],
+          );
+        }
+        await conn.commit();
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      }
+    });
+  } catch (err) {
+    log?.warn({ err }, "normalizeParentChildDeps failed — legacy rows may remain");
+  }
+}
+
 export function registerIssueRoutes(
   app: FastifyInstance,
   getConfig: () => Config,
@@ -215,6 +258,7 @@ export function registerIssueRoutes(
   app.addHook("onReady", async () => {
     await ensureHasAttachmentsColumn(getConfig, app.log);
     await ensureMediumtextAttachmentFields(getConfig, app.log);
+    await normalizeParentChildDeps(getConfig, app.log);
   });
   // GET /api/issues — list with filtering, sorting, column projection
   app.get("/api/issues", { schema: listIssuesQuerySchema }, async (request, reply) => {
@@ -360,7 +404,7 @@ export function registerIssueRoutes(
             sql += ` AND (i.assignee IS NULL OR i.assignee = '')`;
             break;
           case "no_parent":
-            sql += ` AND NOT EXISTS (SELECT 1 FROM dependencies d WHERE d.issue_id = i.id AND d.type = 'parent-child')`;
+            sql += ` AND NOT EXISTS (SELECT 1 FROM dependencies d WHERE (d.depends_on_id = i.id AND d.type = 'contains') OR (d.issue_id = i.id AND d.type = 'parent-child'))`;
             break;
         }
       }

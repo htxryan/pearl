@@ -256,7 +256,20 @@ const x = 42;
       await sqlCreateIssue(config, { title: "Child Issue", parent: sqlParentId });
       await runCli(ctx, ["create", "Child Issue", "--parent", cliParentId]);
 
-      await assertTablesParity(ctx, ["issues", "events", "dependencies"]);
+      // Issues and events should match; dependencies intentionally diverge:
+      // SQL writer creates 'contains' (issue_id=parent, depends_on_id=child)
+      // to align with frontend hierarchy views, while CLI creates 'parent-child'.
+      await assertTablesParity(ctx, ["issues", "events"]);
+
+      const [sqlDeps] = await ctx.sqlPool.execute(
+        "SELECT issue_id, depends_on_id, type FROM dependencies",
+      );
+      const deps = sqlDeps as Array<{ issue_id: string; depends_on_id: string; type: string }>;
+      const childId = (await getIds(ctx.sqlPool))[1];
+      expect(deps).toHaveLength(1);
+      expect(deps[0].type).toBe("contains");
+      expect(deps[0].issue_id).toBe(sqlParentId);
+      expect(deps[0].depends_on_id).toBe(childId);
     });
   });
 

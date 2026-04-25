@@ -55,7 +55,7 @@ CREATE TABLE `dependencies` (
   KEY `idx_dependencies_thread` (`thread_id`),
   CONSTRAINT `fk_dep_issue` FOREIGN KEY (`issue_id`) REFERENCES `issues` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_bin;
-INSERT INTO `dependencies` (`issue_id`,`depends_on_id`,`type`,`created_at`,`created_by`,`metadata`,`thread_id`) VALUES ('sample-project-0gd','sample-project-6kq','parent-child','2026-04-11 15:23:10','Ryan Henderson','{}',''), ('sample-project-0gd','sample-project-elb','parent-child','2026-04-11 15:23:06','Ryan Henderson','{}',''), ('sample-project-0gd','sample-project-v0r','parent-child','2026-04-11 15:23:15','Ryan Henderson','{}',''), ('sample-project-0gd','sample-project-z4g','parent-child','2026-04-11 15:23:12','Ryan Henderson','{}',''), ('sample-project-3gr','sample-project-uo7','blocks','2026-04-11 15:23:46','Ryan Henderson','{}',''), ('sample-project-6kq','sample-project-elb','blocks','2026-04-11 15:23:34','Ryan Henderson','{}',''), ('sample-project-9o3','sample-project-dzp','parent-child','2026-04-11 15:23:26','Ryan Henderson','{}',''), ('sample-project-9o3','sample-project-gqu','parent-child','2026-04-11 15:23:32','Ryan Henderson','{}',''), ('sample-project-9o3','sample-project-xwm','parent-child','2026-04-11 15:23:29','Ryan Henderson','{}',''), ('sample-project-gqu','sample-project-dzp','blocks','2026-04-11 15:23:52','Ryan Henderson','{}',''), ('sample-project-irr','sample-project-3gr','parent-child','2026-04-11 15:23:24','Ryan Henderson','{}',''), ('sample-project-irr','sample-project-lcg','parent-child','2026-04-11 15:23:18','Ryan Henderson','{}',''), ('sample-project-irr','sample-project-uo7','parent-child','2026-04-11 15:23:20','Ryan Henderson','{}',''), ('sample-project-uo7','sample-project-lcg','blocks','2026-04-11 15:23:43','Ryan Henderson','{}',''), ('sample-project-v0r','sample-project-6kq','blocks','2026-04-11 15:23:41','Ryan Henderson','{}',''), ('sample-project-xwm','sample-project-dzp','blocks','2026-04-11 15:23:49','Ryan Henderson','{}',''), ('sample-project-z4g','sample-project-6kq','blocks','2026-04-11 15:23:38','Ryan Henderson','{}','');
+INSERT INTO `dependencies` (`issue_id`,`depends_on_id`,`type`,`created_at`,`created_by`,`metadata`,`thread_id`) VALUES ('sample-project-0gd','sample-project-6kq','contains','2026-04-11 15:23:10','Ryan Henderson','{}',''), ('sample-project-0gd','sample-project-elb','contains','2026-04-11 15:23:06','Ryan Henderson','{}',''), ('sample-project-0gd','sample-project-v0r','contains','2026-04-11 15:23:15','Ryan Henderson','{}',''), ('sample-project-0gd','sample-project-z4g','contains','2026-04-11 15:23:12','Ryan Henderson','{}',''), ('sample-project-3gr','sample-project-uo7','blocks','2026-04-11 15:23:46','Ryan Henderson','{}',''), ('sample-project-6kq','sample-project-elb','blocks','2026-04-11 15:23:34','Ryan Henderson','{}',''), ('sample-project-9o3','sample-project-dzp','contains','2026-04-11 15:23:26','Ryan Henderson','{}',''), ('sample-project-9o3','sample-project-gqu','contains','2026-04-11 15:23:32','Ryan Henderson','{}',''), ('sample-project-9o3','sample-project-xwm','contains','2026-04-11 15:23:29','Ryan Henderson','{}',''), ('sample-project-gqu','sample-project-dzp','blocks','2026-04-11 15:23:52','Ryan Henderson','{}',''), ('sample-project-irr','sample-project-3gr','contains','2026-04-11 15:23:24','Ryan Henderson','{}',''), ('sample-project-irr','sample-project-lcg','contains','2026-04-11 15:23:18','Ryan Henderson','{}',''), ('sample-project-irr','sample-project-uo7','contains','2026-04-11 15:23:20','Ryan Henderson','{}',''), ('sample-project-uo7','sample-project-lcg','blocks','2026-04-11 15:23:43','Ryan Henderson','{}',''), ('sample-project-v0r','sample-project-6kq','blocks','2026-04-11 15:23:41','Ryan Henderson','{}',''), ('sample-project-xwm','sample-project-dzp','blocks','2026-04-11 15:23:49','Ryan Henderson','{}',''), ('sample-project-z4g','sample-project-6kq','blocks','2026-04-11 15:23:38','Ryan Henderson','{}','');
 DROP TABLE IF EXISTS `events`;
 CREATE TABLE `events` (
   `id` char(36) NOT NULL DEFAULT (uuid()),
@@ -391,10 +391,10 @@ WITH RECURSIVE
     SELECT issue_id, 0 as depth
     FROM blocked_directly
     UNION ALL
-    SELECT d.issue_id, bt.depth + 1
+    SELECT d.depends_on_id, bt.depth + 1
     FROM blocked_transitively bt
-    JOIN dependencies d ON d.depends_on_id = bt.issue_id
-    WHERE d.type = 'parent-child'
+    JOIN dependencies d ON d.issue_id = bt.issue_id
+    WHERE d.type = 'contains'
       AND bt.depth < 50
   )
 SELECT i.*
@@ -406,9 +406,9 @@ WHERE i.status = 'open'
   AND (i.defer_until IS NULL OR i.defer_until <= NOW())
   AND NOT EXISTS (
     SELECT 1 FROM dependencies d_parent
-    JOIN issues parent ON parent.id = d_parent.depends_on_id
-    WHERE d_parent.issue_id = i.id
-      AND d_parent.type = 'parent-child'
+    JOIN issues parent ON parent.id = d_parent.issue_id
+    WHERE d_parent.depends_on_id = i.id
+      AND d_parent.type = 'contains'
       AND parent.defer_until IS NOT NULL
       AND parent.defer_until > NOW()
   );

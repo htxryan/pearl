@@ -303,8 +303,8 @@ export async function sqlCreateIssue(
       if (req.parent) {
         await conn.execute(
           `INSERT INTO dependencies (issue_id, depends_on_id, type, created_by)
-           VALUES (?, ?, 'parent-child', ?)`,
-          [id, req.parent, ACTOR],
+           VALUES (?, ?, 'contains', ?)`,
+          [req.parent, id, ACTOR],
         );
       }
 

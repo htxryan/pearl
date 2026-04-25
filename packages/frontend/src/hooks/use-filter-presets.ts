@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import type { FilterState } from "@/lib/query-syntax";
-import { DEFAULT_ACTIVE_STATUSES, SHOW_ALL_FILTERS } from "@/lib/query-syntax";
+import { SHOW_ALL_FILTERS } from "@/lib/query-syntax";
 
 export interface FilterPreset {
   id: string;
@@ -133,7 +133,7 @@ function defaultPresets(): FilterPreset[] {
       id: "preset-ready",
       name: "Ready",
       filters: {
-        status: [...DEFAULT_ACTIVE_STATUSES],
+        status: ["open", "in_progress"],
         priority: [],
         issue_type: [],
         assignee: "",
@@ -148,7 +148,7 @@ function defaultPresets(): FilterPreset[] {
       id: "preset-ready-no-parent",
       name: "Ready, No Parent",
       filters: {
-        status: [...DEFAULT_ACTIVE_STATUSES],
+        status: ["open", "in_progress"],
         priority: [],
         issue_type: [],
         assignee: "",
