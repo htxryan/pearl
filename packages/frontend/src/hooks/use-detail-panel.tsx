@@ -6,8 +6,8 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
+import { useSearchParams } from "react-router";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export type DetailPanelMode = "panel" | "modal";
@@ -29,12 +29,20 @@ interface DetailPanelContextValue {
 
 const DetailPanelContext = createContext<DetailPanelContextValue | null>(null);
 
+const ITEM_PARAM = "item";
+
 export function DetailPanelProvider({ children }: { children: ReactNode }) {
-  const [openIssueId, setOpenIssueId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [mode, setMode] = usePersistedState<DetailPanelMode>("beads:detail-panel-mode", "panel");
+
+  const openIssueId = searchParams.get(ITEM_PARAM);
 
   const closeGuardRef = useRef<CloseGuard | null>(null);
   const openIssueIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    openIssueIdRef.current = openIssueId;
+  }, [openIssueId]);
 
   useEffect(() => {
     localStorage.removeItem("beads:detail-panel-issue");
@@ -52,21 +60,41 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
 
   const openDetail = useCallback(
     (id: string) => {
-      if (openIssueIdRef.current !== null && openIssueIdRef.current !== id) {
+      const current = openIssueIdRef.current;
+      if (current === id) return;
+      if (current !== null && current !== id) {
         if (!checkGuard()) return;
         closeGuardRef.current = null;
       }
       openIssueIdRef.current = id;
-      setOpenIssueId(id);
+      // Switching between items uses replace to avoid history bloat;
+      // opening from a closed panel pushes a new entry so back closes it.
+      const replace = current !== null;
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set(ITEM_PARAM, id);
+          return next;
+        },
+        { replace },
+      );
     },
-    [checkGuard],
+    [checkGuard, setSearchParams],
   );
 
   const closeDetail = useCallback(() => {
+    if (openIssueIdRef.current === null) return;
     closeGuardRef.current = null;
     openIssueIdRef.current = null;
-    setOpenIssueId(null);
-  }, []);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(ITEM_PARAM);
+        return next;
+      },
+      { replace: false },
+    );
+  }, [setSearchParams]);
 
   const guardedClose = useCallback((): boolean => {
     if (!checkGuard()) return false;

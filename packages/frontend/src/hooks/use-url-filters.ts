@@ -68,9 +68,33 @@ function parseSorting(params: URLSearchParams): SortingState {
   return [{ id: sort, desc: dir === "desc" }];
 }
 
-/** Serialize FilterState + SortingState into URLSearchParams. */
-function serializeToParams(filters: FilterState, sorting: SortingState): URLSearchParams {
+const KNOWN_FILTER_KEYS = new Set([
+  "status",
+  "priority",
+  "type",
+  "assignee",
+  "search",
+  "labels",
+  "dateRanges",
+  "structural",
+  "groupBy",
+  "sort",
+  "dir",
+]);
+
+/** Serialize FilterState + SortingState into URLSearchParams.
+ * Preserves unknown query params (e.g., `item` for selected detail) from `base`. */
+function serializeToParams(
+  filters: FilterState,
+  sorting: SortingState,
+  base?: URLSearchParams,
+): URLSearchParams {
   const params = new URLSearchParams();
+  if (base) {
+    for (const [key, value] of base) {
+      if (!KNOWN_FILTER_KEYS.has(key)) params.append(key, value);
+    }
+  }
   params.set("status", filters.status.join(","));
   if (filters.priority.length) params.set("priority", filters.priority.join(","));
   if (filters.issue_type.length) params.set("type", filters.issue_type.join(","));
@@ -115,14 +139,18 @@ export function useUrlFilters() {
 
   const setFilters = useCallback(
     (next: FilterState) => {
-      setSearchParams((prev) => serializeToParams(next, parseSorting(prev)), { replace: true });
+      setSearchParams((prev) => serializeToParams(next, parseSorting(prev), prev), {
+        replace: true,
+      });
     },
     [setSearchParams],
   );
 
   const setSorting = useCallback(
     (next: SortingState) => {
-      setSearchParams((prev) => serializeToParams(parseFilters(prev), next), { replace: true });
+      setSearchParams((prev) => serializeToParams(parseFilters(prev), next, prev), {
+        replace: true,
+      });
     },
     [setSearchParams],
   );

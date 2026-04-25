@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useSearchParams } from "react-router";
 
 const STORAGE_KEY = "pearl:filter-params";
-const NON_FILTER_KEYS = new Set(["sort", "dir"]);
+const NON_FILTER_KEYS = new Set(["sort", "dir", "item"]);
 
 export const VIEW_PATHS = new Set(["/list", "/board", "/graph"]);
 

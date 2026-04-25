@@ -1,7 +1,10 @@
 import type { SortingState } from "@tanstack/react-table";
+import { act, renderHook } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { describe, expect, it } from "vitest";
 import type { FilterState } from "@/components/issue-table/filter-bar";
-import { buildApiParams } from "./use-url-filters";
+import { buildApiParams, useUrlFilters } from "./use-url-filters";
 
 const baseFilters: FilterState = {
   status: [],
@@ -100,5 +103,53 @@ describe("buildApiParams", () => {
     };
     const params = buildApiParams(filters, []);
     expect(params.get("structural")).toBe("has_dependency,no_assignee");
+  });
+});
+
+function makeWrapper(initial: string) {
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <MemoryRouter initialEntries={[initial]}>
+        <Routes>
+          <Route path="*" element={<>{children}</>} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+}
+
+function useFiltersWithLocation() {
+  const filters = useUrlFilters();
+  const location = useLocation();
+  return { ...filters, location };
+}
+
+describe("useUrlFilters — preserve unknown query params", () => {
+  it("setFilters preserves the ?item= param (selection deep-link)", () => {
+    const { result } = renderHook(() => useFiltersWithLocation(), {
+      wrapper: makeWrapper("/list?item=beads-foo&status=open"),
+    });
+    act(() => {
+      result.current.setFilters({
+        ...result.current.filters,
+        status: ["closed"],
+      });
+    });
+    const params = new URLSearchParams(result.current.location.search);
+    expect(params.get("item")).toBe("beads-foo");
+    expect(params.get("status")).toBe("closed");
+  });
+
+  it("setSorting preserves the ?item= param", () => {
+    const { result } = renderHook(() => useFiltersWithLocation(), {
+      wrapper: makeWrapper("/list?item=beads-foo"),
+    });
+    act(() => {
+      result.current.setSorting([{ id: "title", desc: true }]);
+    });
+    const params = new URLSearchParams(result.current.location.search);
+    expect(params.get("item")).toBe("beads-foo");
+    expect(params.get("sort")).toBe("title");
+    expect(params.get("dir")).toBe("desc");
   });
 });
