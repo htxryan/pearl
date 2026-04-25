@@ -78,7 +78,7 @@ function CommandSeparator({
   );
 }
 
-function CommandShortcut({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
+function CommandShortcut({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
     <kbd
       className={cn(

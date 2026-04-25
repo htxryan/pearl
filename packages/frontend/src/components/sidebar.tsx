@@ -290,10 +290,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-        <SidebarFooter>
-          <NavItem item={settingsItem} mobile={isMobile} collapsed={collapsed} />
-        </SidebarFooter>
       </SidebarContent>
+      <SidebarFooter>
+        <NavItem item={settingsItem} mobile={isMobile} collapsed={collapsed} />
+      </SidebarFooter>
     </SidebarPrimitive>
   );
 }

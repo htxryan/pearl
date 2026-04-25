@@ -71,6 +71,7 @@ export function SearchPalette() {
         }
         params.set("sort", "updated_at");
         params.set("direction", "desc");
+        // Over-fetch when empty so we can locally re-rank by recency (viewed issues may have stale updated_at)
         params.set("limit", isEmptyQuery ? "100" : "10");
 
         api

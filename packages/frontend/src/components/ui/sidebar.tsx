@@ -94,12 +94,12 @@ export function SidebarProvider({
   const [openMobile, setOpenMobile] = useState(false);
 
   const setOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
-    _setOpen((prev) => {
-      const next = typeof value === "function" ? value(prev) : value;
-      setCookie(SIDEBAR_COOKIE_NAME, String(next), SIDEBAR_COOKIE_MAX_AGE);
-      return next;
-    });
+    _setOpen(value);
   }, []);
+
+  useEffect(() => {
+    setCookie(SIDEBAR_COOKIE_NAME, String(open), SIDEBAR_COOKIE_MAX_AGE);
+  }, [open]);
 
   const toggleOpen = useCallback(() => setOpen((prev) => !prev), [setOpen]);
 
@@ -208,11 +208,3 @@ export function SidebarMenu({ className, ...props }: React.HTMLAttributes<HTMLUL
 export function SidebarMenuItem({ className, ...props }: React.HTMLAttributes<HTMLLIElement>) {
   return <li className={cn("", className)} {...props} />;
 }
-
-export {
-  getCookie,
-  LEGACY_LOCALSTORAGE_KEY,
-  migrateLegacySidebarState,
-  SIDEBAR_COOKIE_NAME,
-  setCookie,
-};
