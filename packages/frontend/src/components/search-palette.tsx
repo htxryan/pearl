@@ -1,8 +1,15 @@
 import type { IssueListItem } from "@pearl/shared";
-import { Command } from "cmdk";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { BeadId } from "@/components/ui/bead-id";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { closeSearchPalette, useSearchPaletteOpen } from "@/hooks/use-command-palette";
@@ -64,9 +71,6 @@ export function SearchPalette() {
         }
         params.set("sort", "updated_at");
         params.set("direction", "desc");
-        // For the empty-query "Recent issues" list we re-rank locally by
-        // last-opened (viewed-or-modified) — fetch a larger pool so locally
-        // recent issues that have a stale server updated_at can still surface.
         params.set("limit", isEmptyQuery ? "100" : "10");
 
         api
@@ -107,9 +111,6 @@ export function SearchPalette() {
 
   const issueHeading = search.trim() ? `Issues matching "${search.trim()}"` : "Recent issues";
 
-  const groupHeadingClass =
-    "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground/70 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider";
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
@@ -129,7 +130,7 @@ export function SearchPalette() {
       />
 
       <Command
-        className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+        className="relative z-50 w-full max-w-lg overflow-hidden border border-border shadow-2xl"
         style={{
           animation:
             prefersReducedMotion || isVisible === null
@@ -155,15 +156,15 @@ export function SearchPalette() {
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
           </svg>
-          <Command.Input
+          <CommandInput
             ref={inputRef}
             placeholder="Search issues..."
             value={search}
             onValueChange={setSearch}
-            className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
           />
           {search && (
             <button
+              type="button"
               onClick={() => setSearch("")}
               className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Clear search"
@@ -181,24 +182,24 @@ export function SearchPalette() {
           )}
         </div>
 
-        <Command.List className="max-h-80 overflow-auto p-2">
+        <CommandList>
           {!isSearching && (
-            <Command.Empty className="px-4 py-8 text-center">
-              <p className="text-sm text-muted-foreground">No issues found.</p>
+            <CommandEmpty>
+              <p>No issues found.</p>
               <p className="mt-1 text-xs text-muted-foreground/60">Try a different search term.</p>
-            </Command.Empty>
+            </CommandEmpty>
           )}
 
-          <Command.Group heading={issueHeading} className={groupHeadingClass}>
+          <CommandGroup heading={issueHeading}>
             {isSearching && issues.length === 0 && (
               <div className="px-2 py-2 text-sm text-muted-foreground">Searching...</div>
             )}
             {issues.map((issue) => (
-              <Command.Item
+              <CommandItem
                 key={issue.id}
                 value={`${issue.id} ${issue.title}`}
+                className="gap-2"
                 onSelect={() => handleIssueSelect(issue.id)}
-                className="flex cursor-pointer items-center gap-2 rounded-[var(--radius)] px-2 py-2 text-sm transition-colors duration-100 aria-selected:bg-accent aria-selected:text-accent-foreground"
               >
                 <PriorityIndicator priority={issue.priority} />
                 <StatusBadge status={issue.status} />
@@ -208,10 +209,10 @@ export function SearchPalette() {
                   interactive={false}
                   className="shrink-0 text-[11px] text-muted-foreground/60"
                 />
-              </Command.Item>
+              </CommandItem>
             ))}
-          </Command.Group>
-        </Command.List>
+          </CommandGroup>
+        </CommandList>
       </Command>
     </div>
   );

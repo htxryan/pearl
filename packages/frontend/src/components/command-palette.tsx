@@ -1,5 +1,13 @@
-import { Command } from "cmdk";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@/components/ui/command";
 import {
   closeCommandPalette,
   useAllCommandActions,
@@ -44,9 +52,6 @@ export function CommandPalette() {
 
   if (!open && !isMounted) return null;
 
-  const groupHeadingClass =
-    "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground/70 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider";
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
@@ -66,7 +71,7 @@ export function CommandPalette() {
       />
 
       <Command
-        className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+        className="relative z-50 w-full max-w-lg overflow-hidden border border-border shadow-2xl"
         style={{
           animation:
             prefersReducedMotion || isVisible === null
@@ -88,15 +93,15 @@ export function CommandPalette() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <Command.Input
+          <CommandInput
             ref={inputRef}
             placeholder="Type a command..."
             value={search}
             onValueChange={setSearch}
-            className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
           />
           {search && (
             <button
+              type="button"
               onClick={() => setSearch("")}
               className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Clear search"
@@ -114,10 +119,8 @@ export function CommandPalette() {
           )}
         </div>
 
-        <Command.List className="max-h-80 overflow-auto p-2">
-          <Command.Empty className="px-4 py-8 text-center">
-            <p className="text-sm text-muted-foreground">No commands found.</p>
-          </Command.Empty>
+        <CommandList>
+          <CommandEmpty>No commands found.</CommandEmpty>
 
           {[...groups.entries()].map(([group, groupActions]) => {
             const filterText = search.trim().toLowerCase();
@@ -126,29 +129,25 @@ export function CommandPalette() {
               : groupActions;
             if (filtered.length === 0) return null;
             return (
-              <Command.Group key={group} heading={group} className={groupHeadingClass}>
+              <CommandGroup key={group} heading={group}>
                 {filtered.map((action) => (
-                  <Command.Item
+                  <CommandItem
                     key={action.id}
                     value={action.label}
+                    className="justify-between"
                     onSelect={() => {
                       closeCommandPalette();
                       action.handler();
                     }}
-                    className="flex cursor-pointer items-center justify-between rounded-[var(--radius)] px-2 py-2 text-sm transition-colors duration-100 aria-selected:bg-accent aria-selected:text-accent-foreground"
                   >
                     <span>{action.label}</span>
-                    {action.shortcut && (
-                      <kbd className="ml-auto rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground/70 font-mono">
-                        {action.shortcut}
-                      </kbd>
-                    )}
-                  </Command.Item>
+                    {action.shortcut && <CommandShortcut>{action.shortcut}</CommandShortcut>}
+                  </CommandItem>
                 ))}
-              </Command.Group>
+              </CommandGroup>
             );
           })}
-        </Command.List>
+        </CommandList>
       </Command>
     </div>
   );
