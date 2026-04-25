@@ -20,6 +20,13 @@ vi.mock("@/hooks/use-issues", () => ({
     isError: false,
     error: null,
   })),
+  useDeleteIssue: vi.fn(() => ({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  })),
   useCreateIssue: vi.fn(() => ({
     mutate: vi.fn(),
     isPending: false,

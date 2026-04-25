@@ -16,9 +16,12 @@ const STATUS_OPTIONS: { value: IssueStatus; label: string }[] = ISSUE_STATUSES.m
   label: s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
 }));
 
+type SubView = null | "menu" | "reassign" | "priority" | "status" | "addLabel" | "removeLabel";
+
 interface BulkActionBarProps {
   selectedCount: number;
   onClose: () => void;
+  onDelete: () => void;
   onClearSelection: () => void;
   onReassign: (assignee: string) => void;
   onReprioritize: (priority: Priority) => void;
@@ -26,12 +29,14 @@ interface BulkActionBarProps {
   onAddLabel: (label: string) => void;
   onRemoveLabel: (label: string) => void;
   isClosing: boolean;
+  isDeleting: boolean;
   isUpdating: boolean;
 }
 
 export function BulkActionBar({
   selectedCount,
   onClose,
+  onDelete,
   onClearSelection,
   onReassign,
   onReprioritize,
@@ -39,104 +44,64 @@ export function BulkActionBar({
   onAddLabel,
   onRemoveLabel,
   isClosing,
+  isDeleting,
   isUpdating,
 }: BulkActionBarProps) {
-  const [showReassign, setShowReassign] = useState(false);
-  const [showPriority, setShowPriority] = useState(false);
-  const [showStatus, setShowStatus] = useState(false);
-  const [showAddLabel, setShowAddLabel] = useState(false);
-  const [showRemoveLabel, setShowRemoveLabel] = useState(false);
+  const [view, setView] = useState<SubView>(null);
   const [assigneeInput, setAssigneeInput] = useState("");
   const [labelInput, setLabelInput] = useState("");
   const [removeLabelInput, setRemoveLabelInput] = useState("");
-  const reassignRef = useRef<HTMLDivElement>(null);
-  const priorityRef = useRef<HTMLDivElement>(null);
-  const statusRef = useRef<HTMLDivElement>(null);
-  const addLabelRef = useRef<HTMLDivElement>(null);
-  const removeLabelRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const assigneeInputRef = useRef<HTMLInputElement>(null);
   const labelInputRef = useRef<HTMLInputElement>(null);
   const removeLabelInputRef = useRef<HTMLInputElement>(null);
 
-  const closeAllDropdowns = useCallback(() => {
-    setShowReassign(false);
-    setShowPriority(false);
-    setShowStatus(false);
-    setShowAddLabel(false);
-    setShowRemoveLabel(false);
-  }, []);
-
-  // Close dropdowns when clicking outside
+  // Close on outside click
   useEffect(() => {
-    if (!showReassign && !showPriority && !showStatus && !showAddLabel && !showRemoveLabel) return;
+    if (view === null) return;
     function handleClickOutside(e: MouseEvent) {
-      if (showReassign && reassignRef.current && !reassignRef.current.contains(e.target as Node)) {
-        setShowReassign(false);
-      }
-      if (showPriority && priorityRef.current && !priorityRef.current.contains(e.target as Node)) {
-        setShowPriority(false);
-      }
-      if (showStatus && statusRef.current && !statusRef.current.contains(e.target as Node)) {
-        setShowStatus(false);
-      }
-      if (showAddLabel && addLabelRef.current && !addLabelRef.current.contains(e.target as Node)) {
-        setShowAddLabel(false);
-      }
-      if (
-        showRemoveLabel &&
-        removeLabelRef.current &&
-        !removeLabelRef.current.contains(e.target as Node)
-      ) {
-        setShowRemoveLabel(false);
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setView(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showReassign, showPriority, showStatus, showAddLabel, showRemoveLabel]);
+  }, [view]);
 
-  // Focus inputs when dropdowns open
+  // Close on Escape
   useEffect(() => {
-    if (showReassign) assigneeInputRef.current?.focus();
-  }, [showReassign]);
+    if (view === null) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (view === "menu") setView(null);
+        else setView("menu");
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [view]);
 
+  // Focus inputs when their sub-view opens
   useEffect(() => {
-    if (showAddLabel) labelInputRef.current?.focus();
-  }, [showAddLabel]);
-
-  useEffect(() => {
-    if (showRemoveLabel) removeLabelInputRef.current?.focus();
-  }, [showRemoveLabel]);
+    if (view === "reassign") assigneeInputRef.current?.focus();
+    else if (view === "addLabel") labelInputRef.current?.focus();
+    else if (view === "removeLabel") removeLabelInputRef.current?.focus();
+  }, [view]);
 
   const handleReassignSubmit = useCallback(() => {
     const value = assigneeInput.trim();
     if (!value) return;
     onReassign(value);
     setAssigneeInput("");
-    setShowReassign(false);
+    setView(null);
   }, [assigneeInput, onReassign]);
-
-  const handlePrioritySelect = useCallback(
-    (priority: Priority) => {
-      onReprioritize(priority);
-      setShowPriority(false);
-    },
-    [onReprioritize],
-  );
-
-  const handleStatusSelect = useCallback(
-    (status: IssueStatus) => {
-      onChangeStatus(status);
-      setShowStatus(false);
-    },
-    [onChangeStatus],
-  );
 
   const handleAddLabelSubmit = useCallback(() => {
     const value = labelInput.trim();
     if (!value) return;
     onAddLabel(value);
     setLabelInput("");
-    setShowAddLabel(false);
+    setView(null);
   }, [labelInput, onAddLabel]);
 
   const handleRemoveLabelSubmit = useCallback(() => {
@@ -144,12 +109,13 @@ export function BulkActionBar({
     if (!value) return;
     onRemoveLabel(value);
     setRemoveLabelInput("");
-    setShowRemoveLabel(false);
+    setView(null);
   }, [removeLabelInput, onRemoveLabel]);
 
   if (selectedCount === 0) return null;
 
-  const busy = isClosing || isUpdating;
+  const busy = isClosing || isUpdating || isDeleting;
+  const isOpen = view !== null;
 
   return (
     <div className="flex items-center gap-3 rounded border border-border bg-accent/50 px-4 py-2">
@@ -157,226 +123,405 @@ export function BulkActionBar({
         {selectedCount} issue{selectedCount !== 1 ? "s" : ""} selected
       </span>
 
-      {/* Reassign dropdown */}
-      <div className="relative" ref={reassignRef}>
+      <div className="relative" ref={containerRef}>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            const next = !showReassign;
-            closeAllDropdowns();
-            setShowReassign(next);
-          }}
+          onClick={() => setView(isOpen ? null : "menu")}
           disabled={busy}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+          className="gap-1.5"
         >
-          Reassign
+          <ActionsIcon />
+          Actions
+          <ChevronDownIcon />
         </Button>
-        {showReassign && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
-            <label
-              className="mb-1 block text-xs font-medium text-muted-foreground"
-              htmlFor="bulk-assignee-input"
-            >
-              Assignee
-            </label>
-            <input
-              id="bulk-assignee-input"
-              ref={assigneeInputRef}
-              type="text"
-              value={assigneeInput}
-              onChange={(e) => setAssigneeInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleReassignSubmit();
-                }
-                if (e.key === "Escape") {
-                  setShowReassign(false);
-                }
-              }}
-              placeholder="Enter assignee name..."
-              className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+
+        {view === "menu" && (
+          <div
+            role="menu"
+            className="absolute top-full left-0 z-50 mt-1 w-56 rounded border border-border bg-popover py-1 shadow-md"
+          >
+            <MenuItem
+              icon={<ReassignIcon />}
+              label="Reassign"
+              onClick={() => setView("reassign")}
             />
-            <Button
-              size="sm"
-              onClick={handleReassignSubmit}
-              disabled={!assigneeInput.trim()}
-              className="w-full"
-            >
-              Reassign
-            </Button>
+            <MenuItem
+              icon={<PriorityIcon />}
+              label="Set priority"
+              onClick={() => setView("priority")}
+              hasSubmenu
+            />
+            <MenuItem
+              icon={<StatusIcon />}
+              label="Set status"
+              onClick={() => setView("status")}
+              hasSubmenu
+            />
+            <MenuItem
+              icon={<TagPlusIcon />}
+              label="Add label"
+              onClick={() => setView("addLabel")}
+            />
+            <MenuItem
+              icon={<TagMinusIcon />}
+              label="Remove label"
+              onClick={() => setView("removeLabel")}
+            />
+            <div className="my-1 h-px bg-border" />
+            <MenuItem
+              icon={<CloseSelectedIcon />}
+              label={isClosing ? "Closing..." : "Close selected"}
+              onClick={() => {
+                setView(null);
+                onClose();
+              }}
+              disabled={isClosing}
+            />
+            <MenuItem
+              icon={<TrashIcon />}
+              label={isDeleting ? "Deleting..." : "Delete"}
+              onClick={() => {
+                setView(null);
+                onDelete();
+              }}
+              disabled={isDeleting}
+              destructive
+            />
           </div>
         )}
-      </div>
 
-      {/* Reprioritize dropdown */}
-      <div className="relative" ref={priorityRef}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const next = !showPriority;
-            closeAllDropdowns();
-            setShowPriority(next);
-          }}
-          disabled={busy}
-        >
-          Set priority
-        </Button>
-        {showPriority && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-44 rounded border border-border bg-popover py-1 shadow-md">
+        {view === "priority" && (
+          <SubmenuPanel onBack={() => setView("menu")} title="Set priority">
             {PRIORITY_OPTIONS.map(({ value, label }) => (
               <button
+                type="button"
                 key={value}
-                onClick={() => handlePrioritySelect(value)}
+                onClick={() => {
+                  onReprioritize(value);
+                  setView(null);
+                }}
                 className="block w-full px-3 py-1.5 text-left text-sm hover:bg-accent focus:bg-accent focus:outline-none"
               >
                 {label}
               </button>
             ))}
-          </div>
+          </SubmenuPanel>
         )}
-      </div>
 
-      {/* Set status dropdown */}
-      <div className="relative" ref={statusRef}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const next = !showStatus;
-            closeAllDropdowns();
-            setShowStatus(next);
-          }}
-          disabled={busy}
-        >
-          Set status
-        </Button>
-        {showStatus && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-44 rounded border border-border bg-popover py-1 shadow-md">
+        {view === "status" && (
+          <SubmenuPanel onBack={() => setView("menu")} title="Set status">
             {STATUS_OPTIONS.map(({ value, label }) => (
               <button
+                type="button"
                 key={value}
-                onClick={() => handleStatusSelect(value)}
+                onClick={() => {
+                  onChangeStatus(value);
+                  setView(null);
+                }}
                 className="block w-full px-3 py-1.5 text-left text-sm hover:bg-accent focus:bg-accent focus:outline-none"
               >
                 {label}
               </button>
             ))}
-          </div>
+          </SubmenuPanel>
+        )}
+
+        {view === "reassign" && (
+          <SubmenuPanel onBack={() => setView("menu")} title="Reassign" wide>
+            <div className="p-3">
+              <label
+                className="mb-1 block text-xs font-medium text-muted-foreground"
+                htmlFor="bulk-assignee-input"
+              >
+                Assignee
+              </label>
+              <input
+                id="bulk-assignee-input"
+                ref={assigneeInputRef}
+                type="text"
+                value={assigneeInput}
+                onChange={(e) => setAssigneeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleReassignSubmit();
+                  }
+                }}
+                placeholder="Enter assignee name..."
+                className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button
+                size="sm"
+                onClick={handleReassignSubmit}
+                disabled={!assigneeInput.trim()}
+                className="w-full"
+              >
+                Reassign
+              </Button>
+            </div>
+          </SubmenuPanel>
+        )}
+
+        {view === "addLabel" && (
+          <SubmenuPanel onBack={() => setView("menu")} title="Add label" wide>
+            <div className="p-3">
+              <label
+                className="mb-1 block text-xs font-medium text-muted-foreground"
+                htmlFor="bulk-label-input"
+              >
+                Label
+              </label>
+              <input
+                id="bulk-label-input"
+                ref={labelInputRef}
+                type="text"
+                value={labelInput}
+                onChange={(e) => setLabelInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddLabelSubmit();
+                  }
+                }}
+                placeholder="Enter label name..."
+                className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button
+                size="sm"
+                onClick={handleAddLabelSubmit}
+                disabled={!labelInput.trim()}
+                className="w-full"
+              >
+                Add label
+              </Button>
+            </div>
+          </SubmenuPanel>
+        )}
+
+        {view === "removeLabel" && (
+          <SubmenuPanel onBack={() => setView("menu")} title="Remove label" wide>
+            <div className="p-3">
+              <label
+                className="mb-1 block text-xs font-medium text-muted-foreground"
+                htmlFor="bulk-remove-label-input"
+              >
+                Label
+              </label>
+              <input
+                id="bulk-remove-label-input"
+                ref={removeLabelInputRef}
+                type="text"
+                value={removeLabelInput}
+                onChange={(e) => setRemoveLabelInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleRemoveLabelSubmit();
+                  }
+                }}
+                placeholder="Enter label to remove..."
+                className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button
+                size="sm"
+                onClick={handleRemoveLabelSubmit}
+                disabled={!removeLabelInput.trim()}
+                className="w-full"
+              >
+                Remove label
+              </Button>
+            </div>
+          </SubmenuPanel>
         )}
       </div>
 
-      {/* Add label dropdown */}
-      <div className="relative" ref={addLabelRef}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const next = !showAddLabel;
-            closeAllDropdowns();
-            setShowAddLabel(next);
-          }}
-          disabled={busy}
-        >
-          Add label
-        </Button>
-        {showAddLabel && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
-            <label
-              className="mb-1 block text-xs font-medium text-muted-foreground"
-              htmlFor="bulk-label-input"
-            >
-              Label
-            </label>
-            <input
-              id="bulk-label-input"
-              ref={labelInputRef}
-              type="text"
-              value={labelInput}
-              onChange={(e) => setLabelInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddLabelSubmit();
-                }
-                if (e.key === "Escape") {
-                  setShowAddLabel(false);
-                }
-              }}
-              placeholder="Enter label name..."
-              className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-            <Button
-              size="sm"
-              onClick={handleAddLabelSubmit}
-              disabled={!labelInput.trim()}
-              className="w-full"
-            >
-              Add label
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Remove label dropdown */}
-      <div className="relative" ref={removeLabelRef}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const next = !showRemoveLabel;
-            closeAllDropdowns();
-            setShowRemoveLabel(next);
-          }}
-          disabled={busy}
-        >
-          Remove label
-        </Button>
-        {showRemoveLabel && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-60 rounded border border-border bg-popover p-3 shadow-md">
-            <label
-              className="mb-1 block text-xs font-medium text-muted-foreground"
-              htmlFor="bulk-remove-label-input"
-            >
-              Label
-            </label>
-            <input
-              id="bulk-remove-label-input"
-              ref={removeLabelInputRef}
-              type="text"
-              value={removeLabelInput}
-              onChange={(e) => setRemoveLabelInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleRemoveLabelSubmit();
-                }
-                if (e.key === "Escape") {
-                  setShowRemoveLabel(false);
-                }
-              }}
-              placeholder="Enter label to remove..."
-              className="mb-2 h-8 w-full rounded border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-            <Button
-              size="sm"
-              onClick={handleRemoveLabelSubmit}
-              disabled={!removeLabelInput.trim()}
-              className="w-full"
-            >
-              Remove label
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <Button variant="destructive" size="sm" onClick={onClose} disabled={busy}>
-        {isClosing ? "Closing..." : "Close selected"}
-      </Button>
       <Button variant="ghost" size="sm" onClick={onClearSelection} disabled={busy}>
         Clear selection
       </Button>
     </div>
+  );
+}
+
+interface MenuItemProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
+  hasSubmenu?: boolean;
+}
+
+function MenuItem({ icon, label, onClick, disabled, destructive, hasSubmenu }: MenuItemProps) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent focus:bg-accent focus:outline-none disabled:opacity-50 disabled:pointer-events-none ${
+        destructive ? "text-destructive" : ""
+      }`}
+    >
+      <span className="shrink-0 text-muted-foreground" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="flex-1">{label}</span>
+      {hasSubmenu && (
+        <span className="shrink-0 text-muted-foreground" aria-hidden="true">
+          <ChevronRightIcon />
+        </span>
+      )}
+    </button>
+  );
+}
+
+function SubmenuPanel({
+  title,
+  onBack,
+  children,
+  wide,
+}: {
+  title: string;
+  onBack: () => void;
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <div
+      className={`absolute top-full left-0 z-50 mt-1 rounded border border-border bg-popover shadow-md ${
+        wide ? "w-64" : "w-48"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex w-full items-center gap-1 border-b border-border px-3 py-1.5 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus:bg-accent focus:outline-none"
+      >
+        <ChevronLeftIcon />
+        <span>{title}</span>
+      </button>
+      <div className="py-1">{children}</div>
+    </div>
+  );
+}
+
+// ── Icons ───────────────────────────────────────────────────
+
+function svgProps(size = 14) {
+  return {
+    width: size,
+    height: size,
+    viewBox: "0 0 16 16",
+    fill: "none" as const,
+    stroke: "currentColor",
+    strokeWidth: 1.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+}
+
+function ActionsIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <circle cx="3" cy="8" r="1.25" />
+      <circle cx="8" cy="8" r="1.25" />
+      <circle cx="13" cy="8" r="1.25" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg {...svgProps(12)}>
+      <path d="M4 6l4 4 4-4" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg {...svgProps(12)}>
+      <path d="M6 4l4 4-4 4" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg {...svgProps(12)}>
+      <path d="M10 4L6 8l4 4" />
+    </svg>
+  );
+}
+
+function ReassignIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <circle cx="6" cy="5" r="2.5" />
+      <path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4" />
+      <path d="M11 6h4M13 4v4" />
+    </svg>
+  );
+}
+
+function PriorityIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <path d="M3 14V2" />
+      <path d="M3 2h8l-1.5 3L11 8H3" />
+    </svg>
+  );
+}
+
+function StatusIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <circle cx="8" cy="8" r="6" strokeDasharray="2 2" />
+      <path d="M5.5 8l2 2 3-4" />
+    </svg>
+  );
+}
+
+function TagPlusIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <path d="M2 8V3a1 1 0 011-1h5l6 6-5 5-6-6z" />
+      <circle cx="5" cy="5" r="0.75" fill="currentColor" />
+      <path d="M11.5 11.5h3M13 10v3" />
+    </svg>
+  );
+}
+
+function TagMinusIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <path d="M2 8V3a1 1 0 011-1h5l6 6-5 5-6-6z" />
+      <circle cx="5" cy="5" r="0.75" fill="currentColor" />
+      <path d="M11.5 11.5h3" />
+    </svg>
+  );
+}
+
+function CloseSelectedIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M5.5 8l2 2 3-4" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <path d="M3 4h10" />
+      <path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" />
+      <path d="M4 4l.7 9a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" />
+      <path d="M7 7v5M9 7v5" />
+    </svg>
   );
 }

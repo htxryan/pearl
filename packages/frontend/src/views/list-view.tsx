@@ -103,11 +103,14 @@ export function ListView() {
   }, [quickAddTitle, createMutation, toast, navigate]);
 
   const [showBulkCloseConfirm, setShowBulkCloseConfirm] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const {
     isClosing,
+    isDeleting,
     isUpdating,
     handleBulkClose,
+    handleBulkDelete,
     handleBulkReassign,
     handleBulkReprioritize,
     handleBulkChangeStatus,
@@ -226,6 +229,7 @@ export function ListView() {
           <BulkActionBar
             selectedCount={selectedIds.length}
             onClose={() => setShowBulkCloseConfirm(true)}
+            onDelete={() => setShowBulkDeleteConfirm(true)}
             onClearSelection={handleClearSelection}
             onReassign={handleBulkReassign}
             onReprioritize={handleBulkReprioritize}
@@ -233,6 +237,7 @@ export function ListView() {
             onAddLabel={handleBulkAddLabel}
             onRemoveLabel={handleBulkRemoveLabel}
             isClosing={isClosing}
+            isDeleting={isDeleting}
             isUpdating={isUpdating}
           />
         )}
@@ -308,6 +313,19 @@ export function ListView() {
         title="Close selected issues?"
         description={`Are you sure you want to close ${selectedIds.length} issue${selectedIds.length !== 1 ? "s" : ""}? This can be undone.`}
         confirmLabel={`Close ${selectedIds.length} Issue${selectedIds.length !== 1 ? "s" : ""}`}
+      />
+
+      <ConfirmDialog
+        isOpen={showBulkDeleteConfirm}
+        onConfirm={() => {
+          setShowBulkDeleteConfirm(false);
+          handleBulkDelete();
+        }}
+        onCancel={() => setShowBulkDeleteConfirm(false)}
+        title="Delete selected issues permanently?"
+        description={`This will permanently delete ${selectedIds.length} issue${selectedIds.length !== 1 ? "s" : ""} and remove all their dependency links. This cannot be undone.`}
+        confirmLabel={`Delete ${selectedIds.length} Issue${selectedIds.length !== 1 ? "s" : ""}`}
+        isPending={isDeleting}
       />
     </div>
   );

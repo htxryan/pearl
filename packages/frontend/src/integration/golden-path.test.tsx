@@ -653,7 +653,12 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
 
     // Bulk action bar should appear
     expect(screen.getByText(/1 issue selected/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /close selected/i })).toBeInTheDocument();
+    const actionsBtn = screen.getByRole("button", { name: /^actions$/i });
+    expect(actionsBtn).toBeInTheDocument();
+
+    // Open the dropdown — Close selected should be a menu item
+    fireEvent.click(actionsBtn);
+    expect(screen.getByRole("menuitem", { name: /close selected/i })).toBeInTheDocument();
   });
 
   it("handleBulkClose calls closeMutation.mutateAsync for each selected issue", async () => {
@@ -675,8 +680,10 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     fireEvent.keyDown(window, { key: "j" }); // activate row 0
     fireEvent.keyDown(window, { key: "x" }); // select row 0
 
-    // Click "Close selected" — opens confirmation dialog
-    const closeBtn = screen.getByRole("button", { name: /close selected/i });
+    // Open Actions dropdown then click "Close selected" — opens confirmation dialog
+    const actionsBtn = screen.getByRole("button", { name: /^actions$/i });
+    fireEvent.click(actionsBtn);
+    const closeBtn = screen.getByRole("menuitem", { name: /close selected/i });
     fireEvent.click(closeBtn);
 
     // Confirm the bulk close in the dialog
@@ -710,8 +717,10 @@ describe("SC8+SC10: Close issue and highlight newly-unblocked", () => {
     fireEvent.keyDown(window, { key: "j" });
     fireEvent.keyDown(window, { key: "x" });
 
-    // Click close — opens confirmation dialog
-    const closeBtn = screen.getByRole("button", { name: /close selected/i });
+    // Open Actions dropdown then click close — opens confirmation dialog
+    const actionsBtn = screen.getByRole("button", { name: /^actions$/i });
+    fireEvent.click(actionsBtn);
+    const closeBtn = screen.getByRole("menuitem", { name: /close selected/i });
     fireEvent.click(closeBtn);
 
     // Confirm in the dialog

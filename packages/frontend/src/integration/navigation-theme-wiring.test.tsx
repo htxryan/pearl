@@ -93,6 +93,7 @@ vi.mock("@/hooks/use-issues", () => ({
   useDependencies: vi.fn(() => ({ data: [] })),
   useUpdateIssue: vi.fn(() => mockMutation),
   useCloseIssue: vi.fn(() => mockMutation),
+  useDeleteIssue: vi.fn(() => mockMutation),
   useCreateIssue: vi.fn(() => mockMutation),
   useAddComment: vi.fn(() => mockMutation),
   useAddDependency: vi.fn(() => mockMutation),

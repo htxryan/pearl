@@ -14,8 +14,9 @@ test.describe("Bulk Actions", () => {
     await secondCheckbox.click();
     await expect(page.getByText("issues selected")).toBeVisible();
 
-    // Click "Close selected"
-    await page.getByRole("button", { name: /close selected/i }).click();
+    // Open the Actions dropdown then choose "Close selected"
+    await page.getByRole("button", { name: /^actions$/i }).click();
+    await page.getByRole("menuitem", { name: /close selected/i }).click();
 
     // Confirmation dialog should appear
     const dialog = page.getByRole("dialog");
@@ -42,8 +43,11 @@ test.describe("Bulk Actions", () => {
     await firstCheckbox.click();
     await expect(page.getByText("issue selected")).toBeVisible({ timeout: 5_000 });
 
-    // Find the Reassign button in the bulk action bar
-    const reassignBtn = page.getByRole("button", { name: /reassign/i });
+    // Open the Actions dropdown
+    await page.getByRole("button", { name: /^actions$/i }).click();
+
+    // Pick "Reassign" from the menu
+    const reassignBtn = page.getByRole("menuitem", { name: /reassign/i });
     await expect(reassignBtn).toBeVisible();
     await reassignBtn.click();
 
@@ -74,17 +78,20 @@ test.describe("Bulk Actions", () => {
     await firstCheckbox.click();
     await expect(page.getByText("issue selected")).toBeVisible({ timeout: 5_000 });
 
-    // Find the Reprioritize button
-    const reprioritizeBtn = page.getByRole("button", { name: /reprioritize/i });
-    if (!(await reprioritizeBtn.isVisible().catch(() => false))) {
-      test.skip(true, "No reprioritize button found");
+    // Open the Actions dropdown
+    await page.getByRole("button", { name: /^actions$/i }).click();
+
+    // Pick "Set priority" from the menu
+    const setPriorityBtn = page.getByRole("menuitem", { name: /set priority/i });
+    if (!(await setPriorityBtn.isVisible().catch(() => false))) {
+      test.skip(true, "No set priority menu item found");
       return;
     }
 
-    await reprioritizeBtn.click();
+    await setPriorityBtn.click();
 
-    // A priority selector should appear — select P0
-    const p0Option = page.getByText("P0", { exact: true });
+    // A priority selector should appear — select P0 (label is "P0 — Critical")
+    const p0Option = page.getByRole("button", { name: /^P0/ });
     if (await p0Option.isVisible().catch(() => false)) {
       await p0Option.click();
 
@@ -127,8 +134,9 @@ test.describe("Bulk Actions", () => {
 
     await expect(page.getByText("issues selected")).toBeVisible({ timeout: 5_000 });
 
-    // Click close
-    await page.getByRole("button", { name: /close selected/i }).click();
+    // Open the Actions dropdown then choose "Close selected"
+    await page.getByRole("button", { name: /^actions$/i }).click();
+    await page.getByRole("menuitem", { name: /close selected/i }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });

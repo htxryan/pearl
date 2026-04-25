@@ -29,8 +29,9 @@ test.describe("Bulk Actions", () => {
     await firstCheckbox.click();
     await expect(page.getByText("issue selected")).toBeVisible({ timeout: 5_000 });
 
-    // Click "Close selected" in bulk action bar
-    await page.getByRole("button", { name: /close selected/i }).click();
+    // Open the Actions dropdown then choose "Close selected"
+    await page.getByRole("button", { name: /^actions$/i }).click();
+    await page.getByRole("menuitem", { name: /close selected/i }).click();
 
     // Confirmation dialog
     const dialog = page.getByRole("dialog");

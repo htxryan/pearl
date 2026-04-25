@@ -2,7 +2,7 @@ import type { IssueListItem, IssueStatus, Priority } from "@pearl/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import type { RowSelectionState } from "@tanstack/react-table";
 import { useCallback, useRef, useState } from "react";
-import { issueKeys, useCloseIssue, useUpdateIssue } from "@/hooks/use-issues";
+import { issueKeys, useCloseIssue, useDeleteIssue, useUpdateIssue } from "@/hooks/use-issues";
 import { useToastActions } from "@/hooks/use-toast";
 import * as api from "@/lib/api-client";
 
@@ -22,9 +22,11 @@ export function useListBulkActions({
   const queryClient = useQueryClient();
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
+  const deleteMutation = useDeleteIssue();
   const toast = useToastActions();
 
   const [isClosing, setIsClosing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const rowSelectionRef = useRef(rowSelection);
@@ -286,10 +288,42 @@ export function useListBulkActions({
     [updateMutation, toast, getIssueLabels, setRowSelection],
   );
 
+  const handleBulkDelete = useCallback(async () => {
+    const ids = Object.keys(rowSelectionRef.current).filter((k) => rowSelectionRef.current[k]);
+    if (ids.length === 0) return;
+    setIsDeleting(true);
+    try {
+      const BATCH_SIZE = 5;
+      const allResults: PromiseSettledResult<unknown>[] = [];
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => deleteMutation.mutateAsync({ id })),
+        );
+        allResults.push(...results);
+      }
+      const failed = allResults.filter((r) => r.status === "rejected");
+      const succeeded = ids.length - failed.length;
+      if (failed.length > 0) {
+        toast.warning(
+          `Deleted ${succeeded} issue${succeeded !== 1 ? "s" : ""}. ${failed.length} failed.`,
+        );
+      } else {
+        toast.success(`Deleted ${ids.length} issue${ids.length !== 1 ? "s" : ""}.`);
+      }
+      setHighlightedIds(new Set());
+      setRowSelection({});
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleteMutation, toast, setRowSelection, setHighlightedIds]);
+
   return {
     isClosing,
+    isDeleting,
     isUpdating,
     handleBulkClose,
+    handleBulkDelete,
     handleBulkReassign,
     handleBulkReprioritize,
     handleBulkChangeStatus,
