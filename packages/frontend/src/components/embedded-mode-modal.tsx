@@ -1,3 +1,4 @@
+import { ArrowRight, Check, Plug } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
@@ -6,7 +7,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowRightIcon, CheckIcon, PlugIcon } from "@/components/ui/icons";
 import * as api from "@/lib/api-client";
 
 type MigrationState = "idle" | "testing" | "migrating" | "error";
@@ -152,7 +152,7 @@ export function EmbeddedModeModal() {
               className={`w-full ${primaryBtn}`}
               data-testid="migrate-managed-btn"
             >
-              <ArrowRightIcon />
+              <ArrowRight size={14} />
               {state === "migrating" ? "Migrating..." : "Start Pearl-managed server"}
             </button>
           </div>
@@ -217,7 +217,7 @@ export function EmbeddedModeModal() {
                 className={outlineBtn}
                 data-testid="test-connection-btn"
               >
-                {connectionOk ? <CheckIcon /> : <PlugIcon />}
+                {connectionOk ? <Check size={14} /> : <Plug size={14} />}
                 {state === "testing"
                   ? "Testing..."
                   : connectionOk
@@ -231,7 +231,7 @@ export function EmbeddedModeModal() {
                 className={`flex-1 ${primaryBtn}`}
                 data-testid="migrate-external-btn"
               >
-                <ArrowRightIcon />
+                <ArrowRight size={14} />
                 {state === "migrating" ? "Migrating..." : "Migrate"}
               </button>
             </div>

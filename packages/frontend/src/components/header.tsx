@@ -1,5 +1,5 @@
+import { Plus, Search } from "lucide-react";
 import type { ReactNode } from "react";
-import { PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { useIsEmbeddedMode } from "@/hooks/use-embedded-mode";
 import { isMacPlatform } from "@/lib/utils";
 import { NotificationBell } from "./notification-bell";
@@ -60,7 +60,7 @@ export function Header({
             className="inline-flex h-11 sm:h-auto items-center justify-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             data-testid="create-issue-btn"
           >
-            <PlusIcon size={16} />
+            <Plus size={16} />
             <span className="hidden sm:inline">Create Issue</span>
           </button>
         )}
@@ -72,7 +72,7 @@ export function Header({
             className="sm:hidden inline-flex h-11 items-center justify-center rounded-[var(--radius)] border border-border px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             data-testid="search-issues-btn"
           >
-            <SearchIcon size={16} />
+            <Search size={16} />
           </button>
         )}
         <NotificationBell />

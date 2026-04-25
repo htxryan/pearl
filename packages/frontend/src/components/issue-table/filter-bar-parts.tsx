@@ -1,6 +1,6 @@
+import { Plus, Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { PlusIcon, SaveIcon } from "@/components/ui/icons";
 import {
   Select,
   SelectContent,
@@ -458,7 +458,7 @@ function SaveAsInline({
         onClick={() => setShowInput(true)}
         className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent"
       >
-        <PlusIcon size={12} />
+        <Plus size={12} />
         Save as new filter...
       </button>
     );
@@ -486,7 +486,7 @@ function SaveAsInline({
         disabled={!newName.trim()}
         className="inline-flex h-7 items-center gap-1 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
       >
-        <SaveIcon size={12} />
+        <Save size={12} />
         Save
       </button>
     </div>

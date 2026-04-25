@@ -1,7 +1,18 @@
 import type { IssueStatus, Priority } from "@pearl/shared";
 import { ISSUE_STATUSES } from "@pearl/shared";
+import {
+  ChevronDown,
+  ChevronLeft,
+  CircleCheck,
+  Ellipsis,
+  Flag,
+  Trash2,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { StatusIcon, TagMinusIcon, TagPlusIcon } from "@/components/ui/domain-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,19 +20,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ActionsIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  CloseIssueIcon,
-  PriorityIcon,
-  ReassignIcon,
-  StatusIcon,
-  TagMinusIcon,
-  TagPlusIcon,
-  TrashIcon,
-  XIcon,
-} from "@/components/ui/icons";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: 0, label: "P0 — Critical" },
@@ -121,9 +119,9 @@ export function BulkActionBar({
         <DropdownMenuTrigger
           render={<Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />}
         >
-          <ActionsIcon />
+          <Ellipsis size={14} />
           Actions
-          <ChevronDownIcon />
+          <ChevronDown size={12} />
         </DropdownMenuTrigger>
 
         <DropdownMenuContent className={width}>
@@ -134,7 +132,7 @@ export function BulkActionBar({
                 closeOnClick={false}
                 className="gap-2"
               >
-                <ReassignIcon className="size-4" />
+                <UserPlus className="size-4" />
                 Reassign
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -142,7 +140,7 @@ export function BulkActionBar({
                 closeOnClick={false}
                 className="gap-2"
               >
-                <PriorityIcon className="size-4" />
+                <Flag className="size-4" />
                 Set priority
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -171,7 +169,7 @@ export function BulkActionBar({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onClose} disabled={isClosing} className="gap-2">
-                <CloseIssueIcon className="size-4" />
+                <CircleCheck className="size-4" />
                 {isClosing ? "Closing..." : "Close selected"}
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -179,7 +177,7 @@ export function BulkActionBar({
                 disabled={isDeleting}
                 className="gap-2 text-destructive focus:text-destructive"
               >
-                <TrashIcon className="size-4" />
+                <Trash2 className="size-4" />
                 {isDeleting ? "Deleting..." : "Delete"}
               </DropdownMenuItem>
             </>
@@ -247,7 +245,7 @@ export function BulkActionBar({
                   disabled={!assigneeInput.trim()}
                   className="w-full gap-1.5"
                 >
-                  <ReassignIcon />
+                  <UserPlus size={14} />
                   Reassign
                 </Button>
               </div>
@@ -284,7 +282,7 @@ export function BulkActionBar({
                   disabled={!labelInput.trim()}
                   className="w-full gap-1.5"
                 >
-                  <TagPlusIcon />
+                  <TagPlusIcon size={14} />
                   Add label
                 </Button>
               </div>
@@ -321,7 +319,7 @@ export function BulkActionBar({
                   disabled={!removeLabelInput.trim()}
                   className="w-full gap-1.5"
                 >
-                  <TagMinusIcon />
+                  <TagMinusIcon size={14} />
                   Remove label
                 </Button>
               </div>
@@ -337,7 +335,7 @@ export function BulkActionBar({
         disabled={busy}
         className="gap-1.5"
       >
-        <XIcon />
+        <X size={14} />
         Clear selection
       </Button>
     </div>
@@ -360,7 +358,7 @@ function SubmenuPanel({
         onClick={onBack}
         className="flex w-full items-center gap-1 border-b border-border px-3 py-1.5 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus:bg-accent focus:outline-none"
       >
-        <ChevronLeftIcon />
+        <ChevronLeft size={12} />
         <span>{title}</span>
       </button>
       <div className="py-1">{children}</div>

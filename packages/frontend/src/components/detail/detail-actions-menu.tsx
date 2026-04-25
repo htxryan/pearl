@@ -1,3 +1,4 @@
+import { Check, ChevronDown, CircleCheck, Ellipsis, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,13 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ActionsIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  CloseIssueIcon,
-  TrashIcon,
-} from "@/components/ui/icons";
 
 interface DetailActionsMenuProps {
   isClosed: boolean;
@@ -47,9 +41,9 @@ export function DetailActionsMenu({
       <DropdownMenuTrigger
         render={<Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />}
       >
-        <ActionsIcon />
+        <Ellipsis size={14} />
         Actions
-        <ChevronDownIcon />
+        <ChevronDown size={12} />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
@@ -63,7 +57,7 @@ export function DetailActionsMenu({
               disabled={isUpdatePending}
               className="gap-2"
             >
-              <CheckIcon className="size-4" />
+              <Check className="size-4" />
               {isClaimPending ? "Claiming..." : "Claim"}
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -71,7 +65,7 @@ export function DetailActionsMenu({
               disabled={isClosePending}
               className="gap-2 text-destructive focus:text-destructive"
             >
-              <CloseIssueIcon className="size-4" />
+              <CircleCheck className="size-4" />
               {isClosePending ? "Closing..." : "Close"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -82,7 +76,7 @@ export function DetailActionsMenu({
           disabled={isDeletePending}
           className="gap-2 text-destructive focus:text-destructive"
         >
-          <TrashIcon className="size-4" />
+          <Trash2 className="size-4" />
           {isDeletePending ? "Deleting..." : "Delete"}
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -13,11 +13,11 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { type IssueListItem, type IssueStatus, SETTABLE_STATUSES } from "@pearl/shared";
+import { Eye, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { KanbanCardOverlay } from "@/components/board/kanban-card";
 import { KanbanColumn } from "@/components/board/kanban-column";
 import { FilterBar, SHOW_ALL_FILTERS } from "@/components/issue-table/filter-bar";
-import { EyeIcon, EyeOffIcon } from "@/components/ui/icons";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useDetailPanel } from "@/hooks/use-detail-panel";
@@ -358,7 +358,7 @@ export function BoardView() {
               <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white">
                 {blockedIds.size}
               </span>
-              {showBlocked ? <EyeIcon size={12} /> : <EyeOffIcon size={12} />}
+              {showBlocked ? <Eye size={12} /> : <EyeOff size={12} />}
               {showBlocked ? "Blocked visible" : "Blocked hidden"}
             </button>
           </div>

@@ -1,7 +1,7 @@
 import type { Event } from "@pearl/shared";
+import { ChevronDown } from "lucide-react";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon } from "@/components/ui/icons";
 import { RelativeTime } from "@/components/ui/relative-time";
 import {
   Select,
@@ -242,7 +242,7 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
             className="gap-1.5"
           >
-            <ChevronDownIcon size={14} />
+            <ChevronDown size={14} />
             Show more ({groupedEvents.length - visibleCount} remaining)
           </Button>
         </div>

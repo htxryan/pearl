@@ -1,5 +1,5 @@
+import { ArrowRight, X } from "lucide-react";
 import { useCallback, useState } from "react";
-import { ArrowRightIcon, XIcon } from "@/components/ui/icons";
 
 const STORAGE_KEY = "pearl-onboarding-complete";
 
@@ -100,7 +100,7 @@ export function OnboardingBanner() {
             onClick={handleDismiss}
             className="inline-flex items-center gap-1 text-xs text-info hover:text-info-foreground transition-colors"
           >
-            <XIcon size={12} />
+            <X size={12} />
             Skip
           </button>
           <button
@@ -109,7 +109,7 @@ export function OnboardingBanner() {
             className="inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             {step < STEPS.length - 1 ? "Next" : "Get started"}
-            <ArrowRightIcon size={12} />
+            <ArrowRight size={12} />
           </button>
         </div>
       </div>

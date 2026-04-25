@@ -1,3 +1,4 @@
+import { Check, Trash2, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -7,7 +8,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, TrashIcon, XIcon } from "@/components/ui/icons";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -46,11 +46,11 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button variant="ghost" onClick={onCancel} disabled={isPending} className="gap-1.5">
-            <XIcon />
+            <X size={14} />
             {cancelLabel}
           </Button>
           <Button variant={variant} onClick={onConfirm} disabled={isPending} className="gap-1.5">
-            {variant === "destructive" ? <TrashIcon /> : <CheckIcon />}
+            {variant === "destructive" ? <Trash2 size={14} /> : <Check size={14} />}
             {isPending ? "..." : confirmLabel}
           </Button>
         </AlertDialogFooter>

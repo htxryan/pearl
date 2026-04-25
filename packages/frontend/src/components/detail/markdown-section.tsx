@@ -1,4 +1,5 @@
 import { hasAttachmentSyntax, parseField } from "@pearl/shared";
+import { ImageIcon, Link, List, Pencil, Plus, Save, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
@@ -7,15 +8,6 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
-import {
-  ImageIcon,
-  LinkIcon,
-  ListIcon,
-  PencilIcon,
-  PlusIcon,
-  SaveIcon,
-  XIcon,
-} from "@/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
@@ -205,7 +197,7 @@ export function MarkdownSection({
           }}
           className="gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
-          <PlusIcon size={12} />
+          <Plus size={12} />
           Add {title}
         </Button>
       </div>
@@ -237,7 +229,7 @@ export function MarkdownSection({
                 />
               }
             >
-              <PencilIcon />
+              <Pencil size={14} />
             </TooltipTrigger>
             <TooltipContent>Edit {title}</TooltipContent>
           </Tooltip>
@@ -284,10 +276,10 @@ export function MarkdownSection({
                   {"<>"}
                 </ToolbarButton>
                 <ToolbarButton label="Link" onClick={() => handleToolbar("link")}>
-                  <LinkIcon size={14} />
+                  <Link size={14} />
                 </ToolbarButton>
                 <ToolbarButton label="List" onClick={() => handleToolbar("list")}>
-                  <ListIcon size={14} />
+                  <List size={14} />
                 </ToolbarButton>
                 <div className="w-px h-4 bg-border mx-1" />
                 <ToolbarButton label="Attach image" onClick={handleFilePick} disabled={isUploading}>
@@ -325,7 +317,7 @@ export function MarkdownSection({
 
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={handleSave} disabled={isUploading} className="gap-1.5">
-              <SaveIcon />
+              <Save size={14} />
               Save
             </Button>
             <Button
@@ -335,7 +327,7 @@ export function MarkdownSection({
               disabled={isUploading}
               className="gap-1.5"
             >
-              <XIcon />
+              <X size={14} />
               Cancel
             </Button>
             <span className="text-xs text-muted-foreground ml-auto">

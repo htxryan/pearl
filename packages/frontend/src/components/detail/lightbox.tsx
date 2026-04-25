@@ -1,7 +1,7 @@
+import { ChevronLeft, ChevronRight, ImageOff, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toggleKeyboardHelp } from "@/components/keyboard-help";
 import { Dialog, DialogOverlay, DialogPopup, DialogPortal } from "@/components/ui/dialog";
-import { BrokenImageIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "@/components/ui/icons";
 import {
   useAllAttachmentRefs,
   useAttachmentBlob,
@@ -115,7 +115,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
               aria-label="Close"
               className="absolute -top-2 -right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
             >
-              <XIcon size={16} />
+              <X size={16} />
             </button>
 
             <LightboxImage ref_={currentRef} />
@@ -127,7 +127,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
                 aria-label="Previous image"
                 className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
               >
-                <ChevronLeftIcon size={20} />
+                <ChevronLeft size={20} />
               </button>
 
               <div className="flex flex-col items-center gap-0.5">
@@ -143,7 +143,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
                 aria-label="Next image"
                 className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
               >
-                <ChevronRightIcon size={20} />
+                <ChevronRight size={20} />
               </button>
             </div>
 
@@ -210,7 +210,7 @@ function LightboxImage({ ref_ }: { ref_: string }) {
   if (status === "error") {
     return (
       <div className="w-64 h-64 rounded-lg bg-white/10 border border-white/20 flex flex-col items-center justify-center gap-2">
-        <BrokenImageIcon size={32} className="text-white/40" />
+        <ImageOff size={32} className="text-white/40" />
         <span className="text-white/70 text-sm font-mono">{ref_.slice(0, 8)}</span>
         <span className="text-white/50 text-xs">{error ?? "Load failed"}</span>
       </div>

@@ -1,6 +1,6 @@
+import { Kanban, List, Network } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { BoardIcon, GraphIcon, ListIcon } from "@/components/ui/icons";
 
 export function NotFoundView() {
   const navigate = useNavigate();
@@ -16,15 +16,15 @@ export function NotFoundView() {
       </div>
       <div className="flex items-center gap-3">
         <Button variant="outline" onClick={() => navigate("/list")} className="gap-1.5">
-          <ListIcon />
+          <List size={14} />
           List View
         </Button>
         <Button variant="outline" onClick={() => navigate("/board")} className="gap-1.5">
-          <BoardIcon />
+          <Kanban size={14} />
           Board View
         </Button>
         <Button variant="outline" onClick={() => navigate("/graph")} className="gap-1.5">
-          <GraphIcon />
+          <Network size={14} />
           Graph View
         </Button>
       </div>

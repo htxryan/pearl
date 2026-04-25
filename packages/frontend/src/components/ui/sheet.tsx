@@ -1,7 +1,6 @@
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
+import { X } from "lucide-react";
 import type * as React from "react";
-
-import { XIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 const Sheet = DrawerPrimitive.Root;
@@ -61,7 +60,7 @@ function SheetContent({ side = "right", className, children, ...props }: SheetCo
         {...props}
       >
         <DrawerPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-          <XIcon size={16} />
+          <X size={16} />
           <span className="sr-only">Close</span>
         </DrawerPrimitive.Close>
         {children}

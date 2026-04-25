@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 
 const DatePicker = lazy(() => import("@/components/ui/date-picker"));
 
+import { Plus, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
 import {
   Select,
@@ -303,7 +303,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={handleCancel} className="gap-1.5">
-              <XIcon />
+              <X size={14} />
               Cancel
             </Button>
             <Button
@@ -311,7 +311,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
               disabled={!title.trim() || createMutation.isPending}
               className="gap-1.5"
             >
-              <PlusIcon />
+              <Plus size={14} />
               {createMutation.isPending ? "Creating..." : "Create Issue"}
             </Button>
           </div>

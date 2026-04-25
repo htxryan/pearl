@@ -1,9 +1,9 @@
 import type { Dependency, IssueListItem } from "@pearl/shared";
+import { Plus, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { PlusIcon, SearchIcon, XIcon } from "@/components/ui/icons";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useIssue } from "@/hooks/use-issues";
@@ -74,12 +74,12 @@ export function DependencyList({
         >
           {showAddForm ? (
             <>
-              <XIcon size={12} />
+              <X size={12} />
               Cancel
             </>
           ) : (
             <>
-              <PlusIcon size={12} />
+              <Plus size={12} />
               Add
             </>
           )}
@@ -260,7 +260,7 @@ function DependencyAutocomplete({
     <div ref={containerRef} className="relative mb-3">
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
-          <SearchIcon
+          <Search
             size={14}
             className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
@@ -353,7 +353,7 @@ function DependencyRow({ targetId, onRemove }: { targetId: string; onRemove: () 
           title="Remove dependency"
           aria-label="Remove dependency"
         >
-          <XIcon size={12} />
+          <X size={12} />
         </button>
       </div>
       <ConfirmDialog

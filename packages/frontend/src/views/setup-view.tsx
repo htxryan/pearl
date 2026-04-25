@@ -1,9 +1,9 @@
 import type { SetupInitializeRequest } from "@pearl/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, ArrowRight, Plug } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, ArrowRightIcon, PlugIcon } from "@/components/ui/icons";
 import { setupKeys } from "@/hooks/use-issues";
 import { initializeSetup } from "@/lib/api-client";
 
@@ -323,11 +323,11 @@ function ServerConfig({
           onClick={onBack}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeftIcon size={12} />
+          <ArrowLeft size={12} />
           Back
         </button>
         <Button onClick={onSubmit} className="gap-1.5">
-          <PlugIcon />
+          <Plug size={14} />
           Test &amp; Connect
         </Button>
       </div>
@@ -373,7 +373,7 @@ function Done({ onContinue }: { onContinue: () => void }) {
       </p>
       <Button className="mt-6 gap-1.5" onClick={onContinue}>
         Get started
-        <ArrowRightIcon />
+        <ArrowRight size={14} />
       </Button>
     </div>
   );

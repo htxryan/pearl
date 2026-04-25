@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Filter, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
@@ -8,7 +9,6 @@ import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table"
 import { IssueCardList } from "@/components/issue-table/issue-card";
 import { IssueTable } from "@/components/issue-table/issue-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { FilterIcon, PlusIcon } from "@/components/ui/icons";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useDetailPanel } from "@/hooks/use-detail-panel";
@@ -234,7 +234,7 @@ export function ListView() {
                 }`}
                 aria-pressed={topLevelOnly}
               >
-                <FilterIcon size={12} />
+                <Filter size={12} />
                 Top-level only
               </button>
             </div>
@@ -287,7 +287,7 @@ export function ListView() {
               disabled={createMutation.isPending}
               className="inline-flex h-7 items-center gap-1 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
             >
-              <PlusIcon size={12} />
+              <Plus size={12} />
               {createMutation.isPending ? "Creating..." : "Create"}
             </button>
           )}

@@ -1,6 +1,6 @@
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
+import { Filter, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FilterIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
 import {
   Select,
@@ -187,7 +187,7 @@ export function FilterBar({
             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             aria-label="Clear search"
           >
-            <XIcon size={12} />
+            <X size={12} />
           </button>
         )}
       </div>
@@ -293,7 +293,7 @@ export function FilterBar({
             isMobile && "min-h-[44px]",
           )}
         >
-          <FilterIcon size={12} />
+          <Filter size={12} />
           More filters
         </button>
       )}
@@ -355,7 +355,7 @@ export function FilterBar({
             isMobile && "min-h-[44px]",
           )}
         >
-          <XIcon size={12} />
+          <X size={12} />
           Clear all
         </button>
       )}
@@ -382,7 +382,7 @@ export function FilterBar({
             aria-expanded={filtersExpanded}
             aria-label="Toggle filters"
           >
-            <FilterIcon size={16} />
+            <Filter size={16} />
             Filters
             {activeCount > 0 && (
               <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary text-[10px] font-semibold text-primary-foreground px-1">

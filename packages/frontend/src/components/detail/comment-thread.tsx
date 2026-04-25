@@ -1,4 +1,5 @@
 import type { Comment } from "@pearl/shared";
+import { Send } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -6,7 +7,6 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
-import { SendIcon } from "@/components/ui/icons";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
@@ -203,7 +203,7 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
             disabled={!newComment.trim() || isAdding || isUploading}
             className="gap-1.5"
           >
-            <SendIcon />
+            <Send size={14} />
             {isAdding ? "Posting..." : "Comment"}
           </Button>
         </div>

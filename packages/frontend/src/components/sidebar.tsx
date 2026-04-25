@@ -1,6 +1,6 @@
+import { X } from "lucide-react";
 import { type ReactNode, useEffect } from "react";
 import { NavLink, useLocation, useSearchParams } from "react-router";
-import { XIcon } from "@/components/ui/icons";
 import {
   SidebarContent,
   SidebarFooter,
@@ -270,7 +270,7 @@ export function AppSidebar() {
               className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               aria-label="Close navigation menu"
             >
-              <XIcon size={20} />
+              <X size={20} />
             </button>
           </>
         ) : (

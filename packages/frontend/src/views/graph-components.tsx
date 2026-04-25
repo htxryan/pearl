@@ -1,6 +1,6 @@
 import { BaseEdge, type EdgeProps, getBezierPath, Panel, useReactFlow } from "@xyflow/react";
+import { Maximize, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FitViewIcon, ZoomInIcon, ZoomOutIcon } from "@/components/ui/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // ─── Custom Edge with hover label ────────────────────
@@ -76,7 +76,7 @@ export function GraphControls() {
               />
             }
           >
-            <ZoomInIcon />
+            <ZoomIn size={14} />
           </TooltipTrigger>
           <TooltipContent>Zoom in</TooltipContent>
         </Tooltip>
@@ -92,7 +92,7 @@ export function GraphControls() {
               />
             }
           >
-            <ZoomOutIcon />
+            <ZoomOut size={14} />
           </TooltipTrigger>
           <TooltipContent>Zoom out</TooltipContent>
         </Tooltip>
@@ -108,7 +108,7 @@ export function GraphControls() {
               />
             }
           >
-            <FitViewIcon />
+            <Maximize size={14} />
           </TooltipTrigger>
           <TooltipContent>Fit view</TooltipContent>
         </Tooltip>

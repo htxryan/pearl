@@ -1,7 +1,7 @@
 import type { IssueStatus } from "@pearl/shared";
+import { ArrowLeft } from "lucide-react";
 import { Children } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon } from "@/components/ui/icons";
 import {
   Select,
   SelectContent,
@@ -151,7 +151,7 @@ export function DetailErrorView({
       <h2 className="text-xl font-semibold">Issue not found</h2>
       <p className="text-muted-foreground">{error?.message ?? `Could not load issue ${id}`}</p>
       <Button variant="outline" onClick={onBack} className="gap-1.5">
-        <ArrowLeftIcon />
+        <ArrowLeft size={14} />
         Back to {backLabel.toLowerCase()}
       </Button>
     </div>

@@ -1,9 +1,9 @@
 import type { Issue } from "@pearl/shared";
+import { X } from "lucide-react";
 import { DetailActionsMenu } from "@/components/detail/detail-actions-menu";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
-import { XIcon } from "@/components/ui/icons";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -142,7 +142,7 @@ export function DetailHeader({
                 />
               }
             >
-              <XIcon size={16} />
+              <X size={16} />
             </TooltipTrigger>
             <TooltipContent>Close (Esc)</TooltipContent>
           </Tooltip>

@@ -1,5 +1,5 @@
+import { Check } from "lucide-react";
 import { useNavigate } from "react-router";
-import { CheckIcon } from "@/components/ui/icons";
 import {
   type AppNotification,
   dismissNotification,
@@ -203,7 +203,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
             onClick={markAllAsRead}
             className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
           >
-            <CheckIcon size={12} />
+            <Check size={12} />
             Mark all as read
           </button>
         )}

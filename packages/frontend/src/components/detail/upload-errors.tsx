@@ -1,4 +1,4 @@
-import { XIcon } from "@/components/ui/icons";
+import { X } from "lucide-react";
 import type { UploadError } from "@/hooks/use-image-upload";
 
 interface UploadErrorsProps {
@@ -26,7 +26,7 @@ export function UploadErrors({ errors, onDismiss }: UploadErrorsProps) {
           className="shrink-0 text-muted-foreground hover:text-foreground"
           aria-label="Dismiss errors"
         >
-          <XIcon size={12} />
+          <X size={12} />
         </button>
       </div>
     </div>

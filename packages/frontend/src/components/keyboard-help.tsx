@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useMemo, useSyncExternalStore } from "react";
 import {
   Dialog,
@@ -6,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { XIcon } from "@/components/ui/icons";
 import { isMacPlatform } from "@/lib/utils";
 
 // ─── State ─────────────────────────────────────────────
@@ -125,7 +125,7 @@ export function KeyboardHelpOverlay() {
         <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle>Keyboard Shortcuts</DialogTitle>
           <DialogClose className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors">
-            <XIcon size={16} />
+            <X size={16} />
             <span className="sr-only">Close</span>
           </DialogClose>
         </DialogHeader>

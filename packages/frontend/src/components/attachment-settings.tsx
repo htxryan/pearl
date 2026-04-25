@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, type Settings, type StorageMode } from "@pearl/shared";
+import { RefreshCw, Save } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { RefreshIcon, SaveIcon } from "@/components/ui/icons";
 import { useSettings, useUpdateSettings } from "@/hooks/use-settings";
 import { cn } from "@/lib/utils";
 
@@ -344,7 +344,7 @@ export function AttachmentSettings() {
               : "cursor-not-allowed bg-muted text-muted-foreground",
           )}
         >
-          <SaveIcon />
+          <Save size={14} />
           {updateMutation.isPending ? "Saving..." : "Save changes"}
         </button>
 
@@ -354,7 +354,7 @@ export function AttachmentSettings() {
           disabled={updateMutation.isPending}
           className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/30"
         >
-          <RefreshIcon />
+          <RefreshCw size={14} />
           Reset to defaults
         </button>
 
