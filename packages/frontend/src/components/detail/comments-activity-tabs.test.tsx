@@ -58,9 +58,9 @@ describe("CommentsActivityTabs", () => {
     expect(commentsTab.getAttribute("aria-selected")).toBe("true");
     expect(activityTab.getAttribute("aria-selected")).toBe("false");
 
-    // Comments content visible; activity content not visible.
-    expect(screen.getByText("Hello world")).toBeDefined();
-    expect(screen.queryByText("bob")).toBeNull();
+    // Comments panel visible; activity panel hidden (both stay mounted).
+    expect(screen.getByText("Hello world")).toBeVisible();
+    expect(screen.getByText("bob")).not.toBeVisible();
   });
 
   it("switches to Activity when its tab is clicked and shows the events filter", () => {
@@ -71,11 +71,27 @@ describe("CommentsActivityTabs", () => {
     expect(screen.getByRole("tab", { name: /Activity/ }).getAttribute("aria-selected")).toBe(
       "true",
     );
-    expect(screen.getByText("bob")).toBeDefined();
-    // Filter dropdown moved into the Activity tab header.
+    expect(screen.getByText("bob")).toBeVisible();
     expect(screen.getByLabelText("Filter events by type")).toBeDefined();
     // Comments panel is hidden while Activity is active.
-    expect(screen.queryByText("Hello world")).toBeNull();
+    expect(screen.getByText("Hello world")).not.toBeVisible();
+  });
+
+  it("navigates between tabs with arrow keys", () => {
+    renderTabs([mockComment], [mockEvent]);
+    const commentsTab = screen.getByRole("tab", { name: /Comments/ });
+    const activityTab = screen.getByRole("tab", { name: /Activity/ });
+
+    commentsTab.focus();
+    fireEvent.keyDown(commentsTab, { key: "ArrowRight" });
+
+    expect(activityTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(activityTab);
+
+    fireEvent.keyDown(activityTab, { key: "ArrowLeft" });
+
+    expect(commentsTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(commentsTab);
   });
 
   it("does not render the duplicate Activity h2 heading when shown inside tabs", () => {

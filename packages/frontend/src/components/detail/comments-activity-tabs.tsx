@@ -1,10 +1,11 @@
 import type { Comment, Event } from "@pearl/shared";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { CommentThread } from "@/components/detail/comment-thread";
 import { cn } from "@/lib/utils";
 
 type Tab = "comments" | "activity";
+const TABS: Tab[] = ["comments", "activity"];
 
 interface CommentsActivityTabsProps {
   comments: Comment[];
@@ -20,13 +21,42 @@ export function CommentsActivityTabs({
   isAddingComment,
 }: CommentsActivityTabsProps) {
   const [active, setActive] = useState<Tab>("comments");
+  const tablistRef = useRef<HTMLDivElement>(null);
+
+  const handleTablistKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      let nextIndex: number | null = null;
+      const currentIndex = TABS.indexOf(active);
+
+      if (e.key === "ArrowRight") {
+        nextIndex = (currentIndex + 1) % TABS.length;
+      } else if (e.key === "ArrowLeft") {
+        nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+      } else if (e.key === "Home") {
+        nextIndex = 0;
+      } else if (e.key === "End") {
+        nextIndex = TABS.length - 1;
+      }
+
+      if (nextIndex !== null) {
+        e.preventDefault();
+        const nextTab = TABS[nextIndex];
+        setActive(nextTab);
+        const btn = tablistRef.current?.querySelector<HTMLElement>(`#tab-${nextTab}`);
+        btn?.focus();
+      }
+    },
+    [active],
+  );
 
   return (
     <section>
       <div
+        ref={tablistRef}
         role="tablist"
         aria-label="Comments and activity"
         className="flex border-b border-border mb-3"
+        onKeyDown={handleTablistKeyDown}
       >
         <TabButton
           id="tab-comments"
@@ -52,14 +82,12 @@ export function CommentsActivityTabs({
         aria-labelledby="tab-comments"
         hidden={active !== "comments"}
       >
-        {active === "comments" && (
-          <CommentThread
-            comments={comments}
-            onAdd={onAddComment}
-            isAdding={isAddingComment}
-            hideTitle
-          />
-        )}
+        <CommentThread
+          comments={comments}
+          onAdd={onAddComment}
+          isAdding={isAddingComment}
+          hideTitle
+        />
       </div>
 
       <div
@@ -68,7 +96,7 @@ export function CommentsActivityTabs({
         aria-labelledby="tab-activity"
         hidden={active !== "activity"}
       >
-        {active === "activity" && <ActivityTimeline events={events} hideTitle />}
+        <ActivityTimeline events={events} hideTitle />
       </div>
     </section>
   );
