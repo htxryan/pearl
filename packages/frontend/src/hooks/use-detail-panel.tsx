@@ -38,11 +38,10 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
   const openIssueId = searchParams.get(ITEM_PARAM);
 
   const closeGuardRef = useRef<CloseGuard | null>(null);
-  const openIssueIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    openIssueIdRef.current = openIssueId;
-  }, [openIssueId]);
+  // Initialize from URL so the very first openDetail call sees correct state.
+  const openIssueIdRef = useRef<string | null>(openIssueId);
+  // Marks that the next URL change came from openDetail/closeDetail (not popstate).
+  const internalChangeRef = useRef(false);
 
   useEffect(() => {
     localStorage.removeItem("beads:detail-panel-issue");
@@ -58,11 +57,39 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
+  // Reconcile when URL changes externally (browser back/forward, direct nav).
+  // For internal mutations (openDetail/closeDetail) we already ran the guard.
+  useEffect(() => {
+    if (internalChangeRef.current) {
+      internalChangeRef.current = false;
+      closeGuardRef.current = null;
+      openIssueIdRef.current = openIssueId;
+      return;
+    }
+    const prev = openIssueIdRef.current;
+    if (prev === openIssueId) return;
+    if (prev !== null && !checkGuard()) {
+      // Guard blocked the implicit close — restore prior selection in URL.
+      internalChangeRef.current = true;
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          next.set(ITEM_PARAM, prev);
+          return next;
+        },
+        { replace: true },
+      );
+      return;
+    }
+    closeGuardRef.current = null;
+    openIssueIdRef.current = openIssueId;
+  }, [openIssueId, checkGuard, setSearchParams]);
+
   const openDetail = useCallback(
     (id: string) => {
       const current = openIssueIdRef.current;
       if (current === id) return;
-      if (current !== null && current !== id) {
+      if (current !== null) {
         if (!checkGuard()) return;
         closeGuardRef.current = null;
       }
@@ -70,6 +97,7 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
       // Switching between items uses replace to avoid history bloat;
       // opening from a closed panel pushes a new entry so back closes it.
       const replace = current !== null;
+      internalChangeRef.current = true;
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -86,6 +114,7 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
     if (openIssueIdRef.current === null) return;
     closeGuardRef.current = null;
     openIssueIdRef.current = null;
+    internalChangeRef.current = true;
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);

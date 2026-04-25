@@ -67,12 +67,17 @@ export function useFilterSync() {
     prevPathRef.current = location.pathname;
 
     if (!isNowViewPath) return;
-    if (searchParams.toString()) return;
+    if (hasFilterParams(searchParams)) return;
     if (wasViewPath) return;
 
     const saved = loadFilterParams();
     if (saved) {
-      setSearchParams(new URLSearchParams(saved), { replace: true });
+      const merged = new URLSearchParams(saved);
+      // Preserve any non-filter params already on the URL (e.g., ?item= from a deep link).
+      for (const [key, value] of searchParams) {
+        if (NON_FILTER_KEYS.has(key)) merged.set(key, value);
+      }
+      setSearchParams(merged, { replace: true });
     }
   }, [location.pathname, searchParams, setSearchParams]);
 
