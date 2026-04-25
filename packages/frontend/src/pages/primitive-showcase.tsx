@@ -1,4 +1,5 @@
 import type { IssueStatus, IssueType, LabelColor, Priority } from "@pearl/shared";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,11 +10,19 @@ import { Label } from "@/components/ui/label";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarProvider,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TypePill } from "@/components/ui/type-pill";
+import { useToasts } from "@/hooks/use-toasts";
 
 const STATUSES: IssueStatus[] = ["open", "in_progress", "closed", "blocked", "deferred"];
 const PRIORITIES: Priority[] = [0, 1, 2, 3, 4];
@@ -231,6 +240,106 @@ export function PrimitiveShowcase() {
           description="Try adjusting your filters or creating a new item."
         />
       </section>
+
+      <Separator />
+
+      <ToastDemo />
+
+      <Separator />
+
+      <SidebarDemo />
     </div>
+  );
+}
+
+function ToastDemo() {
+  const toast = useToasts();
+
+  return (
+    <section data-testid="showcase-toast">
+      <h2 className="text-lg font-semibold mb-4">Toast (Sonner)</h2>
+      <div className="flex flex-wrap gap-3">
+        <Button data-testid="toast-success" onClick={() => toast.success("Operation succeeded")}>
+          Success
+        </Button>
+        <Button data-testid="toast-error" onClick={() => toast.error("Something went wrong")}>
+          Error
+        </Button>
+        <Button data-testid="toast-warning" onClick={() => toast.warning("Careful with that")}>
+          Warning
+        </Button>
+        <Button data-testid="toast-info" onClick={() => toast.info("Here is some information")}>
+          Info
+        </Button>
+        <Button data-testid="toast-loading" onClick={() => toast.loading("Loading data...")}>
+          Loading
+        </Button>
+        <Button data-testid="toast-dismiss" variant="outline" onClick={() => toast.dismiss()}>
+          Dismiss All
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function SidebarDemoInner() {
+  const { open, toggleOpen, isMobile, setOpenMobile } = useSidebar();
+
+  return (
+    <div
+      className="flex border border-border rounded-lg overflow-hidden h-48"
+      data-testid="sidebar-demo-container"
+    >
+      <Sidebar>
+        <SidebarHeader>
+          <span className="text-sm font-semibold" data-testid="sidebar-demo-title">
+            {isMobile ? "Mobile" : open ? "Expanded" : "Collapsed"}
+          </span>
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="px-2 text-xs text-muted-foreground">Nav items here</div>
+        </SidebarContent>
+      </Sidebar>
+      <div className="flex-1 p-4 flex flex-col gap-2">
+        <Button data-testid="sidebar-demo-toggle" variant="outline" size="sm" onClick={toggleOpen}>
+          Toggle ({open ? "expanded" : "collapsed"})
+        </Button>
+        {isMobile && (
+          <Button
+            data-testid="sidebar-demo-mobile-open"
+            variant="outline"
+            size="sm"
+            onClick={() => setOpenMobile(true)}
+          >
+            Open Mobile Drawer
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SidebarDemo() {
+  const [isMobileDemo, setIsMobileDemo] = useState(false);
+
+  return (
+    <section data-testid="showcase-sidebar">
+      <h2 className="text-lg font-semibold mb-4">Sidebar</h2>
+      <div className="mb-3">
+        <Button
+          data-testid="sidebar-mobile-toggle"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMobileDemo((prev) => !prev)}
+        >
+          {isMobileDemo ? "Switch to Desktop" : "Switch to Mobile"}
+        </Button>
+      </div>
+      <div style={isMobileDemo ? { maxWidth: "375px" } : undefined}>
+        <SidebarProvider defaultOpen={true}>
+          <SidebarDemoInner />
+        </SidebarProvider>
+      </div>
+    </section>
   );
 }
