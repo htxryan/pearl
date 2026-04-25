@@ -8,10 +8,24 @@ interface ActivityTimelineProps {
   events: Event[];
 }
 
+interface FieldChange {
+  field: string;
+  label: string;
+  before: string | null;
+  after: string | null;
+  longText?: boolean;
+}
+
+interface ParsedEvent {
+  verb: string;
+  changes: FieldChange[];
+}
+
 interface EventGroup {
   key: string;
   events: Event[];
   representative: Event;
+  parsed: ParsedEvent;
 }
 
 const PAGE_SIZE = 20;
@@ -87,20 +101,39 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
           {visibleGroups.map((group) => {
             const event = group.representative;
             const count = group.events.length;
+            const { verb, changes } = group.parsed;
             return (
               <div key={group.key} id={`event-${event.id}`} className="relative">
                 <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-border" />
 
                 <div className="text-sm">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium">{event.actor}</span>
-                    <span className="text-muted-foreground">{describeEvent(event)}</span>
+                    <span className="text-muted-foreground">{verb}</span>
                     {count > 1 && (
                       <span className="text-xs text-muted-foreground/60 font-medium">
                         &times;{count}
                       </span>
                     )}
                   </div>
+                  {changes.length > 0 && (
+                    <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                      {changes.map((change) => (
+                        <li key={change.field} className="flex flex-wrap items-baseline gap-1">
+                          <span className="font-medium text-foreground/80">{change.label}</span>
+                          {change.longText ? (
+                            <span className="italic">updated</span>
+                          ) : (
+                            <>
+                              <ValueChip value={change.before} />
+                              <span aria-hidden="true">→</span>
+                              <ValueChip value={change.after} />
+                            </>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {event.comment && (
                     <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
                   )}
@@ -148,9 +181,19 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
   );
 }
 
+function ValueChip({ value }: { value: string | null }) {
+  if (value === null || value === "") {
+    return <span className="italic">none</span>;
+  }
+  return (
+    <span className="font-mono text-foreground/80 bg-muted/40 rounded px-1 break-all">{value}</span>
+  );
+}
+
 export function groupAdjacentEvents(events: Event[]): EventGroup[] {
   const groups: EventGroup[] = [];
   for (const event of events) {
+    const parsed = parseEvent(event);
     const prev = groups[groups.length - 1];
     if (
       prev &&
@@ -167,77 +210,205 @@ export function groupAdjacentEvents(events: Event[]): EventGroup[] {
         key: event.id,
         events: [event],
         representative: event,
+        parsed,
       });
     }
   }
   return groups;
 }
 
-function describeEvent(event: Event): string {
-  const { event_type, old_value, new_value } = event;
+// ─── Event parsing ───────────────────────────────────
 
-  switch (event_type) {
-    case "status_change":
-      return `changed status from ${formatValue(old_value)} to ${formatValue(new_value)}`;
-    case "priority_change":
-      return `changed priority from ${formatValue(old_value)} to ${formatValue(new_value)}`;
-    case "assignee_change":
-      return `changed assignee from ${formatValue(old_value)} to ${formatValue(new_value)}`;
-    case "title_change":
-      if (old_value && new_value)
-        return `changed title from "${formatValue(old_value)}" to "${formatValue(new_value)}"`;
-      if (new_value) return `changed title to "${formatValue(new_value)}"`;
-      if (old_value) return `changed title (was "${formatValue(old_value)}")`;
-      return `changed title`;
+const HIDDEN_FIELDS = new Set([
+  "id",
+  "issue_id",
+  "created_at",
+  "updated_at",
+  "closed_at",
+  "content_hash",
+  "owner",
+  "created_by",
+  "has_attachments",
+  "close_reason",
+  "due_at",
+  "deleted",
+]);
 
-    case "description_change":
-      return `updated description`;
-    case "dependency_added":
-      return `added dependency on ${formatValue(new_value)}`;
-    case "dependency_removed":
-      return `removed dependency on ${formatValue(old_value)}`;
-    case "comment_added":
-      return `added a comment`;
+const LONG_TEXT_FIELDS = new Set(["description", "design", "acceptance_criteria", "notes"]);
+
+const FIELD_LABELS: Record<string, string> = {
+  status: "status",
+  priority: "priority",
+  issue_type: "type",
+  assignee: "assignee",
+  title: "title",
+  description: "description",
+  design: "design",
+  acceptance_criteria: "acceptance criteria",
+  notes: "notes",
+  estimated_minutes: "estimate",
+  due: "due date",
+  due_at: "due date",
+  labels: "labels",
+};
+
+export function parseEvent(event: Event): ParsedEvent {
+  const verb = describeVerb(event);
+  const changes = extractFieldChanges(event);
+  return { verb, changes };
+}
+
+function describeVerb(event: Event): string {
+  switch (event.event_type) {
     case "created":
-      return `created this issue`;
+      return "created this issue";
     case "closed":
-      return `closed this issue`;
+      return "closed this issue";
+    case "reopened":
+      return "reopened this issue";
     case "claimed":
-      return `claimed this issue`;
+      return "claimed this issue";
+    case "comment_added":
+    case "commented":
+      return "added a comment";
+    case "dependency_added":
+      return event.new_value ? `added dependency on ${event.new_value}` : "added a dependency";
+    case "dependency_removed":
+      return event.old_value ? `removed dependency on ${event.old_value}` : "removed a dependency";
+    case "label_added":
+      return event.new_value ? `added label ${event.new_value}` : "added a label";
+    case "label_removed":
+      return event.old_value ? `removed label ${event.old_value}` : "removed a label";
+    case "status_change":
+    case "status_changed":
+      return "changed status";
+    case "priority_change":
+      return "changed priority";
+    case "title_change":
+      return "renamed the issue";
+    case "assignee_change":
+      return "changed assignee";
+    case "description_change":
+      return "edited the description";
     case "label_change":
-      if (old_value && new_value)
-        return `changed labels from ${formatValue(old_value)} to ${formatValue(new_value)}`;
-      if (new_value) return `added label ${formatValue(new_value)}`;
-      if (old_value) return `removed label ${formatValue(old_value)}`;
       return "updated labels";
+    case "updated":
+      return "updated this issue";
     default:
-      if (old_value && new_value)
-        return `changed ${event_type.replace(/_/g, " ")} from ${formatValue(old_value)} to ${formatValue(new_value)}`;
-      if (new_value) return `set ${event_type.replace(/_/g, " ")} to ${formatValue(new_value)}`;
-      return event_type.replace(/_/g, " ");
+      return event.event_type.replace(/_/g, " ");
   }
 }
 
-function formatValue(val: string | null): string {
-  if (val === null || val === "") return "none";
-  if (val.startsWith("{") || val.startsWith("[")) {
-    try {
-      const parsed = JSON.parse(val);
-      if (Array.isArray(parsed))
-        return parsed
-          .map((el) => (typeof el === "object" && el !== null ? JSON.stringify(el) : String(el)))
-          .join(", ");
-      if (typeof parsed === "object" && parsed !== null) {
-        return Object.entries(parsed)
-          .map(
-            ([k, v]) =>
-              `${k.replace(/_/g, " ")}: ${typeof v === "object" && v !== null ? JSON.stringify(v) : v}`,
-          )
-          .join(", ");
-      }
-    } catch {
-      // Not valid JSON, fall through
+export function extractFieldChanges(event: Event): FieldChange[] {
+  const oldObj = parseJsonObj(event.old_value);
+  const newObj = parseJsonObj(event.new_value);
+
+  // Pearl-style "row + changes" event: old_value is a full row snapshot,
+  // new_value contains only the fields that changed. Iterate over new_value's
+  // keys so we render exactly the fields the user touched.
+  if (oldObj && newObj) {
+    const changes: FieldChange[] = [];
+    for (const key of Object.keys(newObj)) {
+      if (HIDDEN_FIELDS.has(key)) continue;
+      const before = oldObj[key];
+      const after = newObj[key];
+      if (deepEqual(before, after)) continue;
+      changes.push(buildFieldChange(key, before, after));
     }
+    return changes;
   }
-  return val.replace(/_/g, " ");
+
+  // Scalar-pair events from the bd CLI: old_value/new_value are single scalars.
+  // Map the event_type to a logical field.
+  const scalarField = SCALAR_EVENT_FIELD[event.event_type];
+  if (scalarField) {
+    if (
+      (event.old_value === null || event.old_value === "") &&
+      (event.new_value === null || event.new_value === "")
+    ) {
+      return [];
+    }
+    return [buildFieldChange(scalarField, event.old_value, event.new_value)];
+  }
+
+  return [];
+}
+
+const SCALAR_EVENT_FIELD: Record<string, string> = {
+  status_change: "status",
+  priority_change: "priority",
+  title_change: "title",
+  assignee_change: "assignee",
+  description_change: "description",
+  label_change: "labels",
+};
+
+function buildFieldChange(field: string, before: unknown, after: unknown): FieldChange {
+  return {
+    field,
+    label: FIELD_LABELS[field] ?? field.replace(/_/g, " "),
+    before: formatScalar(field, before),
+    after: formatScalar(field, after),
+    longText: LONG_TEXT_FIELDS.has(field),
+  };
+}
+
+function formatScalar(field: string, val: unknown): string | null {
+  if (val === null || val === undefined) return null;
+  if (val === "") return null;
+  if (Array.isArray(val)) {
+    if (val.length === 0) return null;
+    return val
+      .map((el) => (typeof el === "object" && el !== null ? JSON.stringify(el) : String(el)))
+      .join(", ");
+  }
+  if (typeof val === "object") {
+    return JSON.stringify(val);
+  }
+  if (field === "priority" && typeof val === "number") {
+    return `P${val}`;
+  }
+  if (field === "priority" && typeof val === "string" && /^[0-4]$/.test(val)) {
+    return `P${val}`;
+  }
+  return String(val).replace(/_/g, " ");
+}
+
+function parseJsonObj(val: string | null): Record<string, unknown> | null {
+  if (val === null || val === "") return null;
+  const trimmed = val.trim();
+  if (trimmed[0] !== "{") return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // not JSON
+  }
+  return null;
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a === null || b === null) return false;
+  if (typeof a !== typeof b) return false;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+  if (typeof a === "object" && typeof b === "object") {
+    const keysA = Object.keys(a as Record<string, unknown>);
+    const keysB = Object.keys(b as Record<string, unknown>);
+    if (keysA.length !== keysB.length) return false;
+    for (const k of keysA) {
+      if (!deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
+        return false;
+    }
+    return true;
+  }
+  return false;
 }
