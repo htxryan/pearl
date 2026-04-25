@@ -43,15 +43,12 @@ export function AssigneePicker({
     inputRef.current?.focus();
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) onClose();
+    },
+    [onClose],
+  );
 
   const handleSelect = useCallback(
     (assignee: string | null) => {
@@ -89,7 +86,7 @@ export function AssigneePicker({
         onValueChange={handleSelect}
         onInputValueChange={(val) => setInputValue(val)}
         open
-        onOpenChange={() => {}}
+        onOpenChange={handleOpenChange}
         modal={false}
       >
         <div className="p-2 border-b border-border">
@@ -103,6 +100,11 @@ export function AssigneePicker({
                 e.preventDefault();
                 e.stopPropagation();
                 onClose();
+              }
+              if (e.key === "Enter" && canCreate) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleCreateAssignee();
               }
             }}
           />
@@ -124,11 +126,15 @@ export function AssigneePicker({
           {canCreate && (
             <div
               role="option"
+              tabIndex={0}
               aria-selected={false}
-              className="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm hover:bg-accent"
+              className="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm hover:bg-accent outline-none focus:bg-accent"
               onClick={handleCreateAssignee}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreateAssignee();
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleCreateAssignee();
+                }
               }}
             >
               <span className="text-muted-foreground">Assign to</span>

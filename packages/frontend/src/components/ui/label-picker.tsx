@@ -139,7 +139,7 @@ export function LabelPicker({
               if (e.key === "Backspace" && !search && selected.length > 0) {
                 removeLabel(selected[selected.length - 1]);
               }
-              if (e.key === "Enter" && canCreate) {
+              if (e.key === "Enter" && canCreate && filteredLabels.length === 0) {
                 e.preventDefault();
                 e.stopPropagation();
                 handleCreateNew(searchTrimmed);
@@ -165,9 +165,16 @@ export function LabelPicker({
                   {canCreate && (
                     <div
                       role="option"
+                      tabIndex={0}
                       aria-selected={false}
-                      className="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm hover:bg-accent border-t border-border"
+                      className="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm hover:bg-accent focus:bg-accent outline-none border-t border-border"
                       onClick={() => setShowColorPicker(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setShowColorPicker(true);
+                        }
+                      }}
                     >
                       <span className="text-muted-foreground">Create</span>
                       <span className="font-medium">&ldquo;{searchTrimmed}&rdquo;</span>

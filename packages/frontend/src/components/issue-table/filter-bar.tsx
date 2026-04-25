@@ -268,6 +268,7 @@ export function FilterBar({
             });
           }}
           modal={false}
+          items={groupByOptions}
         >
           <SelectTrigger className="min-w-[100px]" size="sm" aria-label="Group by">
             <SelectValue placeholder="Group by..." />
