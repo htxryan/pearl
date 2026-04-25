@@ -20,8 +20,8 @@ N6_BASELINE=0
 
 count_grep() {
   local pattern=$1; shift
-  local count
-  count=$(grep -r "$pattern" "$@" -c 2>/dev/null | awk -F: '{s+=$2} END {print s+0}') || true
+  local count=0
+  count=$(grep -rc -- "$pattern" "$@" 2>/dev/null | awk -F: '{s+=$2} END {print s+0}' || true)
   echo "${count:-0}"
 }
 
@@ -29,7 +29,7 @@ count_grep() {
 N2_COUNT=$(count_grep 'data-\[state=' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' --include='*.css')
 if [ "$N2_COUNT" -gt 0 ]; then
   echo "N2 VIOLATION: found $N2_COUNT occurrences of data-[state= (Radix-era selector)"
-  grep -rn 'data-\[state=' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' --include='*.css' 2>/dev/null || true
+  grep -rn -- 'data-\[state=' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' --include='*.css' 2>/dev/null || true
   ERRORS=$((ERRORS + 1))
 else
   echo "N2 PASSED: no data-[state= selectors found."
@@ -39,7 +39,7 @@ fi
 N3_COUNT=$(count_grep 'asChild' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts')
 if [ "$N3_COUNT" -gt 0 ]; then
   echo "N3 VIOLATION: found $N3_COUNT occurrences of asChild prop"
-  grep -rn 'asChild' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' 2>/dev/null || true
+  grep -rn -- 'asChild' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' 2>/dev/null || true
   ERRORS=$((ERRORS + 1))
 else
   echo "N3 PASSED: no asChild prop usage found."
@@ -61,8 +61,8 @@ for f in "${N4_FILES[@]}"; do
 
   if [ "$f" = "$FRONTEND_SRC/index.css" ]; then
     HITS=$(perl -ne '
-      if (/^\@theme\s+inline\s*\{/) { $in_theme = 1; next }
-      if ($in_theme && /^\}/) { $in_theme = 0; next }
+      if (/\@theme\s+inline\s*\{/) { $in_theme = 1; next }
+      if ($in_theme && /^\s*\}/) { $in_theme = 0; next }
       next if $in_theme;
       print if /(--color-|var\(--color-)(background|foreground|primary|secondary|accent|destructive|muted|popover|card|border|input|ring|success|info|warning|danger|surface)/;
     ' "$f")
@@ -97,7 +97,7 @@ fi
 N6_COUNT=$(count_grep 'dangerouslySetInnerHTML' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts')
 if [ "$N6_COUNT" -gt "$N6_BASELINE" ]; then
   echo "N6 VIOLATION: dangerouslySetInnerHTML count is $N6_COUNT (baseline: $N6_BASELINE)"
-  grep -rn 'dangerouslySetInnerHTML' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' 2>/dev/null || true
+  grep -rn -- 'dangerouslySetInnerHTML' "$FRONTEND_SRC" --include='*.tsx' --include='*.ts' 2>/dev/null || true
   ERRORS=$((ERRORS + 1))
 else
   echo "N6 PASSED: dangerouslySetInnerHTML count ($N6_COUNT) within baseline ($N6_BASELINE)."
