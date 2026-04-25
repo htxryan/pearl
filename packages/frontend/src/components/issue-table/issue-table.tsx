@@ -127,7 +127,7 @@ function DraggableHeader({
             type="button"
             {...dragHandleProps}
             aria-roledescription="column drag handle"
-            aria-label={`Drag to reorder ${headerLabel}`}
+            aria-label={`Reorder column: ${headerLabel}`}
             title={`Drag to reorder · ${headerLabel}`}
             className={cn(
               "inline-flex items-center justify-center -ml-1 mr-0.5 h-4 w-3 text-muted-foreground/40 hover:text-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity leading-none bg-transparent border-0 p-0",

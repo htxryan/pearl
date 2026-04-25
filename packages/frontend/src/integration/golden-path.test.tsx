@@ -924,10 +924,10 @@ describe("SC9+SC2: Command palette create", () => {
 
     // CreateIssueDialog should appear with its form fields
     await waitFor(() => {
-      expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Create Issue" })).toBeInTheDocument();
     });
-    // The dialog heading is "Create Issue" (h2)
-    expect(screen.getByRole("heading", { name: "Create Issue" })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: "Create Issue" });
+    expect(within(dialog).getByLabelText(/title/i)).toBeInTheDocument();
   });
 
   it("command palette has navigation actions", () => {
