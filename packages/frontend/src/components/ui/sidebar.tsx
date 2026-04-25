@@ -22,7 +22,8 @@ function getCookie(name: string): string | undefined {
 
 function setCookie(name: string, value: string, maxAge: number) {
   try {
-    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    const secure = globalThis.location?.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax${secure}`;
   } catch {
     // cookies disabled — silent fallback to in-memory
   }
