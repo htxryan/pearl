@@ -158,7 +158,7 @@ function DropdownMenuSeparator({
   className,
   ...props
 }: React.ComponentProps<typeof Menu.Separator>) {
-  return <Menu.Separator className={cn("-mx-1 my-1 border-border", className)} {...props} />;
+  return <Menu.Separator className={cn("-mx-1 my-1 h-px bg-border", className)} {...props} />;
 }
 
 function DropdownMenuShortcut({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {

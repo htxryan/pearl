@@ -34,13 +34,6 @@ function SheetOverlay({
 
 type SheetSide = "top" | "right" | "bottom" | "left";
 
-const sideToSwipe: Record<SheetSide, "up" | "right" | "down" | "left"> = {
-  top: "up",
-  right: "right",
-  bottom: "down",
-  left: "left",
-};
-
 const sideStyles: Record<SheetSide, string> = {
   top: "inset-x-0 top-0 border-b data-[starting-style]:-translate-y-full data-[ending-style]:-translate-y-full",
   bottom:
@@ -52,8 +45,6 @@ const sideStyles: Record<SheetSide, string> = {
 
 interface SheetContentProps extends React.ComponentProps<typeof DrawerPrimitive.Popup> {
   side?: SheetSide;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 function SheetContent({ side = "right", className, children, ...props }: SheetContentProps) {
@@ -127,5 +118,4 @@ export {
   SheetPortal,
   SheetTitle,
   SheetTrigger,
-  sideToSwipe,
 };

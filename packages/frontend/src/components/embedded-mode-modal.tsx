@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -24,6 +24,12 @@ export function EmbeddedModeModal() {
   const [port, setPort] = useState("3307");
   const [connectionOk, setConnectionOk] = useState(false);
   const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
+    };
+  }, []);
 
   const handleManagedMigration = useCallback(() => {
     setState("migrating");

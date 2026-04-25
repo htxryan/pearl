@@ -48,7 +48,11 @@ export function NotificationBell() {
         )}
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-96 max-w-[calc(100vw-2rem)] p-0">
+      <PopoverContent
+        align="end"
+        className="w-96 max-w-[calc(100vw-2rem)] p-0"
+        aria-label="Notifications"
+      >
         <NotificationPanel onClose={() => setIsOpen(false)} />
       </PopoverContent>
     </Popover>
