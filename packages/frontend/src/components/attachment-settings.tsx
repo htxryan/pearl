@@ -155,15 +155,6 @@ function TextInput({
   );
 }
 
-function ReadonlyField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <span className="text-sm font-medium">{label}</span>
-      <p className="text-sm text-muted-foreground">{value}</p>
-    </div>
-  );
-}
-
 export function AttachmentSettings() {
   const { data: settings, isLoading } = useSettings();
   const updateMutation = useUpdateSettings();
@@ -338,9 +329,6 @@ export function AttachmentSettings() {
           min={1}
           suffix="pixels"
         />
-
-        <ReadonlyField label="Output format" value="WebP" />
-        <ReadonlyField label="EXIF stripping" value="Always enabled (mandatory)" />
       </div>
 
       <div className="flex items-center gap-3 border-t border-border pt-4">
