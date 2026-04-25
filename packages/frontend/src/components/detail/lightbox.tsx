@@ -63,11 +63,17 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
           onClose();
           break;
         case "ArrowRight":
+        case "l":
+        case "j":
           e.preventDefault();
+          e.stopPropagation();
           navigateBy(1);
           break;
         case "ArrowLeft":
+        case "h":
+        case "k":
           e.preventDefault();
+          e.stopPropagation();
           navigateBy(-1);
           break;
         case "Home":
@@ -177,6 +183,8 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
 
         {/* Keyboard hint footer — subtle, discoverable */}
         <div className="flex items-center gap-2 text-[11px] text-white/60 select-none">
+          <Kbd>j</Kbd>
+          <Kbd>k</Kbd>
           <Kbd>←</Kbd>
           <Kbd>→</Kbd>
           <span>navigate</span>
