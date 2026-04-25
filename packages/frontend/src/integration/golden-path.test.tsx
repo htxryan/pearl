@@ -435,7 +435,6 @@ function renderCreateDialog(props: { isOpen: boolean; onClose: () => void }) {
 // ─── Setup / Teardown ───────────────────────────────────
 beforeEach(() => {
   vi.clearAllMocks();
-  localStorage.removeItem("beads:create-issue-draft");
   setupIssuesMock();
   setupDependenciesMock();
 });

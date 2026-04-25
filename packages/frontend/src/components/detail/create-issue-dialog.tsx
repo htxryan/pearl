@@ -8,11 +8,9 @@ import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog } from "@/components/ui/dialog";
 import { LabelPicker } from "@/components/ui/label-picker";
-import { useDraft } from "@/hooks/use-draft";
 import { useCreateIssue } from "@/hooks/use-issues";
 import { cn } from "@/lib/utils";
 
-const DRAFT_KEY = "beads:create-issue-draft";
 const TITLE_MAX = 200;
 const TITLE_WARN = 150;
 
@@ -37,55 +35,8 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   const [titleTouched, setTitleTouched] = useState(false);
   const [titleDirty, setTitleDirty] = useState(false);
 
-  const [showDraftBanner, setShowDraftBanner] = useState(false);
-
-  const { draft, saveDraft, clearDraft, hasDraft } = useDraft(DRAFT_KEY);
   const createMutation = useCreateIssue();
   const titleRef = useRef<HTMLInputElement>(null);
-  const hasRestoredRef = useRef(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      titleRef.current?.focus();
-
-      if (!hasRestoredRef.current && hasDraft && draft) {
-        setTitle(draft.title);
-        setDescription(draft.description);
-        setIssueType(draft.issueType as IssueType);
-        setPriority(draft.priority as Priority);
-        setAssignee(draft.assignee);
-        setLabels(draft.labels);
-        setDue(draft.due);
-        setShowDraftBanner(true);
-        hasRestoredRef.current = true;
-      }
-    } else {
-      hasRestoredRef.current = false;
-      setShowDraftBanner(false);
-      setTitleTouched(false);
-      setTitleDirty(false);
-      setDescTab("write");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- draft excluded to prevent focus theft on every keystroke
-  }, [isOpen, hasDraft]);
-
-  const saveDraftFromFields = useCallback(() => {
-    saveDraft({
-      title,
-      description,
-      issueType,
-      priority,
-      assignee,
-      labels,
-      due,
-    });
-  }, [title, description, issueType, priority, assignee, labels, due, saveDraft]);
-
-  useEffect(() => {
-    if (isOpen) {
-      saveDraftFromFields();
-    }
-  }, [isOpen, saveDraftFromFields]);
 
   const resetForm = useCallback(() => {
     setTitle("");
@@ -98,8 +49,15 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
     setTitleTouched(false);
     setTitleDirty(false);
     setDescTab("write");
-    setShowDraftBanner(false);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      titleRef.current?.focus();
+    } else {
+      resetForm();
+    }
+  }, [isOpen, resetForm]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +75,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
       },
       {
         onSuccess: () => {
-          clearDraft();
           resetForm();
           onClose();
         },
@@ -126,7 +83,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
   };
 
   const handleCancel = () => {
-    // No resetForm() — draft must survive cancel; auto-save would flush empty state to localStorage
     onClose();
   };
 
@@ -159,20 +115,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
     >
       <form onSubmit={handleSubmit} className="p-6 space-y-4 animate-modal-enter">
         <h2 className="text-lg font-semibold">Create Issue</h2>
-
-        {showDraftBanner && (
-          <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-1.5">
-            <span>Draft restored</span>
-            <button
-              type="button"
-              className="ml-2 hover:text-foreground"
-              onClick={() => setShowDraftBanner(false)}
-              aria-label="Dismiss draft restored notice"
-            >
-              &times;
-            </button>
-          </div>
-        )}
 
         {/* Title */}
         <div>
