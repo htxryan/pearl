@@ -97,6 +97,16 @@ describe("groupAdjacentEvents", () => {
     const groups = groupAdjacentEvents(events);
     expect(groups).toHaveLength(2);
   });
+
+  it("groups aliased event types with the same meta key", () => {
+    const events = [
+      makeEvent({ event_type: "status_change", old_value: "open", new_value: "closed" }),
+      makeEvent({ event_type: "status_changed", old_value: "open", new_value: "closed" }),
+    ];
+    const groups = groupAdjacentEvents(events);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].events).toHaveLength(2);
+  });
 });
 
 describe("extractFieldChanges", () => {
@@ -259,6 +269,10 @@ describe("getEventTypeMeta", () => {
     expect(getEventTypeMeta("created").key).toBe("create");
     expect(getEventTypeMeta("created").label).toBe("created");
     expect(getEventTypeMeta("closed").key).toBe("close");
+    expect(getEventTypeMeta("reopened").key).toBe("reopen");
+    expect(getEventTypeMeta("reopened").label).toBe("reopened");
+    expect(getEventTypeMeta("claimed").key).toBe("claim");
+    expect(getEventTypeMeta("claimed").label).toBe("claimed");
     expect(getEventTypeMeta("status_change").key).toBe("status");
     expect(getEventTypeMeta("status_changed").key).toBe("status");
     expect(getEventTypeMeta("priority_change").key).toBe("priority");
@@ -266,9 +280,13 @@ describe("getEventTypeMeta", () => {
     expect(getEventTypeMeta("commented").key).toBe("comment");
     expect(getEventTypeMeta("dependency_added").key).toBe("depend-add");
     expect(getEventTypeMeta("dependency_removed").key).toBe("depend-remove");
+    expect(getEventTypeMeta("label_change").key).toBe("labels");
     expect(getEventTypeMeta("label_added").key).toBe("labels");
+    expect(getEventTypeMeta("label_removed").key).toBe("labels");
+    expect(getEventTypeMeta("assignee_change").key).toBe("assignee");
     expect(getEventTypeMeta("title_change").label).toBe("title");
     expect(getEventTypeMeta("description_change").label).toBe("description");
+    expect(getEventTypeMeta("updated").key).toBe("update");
   });
 
   it("returns a fallback meta with humanized label for unknown types", () => {
@@ -278,5 +296,11 @@ describe("getEventTypeMeta", () => {
     expect(meta.iconBgClass).toBeTruthy();
     expect(meta.iconColorClass).toBeTruthy();
     expect(meta.badgeClass).toBeTruthy();
+  });
+
+  it("returns fallback label 'event' for empty string", () => {
+    const meta = getEventTypeMeta("");
+    expect(meta.key).toBe("other");
+    expect(meta.label).toBe("event");
   });
 });

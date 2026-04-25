@@ -45,7 +45,24 @@ const EVENT_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "created", label: "Created" },
   { value: "closed", label: "Closed" },
   { value: "claimed", label: "Claimed" },
+  { value: "reopened", label: "Reopened" },
 ];
+
+const FILTER_EVENT_TYPES: Record<string, string[]> = {
+  status_change: ["status_change", "status_changed"],
+  priority_change: ["priority_change"],
+  comment_added: ["comment_added", "commented"],
+  title_change: ["title_change"],
+  assignee_change: ["assignee_change"],
+  dependency_added: ["dependency_added"],
+  dependency_removed: ["dependency_removed"],
+  description_change: ["description_change"],
+  label_change: ["label_change", "label_added", "label_removed"],
+  created: ["created"],
+  closed: ["closed"],
+  claimed: ["claimed"],
+  reopened: ["reopened"],
+};
 
 export function ActivityTimeline({ events }: ActivityTimelineProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -61,7 +78,9 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
 
   const filteredEvents = useMemo(
     () =>
-      filterType === "all" ? sortedEvents : sortedEvents.filter((e) => e.event_type === filterType),
+      filterType === "all"
+        ? sortedEvents
+        : sortedEvents.filter((e) => FILTER_EVENT_TYPES[filterType]?.includes(e.event_type)),
     [sortedEvents, filterType],
   );
 
@@ -224,7 +243,8 @@ export function groupAdjacentEvents(events: Event[]): EventGroup[] {
     if (
       prev &&
       prev.representative.actor === event.actor &&
-      prev.representative.event_type === event.event_type &&
+      getEventTypeMeta(prev.representative.event_type).key ===
+        getEventTypeMeta(event.event_type).key &&
       prev.representative.old_value === event.old_value &&
       prev.representative.new_value === event.new_value &&
       !event.comment &&
@@ -585,7 +605,8 @@ const FALLBACK_META: EventTypeMeta = {
 export function getEventTypeMeta(eventType: string): EventTypeMeta {
   const meta = EVENT_TYPE_META_BY_TYPE[eventType];
   if (meta) return meta;
-  return { ...FALLBACK_META, label: eventType.replace(/_/g, " ") };
+  const label = eventType.replace(/_/g, " ").trim();
+  return { ...FALLBACK_META, label: label || "event" };
 }
 
 function EventTypeIcon({ kind, className }: { kind: EventTypeKey; className?: string }) {
@@ -645,7 +666,7 @@ function renderIconPath(kind: EventTypeKey): ReactNode {
       return (
         <path
           fillRule="evenodd"
-          d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0v2.43l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+          d="M13.2 2.24a.75.75 0 00.04 1.06l2.1 1.95H6.75a.75.75 0 000 1.5h8.59l-2.1 1.95a.75.75 0 101.02 1.1l3.5-3.25a.75.75 0 000-1.1l-3.5-3.25a.75.75 0 00-1.06.04zm-6.4 8a.75.75 0 00-1.06-.04l-3.5 3.25a.75.75 0 000 1.1l3.5 3.25a.75.75 0 101.02-1.1l-2.1-1.95h8.59a.75.75 0 000-1.5H4.66l2.1-1.95a.75.75 0 00.04-1.06z"
           clipRule="evenodd"
         />
       );
