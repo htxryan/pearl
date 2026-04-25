@@ -12,6 +12,21 @@ vi.mock("@xyflow/react", () => ({
   memo: (fn: unknown) => fn,
 }));
 
+// Mock detail panel — GraphNode uses useDetailPanel for the open icon button
+const mockOpenDetail = vi.fn();
+vi.mock("@/hooks/use-detail-panel", () => ({
+  useDetailPanel: () => ({
+    openIssueId: null,
+    mode: "panel" as const,
+    openDetail: mockOpenDetail,
+    closeDetail: vi.fn(),
+    guardedClose: vi.fn(() => true),
+    toggleMode: vi.fn(),
+    setMode: vi.fn(),
+    setCloseGuard: vi.fn(),
+  }),
+}));
+
 import { GraphNode, NODE_HEIGHT, NODE_WIDTH } from "./graph-node";
 
 function withQueryClient(ui: ReactElement) {
@@ -263,6 +278,35 @@ describe("GraphNode", () => {
     it("does not show collapsed badge when clusterChildCount is undefined", () => {
       renderNode();
       expect(screen.queryByText(/collapsed/)).not.toBeInTheDocument();
+    });
+  });
+
+  // ──── Open Detail Button ──────────────────────────────
+
+  describe("open detail button", () => {
+    it("renders an open icon button next to the ID", () => {
+      renderNode({ issue: { id: "beads-test-001" } });
+      expect(screen.getByLabelText("Open detail for beads-test-001")).toBeInTheDocument();
+    });
+
+    it("calls openDetail with the issue id when clicked", () => {
+      mockOpenDetail.mockClear();
+      renderNode({ issue: { id: "beads-test-001" } });
+      fireEvent.click(screen.getByLabelText("Open detail for beads-test-001"));
+      expect(mockOpenDetail).toHaveBeenCalledWith("beads-test-001");
+    });
+
+    it("stops click propagation so node selection is not toggled", () => {
+      mockOpenDetail.mockClear();
+      renderNode({ issue: { id: "beads-test-001" } });
+      const button = screen.getByLabelText("Open detail for beads-test-001");
+      // Build a real MouseEvent so React forwards it to the synthetic handler;
+      // the handler must call stopPropagation on the underlying native event.
+      const evt = new MouseEvent("click", { bubbles: true, cancelable: true });
+      const stopSpy = vi.spyOn(evt, "stopPropagation");
+      button.dispatchEvent(evt);
+      expect(mockOpenDetail).toHaveBeenCalledWith("beads-test-001");
+      expect(stopSpy).toHaveBeenCalled();
     });
   });
 

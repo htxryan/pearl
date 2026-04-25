@@ -5,6 +5,7 @@ import { BeadId } from "@/components/ui/bead-id";
 import { LabelBadge } from "@/components/ui/label-badge";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { TypePill } from "@/components/ui/type-pill";
+import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { cn } from "@/lib/utils";
 
 export const NODE_WIDTH = 260;
@@ -53,14 +54,41 @@ function formatDueDate(due: string | null): string | null {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function OpenDetailIcon() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10 2h4v4M14 2L8 8M12 9v4a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h4" />
+    </svg>
+  );
+}
+
 export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeType>) {
   const { issue, highlighted, dimmed, selected } = data;
   const [hovered, setHovered] = useState(false);
   const isHighPriority = issue.priority <= 1;
   const dueText = formatDueDate(issue.due_at);
+  const { openDetail } = useDetailPanel();
 
   const handleMouseEnter = useCallback(() => setHovered(true), []);
   const handleMouseLeave = useCallback(() => setHovered(false), []);
+  const handleOpenClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      openDetail(issue.id);
+    },
+    [openDetail, issue.id],
+  );
 
   return (
     <div
@@ -88,9 +116,24 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
       <div className={cn("absolute inset-y-0 left-0 w-[3px]", statusAccentColor[issue.status])} />
 
       <div className="pl-3.5 pr-3 py-2.5">
-        {/* Row 1: ID + Priority */}
+        {/* Row 1: ID + Open button + Priority */}
         <div className="flex items-center justify-between gap-2 mb-1">
-          <BeadId id={issue.id} className="text-[10px] text-muted-foreground font-mono truncate" />
+          <div className="flex items-center gap-1 min-w-0">
+            <BeadId
+              id={issue.id}
+              className="text-[10px] text-muted-foreground font-mono truncate"
+            />
+            <button
+              type="button"
+              onClick={handleOpenClick}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="shrink-0 inline-flex items-center justify-center h-4 w-4 rounded-sm text-muted-foreground opacity-60 hover:opacity-100 hover:text-foreground hover:bg-accent cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-opacity"
+              aria-label={`Open detail for ${issue.id}`}
+              title={`Open detail for ${issue.id}`}
+            >
+              <OpenDetailIcon />
+            </button>
+          </div>
           <PriorityIndicator priority={issue.priority} />
         </div>
 
