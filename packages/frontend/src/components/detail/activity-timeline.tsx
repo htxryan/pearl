@@ -124,6 +124,7 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
             }
           }}
           modal={false}
+          items={EVENT_FILTER_OPTIONS}
         >
           <SelectTrigger size="sm" aria-label="Filter events by type">
             <SelectValue placeholder="All events" />

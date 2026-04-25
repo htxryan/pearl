@@ -223,6 +223,10 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
                   if (v) setIssueType(v as IssueType);
                 }}
                 modal={false}
+                items={ISSUE_TYPES.map((t) => ({
+                  value: t,
+                  label: t.charAt(0).toUpperCase() + t.slice(1),
+                }))}
               >
                 <SelectTrigger className="w-full rounded-lg px-3 py-2" aria-label="Issue type">
                   <SelectValue />

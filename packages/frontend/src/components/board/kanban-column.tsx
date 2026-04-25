@@ -128,6 +128,7 @@ export const KanbanColumn = memo(function KanbanColumn({
                 if (value) onSortChange(status, value as BoardSortMode);
               }}
               modal={false}
+              items={BOARD_SORT_MODES}
             >
               <SelectTrigger
                 size="sm"

@@ -1,6 +1,7 @@
 import type { IssueListItem } from "@pearl/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -383,7 +384,7 @@ describe("BoardView", () => {
     }
   });
 
-  it("re-orders an open column when its sort selector switches to Priority", () => {
+  it("re-orders an open column when its sort selector switches to Priority", async () => {
     // Add a higher-priority but older-updated issue so the sort change is observable.
     const issues: IssueListItem[] = [
       ...mockIssues,
@@ -415,8 +416,10 @@ describe("BoardView", () => {
 
     // Switch the open column to Priority
     const openSorter = screen.getByRole("combobox", { name: "Sort open column" });
-    fireEvent.click(openSorter);
-    fireEvent.click(screen.getByRole("option", { name: "Priority" }));
+    const user = userEvent.setup();
+    await user.click(openSorter);
+    const priorityOpt = await screen.findByRole("option", { name: "Priority" });
+    await user.click(priorityOpt);
 
     // Priority sort: P0 (beads-006), P0 (beads-003), P1 (beads-001)
     openList = screen.getByRole("list", { name: "open issues" });
@@ -428,12 +431,14 @@ describe("BoardView", () => {
     expect(items[2]).toHaveTextContent("Fix login bug");
   });
 
-  it("persists per-column sort to localStorage", () => {
+  it("persists per-column sort to localStorage", async () => {
     renderBoard();
 
+    const user = userEvent.setup();
     const openSorter = screen.getByRole("combobox", { name: "Sort open column" });
-    fireEvent.click(openSorter);
-    fireEvent.click(screen.getByRole("option", { name: "Priority" }));
+    await user.click(openSorter);
+    const priorityOpt2 = await screen.findByRole("option", { name: "Priority" });
+    await user.click(priorityOpt2);
 
     const stored = localStorage.getItem("pearl:board:column-sort");
     expect(stored).toBeTruthy();

@@ -67,6 +67,7 @@ export function SelectField({
         if (v) onChange(v);
       }}
       modal={false}
+      items={options}
     >
       <SelectTrigger aria-label={label}>
         <SelectValue />

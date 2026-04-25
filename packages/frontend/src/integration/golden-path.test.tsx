@@ -1,6 +1,7 @@
 import type { InvalidationHint, Issue, IssueListItem, MutationResponse } from "@pearl/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Navigate, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -475,17 +476,18 @@ describe("SC2+SC1: Create issue via form", () => {
     const descInput = screen.getByLabelText(/description/i);
     fireEvent.change(descInput, { target: { value: "Description for testing" } });
 
-    // Select type via custom dropdown
+    // Select type via BaseUI Select dropdown
+    const user = userEvent.setup();
     const typeButton = screen.getByRole("combobox", { name: /issue type/i });
-    fireEvent.click(typeButton);
-    const bugOption = screen.getByRole("option", { name: /bug/i });
-    fireEvent.click(bugOption);
+    await user.click(typeButton);
+    const bugOption = await screen.findByRole("option", { name: /bug/i });
+    await user.click(bugOption);
 
-    // Select priority via custom dropdown
+    // Select priority via BaseUI Select dropdown
     const priorityButton = screen.getByRole("combobox", { name: /priority/i });
-    fireEvent.click(priorityButton);
-    const p1Option = screen.getByRole("option", { name: /P1/i });
-    fireEvent.click(p1Option);
+    await user.click(priorityButton);
+    const p1Option = await screen.findByRole("option", { name: /P1/i });
+    await user.click(p1Option);
 
     const assigneeInput = screen.getByLabelText(/assignee/i);
     fireEvent.change(assigneeInput, { target: { value: "alice" } });
