@@ -1,12 +1,13 @@
 import { forwardRef, type ReactNode, useEffect, useImperativeHandle, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-type DialogSize = "sm" | "md" | "lg";
+type DialogSize = "sm" | "md" | "lg" | "xl";
 
 const sizeStyles: Record<DialogSize, string> = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
+  xl: "max-w-4xl",
 };
 
 export interface DialogProps {
