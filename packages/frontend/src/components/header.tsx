@@ -1,44 +1,8 @@
 import type { ReactNode } from "react";
+import { PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { useIsEmbeddedMode } from "@/hooks/use-embedded-mode";
 import { isMacPlatform } from "@/lib/utils";
 import { NotificationBell } from "./notification-bell";
-
-function PlusIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <line x1="8" y1="3" x2="8" y2="13" />
-      <line x1="3" y1="8" x2="13" y2="8" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
 
 export function Header({
   mobileMenuButton,
@@ -96,7 +60,7 @@ export function Header({
             className="inline-flex h-11 sm:h-auto items-center justify-center gap-1.5 rounded-[var(--radius)] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             data-testid="create-issue-btn"
           >
-            <PlusIcon />
+            <PlusIcon size={16} />
             <span className="hidden sm:inline">Create Issue</span>
           </button>
         )}
@@ -108,7 +72,7 @@ export function Header({
             className="sm:hidden inline-flex h-11 items-center justify-center rounded-[var(--radius)] border border-border px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             data-testid="search-issues-btn"
           >
-            <SearchIcon />
+            <SearchIcon size={16} />
           </button>
         )}
         <NotificationBell />

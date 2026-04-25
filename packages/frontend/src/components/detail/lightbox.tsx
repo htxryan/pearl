@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toggleKeyboardHelp } from "@/components/keyboard-help";
-import { CloseIcon } from "@/components/ui/close-icon";
+import { XIcon } from "@/components/ui/icons";
 import {
   useAllAttachmentRefs,
   useAttachmentBlob,
@@ -147,7 +147,7 @@ export function Lightbox({ activeRef, onClose }: LightboxProps) {
           aria-label="Close"
           className="absolute -top-2 -right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
         >
-          <CloseIcon strokeWidth={2} />
+          <XIcon size={16} />
         </button>
 
         {/* Image */}

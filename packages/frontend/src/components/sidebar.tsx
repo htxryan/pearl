@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { NavLink, useLocation, useSearchParams } from "react-router";
-import { CloseIcon } from "@/components/ui/close-icon";
+import { XIcon } from "@/components/ui/icons";
 import { VIEW_PATHS } from "@/hooks/use-filter-sync";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useHealth } from "@/hooks/use-issues";
@@ -366,7 +366,7 @@ export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             aria-label="Close navigation menu"
           >
-            <CloseIcon size={20} />
+            <XIcon size={20} />
           </button>
         </div>
         <nav className="flex flex-1 flex-col p-2">

@@ -8,6 +8,20 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  ActionsIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIssueIcon,
+  PriorityIcon,
+  ReassignIcon,
+  StatusIcon,
+  TagMinusIcon,
+  TagPlusIcon,
+  TrashIcon,
+  XIcon,
+} from "@/components/ui/icons";
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: 0, label: "P0 — Critical" },
@@ -218,7 +232,7 @@ export function BulkActionBar({
             />
             <hr className="my-1 border-border" />
             <MenuItem
-              icon={<CloseSelectedIcon />}
+              icon={<CloseIssueIcon />}
               label={isClosing ? "Closing..." : "Close selected"}
               onClick={() => {
                 setView(null);
@@ -394,7 +408,7 @@ export function BulkActionBar({
         disabled={busy}
         className="gap-1.5"
       >
-        <ClearIcon />
+        <XIcon />
         Clear selection
       </Button>
     </div>
@@ -462,131 +476,5 @@ function SubmenuPanel({
       </button>
       <div className="py-1">{children}</div>
     </div>
-  );
-}
-
-// ── Icons ───────────────────────────────────────────────────
-
-function svgProps(size = 14) {
-  return {
-    width: size,
-    height: size,
-    viewBox: "0 0 16 16",
-    fill: "none" as const,
-    stroke: "currentColor",
-    strokeWidth: 1.5,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true as const,
-  };
-}
-
-function ActionsIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <circle cx="3" cy="8" r="1.25" />
-      <circle cx="8" cy="8" r="1.25" />
-      <circle cx="13" cy="8" r="1.25" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg {...svgProps(12)}>
-      <path d="M4 6l4 4 4-4" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg {...svgProps(12)}>
-      <path d="M6 4l4 4-4 4" />
-    </svg>
-  );
-}
-
-function ChevronLeftIcon() {
-  return (
-    <svg {...svgProps(12)}>
-      <path d="M10 4L6 8l4 4" />
-    </svg>
-  );
-}
-
-function ReassignIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <circle cx="6" cy="5" r="2.5" />
-      <path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4" />
-      <path d="M11 6h4M13 4v4" />
-    </svg>
-  );
-}
-
-function PriorityIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M3 14V2" />
-      <path d="M3 2h8l-1.5 3L11 8H3" />
-    </svg>
-  );
-}
-
-function StatusIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <circle cx="8" cy="8" r="6" strokeDasharray="2 2" />
-      <path d="M5.5 8l2 2 3-4" />
-    </svg>
-  );
-}
-
-function TagPlusIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M2 8V3a1 1 0 011-1h5l6 6-5 5-6-6z" />
-      <circle cx="5" cy="5" r="0.75" fill="currentColor" />
-      <path d="M11.5 11.5h3M13 10v3" />
-    </svg>
-  );
-}
-
-function TagMinusIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M2 8V3a1 1 0 011-1h5l6 6-5 5-6-6z" />
-      <circle cx="5" cy="5" r="0.75" fill="currentColor" />
-      <path d="M11.5 11.5h3" />
-    </svg>
-  );
-}
-
-function CloseSelectedIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <circle cx="8" cy="8" r="6" />
-      <path d="M5.5 8l2 2 3-4" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M3 4h10" />
-      <path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" />
-      <path d="M4 4l.7 9a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" />
-      <path d="M7 7v5M9 7v5" />
-    </svg>
-  );
-}
-
-function ClearIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M4 4l8 8M12 4l-8 8" />
-    </svg>
   );
 }

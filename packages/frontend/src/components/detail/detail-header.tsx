@@ -3,7 +3,7 @@ import { DetailActionsMenu } from "@/components/detail/detail-actions-menu";
 import { FieldEditor } from "@/components/detail/field-editor";
 import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
-import { CloseIcon } from "@/components/ui/close-icon";
+import { XIcon } from "@/components/ui/icons";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TypePill } from "@/components/ui/type-pill";
@@ -127,7 +127,7 @@ export function DetailHeader({
             aria-label={currentMode ? "Close panel" : "Close detail view"}
             title="Close (Esc)"
           >
-            <CloseIcon />
+            <XIcon size={16} />
           </Button>
         </div>
       </div>

@@ -1,28 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { CheckIcon, XIcon } from "@/components/ui/icons";
-
-function TrashIcon() {
-  return (
-    <svg
-      width={14}
-      height={14}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 4h10" />
-      <path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" />
-      <path d="M4 4l.7 9a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" />
-      <path d="M7 7v5M9 7v5" />
-    </svg>
-  );
-}
+import { CheckIcon, TrashIcon, XIcon } from "@/components/ui/icons";
 
 interface ConfirmDialogProps {
   isOpen: boolean;

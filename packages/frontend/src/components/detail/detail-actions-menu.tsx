@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  ActionsIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  CloseIssueIcon,
+  TrashIcon,
+} from "@/components/ui/icons";
 
 interface DetailActionsMenuProps {
   isClosed: boolean;
@@ -118,7 +125,7 @@ export function DetailActionsMenu({
           {!isClosed && (
             <>
               <MenuItem
-                icon={<ClaimIcon />}
+                icon={<CheckIcon />}
                 label={isClaimPending ? "Claiming..." : "Claim"}
                 onClick={() => {
                   setIsClaimPending(true);
@@ -181,65 +188,5 @@ function MenuItem({ icon, label, onClick, disabled, destructive }: MenuItemProps
       </span>
       <span className="flex-1">{label}</span>
     </button>
-  );
-}
-
-function svgProps(size = 14) {
-  return {
-    width: size,
-    height: size,
-    viewBox: "0 0 16 16",
-    fill: "none" as const,
-    stroke: "currentColor",
-    strokeWidth: 1.5,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true as const,
-  };
-}
-
-function ActionsIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <circle cx="3" cy="8" r="1.25" />
-      <circle cx="8" cy="8" r="1.25" />
-      <circle cx="13" cy="8" r="1.25" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg {...svgProps(12)}>
-      <path d="M4 6l4 4 4-4" />
-    </svg>
-  );
-}
-
-function ClaimIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M3 8l3 3 7-7" />
-    </svg>
-  );
-}
-
-function CloseIssueIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <circle cx="8" cy="8" r="6" />
-      <path d="M5.5 8l2 2 3-4" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg {...svgProps(14)}>
-      <path d="M3 4h10" />
-      <path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" />
-      <path d="M4 4l.7 9a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" />
-      <path d="M7 7v5M9 7v5" />
-    </svg>
   );
 }

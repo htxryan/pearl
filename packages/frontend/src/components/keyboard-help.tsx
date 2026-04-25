@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { CloseIcon } from "@/components/ui/close-icon";
+import { XIcon } from "@/components/ui/icons";
 import { isMacPlatform } from "@/lib/utils";
 
 // ─── State ─────────────────────────────────────────────
@@ -144,7 +144,7 @@ export function KeyboardHelpOverlay() {
             className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close"
           >
-            <CloseIcon />
+            <XIcon size={16} />
           </button>
         </div>
 

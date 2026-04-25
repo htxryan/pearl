@@ -202,10 +202,114 @@ export function ArrowRightIcon({ size = 14, className }: IconProps = {}) {
   );
 }
 
-export function ChevronDownExpandIcon({ size = 14, className }: IconProps = {}) {
+export function TrashIcon({ size = 14, className }: IconProps = {}) {
   return (
     <svg {...svgProps(size)} className={className}>
-      <path d="M4 6l4 4 4-4" />
+      <path d="M3 4h10" />
+      <path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" />
+      <path d="M4 4l.7 9a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" />
+      <path d="M7 7v5M9 7v5" />
+    </svg>
+  );
+}
+
+export function PencilIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M11.5 2.5l2 2L5 13H3v-2l8.5-8.5z" />
+      <path d="M10 4l2 2" />
+    </svg>
+  );
+}
+
+export function ActionsIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <circle cx="3" cy="8" r="1.25" />
+      <circle cx="8" cy="8" r="1.25" />
+      <circle cx="13" cy="8" r="1.25" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ size = 12, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M6 4l4 4-4 4" />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon({ size = 12, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M10 4L6 8l4 4" />
+    </svg>
+  );
+}
+
+export function ReassignIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <circle cx="6" cy="5" r="2.5" />
+      <path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4" />
+      <path d="M11 6h4M13 4v4" />
+    </svg>
+  );
+}
+
+export function PriorityIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M3 14V2" />
+      <path d="M3 2h8l-1.5 3L11 8H3" />
+    </svg>
+  );
+}
+
+export function StatusIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <circle cx="8" cy="8" r="6" strokeDasharray="2 2" />
+      <path d="M5.5 8l2 2 3-4" />
+    </svg>
+  );
+}
+
+export function TagPlusIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M2 8V3a1 1 0 011-1h5l6 6-5 5-6-6z" />
+      <circle cx="5" cy="5" r="0.75" fill="currentColor" />
+      <path d="M11.5 11.5h3M13 10v3" />
+    </svg>
+  );
+}
+
+export function TagMinusIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M2 8V3a1 1 0 011-1h5l6 6-5 5-6-6z" />
+      <circle cx="5" cy="5" r="0.75" fill="currentColor" />
+      <path d="M11.5 11.5h3" />
+    </svg>
+  );
+}
+
+export function CloseIssueIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M5.5 8l2 2 3-4" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <circle cx="7" cy="7" r="4.5" />
+      <path d="M10.5 10.5l3 3" />
     </svg>
   );
 }
