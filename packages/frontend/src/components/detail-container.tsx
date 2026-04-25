@@ -54,6 +54,7 @@ export function DetailContainer() {
         onToggleMode={toggleMode}
         currentMode={mode}
         onSetCloseGuard={setCloseGuard}
+        forceInlineMetadata
       />
     </div>
   );
