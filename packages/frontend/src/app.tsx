@@ -22,6 +22,9 @@ const SettingsView = lazy(() =>
 const NotFoundView = lazy(() =>
   import("@/views/not-found-view").then((m) => ({ default: m.NotFoundView })),
 );
+const PrimitiveShowcase = lazy(() =>
+  import("@/pages/primitive-showcase").then((m) => ({ default: m.PrimitiveShowcase })),
+);
 
 function ViewFallback() {
   return (
@@ -39,6 +42,14 @@ export function App() {
           <SetupGuard>
             <Routes>
               <Route path="setup" element={<SetupView />} />
+              <Route
+                path="__showcase"
+                element={
+                  <Suspense fallback={<ViewFallback />}>
+                    <PrimitiveShowcase />
+                  </Suspense>
+                }
+              />
               <Route element={<AppShell />}>
                 <Route index element={<Navigate to="/list" replace />} />
                 <Route path="list" element={<ListView />} />
