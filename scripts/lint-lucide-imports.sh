@@ -1,42 +1,66 @@
 #!/usr/bin/env bash
-# N5 invariant: reject lucide-react barrel imports with > 4 named exports.
+# N5 invariant: enforce per-icon lucide-react imports.
+#
+# Checks:
+# 1. No wildcard imports (import * from "lucide-react")
+# 2. No default imports (import Icons from "lucide-react")
+# 3. Per-file named import count <= MAX_NAMES (default 10)
+#
+# Biome's import organizer merges named imports from the same module
+# into a single statement, so the threshold is per-file, not per-statement.
+# A threshold of 10 catches barrel-import abuse while accommodating
+# components that legitimately use several icons (e.g. action menus).
+#
 # Usage: ./scripts/lint-lucide-imports.sh [max_names]
 # Exit 0 = pass, Exit 1 = violations found.
 
 set -euo pipefail
 
-MAX_NAMES=${1:-4}
-VIOLATIONS=0
+MAX_NAMES=${1:-10}
+ERRORS=0
 
+# Check 1: No wildcard imports
+WILDCARD=$(grep -rn 'import \* .* from "lucide-react"' packages/frontend/src/ 2>/dev/null || true)
+if [ -n "$WILDCARD" ]; then
+  echo "N5 VIOLATION: wildcard import from lucide-react (breaks tree-shaking):"
+  echo "$WILDCARD"
+  echo
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check 2: No default imports
+DEFAULT=$(grep -rn 'import [A-Z][a-zA-Z]* from "lucide-react"' packages/frontend/src/ 2>/dev/null | grep -v 'import {' || true)
+if [ -n "$DEFAULT" ]; then
+  echo "N5 VIOLATION: default import from lucide-react:"
+  echo "$DEFAULT"
+  echo
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check 3: Per-file named import count
 while IFS= read -r file; do
-  # Extract all import-from-lucide blocks (handles multi-line imports)
-  perl -0777 -ne '
-    while (/import\s*\{([^}]+)\}\s*from\s*"lucide-react"/g) {
-      my $names = $1;
-      my @items = grep { /\S/ } split(/,/, $names);
-      my $count = scalar @items;
-      if ($count > '"$MAX_NAMES"') {
-        print "VIOLATION ($count names): '"'"'$ENV{FILE}'"'"'\n";
-        print "  import { " . join(", ", map { s/^\s+|\s+$//gr } @items) . " } from \"lucide-react\"\n\n";
-      }
-    }
-  ' "$file"
-done < <(find packages/frontend/src -name '*.tsx' -o -name '*.ts' | sort)
-
-# Re-run to count violations for exit code
-COUNT=$(find packages/frontend/src \( -name '*.tsx' -o -name '*.ts' \) -print0 | \
-  xargs -0 perl -0777 -ne '
+  COUNT=$(perl -0777 -ne '
+    my $total = 0;
     while (/import\s*\{([^}]+)\}\s*from\s*"lucide-react"/g) {
       my @items = grep { /\S/ } split(/,/, $1);
-      print "v\n" if scalar @items > '"$MAX_NAMES"';
+      $total += scalar @items;
     }
-  ' | wc -l)
+    print $total;
+  ' "$file")
 
-if [ "$COUNT" -gt 0 ]; then
-  echo "N5 FAILED: $COUNT lucide-react import(s) exceed $MAX_NAMES named exports."
-  echo "Split large imports into multiple statements with <= $MAX_NAMES names each."
+  if [ "$COUNT" -gt "$MAX_NAMES" ]; then
+    echo "N5 VIOLATION: $file imports $COUNT lucide icons (max $MAX_NAMES)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(grep -rl '"lucide-react"' packages/frontend/src/ 2>/dev/null | sort)
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo
+  echo "N5 FAILED: $ERRORS violation(s) found."
+  echo "Use per-icon named imports: import { Check } from \"lucide-react\""
+  echo "Never use: import * as Icons from \"lucide-react\""
   exit 1
 else
-  echo "N5 PASSED: all lucide-react imports have <= $MAX_NAMES named exports."
+  echo "N5 PASSED: all lucide-react imports are per-icon named imports (<= $MAX_NAMES per file)."
   exit 0
 fi
