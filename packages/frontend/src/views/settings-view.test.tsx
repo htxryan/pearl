@@ -183,7 +183,7 @@ describe("SettingsView", () => {
     it("renders color swatches on each theme card", () => {
       renderSettings("/settings/appearance");
       const group = screen.getByRole("group", { name: "Available themes" });
-      const swatches = group.querySelectorAll("[aria-hidden='true']");
+      const swatches = group.querySelectorAll("span[aria-hidden='true']");
       expect(swatches).toHaveLength(15);
     });
 
