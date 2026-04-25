@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { BulkActionBar } from "@/components/issue-table/bulk-action-bar";
 import { ColumnVisibilityMenu } from "@/components/issue-table/column-visibility-menu";
@@ -14,6 +14,7 @@ import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { prefetchIssueDetail, useCreateIssue, useIssues } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { useSetNavList } from "@/hooks/use-nav-list";
 import { useToastActions } from "@/hooks/use-toast";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,9 @@ export function ListView() {
 
   const isMobile = useIsMobile();
   const { openIssueId: panelIssueId, openDetail, closeDetail } = useDetailPanel();
+
+  const navListIds = useMemo(() => tableIssues.map((i) => i.id), [tableIssues]);
+  useSetNavList(navListIds);
 
   const {
     updateMutation,
@@ -79,6 +83,15 @@ export function ListView() {
     },
     { epicProgress, expandedEpics, onToggleExpand: handleToggleExpand },
   );
+
+  // When the detail panel/modal navigates to a different issue (e.g. via j/k while open),
+  // keep the list's active row in sync so the highlight follows and the user lands on
+  // the right row when they close the panel.
+  useEffect(() => {
+    if (!panelIssueId) return;
+    const idx = tableIssues.findIndex((i) => i.id === panelIssueId);
+    if (idx !== -1 && idx !== activeRowIndex) setActiveRowIndex(idx);
+  }, [panelIssueId, tableIssues, activeRowIndex, setActiveRowIndex]);
 
   const [quickAddTitle, setQuickAddTitle] = useState("");
   const quickAddRef = useRef<HTMLInputElement>(null);

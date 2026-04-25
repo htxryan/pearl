@@ -156,3 +156,12 @@ export function useDetailPanel(): DetailPanelContextValue {
   if (!ctx) throw new Error("useDetailPanel must be used within DetailPanelProvider");
   return ctx;
 }
+
+/**
+ * Non-throwing variant for hooks that need the panel only when available
+ * (e.g. shared components rendered both inside the AppShell tree and in
+ * isolated test contexts). Returns null when no provider is mounted.
+ */
+export function useDetailPanelOptional(): DetailPanelContextValue | null {
+  return useContext(DetailPanelContext);
+}

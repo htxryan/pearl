@@ -23,6 +23,7 @@ import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { useCreateIssue, useIssues, useUpdateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { useSetNavList } from "@/hooks/use-nav-list";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
@@ -149,6 +150,17 @@ export function BoardView() {
     }
     return grouped;
   }, [issues, showBlocked, blockedIds, columnSort]);
+
+  // Feed the nav list with the board's visible issues in column order so j/k
+  // in the detail view navigates through the same set the user is browsing.
+  const navListIds = useMemo(() => {
+    const out: string[] = [];
+    for (const status of COLUMN_ORDER) {
+      for (const issue of columnData[status]) out.push(issue.id);
+    }
+    return out;
+  }, [columnData]);
+  useSetNavList(navListIds);
 
   // Find the active issue for the drag overlay
   const activeIssue = useMemo(

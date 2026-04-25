@@ -3,6 +3,7 @@ import { hasAttachmentSyntax, parseField } from "@pearl/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
+import { useDetailPanelOptional } from "@/hooks/use-detail-panel";
 import {
   useAddComment,
   useAddDependency,
@@ -16,6 +17,7 @@ import {
   useUpdateIssue,
 } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
+import { useNavList } from "@/hooks/use-nav-list";
 import { useParseField } from "@/hooks/use-parse-field";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
@@ -206,9 +208,49 @@ export function useDetailView(id: string, options: UseDetailViewOptions = {}) {
     }
   }, [isDirty, exitDetail]);
 
+  // j/k navigation between issues — works while the detail modal/panel is open
+  // and on the full-page detail route. Order matches the active list/board view's
+  // sort/filter (fed via NavListProvider). Skipped automatically when an input
+  // element is focused (handled by useKeyboardScope's input guard).
+  const { getNext, getPrev } = useNavList();
+  const detailPanel = useDetailPanelOptional();
+  const openDetail = detailPanel?.openDetail;
+
+  const navigateToIssue = useCallback(
+    (targetId: string) => {
+      if (isInlineMode && openDetail) {
+        // Modal/panel mode: openDetail runs the registered close guard, which
+        // prompts on unsaved changes (see IssueDetail.onSetCloseGuard wiring).
+        openDetail(targetId);
+      } else {
+        // Full-page route: no close guard runs, so check dirty state inline.
+        if (isDirty) {
+          if (!window.confirm("You have unsaved changes. Discard them?")) return;
+          setDirtyFields(new Set());
+        }
+        navigate(`/issues/${targetId}`, { state: { from: fromPath } });
+      }
+    },
+    [isDirty, isInlineMode, openDetail, navigate, fromPath],
+  );
+
+  const handleNext = useCallback(() => {
+    const next = getNext(id);
+    if (next) navigateToIssue(next);
+  }, [id, getNext, navigateToIssue]);
+
+  const handlePrev = useCallback(() => {
+    const prev = getPrev(id);
+    if (prev) navigateToIssue(prev);
+  }, [id, getPrev, navigateToIssue]);
+
   const keyBindings = useMemo(
-    () => [{ key: "Escape", handler: handleNavigateBack, description: "Close detail panel" }],
-    [handleNavigateBack],
+    () => [
+      { key: "Escape", handler: handleNavigateBack, description: "Close detail panel" },
+      { key: "j", handler: handleNext, description: "Next issue" },
+      { key: "k", handler: handlePrev, description: "Previous issue" },
+    ],
+    [handleNavigateBack, handleNext, handlePrev],
   );
   useKeyboardScope("detail", keyBindings);
 
