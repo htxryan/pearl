@@ -281,14 +281,14 @@ describe("Contract: Epic 9 <-> Epic 10 -- insertAttachments updates content for 
 
   it("resulting text contains pill syntax [img:ref]", () => {
     const block = makeInlineBlock(REF_A);
-    const result = insertAttachments("", 0, [{ block, altText: "" }]);
+    const result = insertAttachments("", 0, [block]);
 
     expect(result).toContain(`[img:${REF_A}]`);
   });
 
   it("resulting text contains data block", () => {
     const block = makeInlineBlock(REF_A);
-    const result = insertAttachments("", 0, [{ block, altText: "" }]);
+    const result = insertAttachments("", 0, [block]);
 
     expect(result).toContain("<!-- pearl-attachment:v1:");
     expect(result).toContain(`type: inline`);
@@ -297,7 +297,7 @@ describe("Contract: Epic 9 <-> Epic 10 -- insertAttachments updates content for 
 
   it("hasAttachmentSyntax(result) returns true", () => {
     const block = makeInlineBlock(REF_A);
-    const result = insertAttachments("", 0, [{ block, altText: "" }]);
+    const result = insertAttachments("", 0, [block]);
 
     expect(hasAttachmentSyntax(result)).toBe(true);
   });
@@ -305,10 +305,7 @@ describe("Contract: Epic 9 <-> Epic 10 -- insertAttachments updates content for 
   it("parseField(result) extracts the blocks correctly", () => {
     const blockA = makeInlineBlock(REF_A, "AAAA");
     const blockB = makeInlineBlock(REF_B, "BBBB");
-    const result = insertAttachments("Some prose", 10, [
-      { block: blockA, altText: "" },
-      { block: blockB, altText: "diagram" },
-    ]);
+    const result = insertAttachments("Some prose", 10, [blockA, blockB]);
 
     const parsed = parseField(result);
     expect(parsed.blocks.size).toBe(2);
@@ -397,14 +394,11 @@ describe("Contract: Mixed-mode -- insertAttachments with mix of inline + local b
     let text = "";
 
     // Step 2: insert 2 inline blocks
-    text = insertAttachments(text, 0, [
-      { block: inlineA, altText: "Screenshot A" },
-      { block: inlineB, altText: "Screenshot B" },
-    ]);
+    text = insertAttachments(text, 0, [inlineA, inlineB]);
 
     // Step 3: insert 1 local block at end
     const proseLen = parseField(text).prose.length;
-    text = insertAttachments(text, proseLen, [{ block: localC, altText: "Photo" }]);
+    text = insertAttachments(text, proseLen, [localC]);
 
     // Step 4: verify all 3 are present in parsed result
     const parsed = parseField(text);
@@ -438,11 +432,11 @@ describe("Contract: Failure injection #8 -- ref collision through insertAttachme
     const blockB = makeInlineBlock(sharedRef, "BBBB");
 
     // Step 1: insert block A
-    let text = insertAttachments("", 0, [{ block: blockA, altText: "first" }]);
+    let text = insertAttachments("", 0, [blockA]);
 
     // Step 2: insert block B with same ref but different data
     const proseLen = parseField(text).prose.length;
-    text = insertAttachments(text, proseLen, [{ block: blockB, altText: "second" }]);
+    text = insertAttachments(text, proseLen, [blockB]);
 
     // Step 3: verify only 1 block with that ref exists, and it is the last one inserted
     const parsed = parseField(text);
@@ -459,10 +453,7 @@ describe("Contract: Failure injection #8 -- ref collision through insertAttachme
     const blockA = makeInlineBlock(sharedRef, "FIRST");
     const blockB = makeInlineBlock(sharedRef, "SECOND");
 
-    const text = insertAttachments("", 0, [
-      { block: blockA, altText: "" },
-      { block: blockB, altText: "" },
-    ]);
+    const text = insertAttachments("", 0, [blockA, blockB]);
 
     const parsed = parseField(text);
     expect(parsed.blocks.size).toBe(1);

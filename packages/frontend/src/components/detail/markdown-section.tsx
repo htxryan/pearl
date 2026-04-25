@@ -3,13 +3,12 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
-import { AltTextDialog } from "@/components/detail/alt-text-dialog";
 import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
-import { extractImageFiles, type UploadResult, useImageUpload } from "@/hooks/use-image-upload";
+import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
@@ -30,11 +29,6 @@ interface MarkdownSectionProps {
 }
 
 type EditorTab = "write" | "preview";
-
-interface PendingAltText {
-  results: Array<UploadResult & { altText?: string }>;
-  currentIndex: number;
-}
 
 function insertAround(
   textarea: HTMLTextAreaElement,
@@ -84,7 +78,6 @@ export function MarkdownSection({
   const cursorPosRef = useRef(0);
 
   const { uploadFiles, isUploading, progress, lastErrors, clearErrors } = useImageUpload();
-  const [altTextState, setAltTextState] = useState<PendingAltText | null>(null);
 
   const handleSave = () => {
     if (editValue !== (content ?? "")) {
@@ -100,50 +93,6 @@ export function MarkdownSection({
     setActiveTab("write");
   };
 
-  const finishAltTextAndInsert = useCallback(
-    (pending: PendingAltText) => {
-      const blocks = pending.results.map((r) => ({
-        block: r.block,
-        altText: r.altText ?? "",
-      }));
-      const newText = insertAttachments(editValue, cursorPosRef.current, blocks);
-      setEditValue(newText);
-      setAltTextState(null);
-    },
-    [editValue],
-  );
-
-  const handleAltTextSubmit = useCallback(
-    (altText: string) => {
-      if (!altTextState) return;
-      const updatedResults = altTextState.results.map((r, i) =>
-        i === altTextState.currentIndex ? { ...r, altText } : r,
-      );
-      const updated = { ...altTextState, results: updatedResults };
-      const nextIndex = updated.currentIndex + 1;
-      if (nextIndex >= updated.results.length) {
-        finishAltTextAndInsert(updated);
-      } else {
-        setAltTextState({ ...updated, currentIndex: nextIndex });
-      }
-    },
-    [altTextState, finishAltTextAndInsert],
-  );
-
-  const handleAltTextSkip = useCallback(() => {
-    if (!altTextState) return;
-    const updatedResults = altTextState.results.map((r, i) =>
-      i === altTextState.currentIndex ? { ...r, altText: "" } : r,
-    );
-    const updated = { ...altTextState, results: updatedResults };
-    const nextIndex = updated.currentIndex + 1;
-    if (nextIndex >= updated.results.length) {
-      finishAltTextAndInsert(updated);
-    } else {
-      setAltTextState({ ...updated, currentIndex: nextIndex });
-    }
-  }, [altTextState, finishAltTextAndInsert]);
-
   const processFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0 || isUploading) return;
@@ -153,10 +102,13 @@ export function MarkdownSection({
       const { results } = await uploadFiles(files);
       if (results.length === 0) return;
 
-      setAltTextState({
-        results: results.map((r) => ({ ...r, altText: undefined })),
-        currentIndex: 0,
-      });
+      setEditValue((prev) =>
+        insertAttachments(
+          prev,
+          cursorPosRef.current,
+          results.map((r) => r.block),
+        ),
+      );
     },
     [uploadFiles, isUploading],
   );
@@ -220,8 +172,6 @@ export function MarkdownSection({
         break;
     }
   }, []);
-
-  const currentAltResult = altTextState?.results[altTextState.currentIndex];
 
   return (
     <section>
@@ -403,13 +353,6 @@ export function MarkdownSection({
           No {title.toLowerCase()} yet. Click to add.
         </div>
       )}
-
-      <AltTextDialog
-        isOpen={!!currentAltResult}
-        fileName={currentAltResult?.fileName ?? ""}
-        onSubmit={handleAltTextSubmit}
-        onSkip={handleAltTextSkip}
-      />
     </section>
   );
 }

@@ -2,13 +2,12 @@ import type { Comment } from "@pearl/shared";
 import { useCallback, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { AltTextDialog } from "@/components/detail/alt-text-dialog";
 import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
-import { extractImageFiles, type UploadResult, useImageUpload } from "@/hooks/use-image-upload";
+import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
 import { remarkAttachmentPills } from "@/lib/remark-attachment-pills";
 
@@ -26,11 +25,6 @@ interface CommentThreadProps {
   hideTitle?: boolean;
 }
 
-interface PendingAltText {
-  results: Array<UploadResult & { altText?: string }>;
-  currentIndex: number;
-}
-
 export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentThreadProps) {
   const [newComment, setNewComment] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +33,6 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
   const cursorPosRef = useRef(0);
 
   const { uploadFiles, isUploading, progress, lastErrors, clearErrors } = useImageUpload();
-  const [altTextState, setAltTextState] = useState<PendingAltText | null>(null);
 
   const submitComment = () => {
     if (isAdding || isUploading) return;
@@ -56,50 +49,6 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
     submitComment();
   };
 
-  const finishAltTextAndInsert = useCallback(
-    (pending: PendingAltText) => {
-      const blocks = pending.results.map((r) => ({
-        block: r.block,
-        altText: r.altText ?? "",
-      }));
-      const newText = insertAttachments(newComment, cursorPosRef.current, blocks);
-      setNewComment(newText);
-      setAltTextState(null);
-    },
-    [newComment],
-  );
-
-  const handleAltTextSubmit = useCallback(
-    (altText: string) => {
-      if (!altTextState) return;
-      const updatedResults = altTextState.results.map((r, i) =>
-        i === altTextState.currentIndex ? { ...r, altText } : r,
-      );
-      const updated = { ...altTextState, results: updatedResults };
-      const nextIndex = updated.currentIndex + 1;
-      if (nextIndex >= updated.results.length) {
-        finishAltTextAndInsert(updated);
-      } else {
-        setAltTextState({ ...updated, currentIndex: nextIndex });
-      }
-    },
-    [altTextState, finishAltTextAndInsert],
-  );
-
-  const handleAltTextSkip = useCallback(() => {
-    if (!altTextState) return;
-    const updatedResults = altTextState.results.map((r, i) =>
-      i === altTextState.currentIndex ? { ...r, altText: "" } : r,
-    );
-    const updated = { ...altTextState, results: updatedResults };
-    const nextIndex = updated.currentIndex + 1;
-    if (nextIndex >= updated.results.length) {
-      finishAltTextAndInsert(updated);
-    } else {
-      setAltTextState({ ...updated, currentIndex: nextIndex });
-    }
-  }, [altTextState, finishAltTextAndInsert]);
-
   const processFiles = useCallback(
     async (files: File[]) => {
       if (files.length === 0 || isUploading) return;
@@ -109,10 +58,13 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
       const { results } = await uploadFiles(files);
       if (results.length === 0) return;
 
-      setAltTextState({
-        results: results.map((r) => ({ ...r, altText: undefined })),
-        currentIndex: 0,
-      });
+      setNewComment((prev) =>
+        insertAttachments(
+          prev,
+          cursorPosRef.current,
+          results.map((r) => r.block),
+        ),
+      );
     },
     [uploadFiles, isUploading],
   );
@@ -154,8 +106,6 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
     },
     [processFiles],
   );
-
-  const currentAltResult = altTextState?.results[altTextState.currentIndex];
 
   return (
     <section>
@@ -261,13 +211,6 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
           aria-label="Pick image files"
         />
       </form>
-
-      <AltTextDialog
-        isOpen={!!currentAltResult}
-        fileName={currentAltResult?.fileName ?? ""}
-        onSubmit={handleAltTextSubmit}
-        onSkip={handleAltTextSkip}
-      />
     </section>
   );
 }
