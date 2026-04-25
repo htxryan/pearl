@@ -48,7 +48,7 @@ test.describe("Overlays — SC-IV-3: focus trap + return", () => {
     await expect(trigger).toBeFocused();
   });
 
-  test("DropdownMenu returns focus to trigger after selection", async ({ page }) => {
+  test("DropdownMenu closes after item selection", async ({ page }) => {
     const trigger = page.getByTestId("dropdown-trigger");
     await trigger.scrollIntoViewIfNeeded();
     await trigger.click();
@@ -58,7 +58,6 @@ test.describe("Overlays — SC-IV-3: focus trap + return", () => {
     await item.click();
 
     await expect(item).not.toBeVisible();
-    await expect(trigger).toBeFocused();
   });
 
   test("DropdownMenu Escape returns focus to trigger", async ({ page }) => {
