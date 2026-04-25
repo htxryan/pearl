@@ -234,6 +234,7 @@ const HIDDEN_FIELDS = new Set([
 ]);
 
 const LONG_TEXT_FIELDS = new Set(["description", "design", "acceptance_criteria", "notes"]);
+const ENUM_FIELDS = new Set(["status", "priority", "issue_type", "event_type"]);
 
 const FIELD_LABELS: Record<string, string> = {
   status: "status",
@@ -371,7 +372,6 @@ function formatScalar(field: string, val: unknown): string | null {
   if (field === "priority" && typeof val === "string" && /^[0-4]$/.test(val)) {
     return `P${val}`;
   }
-  const ENUM_FIELDS = new Set(["status", "priority", "issue_type", "event_type"]);
   if (ENUM_FIELDS.has(field)) {
     return String(val).replace(/_/g, " ");
   }
