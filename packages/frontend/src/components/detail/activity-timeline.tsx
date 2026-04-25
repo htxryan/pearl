@@ -230,7 +230,6 @@ const HIDDEN_FIELDS = new Set([
   "created_by",
   "has_attachments",
   "close_reason",
-  "due_at",
   "deleted",
 ]);
 
@@ -336,6 +335,7 @@ export function extractFieldChanges(event: Event): FieldChange[] {
 
 const SCALAR_EVENT_FIELD: Record<string, string> = {
   status_change: "status",
+  status_changed: "status",
   priority_change: "priority",
   title_change: "title",
   assignee_change: "assignee",
@@ -371,7 +371,11 @@ function formatScalar(field: string, val: unknown): string | null {
   if (field === "priority" && typeof val === "string" && /^[0-4]$/.test(val)) {
     return `P${val}`;
   }
-  return String(val).replace(/_/g, " ");
+  const ENUM_FIELDS = new Set(["status", "priority", "issue_type", "event_type"]);
+  if (ENUM_FIELDS.has(field)) {
+    return String(val).replace(/_/g, " ");
+  }
+  return String(val);
 }
 
 function parseJsonObj(val: string | null): Record<string, unknown> | null {
@@ -400,6 +404,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
     }
     return true;
   }
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
   if (typeof a === "object" && typeof b === "object") {
     const keysA = Object.keys(a as Record<string, unknown>);
     const keysB = Object.keys(b as Record<string, unknown>);
