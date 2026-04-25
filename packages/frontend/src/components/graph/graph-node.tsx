@@ -81,10 +81,10 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
 
   const handleMouseEnter = useCallback(() => setHovered(true), []);
   const handleMouseLeave = useCallback(() => setHovered(false), []);
+  const handleMouseDown = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
   const handleOpenClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      e.preventDefault();
       openDetail(issue.id);
     },
     [openDetail, issue.id],
@@ -126,7 +126,7 @@ export const GraphNode = memo(function GraphNode({ data }: NodeProps<GraphNodeTy
             <button
               type="button"
               onClick={handleOpenClick}
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={handleMouseDown}
               className="shrink-0 inline-flex items-center justify-center h-4 w-4 rounded-sm text-muted-foreground opacity-60 hover:opacity-100 hover:text-foreground hover:bg-accent cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-opacity"
               aria-label={`Open detail for ${issue.id}`}
               title={`Open detail for ${issue.id}`}

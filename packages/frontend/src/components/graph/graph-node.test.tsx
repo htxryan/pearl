@@ -298,15 +298,28 @@ describe("GraphNode", () => {
 
     it("stops click propagation so node selection is not toggled", () => {
       mockOpenDetail.mockClear();
-      renderNode({ issue: { id: "beads-test-001" } });
-      const button = screen.getByLabelText("Open detail for beads-test-001");
-      // Build a real MouseEvent so React forwards it to the synthetic handler;
-      // the handler must call stopPropagation on the underlying native event.
-      const evt = new MouseEvent("click", { bubbles: true, cancelable: true });
-      const stopSpy = vi.spyOn(evt, "stopPropagation");
-      button.dispatchEvent(evt);
+      const parentSpy = vi.fn();
+      const issue = makeIssue({ id: "beads-test-001" });
+      const props = {
+        id: issue.id,
+        type: "graphNode" as const,
+        data: { issue, highlighted: false, dimmed: false, selected: false },
+        dragging: false,
+        isConnectable: true,
+        positionAbsoluteX: 0,
+        positionAbsoluteY: 0,
+        zIndex: 0,
+      } as any;
+      render(
+        withQueryClient(
+          <div onClick={parentSpy}>
+            <GraphNode {...props} />
+          </div>,
+        ),
+      );
+      fireEvent.click(screen.getByLabelText("Open detail for beads-test-001"));
       expect(mockOpenDetail).toHaveBeenCalledWith("beads-test-001");
-      expect(stopSpy).toHaveBeenCalled();
+      expect(parentSpy).not.toHaveBeenCalled();
     });
   });
 
