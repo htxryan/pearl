@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   ImageIcon,
   LinkIcon,
-  ListBulletIcon,
+  ListIcon,
   PencilIcon,
   PlusIcon,
   SaveIcon,
@@ -278,7 +278,7 @@ export function MarkdownSection({
                   <LinkIcon size={14} />
                 </ToolbarButton>
                 <ToolbarButton label="List" onClick={() => handleToolbar("list")}>
-                  <ListBulletIcon size={14} />
+                  <ListIcon size={14} />
                 </ToolbarButton>
                 <div className="w-px h-4 bg-border mx-1" />
                 <ToolbarButton label="Attach image" onClick={handleFilePick} disabled={isUploading}>

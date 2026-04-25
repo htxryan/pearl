@@ -333,14 +333,3 @@ export function ImageIcon({ size = 14, className }: IconProps = {}) {
     </svg>
   );
 }
-
-export function ListBulletIcon({ size = 14, className }: IconProps = {}) {
-  return (
-    <svg {...svgProps(size)} className={className}>
-      <path d="M5 4h9M5 8h9M5 12h9" />
-      <circle cx="2.5" cy="4" r="0.6" fill="currentColor" />
-      <circle cx="2.5" cy="8" r="0.6" fill="currentColor" />
-      <circle cx="2.5" cy="12" r="0.6" fill="currentColor" />
-    </svg>
-  );
-}
