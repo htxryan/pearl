@@ -149,7 +149,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
     <Dialog
       isOpen={isOpen}
       onClose={handleCancel}
-      size="xl"
+      size="2xl"
       aria-label="Create Issue"
       onCancel={(e) => {
         if (e.currentTarget.querySelector('[aria-expanded="true"]')) {

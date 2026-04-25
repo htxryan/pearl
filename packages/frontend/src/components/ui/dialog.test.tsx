@@ -84,7 +84,17 @@ describe("Dialog", () => {
       </Dialog>,
     );
     const dialog = screen.getByText("Content").closest("dialog");
-    expect(dialog?.className).toContain("max-w-4xl");
+    expect(dialog?.className).toContain("max-w-xl");
+  });
+
+  it("applies size-2xl when specified", () => {
+    render(
+      <Dialog isOpen={true} onClose={vi.fn()} size="2xl">
+        <p>Content</p>
+      </Dialog>,
+    );
+    const dialog = screen.getByText("Content").closest("dialog");
+    expect(dialog?.className).toContain("max-w-2xl");
   });
 
   it("calls onClose when dialog fires close event", () => {
