@@ -103,6 +103,11 @@ describe("parseQuerySyntax", () => {
     expect(result.structural).toContain("no_assignee");
   });
 
+  it("parses no:parent", () => {
+    const result = parseQuerySyntax("no:parent");
+    expect(result.structural).toContain("no_parent");
+  });
+
   it("parses no:due", () => {
     const result = parseQuerySyntax("no:due");
     expect(result.dateRanges).toContain("no_due_date");

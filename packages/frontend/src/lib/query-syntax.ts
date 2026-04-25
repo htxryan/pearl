@@ -46,6 +46,7 @@ export const STRUCTURAL_FILTER_OPTIONS = [
   "not_blocked",
   "is_epic",
   "no_assignee",
+  "no_parent",
 ] as const;
 
 export type StructuralFilter = (typeof STRUCTURAL_FILTER_OPTIONS)[number];
@@ -56,6 +57,7 @@ export const STRUCTURAL_FILTER_LABELS: Record<StructuralFilter, string> = {
   not_blocked: "Not Blocked",
   is_epic: "Is Epic",
   no_assignee: "No Assignee",
+  no_parent: "No Parent",
 };
 
 const VALID_STRUCTURAL = new Set<string>(STRUCTURAL_FILTER_OPTIONS);
@@ -270,6 +272,9 @@ export function parseQuerySyntax(input: string): ParsedQuery {
           consumed = true;
         } else if (value === "due" || value === "due_date") {
           result.dateRanges.push("no_due_date");
+          consumed = true;
+        } else if (value === "parent") {
+          result.structural.push("no_parent");
           consumed = true;
         }
         break;

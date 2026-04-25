@@ -101,7 +101,14 @@ const DATE_RANGE_VALUES = [
   "created_this_week",
   "created_last_week",
 ];
-const STRUCTURAL_VALUES = ["has_dependency", "is_blocked", "not_blocked", "is_epic", "no_assignee"];
+const STRUCTURAL_VALUES = [
+  "has_dependency",
+  "is_blocked",
+  "not_blocked",
+  "is_epic",
+  "no_assignee",
+  "no_parent",
+];
 
 const listIssuesQuerySchema = {
   querystring: {
@@ -351,6 +358,9 @@ export function registerIssueRoutes(
             break;
           case "no_assignee":
             sql += ` AND (i.assignee IS NULL OR i.assignee = '')`;
+            break;
+          case "no_parent":
+            sql += ` AND NOT EXISTS (SELECT 1 FROM dependencies d WHERE d.issue_id = i.id AND d.type = 'parent-child')`;
             break;
         }
       }
