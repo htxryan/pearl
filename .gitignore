@@ -36,3 +36,7 @@ docs/proof/**/*.png
 
 # Pearl settings and attachment files (may contain local paths)
 .pearl/
+
+# Generated perf/bundle visualization artifacts
+docs/perf/baseline.json
+docs/perf/baseline.html

@@ -17,8 +17,9 @@ describe("F1: Theme definition keys match :root declarations", () => {
   });
 
   it("every COLOR_TOKEN has a matching .dark CSS variable declaration", () => {
-    const darkMatch = indexCss.match(/\.dark\s*\{([^}]+)\}/s);
-    expect(darkMatch, ".dark block not found in index.css").toBeTruthy();
+    const darkBlocks = [...indexCss.matchAll(/^\.dark\s*\{([^}]+)\}/gms)];
+    const darkMatch = darkBlocks.find((m) => m[1].includes("--background:"));
+    expect(darkMatch, ".dark token block not found in index.css").toBeTruthy();
     const darkBlock = darkMatch![1];
 
     for (const token of COLOR_TOKENS) {

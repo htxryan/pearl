@@ -1,6 +1,9 @@
 import { useCallback, useSyncExternalStore } from "react";
 import type { ThemeDefinition } from "@/themes";
 import { getDefaultTheme, getTheme } from "@/themes";
+import { COLOR_TOKENS } from "@/themes/types";
+
+const THEME_PROPS = new Set(COLOR_TOKENS.map((t) => `--${t}`));
 
 const STORAGE_KEY = "pearl-theme";
 const CACHE_KEY = "pearl-theme-cache";
@@ -45,7 +48,7 @@ function applyTheme(theme: ThemeDefinition) {
   const toRemove: string[] = [];
   for (let i = 0; i < root.style.length; i++) {
     const prop = root.style[i];
-    if (prop.startsWith("--") && !prop.startsWith("--shadow") && !prop.startsWith("--spacing")) {
+    if (THEME_PROPS.has(prop)) {
       toRemove.push(prop);
     }
   }

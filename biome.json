@@ -66,16 +66,8 @@
         "rules": {
           "a11y": {
             "useButtonType": "off",
-            "useKeyWithClickEvents": "off",
             "noSvgWithoutTitle": "off",
-            "noStaticElementInteractions": "off",
-            "useSemanticElements": "off",
-            "noNoninteractiveElementToInteractiveRole": "off",
-            "useFocusableInteractive": "off",
-            "noAutofocus": "off",
-            "useValidAnchor": "off",
-            "useAriaPropsSupportedByRole": "off",
-            "noLabelWithoutControl": "off"
+            "noAutofocus": "off"
           },
           "correctness": {
             "noUnusedImports": "off"
