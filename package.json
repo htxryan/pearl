@@ -16,6 +16,7 @@
     "test:e2e:write": "playwright test --project=write-tests",
     "test:e2e:ui": "playwright test --ui",
     "lint:deps": "depcruise packages/*/src --config .dependency-cruiser.cjs",
+    "lint:lucide": "bash scripts/lint-lucide-imports.sh",
     "prepare": "husky"
   },
   "lint-staged": {
