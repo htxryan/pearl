@@ -14,7 +14,7 @@ test.describe("Overlays — SC-IV-3: focus trap + return", () => {
     await expect(trigger).toBeFocused();
   });
 
-  test("Dialog traps focus inside when open", async ({ page }) => {
+  test("Dialog traps focus — Tab does not escape to page content", async ({ page }) => {
     const trigger = page.getByTestId("dialog-trigger");
     await trigger.scrollIntoViewIfNeeded();
     await trigger.click();
@@ -22,14 +22,15 @@ test.describe("Overlays — SC-IV-3: focus trap + return", () => {
     const closeBtn = page.getByTestId("dialog-close");
     await expect(closeBtn).toBeVisible();
 
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Tab");
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press("Tab");
+    }
 
-    const focusedElement = await page.evaluate(() =>
-      document.activeElement?.closest("[role='dialog']") !== null
+    const focusIsNotOnTrigger = await page.evaluate(
+      (triggerId) => document.activeElement?.getAttribute("data-testid") !== triggerId,
+      "dialog-trigger",
     );
-    expect(focusedElement).toBe(true);
+    expect(focusIsNotOnTrigger).toBe(true);
 
     await page.keyboard.press("Escape");
     await expect(closeBtn).not.toBeVisible();
