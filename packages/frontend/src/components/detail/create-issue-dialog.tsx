@@ -297,18 +297,28 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
           </div>
         </div>
 
-        {/* Assignee */}
-        <div>
-          <label htmlFor="create-assignee" className="block text-sm font-medium mb-1">
-            Assignee
-          </label>
-          <input
-            id="create-assignee"
-            value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
-            placeholder="Assignee name"
-            className="w-full text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+        {/* Assignee + Due date row */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="create-assignee" className="block text-sm font-medium mb-1">
+              Assignee
+            </label>
+            <input
+              id="create-assignee"
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              placeholder="Assignee name"
+              className="w-full text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Due Date</label>
+            <DatePicker
+              value={due || null}
+              onChange={(date) => setDue(date ?? "")}
+              placeholder="Set due date"
+            />
+          </div>
         </div>
 
         {/* Labels */}
@@ -319,16 +329,6 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
             selectedColors={{}}
             onChange={setLabels}
             placeholder="Search or create labels..."
-          />
-        </div>
-
-        {/* Due date */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Due Date</label>
-          <DatePicker
-            value={due || null}
-            onChange={(date) => setDue(date ?? "")}
-            placeholder="Set due date"
           />
         </div>
 
