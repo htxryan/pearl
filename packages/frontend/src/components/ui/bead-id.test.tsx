@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DetailPanelProvider, useDetailPanel } from "@/hooks/use-detail-panel";
 import { displayId } from "@/lib/format-id";
 
 vi.mock("@/hooks/use-issues", () => ({
@@ -210,6 +211,75 @@ describe("BeadId", () => {
     render(withWrappers(<BeadId id="beads-gui-abc" />));
     const copyBtn = screen.getByRole("button", { name: /Copy beads-gui-abc/ });
     expect(copyBtn.tagName).toBe("BUTTON");
+  });
+
+  it("opens detail panel and preserves history when clicked inside open panel context", () => {
+    function Probe() {
+      const panel = useDetailPanel();
+      const navigate = useNavigate();
+      return (
+        <>
+          <span data-testid="panel-id">{panel.openIssueId ?? ""}</span>
+          <button type="button" data-testid="back" onClick={() => navigate(-1)}>
+            back
+          </button>
+        </>
+      );
+    }
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={["/list?item=beads-gui-aaaa"]}>
+          <DetailPanelProvider>
+            <Routes>
+              <Route
+                path="*"
+                element={
+                  <>
+                    <BeadId id="beads-gui-bbbb" />
+                    <Probe />
+                    <LocationProbe />
+                  </>
+                }
+              />
+            </Routes>
+          </DetailPanelProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(screen.getByTestId("panel-id").textContent).toBe("beads-gui-aaaa");
+    fireEvent.click(screen.getByRole("link", { name: /Open beads-gui-bbbb/ }));
+    // Pill click took over: panel switched to bbbb, route stayed on /list.
+    expect(screen.getByTestId("panel-id").textContent).toBe("beads-gui-bbbb");
+    expect(screen.getByTestId("location").textContent).toBe("/list");
+    // Back walks the chain back up to aaaa.
+    fireEvent.click(screen.getByTestId("back"));
+    expect(screen.getByTestId("panel-id").textContent).toBe("beads-gui-aaaa");
+  });
+
+  it("falls back to native link nav when no panel is open", () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={["/list"]}>
+          <DetailPanelProvider>
+            <Routes>
+              <Route
+                path="*"
+                element={
+                  <>
+                    <BeadId id="beads-gui-bbbb" />
+                    <LocationProbe />
+                  </>
+                }
+              />
+            </Routes>
+          </DetailPanelProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: /Open beads-gui-bbbb/ }));
+    expect(screen.getByTestId("location").textContent).toBe("/issues/beads-gui-bbbb");
   });
 
   it("preserves pill marker and title during copied state", async () => {

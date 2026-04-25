@@ -202,6 +202,39 @@ describe("useDetailPanel — URL reflection", () => {
     expect(result.current.openIssueId).toBe("beads-a");
   });
 
+  it("openDetail with history='push' adds a history entry when switching items", () => {
+    const { result } = renderHook(() => useDetailPanelWithLocation(), {
+      wrapper: makeWrapper(["/list?item=beads-a"]),
+    });
+    act(() => {
+      result.current.openDetail("beads-b", { history: "push" });
+    });
+    expect(result.current.openIssueId).toBe("beads-b");
+    // Going back via the router should restore the previous selection,
+    // proving a new history entry was pushed (not replaced).
+    act(() => {
+      result.current.navigate(-1);
+    });
+    expect(result.current.openIssueId).toBe("beads-a");
+  });
+
+  it("openDetail with history='replace' does not grow history", () => {
+    // Two prior entries: /list, then /list?item=beads-a (pushed).
+    const { result } = renderHook(() => useDetailPanelWithLocation(), {
+      wrapper: makeWrapper(["/list", "/list?item=beads-a"]),
+    });
+    expect(result.current.openIssueId).toBe("beads-a");
+    act(() => {
+      result.current.openDetail("beads-b", { history: "replace" });
+    });
+    expect(result.current.openIssueId).toBe("beads-b");
+    // Replace overwrote the beads-a entry, so going back lands on /list.
+    act(() => {
+      result.current.navigate(-1);
+    });
+    expect(result.current.openIssueId).toBeNull();
+  });
+
   it("clears close guard after a successful close", () => {
     const { result } = renderHook(() => useDetailPanelWithLocation(), {
       wrapper: makeWrapper(["/list?item=beads-a"]),

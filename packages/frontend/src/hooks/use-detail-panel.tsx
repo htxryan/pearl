@@ -15,10 +15,22 @@ export type DetailPanelMode = "panel" | "modal";
 /** Returns true if close should proceed, false to cancel. */
 export type CloseGuard = () => boolean;
 
+export interface OpenDetailOptions {
+  /**
+   * `replace` (default when an item is already open) reuses the current history
+   * entry — used when the user is row-hopping in a list and shouldn't have
+   * each row added to browser history.
+   * `push` (default when no item is open, and explicit override for chain
+   * navigation like dependency-link clicks) adds a new history entry so
+   * browser-back walks back up the chain.
+   */
+  history?: "push" | "replace";
+}
+
 interface DetailPanelContextValue {
   openIssueId: string | null;
   mode: DetailPanelMode;
-  openDetail: (id: string) => void;
+  openDetail: (id: string, options?: OpenDetailOptions) => void;
   /** Force-close without checking the guard. Use `guardedClose` to respect unsaved-changes guards. */
   closeDetail: () => void;
   /** Check the close guard, then close if allowed. Returns false if cancelled. */
@@ -85,7 +97,7 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
   }, [openIssueId, checkGuard, setSearchParams]);
 
   const openDetail = useCallback(
-    (id: string) => {
+    (id: string, options?: OpenDetailOptions) => {
       const current = openIssueIdRef.current;
       if (current === id) return;
       if (current !== null) {
@@ -93,9 +105,11 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
         closeGuardRef.current = null;
       }
       openIssueIdRef.current = id;
-      // Switching between items uses replace to avoid history bloat;
-      // opening from a closed panel pushes a new entry so back closes it.
-      const replace = current !== null;
+      // Default: switching between items replaces (avoid history bloat),
+      // opening from a closed panel pushes (so browser-back closes it).
+      // Callers can force "push" — e.g. dep-link chain navigation — so
+      // each step builds a back-stack the user can walk back up.
+      const replace = options?.history ? options.history === "replace" : current !== null;
       internalChangeRef.current = true;
       setSearchParams(
         (prev) => {

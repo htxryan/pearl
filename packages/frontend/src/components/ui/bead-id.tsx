@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
+import { useDetailPanelOptional } from "@/hooks/use-detail-panel";
 import { useHealth } from "@/hooks/use-issues";
 import { displayId } from "@/lib/format-id";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
   const label = displayId(id, health?.project_prefix);
   const [copied, setCopied] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailPanel = useDetailPanelOptional();
 
   useEffect(() => {
     return () => {
@@ -52,6 +54,25 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
       .catch(() => {});
   }
 
+  function handleLinkClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    e.stopPropagation();
+    // When a detail panel is currently open, dependency / pill clicks should
+    // walk into the panel (with push history) instead of navigating away to
+    // the full-page route. This lets users chain through related issues and
+    // browser-back their way out. Modifier-clicks (cmd/ctrl/shift/middle)
+    // still get native open-in-new-tab behavior from the underlying <Link>.
+    if (e.defaultPrevented) return;
+    if (e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!detailPanel || detailPanel.openIssueId === null) return;
+    if (detailPanel.openIssueId === id) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+    detailPanel.openDetail(id, { history: "push" });
+  }
+
   return (
     <span
       className={cn(
@@ -66,7 +87,7 @@ export function BeadId({ id, className, interactive = true }: BeadIdProps) {
       <TagIcon className="shrink-0 opacity-70" aria-hidden="true" />
       <Link
         to={`/issues/${encodeURIComponent(id)}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleLinkClick}
         className="truncate hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
         aria-label={`Open ${id}`}
       >

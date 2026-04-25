@@ -25,6 +25,7 @@ vi.mock("@/hooks/use-detail-panel", () => ({
     setMode: vi.fn(),
     setCloseGuard: vi.fn(),
   }),
+  useDetailPanelOptional: () => null,
 }));
 
 import { GraphNode, NODE_HEIGHT, NODE_WIDTH } from "./graph-node";

@@ -16,6 +16,7 @@ vi.mock("@/hooks/use-detail-panel", () => ({
     toggleMode: vi.fn(),
     setMode: vi.fn(),
   }),
+  useDetailPanelOptional: () => null,
 }));
 
 // Mock API module
