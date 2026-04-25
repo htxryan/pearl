@@ -68,6 +68,7 @@ function parseSorting(params: URLSearchParams): SortingState {
   return [{ id: sort, desc: dir === "desc" }];
 }
 
+// Complement of NON_FILTER_KEYS in use-filter-sync.ts — update both when adding URL params.
 const KNOWN_FILTER_KEYS = new Set([
   "status",
   "priority",

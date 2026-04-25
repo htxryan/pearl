@@ -19,6 +19,7 @@ interface DetailPanelContextValue {
   openIssueId: string | null;
   mode: DetailPanelMode;
   openDetail: (id: string) => void;
+  /** Force-close without checking the guard. Use `guardedClose` to respect unsaved-changes guards. */
   closeDetail: () => void;
   /** Check the close guard, then close if allowed. Returns false if cancelled. */
   guardedClose: () => boolean;
@@ -35,7 +36,7 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [mode, setMode] = usePersistedState<DetailPanelMode>("beads:detail-panel-mode", "panel");
 
-  const openIssueId = searchParams.get(ITEM_PARAM);
+  const openIssueId = searchParams.get(ITEM_PARAM) || null;
 
   const closeGuardRef = useRef<CloseGuard | null>(null);
   // Initialize from URL so the very first openDetail call sees correct state.
@@ -62,7 +63,6 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (internalChangeRef.current) {
       internalChangeRef.current = false;
-      closeGuardRef.current = null;
       openIssueIdRef.current = openIssueId;
       return;
     }
@@ -81,7 +81,6 @@ export function DetailPanelProvider({ children }: { children: ReactNode }) {
       );
       return;
     }
-    closeGuardRef.current = null;
     openIssueIdRef.current = openIssueId;
   }, [openIssueId, checkGuard, setSearchParams]);
 

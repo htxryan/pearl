@@ -164,6 +164,44 @@ describe("useDetailPanel — URL reflection", () => {
     expect(new URLSearchParams(result.current.location.search).get("item")).toBe("beads-a");
   });
 
+  it("guard persists after a blocked external navigation (second attempt still blocked)", () => {
+    const { result } = renderHook(() => useDetailPanelWithLocation(), {
+      wrapper: makeWrapper(["/list?item=beads-a"]),
+    });
+    act(() => {
+      result.current.setCloseGuard(() => false);
+    });
+    // First external navigation attempt — blocked
+    act(() => {
+      result.current.navigate("/list");
+    });
+    expect(result.current.openIssueId).toBe("beads-a");
+    // Second external navigation attempt — should still be blocked
+    act(() => {
+      result.current.navigate("/list");
+    });
+    expect(result.current.openIssueId).toBe("beads-a");
+    expect(new URLSearchParams(result.current.location.search).get("item")).toBe("beads-a");
+  });
+
+  it("guard survives openDetail → setCloseGuard → openDetail sequence", () => {
+    const { result } = renderHook(() => useDetailPanelWithLocation(), {
+      wrapper: makeWrapper(["/list"]),
+    });
+    act(() => {
+      result.current.openDetail("beads-a");
+    });
+    expect(result.current.openIssueId).toBe("beads-a");
+    act(() => {
+      result.current.setCloseGuard(() => false);
+    });
+    // Try switching items — guard should block
+    act(() => {
+      result.current.openDetail("beads-b");
+    });
+    expect(result.current.openIssueId).toBe("beads-a");
+  });
+
   it("clears close guard after a successful close", () => {
     const { result } = renderHook(() => useDetailPanelWithLocation(), {
       wrapper: makeWrapper(["/list?item=beads-a"]),
