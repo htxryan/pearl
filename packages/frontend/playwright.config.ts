@@ -4,6 +4,8 @@ const port = 4174;
 
 export default defineConfig({
   testDir: "./e2e",
+  snapshotPathTemplate:
+    "{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -34,7 +36,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `pnpm build && pnpm preview --port ${port}`,
+    command: process.env.CI
+      ? `pnpm preview --port ${port}`
+      : `pnpm build && pnpm preview --port ${port}`,
     port,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

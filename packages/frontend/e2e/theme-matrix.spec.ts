@@ -29,13 +29,7 @@ const PRIMITIVE_SECTIONS = [
 
 for (const themeId of THEMES) {
   test.describe(`Theme: ${themeId}`, () => {
-    test.beforeEach(async ({ page }) => {
-      await page.evaluate((id) => {
-        localStorage.setItem("pearl-theme", id);
-      }, themeId);
-      await page.reload();
-      await page.waitForSelector('[data-testid="primitive-showcase"]');
-    });
+    test.use({ showcaseTheme: themeId });
 
     test(`full-page snapshot`, async ({ page }) => {
       await expect(page).toHaveScreenshot(`${themeId}-full.png`);

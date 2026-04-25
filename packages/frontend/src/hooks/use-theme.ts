@@ -73,8 +73,19 @@ function persistTheme(theme: ThemeDefinition) {
   }
 }
 
+function setThemeById(id: string) {
+  const resolved = getTheme(id) ?? getDefaultTheme();
+  currentSnapshot = resolved;
+  applyTheme(resolved);
+  persistTheme(resolved);
+  emitChange();
+}
+
 if (typeof document !== "undefined") {
   applyTheme(getEffectiveTheme());
+
+  // Expose for E2E testing
+  (window as any).__pearlSetTheme = setThemeById;
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     if (getStoredThemeId()) return;
@@ -96,14 +107,6 @@ export function useTheme(): {
   setTheme: (id: string) => void;
 } {
   const theme = useSyncExternalStore(subscribe, getSnapshot);
-
-  const setTheme = useCallback((id: string) => {
-    const resolved = getTheme(id) ?? getDefaultTheme();
-    currentSnapshot = resolved;
-    applyTheme(resolved);
-    persistTheme(resolved);
-    emitChange();
-  }, []);
-
+  const setTheme = useCallback(setThemeById, []);
   return { themeId: theme.id, theme, setTheme };
 }

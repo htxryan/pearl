@@ -1,18 +1,11 @@
-import { Navigate, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 import { useSetupStatus } from "@/hooks/use-issues";
 
-/**
- * Wraps app content and redirects to /setup when the backend reports
- * configured: false. Also prevents navigating away from /setup when
- * setup is still needed.
- */
-export function SetupGuard({ children }: { children: React.ReactNode }) {
+export function SetupGuard() {
   const { data: status, isLoading, error } = useSetupStatus();
   const location = useLocation();
 
-  // While loading or if the backend is unreachable, render children
-  // (the health banner will show connectivity issues)
-  if (isLoading || error) return <>{children}</>;
+  if (isLoading || error) return <Outlet />;
 
   const onSetupPage = location.pathname === "/setup";
 
@@ -24,5 +17,5 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
     return <Navigate to="/list" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 }

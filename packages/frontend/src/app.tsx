@@ -39,17 +39,17 @@ export function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <SetupGuard>
-            <Routes>
+          <Routes>
+            <Route
+              path="__showcase"
+              element={
+                <Suspense fallback={<ViewFallback />}>
+                  <PrimitiveShowcase />
+                </Suspense>
+              }
+            />
+            <Route element={<SetupGuard />}>
               <Route path="setup" element={<SetupView />} />
-              <Route
-                path="__showcase"
-                element={
-                  <Suspense fallback={<ViewFallback />}>
-                    <PrimitiveShowcase />
-                  </Suspense>
-                }
-              />
               <Route element={<AppShell />}>
                 <Route index element={<Navigate to="/list" replace />} />
                 <Route path="list" element={<ListView />} />
@@ -94,8 +94,8 @@ export function App() {
                   }
                 />
               </Route>
-            </Routes>
-          </SetupGuard>
+            </Route>
+          </Routes>
         </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>
