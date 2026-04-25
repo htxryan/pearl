@@ -229,7 +229,12 @@ describe("DetailView", () => {
 
     renderWithProviders("pearl-beads-test");
 
-    expect(screen.getByText("Activity (1)")).toBeDefined();
+    // Activity is in a tab; the label shows the count.
+    const activityTab = screen.getByRole("tab", { name: /Activity \(1\)/ });
+    expect(activityTab).toBeDefined();
+
+    // Activate the Activity tab so its panel content is visible.
+    fireEvent.click(activityTab);
     expect(screen.getByText("user1")).toBeDefined();
   });
 

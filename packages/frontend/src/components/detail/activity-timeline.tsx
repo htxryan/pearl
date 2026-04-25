@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 interface ActivityTimelineProps {
   events: Event[];
+  /** When true, the section heading is omitted (the parent renders the label, e.g. a tab). */
+  hideTitle?: boolean;
 }
 
 interface FieldChange {
@@ -64,7 +66,7 @@ const FILTER_EVENT_TYPES: Record<string, string[]> = {
   reopened: ["reopened"],
 };
 
-export function ActivityTimeline({ events }: ActivityTimelineProps) {
+export function ActivityTimeline({ events, hideTitle = false }: ActivityTimelineProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [filterType, setFilterType] = useState<string>("all");
 
@@ -100,10 +102,12 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
-          Activity ({groupedEvents.length})
-        </h2>
+      <div className={cn("flex items-center mb-3", hideTitle ? "justify-end" : "justify-between")}>
+        {!hideTitle && (
+          <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
+            Activity ({groupedEvents.length})
+          </h2>
+        )}
         <CustomSelect
           value={filterType}
           options={EVENT_FILTER_OPTIONS}

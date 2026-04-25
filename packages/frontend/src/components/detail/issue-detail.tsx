@@ -1,7 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ActivityTimeline } from "@/components/detail/activity-timeline";
 import { AttachmentsGallery } from "@/components/detail/attachments-gallery";
-import { CommentThread } from "@/components/detail/comment-thread";
+import { CommentsActivityTabs } from "@/components/detail/comments-activity-tabs";
 import { DependencyList } from "@/components/detail/dependency-list";
 import { DetailHeader } from "@/components/detail/detail-header";
 import { Lightbox } from "@/components/detail/lightbox";
@@ -189,16 +188,12 @@ export function IssueDetail({
         />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Comments" hasContent={comments.length > 0}>
-        <CommentThread
-          comments={comments}
-          onAdd={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
-          isAdding={addCommentMutation.isPending}
-          hideTitle={isMobile}
-        />
-      </CollapsibleSection>
-
-      <ActivityTimeline events={events} />
+      <CommentsActivityTabs
+        comments={comments}
+        events={events}
+        onAddComment={(text) => addCommentMutation.mutateAsync({ issueId: id, data: { text } })}
+        isAddingComment={addCommentMutation.isPending}
+      />
     </DetailSections>
   );
 
