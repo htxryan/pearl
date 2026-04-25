@@ -7,6 +7,7 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
+import { PencilIcon } from "@/components/ui/pencil-icon";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
@@ -212,15 +213,17 @@ export function MarkdownSection({
         {!isEditing && (
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => {
               setEditValue(content ?? "");
               setIsEditing(true);
               setActiveTab("write");
             }}
-            className="text-xs"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            aria-label={`Edit ${title}`}
+            title={`Edit ${title}`}
           >
-            Edit
+            <PencilIcon />
           </Button>
         )}
       </div>

@@ -75,7 +75,7 @@ test.describe("Detail View", () => {
     // Target the Edit button adjacent to the Description heading, not the
     // first Edit on the page (which may be the title inline editor).
     const descriptionSection = descriptionHeading.locator("..").locator("..");
-    const editBtn = descriptionSection.getByRole("button", { name: /^edit$/i }).first();
+    const editBtn = descriptionSection.getByRole("button", { name: /^edit\b/i }).first();
     await expect(editBtn).toBeVisible();
     await editBtn.click();
     const editor = descriptionSection.locator("textarea").first();
