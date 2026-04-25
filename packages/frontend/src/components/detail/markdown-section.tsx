@@ -7,7 +7,15 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, PlusIcon, SaveIcon, XIcon } from "@/components/ui/icons";
+import {
+  ImageIcon,
+  LinkIcon,
+  ListBulletIcon,
+  PencilIcon,
+  PlusIcon,
+  SaveIcon,
+  XIcon,
+} from "@/components/ui/icons";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
@@ -267,26 +275,14 @@ export function MarkdownSection({
                   {"<>"}
                 </ToolbarButton>
                 <ToolbarButton label="Link" onClick={() => handleToolbar("link")}>
-                  &#128279;
+                  <LinkIcon size={14} />
                 </ToolbarButton>
                 <ToolbarButton label="List" onClick={() => handleToolbar("list")}>
-                  &equiv;
+                  <ListBulletIcon size={14} />
                 </ToolbarButton>
                 <div className="w-px h-4 bg-border mx-1" />
                 <ToolbarButton label="Attach image" onClick={handleFilePick} disabled={isUploading}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-3.5 h-3.5"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M1 5.25A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17H3.25A2.25 2.25 0 0 1 1 14.75v-9.5Zm1.5 5.81V14.75c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-2.06l-2.72-2.72a.75.75 0 0 0-1.06 0l-2.97 2.97-1.22-1.22a.75.75 0 0 0-1.06 0L2.5 11.06ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <ImageIcon size={14} />
                 </ToolbarButton>
               </div>
             )}

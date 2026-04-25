@@ -181,7 +181,7 @@ export function FilterBar({
             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             aria-label="Clear search"
           >
-            &times;
+            <XIcon size={12} />
           </button>
         )}
       </div>
@@ -350,19 +350,7 @@ export function FilterBar({
             aria-expanded={filtersExpanded}
             aria-label="Toggle filters"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            >
-              <line x1="2" y1="4" x2="14" y2="4" />
-              <line x1="4" y1="8" x2="12" y2="8" />
-              <line x1="6" y1="12" x2="10" y2="12" />
-            </svg>
+            <FilterIcon size={16} />
             Filters
             {activeCount > 0 && (
               <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary text-[10px] font-semibold text-primary-foreground px-1">

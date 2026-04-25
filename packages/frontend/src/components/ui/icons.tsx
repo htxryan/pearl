@@ -313,3 +313,34 @@ export function SearchIcon({ size = 14, className }: IconProps = {}) {
     </svg>
   );
 }
+
+export function LinkIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M7 9l2-2" />
+      <path d="M9.5 6.5l1.25-1.25a2 2 0 012.83 2.83L12.33 9.33a2 2 0 01-2.83 0" />
+      <path d="M6.5 9.5L5.25 10.75a2 2 0 01-2.83-2.83L3.67 6.67a2 2 0 012.83 0" />
+    </svg>
+  );
+}
+
+export function ImageIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className} fill="currentColor" stroke="none">
+      <rect x="1" y="3" width="14" height="10" rx="1.5" fill="none" stroke="currentColor" />
+      <circle cx="5" cy="6.5" r="1.25" />
+      <path d="M1.5 12l3.5-4 2.5 3 2-2 4 4H2.5a1 1 0 01-1-1z" />
+    </svg>
+  );
+}
+
+export function ListBulletIcon({ size = 14, className }: IconProps = {}) {
+  return (
+    <svg {...svgProps(size)} className={className}>
+      <path d="M5 4h9M5 8h9M5 12h9" />
+      <circle cx="2.5" cy="4" r="0.6" fill="currentColor" />
+      <circle cx="2.5" cy="8" r="0.6" fill="currentColor" />
+      <circle cx="2.5" cy="12" r="0.6" fill="currentColor" />
+    </svg>
+  );
+}
