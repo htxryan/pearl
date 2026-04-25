@@ -19,7 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { IssueListItem } from "@pearl/shared";
 import { flexRender, type Header, type Row, type Table } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { getColumnStyle } from "./column-style";
@@ -35,6 +35,10 @@ const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
   ...transform,
   y: 0,
 });
+
+const MODIFIERS = [restrictToHorizontalAxis];
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 4 } };
+const KEYBOARD_SENSOR_OPTIONS = { coordinateGetter: sortableKeyboardCoordinates };
 
 export interface IssueTableProps {
   table: Table<IssueListItem>;
@@ -92,14 +96,14 @@ function DraggableHeader({
   });
 
   const baseStyle = getColumnStyle(header, table);
-  const dragStyle = {
+  const dragStyle: React.CSSProperties = {
     ...baseStyle,
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 1 : undefined,
-    position: isDragging ? "relative" : (baseStyle as { position?: string }).position,
-  } as React.CSSProperties;
+    position: isDragging ? "relative" : undefined,
+  };
 
   const dragHandleProps = isFixed ? {} : { ...attributes, ...listeners };
   const dragHandleClass = isFixed
@@ -123,6 +127,7 @@ function DraggableHeader({
             type="button"
             {...dragHandleProps}
             aria-roledescription="column drag handle"
+            aria-label={`Drag to reorder ${headerLabel}`}
             title={`Drag to reorder · ${headerLabel}`}
             className={cn(
               "inline-flex items-center justify-center -ml-1 mr-0.5 h-4 w-3 text-muted-foreground/40 hover:text-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity leading-none bg-transparent border-0 p-0",
@@ -184,37 +189,43 @@ function DraggableHeader({
 
 function TableHeader({ table }: { table: Table<IssueListItem> }) {
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(PointerSensor, POINTER_SENSOR_OPTIONS),
+    useSensor(KeyboardSensor, KEYBOARD_SENSOR_OPTIONS),
   );
 
   const headers = table.getHeaderGroups()[0]?.headers ?? [];
-  const orderedIds = headers.map((h) => h.column.id);
-  const sortableIds = orderedIds.filter((id) => !FIXED_COLUMNS.has(id));
+  const visibleIds = headers.map((h) => h.column.id);
+  const sortableIds = visibleIds.filter((id) => !FIXED_COLUMNS.has(id));
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    if (FIXED_COLUMNS.has(activeId) || FIXED_COLUMNS.has(overId)) return;
+  const allColumnIds = useMemo(() => table.getAllLeafColumns().map((c) => c.id), [table]);
 
-    const oldIdx = orderedIds.indexOf(activeId);
-    const newIdx = orderedIds.indexOf(overId);
-    if (oldIdx < 0 || newIdx < 0) return;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const activeId = String(active.id);
+      const overId = String(over.id);
+      if (FIXED_COLUMNS.has(activeId) || FIXED_COLUMNS.has(overId)) return;
 
-    const next = arrayMove(orderedIds, oldIdx, newIdx);
-    // Defensive: keep fixed columns at the front in stable order.
-    const fixed = orderedIds.filter((id) => FIXED_COLUMNS.has(id));
-    const movable = next.filter((id) => !FIXED_COLUMNS.has(id));
-    table.setColumnOrder([...fixed, ...movable]);
-  };
+      const oldIdx = visibleIds.indexOf(activeId);
+      const newIdx = visibleIds.indexOf(overId);
+      if (oldIdx < 0 || newIdx < 0) return;
+
+      const reordered = arrayMove(visibleIds, oldIdx, newIdx);
+      const fixed = visibleIds.filter((id) => FIXED_COLUMNS.has(id));
+      const movable = reordered.filter((id) => !FIXED_COLUMNS.has(id));
+      const visibleSet = new Set(visibleIds);
+      const hiddenIds = allColumnIds.filter((id) => !visibleSet.has(id));
+      table.setColumnOrder([...fixed, ...movable, ...hiddenIds]);
+    },
+    [visibleIds, allColumnIds, table],
+  );
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      modifiers={[restrictToHorizontalAxis]}
+      modifiers={MODIFIERS}
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
