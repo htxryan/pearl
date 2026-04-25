@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.12.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.11.2...pearl-bdui-v0.12.0) (2026-04-25)
+
+
+### Features
+
+* **filters:** add No Parent property + Ready built-ins (beads-gui-5xy0) ([56607bd](https://github.com/htxryan/pearl/commit/56607bdaef47730dce8c783fd1219fa9c2936d63))
+
+
+### Bug Fixes
+
+* **backend:** address review findings for MEDIUMTEXT migration ([7b2a197](https://github.com/htxryan/pearl/commit/7b2a1971d62780ce46b074d7a6e2f0a4851eccce))
+* **backend:** inline-mode image attachments fit in API and DB ([0557394](https://github.com/htxryan/pearl/commit/0557394a9546733bb839d1775c5d6d66adeb2450))
+* **filters:** handle CLI parent-child deps in no_parent filter + add migration ([c5fdd5e](https://github.com/htxryan/pearl/commit/c5fdd5e8e158a4625f10f44fc52b4f726c17fb3a))
+* **server:** make issue search case-insensitive ([e50f94f](https://github.com/htxryan/pearl/commit/e50f94f78eb66f4a3a359de6430e6940ef7eb33d))
+
 ## [0.11.2](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.11.1...pearl-bdui-v0.11.2) (2026-04-22)
 
 
