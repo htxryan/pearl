@@ -4,6 +4,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -247,8 +263,50 @@ export function PrimitiveShowcase() {
 
       <Separator />
 
+      <OverlayDemo />
+
+      <Separator />
+
       <SidebarDemo />
     </div>
+  );
+}
+
+function OverlayDemo() {
+  return (
+    <section data-testid="showcase-overlays">
+      <h2 className="text-lg font-semibold mb-4">Overlays (Dialog + DropdownMenu)</h2>
+      <div className="flex flex-wrap gap-3">
+        <Dialog>
+          <DialogTrigger render={<Button data-testid="dialog-trigger" />}>
+            Open Dialog
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Demo Dialog</DialogTitle>
+              <DialogDescription>
+                This is a dialog for testing focus trap and return.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose render={<Button variant="outline" data-testid="dialog-close" />}>
+                Close
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="outline" data-testid="dropdown-trigger" />}>
+            Open Dropdown
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem data-testid="dropdown-item-1">Action 1</DropdownMenuItem>
+            <DropdownMenuItem data-testid="dropdown-item-2">Action 2</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </section>
   );
 }
 
