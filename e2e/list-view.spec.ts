@@ -69,6 +69,48 @@ test.describe("List View", () => {
     ).toBeVisible({ timeout: 5_000 });
   });
 
+  test("column drag handles are present on reorderable columns", async ({ seededPage: page }) => {
+    const table = issueTable(page);
+    // Hover the title header to expose drag handle (CSS: opacity-0 group-hover:opacity-100)
+    const titleHeader = table.getByRole("columnheader", { name: /title/i });
+    await titleHeader.hover();
+    const handle = titleHeader.locator('[aria-roledescription="column drag handle"]');
+    await expect(handle).toBeVisible();
+  });
+
+  test("persisted column order from localStorage is reflected in header order", async ({
+    seededPage: page,
+  }) => {
+    // Move "Status" to be the second column (right after select).
+    await page.evaluate(() => {
+      const order = [
+        "select",
+        "status",
+        "id",
+        "title",
+        "priority",
+        "issue_type",
+        "assignee",
+        "created_at",
+        "due_at",
+        "labels",
+      ];
+      localStorage.setItem("beads:col-order", JSON.stringify(order));
+    });
+    await page.reload();
+
+    const table = issueTable(page);
+    await expect(table).toBeVisible();
+    const headers = table.locator("thead th[data-column-id]");
+    await expect(headers.first()).toBeVisible();
+    const ids = await headers.evaluateAll((els) =>
+      els.map((el) => (el as HTMLElement).dataset.columnId),
+    );
+    expect(ids[0]).toBe("select");
+    expect(ids[1]).toBe("status");
+    expect(ids.indexOf("status")).toBeLessThan(ids.indexOf("title"));
+  });
+
   test("column visibility menu is present", async ({ seededPage: page }) => {
     const columnsBtn = page.getByLabel("Toggle column visibility");
     await expect(columnsBtn).toBeVisible();

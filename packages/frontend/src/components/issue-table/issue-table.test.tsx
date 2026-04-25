@@ -89,18 +89,20 @@ function TableWrapper({
   activeRowIndex = -1,
   sorting = [{ id: "priority", desc: false }] as SortingState,
   highlightedIds,
+  columnOrder = [],
 }: {
   data?: IssueListItem[];
   isLoading?: boolean;
   activeRowIndex?: number;
   sorting?: SortingState;
   highlightedIds?: Set<string>;
+  columnOrder?: ColumnOrderState;
 }) {
   const columns = buildColumns({});
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, columnVisibility: {}, columnOrder: [], rowSelection: {} },
+    state: { sorting, columnVisibility: {}, columnOrder, rowSelection: {} },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableColumnResizing: true,
@@ -205,5 +207,69 @@ describe("IssueTable", () => {
     // In virtualized mode the DOM holds only the visible window (+ overscan),
     // not all 101 rows. jsdom has no real viewport so visible=0 + overscan=20 = ~20.
     expect(rows.length).toBeLessThan(101);
+  });
+
+  describe("column reordering", () => {
+    function getHeaderColumnIds() {
+      return Array.from(document.querySelectorAll("thead th[data-column-id]")).map(
+        (th) => (th as HTMLElement).dataset.columnId,
+      );
+    }
+
+    it("renders a drag handle on every reorderable column header", () => {
+      render(<TableWrapper />);
+      const handles = document.querySelectorAll(
+        'thead [aria-roledescription="column drag handle"]',
+      );
+      // 9 visible columns (has_attachments hidden by default isn't applied here),
+      // minus the fixed select column.
+      const visibleHeaders = document.querySelectorAll("thead th");
+      expect(handles.length).toBe(visibleHeaders.length - 1);
+    });
+
+    it("does not render a drag handle on the fixed select column", () => {
+      render(<TableWrapper />);
+      const selectHeader = document.querySelector('thead th[data-column-id="select"]');
+      expect(selectHeader).toBeTruthy();
+      expect(selectHeader?.querySelector('[aria-roledescription="column drag handle"]')).toBeNull();
+    });
+
+    it("respects columnOrder state when rendering header order", () => {
+      const customOrder: ColumnOrderState = [
+        "select",
+        "title",
+        "id",
+        "status",
+        "priority",
+        "issue_type",
+        "assignee",
+        "created_at",
+        "due_at",
+        "labels",
+      ];
+      render(<TableWrapper columnOrder={customOrder} />);
+      const ids = getHeaderColumnIds();
+      // title comes before id, reflecting the persisted custom order
+      expect(ids.indexOf("title")).toBeLessThan(ids.indexOf("id"));
+      expect(ids[0]).toBe("select");
+    });
+
+    it("uses default column order when columnOrder is empty", () => {
+      render(<TableWrapper columnOrder={[]} />);
+      const ids = getHeaderColumnIds();
+      expect(ids[0]).toBe("select");
+      expect(ids[1]).toBe("id");
+      expect(ids[2]).toBe("title");
+    });
+
+    it("drag handle has accessible roledescription", () => {
+      render(<TableWrapper />);
+      const handle = document.querySelector(
+        'thead th[data-column-id="title"] [aria-roledescription="column drag handle"]',
+      );
+      expect(handle).toBeTruthy();
+      expect(handle?.getAttribute("aria-roledescription")).toBe("column drag handle");
+      expect(handle?.getAttribute("title")).toContain("Title");
+    });
   });
 });

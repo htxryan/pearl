@@ -1,5 +1,23 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  type Modifier,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { IssueListItem } from "@pearl/shared";
-import { flexRender, type Row, type Table } from "@tanstack/react-table";
+import { flexRender, type Header, type Row, type Table } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -8,6 +26,15 @@ import { getColumnStyle } from "./column-style";
 
 const ROW_HEIGHT = 41; // px – matches py-2.5 + border
 const VIRTUALIZATION_THRESHOLD = 100;
+
+/** Columns that are pinned and cannot be reordered by the user. */
+const FIXED_COLUMNS: ReadonlySet<string> = new Set(["select"]);
+
+/** Constrain column drag to the X axis — columns only move sideways. */
+const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
+  ...transform,
+  y: 0,
+});
 
 export interface IssueTableProps {
   table: Table<IssueListItem>;
@@ -46,46 +73,162 @@ function SkeletonRow({ table }: { table: Table<IssueListItem> }) {
   );
 }
 
-function TableHeader({ table }: { table: Table<IssueListItem> }) {
+function getHeaderLabel(header: Header<IssueListItem, unknown>): string {
+  const h = header.column.columnDef.header;
+  return typeof h === "string" ? h : header.column.id;
+}
+
+function DraggableHeader({
+  header,
+  table,
+}: {
+  header: Header<IssueListItem, unknown>;
+  table: Table<IssueListItem>;
+}) {
+  const isFixed = FIXED_COLUMNS.has(header.column.id);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: header.column.id,
+    disabled: isFixed,
+  });
+
+  const baseStyle = getColumnStyle(header, table);
+  const dragStyle = {
+    ...baseStyle,
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : undefined,
+    position: isDragging ? "relative" : (baseStyle as { position?: string }).position,
+  } as React.CSSProperties;
+
+  const dragHandleProps = isFixed ? {} : { ...attributes, ...listeners };
+  const dragHandleClass = isFixed
+    ? ""
+    : "cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background rounded-sm";
+  const headerLabel = getHeaderLabel(header);
+
   return (
-    <thead className="sticky top-0 z-10 bg-background">
-      {table.getHeaderGroups().map((headerGroup) => (
-        <tr key={headerGroup.id} className="border-b border-border">
-          {headerGroup.headers.map((header) => (
-            <th
-              key={header.id}
-              className={cn(
-                "relative px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider select-none",
-                header.column.getCanSort() && "cursor-pointer hover:text-foreground",
-              )}
-              style={getColumnStyle(header, table)}
-              onClick={header.column.getToggleSortingHandler()}
+    <th
+      ref={setNodeRef}
+      className={cn(
+        "relative px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider select-none group",
+        header.column.getCanSort() && "hover:text-foreground",
+      )}
+      style={dragStyle}
+      data-column-id={header.column.id}
+    >
+      <div className="flex items-center gap-1">
+        {!isFixed && (
+          <button
+            type="button"
+            {...dragHandleProps}
+            aria-roledescription="column drag handle"
+            title={`Drag to reorder · ${headerLabel}`}
+            className={cn(
+              "inline-flex items-center justify-center -ml-1 mr-0.5 h-4 w-3 text-muted-foreground/40 hover:text-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity leading-none bg-transparent border-0 p-0",
+              dragHandleClass,
+            )}
+          >
+            <svg
+              width="6"
+              height="10"
+              viewBox="0 0 6 10"
+              fill="currentColor"
+              focusable="false"
+              role="img"
             >
-              <div className="flex items-center gap-1">
-                {flexRender(header.column.columnDef.header, header.getContext())}
-                {header.column.getIsSorted() === "asc" && (
-                  <span aria-label="Sorted ascending">&#9650;</span>
-                )}
-                {header.column.getIsSorted() === "desc" && (
-                  <span aria-label="Sorted descending">&#9660;</span>
-                )}
-              </div>
-              {header.column.getCanResize() && (
-                <div
-                  onMouseDown={header.getResizeHandler()}
-                  onTouchStart={header.getResizeHandler()}
-                  onClick={(e) => e.stopPropagation()}
-                  className={cn(
-                    "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none",
-                    header.column.getIsResizing() ? "bg-primary" : "hover:bg-border",
-                  )}
-                />
-              )}
-            </th>
+              <title>Drag handle</title>
+              <circle cx="1.25" cy="1.25" r="1" />
+              <circle cx="4.75" cy="1.25" r="1" />
+              <circle cx="1.25" cy="5" r="1" />
+              <circle cx="4.75" cy="5" r="1" />
+              <circle cx="1.25" cy="8.75" r="1" />
+              <circle cx="4.75" cy="8.75" r="1" />
+            </svg>
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={header.column.getToggleSortingHandler()}
+          disabled={!header.column.getCanSort()}
+          className={cn(
+            "flex items-center gap-1 min-w-0 text-left bg-transparent border-0 p-0 font-medium text-xs uppercase tracking-wider text-inherit",
+            header.column.getCanSort() ? "cursor-pointer hover:text-foreground" : "cursor-default",
+          )}
+        >
+          <span className="truncate">
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </span>
+          {header.column.getIsSorted() === "asc" && (
+            <span aria-label="Sorted ascending">&#9650;</span>
+          )}
+          {header.column.getIsSorted() === "desc" && (
+            <span aria-label="Sorted descending">&#9660;</span>
+          )}
+        </button>
+      </div>
+      {header.column.getCanResize() && (
+        <div
+          onMouseDown={header.getResizeHandler()}
+          onTouchStart={header.getResizeHandler()}
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none",
+            header.column.getIsResizing() ? "bg-primary" : "hover:bg-border",
+          )}
+        />
+      )}
+    </th>
+  );
+}
+
+function TableHeader({ table }: { table: Table<IssueListItem> }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const headers = table.getHeaderGroups()[0]?.headers ?? [];
+  const orderedIds = headers.map((h) => h.column.id);
+  const sortableIds = orderedIds.filter((id) => !FIXED_COLUMNS.has(id));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (FIXED_COLUMNS.has(activeId) || FIXED_COLUMNS.has(overId)) return;
+
+    const oldIdx = orderedIds.indexOf(activeId);
+    const newIdx = orderedIds.indexOf(overId);
+    if (oldIdx < 0 || newIdx < 0) return;
+
+    const next = arrayMove(orderedIds, oldIdx, newIdx);
+    // Defensive: keep fixed columns at the front in stable order.
+    const fixed = orderedIds.filter((id) => FIXED_COLUMNS.has(id));
+    const movable = next.filter((id) => !FIXED_COLUMNS.has(id));
+    table.setColumnOrder([...fixed, ...movable]);
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      modifiers={[restrictToHorizontalAxis]}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
+        <thead className="sticky top-0 z-10 bg-background">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id} className="border-b border-border">
+              {headerGroup.headers.map((header) => (
+                <DraggableHeader key={header.id} header={header} table={table} />
+              ))}
+            </tr>
           ))}
-        </tr>
-      ))}
-    </thead>
+        </thead>
+      </SortableContext>
+    </DndContext>
   );
 }
 
