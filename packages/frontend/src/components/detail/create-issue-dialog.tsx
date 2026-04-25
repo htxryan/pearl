@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog } from "@/components/ui/dialog";
+import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { useCreateIssue } from "@/hooks/use-issues";
 import { cn } from "@/lib/utils";
@@ -276,10 +277,16 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-2 pt-2">
-          <Button type="button" variant="ghost" onClick={handleCancel}>
+          <Button type="button" variant="ghost" onClick={handleCancel} className="gap-1.5">
+            <XIcon />
             Cancel
           </Button>
-          <Button type="submit" disabled={!title.trim() || createMutation.isPending}>
+          <Button
+            type="submit"
+            disabled={!title.trim() || createMutation.isPending}
+            className="gap-1.5"
+          >
+            <PlusIcon />
             {createMutation.isPending ? "Creating..." : "Create Issue"}
           </Button>
         </div>

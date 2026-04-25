@@ -303,8 +303,9 @@ export function BulkActionBar({
                 size="sm"
                 onClick={handleReassignSubmit}
                 disabled={!assigneeInput.trim()}
-                className="w-full"
+                className="w-full gap-1.5"
               >
+                <ReassignIcon />
                 Reassign
               </Button>
             </div>
@@ -339,8 +340,9 @@ export function BulkActionBar({
                 size="sm"
                 onClick={handleAddLabelSubmit}
                 disabled={!labelInput.trim()}
-                className="w-full"
+                className="w-full gap-1.5"
               >
+                <TagPlusIcon />
                 Add label
               </Button>
             </div>
@@ -375,8 +377,9 @@ export function BulkActionBar({
                 size="sm"
                 onClick={handleRemoveLabelSubmit}
                 disabled={!removeLabelInput.trim()}
-                className="w-full"
+                className="w-full gap-1.5"
               >
+                <TagMinusIcon />
                 Remove label
               </Button>
             </div>
@@ -384,7 +387,14 @@ export function BulkActionBar({
         )}
       </div>
 
-      <Button variant="ghost" size="sm" onClick={onClearSelection} disabled={busy}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClearSelection}
+        disabled={busy}
+        className="gap-1.5"
+      >
+        <ClearIcon />
         Clear selection
       </Button>
     </div>
@@ -569,6 +579,14 @@ function TrashIcon() {
       <path d="M5 4V2.5a.5.5 0 01.5-.5h5a.5.5 0 01.5.5V4" />
       <path d="M4 4l.7 9a1 1 0 001 .9h4.6a1 1 0 001-.9L12 4" />
       <path d="M7 7v5M9 7v5" />
+    </svg>
+  );
+}
+
+function ClearIcon() {
+  return (
+    <svg {...svgProps(14)}>
+      <path d="M4 4l8 8M12 4l-8 8" />
     </svg>
   );
 }

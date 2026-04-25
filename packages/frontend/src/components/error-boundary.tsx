@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { RefreshIcon, ReloadIcon } from "@/components/ui/icons";
 
 interface Props {
   children: ReactNode;
@@ -90,7 +91,8 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
             <p className="text-sm font-medium text-destructive">{config.title}</p>
             <p className="mt-1 text-xs text-muted-foreground">{config.suggestion}</p>
-            <Button variant="outline" size="sm" className="mt-2" onClick={this.handleRetry}>
+            <Button variant="outline" size="sm" className="mt-2 gap-1.5" onClick={this.handleRetry}>
+              <RefreshIcon />
               Try Again
             </Button>
           </div>
@@ -116,8 +118,16 @@ export class ErrorBoundary extends Component<Props, State> {
               </details>
             )}
             <div className="mt-6 flex items-center justify-center gap-3">
-              <Button onClick={this.handleRetry}>Try Again</Button>
-              <Button variant="outline" onClick={() => window.location.reload()}>
+              <Button onClick={this.handleRetry} className="gap-1.5">
+                <RefreshIcon />
+                Try Again
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="gap-1.5"
+              >
+                <ReloadIcon />
                 Reload Page
               </Button>
             </div>

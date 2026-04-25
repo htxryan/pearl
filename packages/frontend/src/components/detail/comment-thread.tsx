@@ -6,6 +6,7 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
+import { SendIcon } from "@/components/ui/icons";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
@@ -196,7 +197,13 @@ export function CommentThread({ comments, onAdd, isAdding, hideTitle }: CommentT
               </svg>
             </button>
           </div>
-          <Button type="submit" size="sm" disabled={!newComment.trim() || isAdding || isUploading}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={!newComment.trim() || isAdding || isUploading}
+            className="gap-1.5"
+          >
+            <SendIcon />
             {isAdding ? "Posting..." : "Comment"}
           </Button>
         </div>

@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
+import { PlusIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
   icon: string;
   title: string;
   description: string;
-  action?: { label: string; onClick: () => void };
+  action?: { label: string; onClick: () => void; icon?: ReactNode };
   className?: string;
 }
 
@@ -18,9 +20,11 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       <p className="mt-1 max-w-xs text-sm text-muted-foreground">{description}</p>
       {action && (
         <button
+          type="button"
           onClick={action.onClick}
-          className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
+          {action.icon ?? <PlusIcon />}
           {action.label}
         </button>
       )}

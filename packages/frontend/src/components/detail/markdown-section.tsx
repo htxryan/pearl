@@ -7,6 +7,7 @@ import { AttachmentPill } from "@/components/detail/attachment-pill";
 import { ImageDropZone } from "@/components/detail/image-drop-zone";
 import { UploadErrors } from "@/components/detail/upload-errors";
 import { Button } from "@/components/ui/button";
+import { PlusIcon, SaveIcon, XIcon } from "@/components/ui/icons";
 import { PencilIcon } from "@/components/ui/pencil-icon";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
@@ -194,9 +195,10 @@ export function MarkdownSection({
             setIsEditing(true);
             setActiveTab("write");
           }}
-          className="text-xs text-muted-foreground hover:text-foreground"
+          className="gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
-          + Add {title}
+          <PlusIcon size={12} />
+          Add {title}
         </Button>
       </div>
     );
@@ -318,10 +320,18 @@ export function MarkdownSection({
           <UploadErrors errors={lastErrors} onDismiss={clearErrors} />
 
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={handleSave} disabled={isUploading}>
+            <Button size="sm" onClick={handleSave} disabled={isUploading} className="gap-1.5">
+              <SaveIcon />
               Save
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isUploading}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              disabled={isUploading}
+              className="gap-1.5"
+            >
+              <XIcon />
               Cancel
             </Button>
             <span className="text-xs text-muted-foreground ml-auto">

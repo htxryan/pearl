@@ -8,6 +8,7 @@ import { GroupedIssueTable } from "@/components/issue-table/grouped-issue-table"
 import { IssueCardList } from "@/components/issue-table/issue-card";
 import { IssueTable } from "@/components/issue-table/issue-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FilterIcon, PlusIcon } from "@/components/ui/icons";
 import { type CommandAction, useCommandPaletteActions } from "@/hooks/use-command-palette";
 import { useAllDependencies } from "@/hooks/use-dependencies";
 import { useDetailPanel } from "@/hooks/use-detail-panel";
@@ -226,13 +227,14 @@ export function ListView() {
               <button
                 type="button"
                 onClick={() => setTopLevelOnly((prev) => !prev)}
-                className={`h-8 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
+                className={`inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded border px-3 text-xs font-medium transition-colors ${
                   topLevelOnly
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:text-foreground"
                 }`}
                 aria-pressed={topLevelOnly}
               >
+                <FilterIcon size={12} />
                 Top-level only
               </button>
             </div>
@@ -283,8 +285,9 @@ export function ListView() {
               type="button"
               onClick={handleQuickAdd}
               disabled={createMutation.isPending}
-              className="h-7 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+              className="inline-flex h-7 items-center gap-1 rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
             >
+              <PlusIcon size={12} />
               {createMutation.isPending ? "Creating..." : "Create"}
             </button>
           )}

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import { BoardIcon, GraphIcon, ListIcon } from "@/components/ui/icons";
 
 export function NotFoundView() {
   const navigate = useNavigate();
@@ -14,13 +15,16 @@ export function NotFoundView() {
         </p>
       </div>
       <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={() => navigate("/list")}>
+        <Button variant="outline" onClick={() => navigate("/list")} className="gap-1.5">
+          <ListIcon />
           List View
         </Button>
-        <Button variant="outline" onClick={() => navigate("/board")}>
+        <Button variant="outline" onClick={() => navigate("/board")} className="gap-1.5">
+          <BoardIcon />
           Board View
         </Button>
-        <Button variant="outline" onClick={() => navigate("/graph")}>
+        <Button variant="outline" onClick={() => navigate("/graph")} className="gap-1.5">
+          <GraphIcon />
           Graph View
         </Button>
       </div>

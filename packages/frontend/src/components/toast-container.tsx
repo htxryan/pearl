@@ -1,3 +1,4 @@
+import { XIcon } from "@/components/ui/icons";
 import { dismissToast, type Toast, type ToastVariant, useToasts } from "@/hooks/use-toast";
 
 const variantStyles: Record<ToastVariant, string> = {
@@ -40,7 +41,7 @@ function ToastItem({ toast }: { toast: Toast }) {
         className="shrink-0 rounded p-0.5 text-current opacity-60 hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-ring"
         aria-label="Dismiss"
       >
-        ✕
+        <XIcon size={12} />
       </button>
     </div>
   );

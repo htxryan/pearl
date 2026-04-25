@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { CloseIcon } from "@/components/ui/close-icon";
 import { isMacPlatform } from "@/lib/utils";
 
 // ─── State ─────────────────────────────────────────────
@@ -138,11 +139,12 @@ export function KeyboardHelpOverlay() {
             Keyboard Shortcuts
           </h2>
           <button
+            type="button"
             onClick={closeKeyboardHelp}
             className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close"
           >
-            &times;
+            <CloseIcon />
           </button>
         </div>
 

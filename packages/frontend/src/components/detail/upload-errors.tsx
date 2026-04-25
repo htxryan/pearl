@@ -1,3 +1,4 @@
+import { XIcon } from "@/components/ui/icons";
 import type { UploadError } from "@/hooks/use-image-upload";
 
 interface UploadErrorsProps {
@@ -22,10 +23,10 @@ export function UploadErrors({ errors, onDismiss }: UploadErrorsProps) {
         <button
           type="button"
           onClick={onDismiss}
-          className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+          className="shrink-0 text-muted-foreground hover:text-foreground"
           aria-label="Dismiss errors"
         >
-          &times;
+          <XIcon size={12} />
         </button>
       </div>
     </div>

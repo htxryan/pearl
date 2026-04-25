@@ -2,6 +2,7 @@ import type { Event } from "@pearl/shared";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { ChevronDownExpandIcon } from "@/components/ui/icons";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { cn } from "@/lib/utils";
 
@@ -221,7 +222,9 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
             variant="ghost"
             size="sm"
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+            className="gap-1.5"
           >
+            <ChevronDownExpandIcon />
             Show more ({groupedEvents.length - visibleCount} remaining)
           </Button>
         </div>

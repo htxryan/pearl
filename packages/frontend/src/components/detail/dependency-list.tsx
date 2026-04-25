@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useIssue } from "@/hooks/use-issues";
@@ -69,9 +70,19 @@ export function DependencyList({
             setShowAddForm(!showAddForm);
             setAddError(null);
           }}
-          className="text-xs"
+          className="gap-1 text-xs"
         >
-          {showAddForm ? "Cancel" : "+ Add"}
+          {showAddForm ? (
+            <>
+              <XIcon size={12} />
+              Cancel
+            </>
+          ) : (
+            <>
+              <PlusIcon size={12} />
+              Add
+            </>
+          )}
         </Button>
       </div>
 
@@ -345,11 +356,13 @@ function DependencyRow({ targetId, onRemove }: { targetId: string; onRemove: () 
           )}
         </div>
         <button
+          type="button"
           onClick={() => setShowConfirm(true)}
-          className="text-xs text-muted-foreground hover:text-destructive shrink-0"
+          className="text-muted-foreground hover:text-destructive shrink-0"
           title="Remove dependency"
+          aria-label="Remove dependency"
         >
-          x
+          <XIcon size={12} />
         </button>
       </div>
       <ConfirmDialog

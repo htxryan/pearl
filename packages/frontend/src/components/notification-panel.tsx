@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import { CheckIcon } from "@/components/ui/icons";
 import {
   type AppNotification,
   dismissNotification,
@@ -204,8 +205,9 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={markAllAsRead}
-            className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
           >
+            <CheckIcon size={12} />
             Mark all as read
           </button>
         )}

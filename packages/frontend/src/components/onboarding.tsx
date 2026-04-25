@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { ArrowRightIcon, XIcon } from "@/components/ui/icons";
 
 const STORAGE_KEY = "pearl-onboarding-complete";
 
@@ -95,16 +96,20 @@ export function OnboardingBanner() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
+            type="button"
             onClick={handleDismiss}
-            className="text-xs text-info hover:text-info-foreground transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-info hover:text-info-foreground transition-colors"
           >
+            <XIcon size={12} />
             Skip
           </button>
           <button
+            type="button"
             onClick={handleNext}
-            className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             {step < STEPS.length - 1 ? "Next" : "Get started"}
+            <ArrowRightIcon size={12} />
           </button>
         </div>
       </div>

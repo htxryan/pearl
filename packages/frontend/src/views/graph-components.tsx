@@ -1,5 +1,6 @@
 import { BaseEdge, type EdgeProps, getBezierPath, Panel, useReactFlow } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
+import { FitViewIcon, ZoomInIcon, ZoomOutIcon } from "@/components/ui/icons";
 
 // ─── Custom Edge with hover label ────────────────────
 
@@ -68,8 +69,9 @@ export function GraphControls() {
           className="h-8 w-8"
           onClick={() => zoomIn()}
           title="Zoom in"
+          aria-label="Zoom in"
         >
-          +
+          <ZoomInIcon />
         </Button>
         <Button
           variant="outline"
@@ -77,8 +79,9 @@ export function GraphControls() {
           className="h-8 w-8"
           onClick={() => zoomOut()}
           title="Zoom out"
+          aria-label="Zoom out"
         >
-          {"\u2212"}
+          <ZoomOutIcon />
         </Button>
         <Button
           variant="outline"
@@ -86,8 +89,9 @@ export function GraphControls() {
           className="h-8 w-8"
           onClick={() => fitView({ padding: 0.3, minZoom: 0.5, maxZoom: 2 })}
           title="Fit view"
+          aria-label="Fit view"
         >
-          {"\u2299"}
+          <FitViewIcon />
         </Button>
       </div>
     </Panel>

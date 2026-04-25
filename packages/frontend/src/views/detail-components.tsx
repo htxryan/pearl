@@ -2,6 +2,7 @@ import type { IssueStatus } from "@pearl/shared";
 import { Children } from "react";
 import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { ArrowLeftIcon } from "@/components/ui/icons";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 // ─── Helper Components ─────────────────────────────────
@@ -123,7 +124,8 @@ export function DetailErrorView({
       <div className="text-4xl">!</div>
       <h2 className="text-xl font-semibold">Issue not found</h2>
       <p className="text-muted-foreground">{error?.message ?? `Could not load issue ${id}`}</p>
-      <Button variant="outline" onClick={onBack}>
+      <Button variant="outline" onClick={onBack} className="gap-1.5">
+        <ArrowLeftIcon />
         Back to {backLabel.toLowerCase()}
       </Button>
     </div>

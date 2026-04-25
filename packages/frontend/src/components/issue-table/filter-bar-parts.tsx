@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { PlusIcon, SaveIcon } from "@/components/ui/icons";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toast";
 import {
@@ -433,6 +434,7 @@ function SaveAsInline({
         onClick={() => setShowInput(true)}
         className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent"
       >
+        <PlusIcon size={12} />
         Save as new filter...
       </button>
     );
@@ -458,8 +460,9 @@ function SaveAsInline({
         type="button"
         onClick={handleSave}
         disabled={!newName.trim()}
-        className="h-7 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
+        className="inline-flex h-7 items-center gap-1 rounded bg-primary px-2 text-xs text-primary-foreground disabled:opacity-50"
       >
+        <SaveIcon size={12} />
         Save
       </button>
     </div>

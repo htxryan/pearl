@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, type Settings, type StorageMode } from "@pearl/shared";
 import { useCallback, useEffect, useState } from "react";
+import { RefreshIcon, SaveIcon } from "@/components/ui/icons";
 import { useSettings, useUpdateSettings } from "@/hooks/use-settings";
 import { cn } from "@/lib/utils";
 
@@ -337,12 +338,13 @@ export function AttachmentSettings() {
           onClick={handleSave}
           disabled={!isDirty || updateMutation.isPending}
           className={cn(
-            "rounded-md px-4 py-2 text-sm font-medium transition-colors",
+            "inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-colors",
             isDirty && !updateMutation.isPending
               ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : "cursor-not-allowed bg-muted text-muted-foreground",
           )}
         >
+          <SaveIcon />
           {updateMutation.isPending ? "Saving..." : "Save changes"}
         </button>
 
@@ -350,8 +352,9 @@ export function AttachmentSettings() {
           type="button"
           onClick={handleReset}
           disabled={updateMutation.isPending}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/30"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/30"
         >
+          <RefreshIcon />
           Reset to defaults
         </button>
 

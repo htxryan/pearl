@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRightIcon, CheckIcon, PlugIcon } from "@/components/ui/icons";
 import * as api from "@/lib/api-client";
 
 type MigrationState = "idle" | "testing" | "migrating" | "error";
 
 const primaryBtn =
-  "rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-1.5 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed";
 const outlineBtn =
-  "rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed";
 
 export function EmbeddedModeModal() {
   const [tab, setTab] = useState<"managed" | "external">("managed");
@@ -167,6 +168,7 @@ export function EmbeddedModeModal() {
               className={`w-full ${primaryBtn}`}
               data-testid="migrate-managed-btn"
             >
+              <ArrowRightIcon />
               {state === "migrating" ? "Migrating..." : "Start Pearl-managed server"}
             </button>
           </div>
@@ -231,6 +233,7 @@ export function EmbeddedModeModal() {
                 className={outlineBtn}
                 data-testid="test-connection-btn"
               >
+                {connectionOk ? <CheckIcon /> : <PlugIcon />}
                 {state === "testing"
                   ? "Testing..."
                   : connectionOk
@@ -244,6 +247,7 @@ export function EmbeddedModeModal() {
                 className={`flex-1 ${primaryBtn}`}
                 data-testid="migrate-external-btn"
               >
+                <ArrowRightIcon />
                 {state === "migrating" ? "Migrating..." : "Migrate"}
               </button>
             </div>

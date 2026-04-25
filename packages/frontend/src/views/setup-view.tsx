@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon, ArrowRightIcon, PlugIcon } from "@/components/ui/icons";
 import { setupKeys } from "@/hooks/use-issues";
 import { initializeSetup } from "@/lib/api-client";
 
@@ -318,10 +319,17 @@ function ServerConfig({
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeftIcon size={12} />
           Back
         </button>
-        <Button onClick={onSubmit}>Test &amp; Connect</Button>
+        <Button onClick={onSubmit} className="gap-1.5">
+          <PlugIcon />
+          Test &amp; Connect
+        </Button>
       </div>
     </div>
   );
@@ -363,8 +371,9 @@ function Done({ onContinue }: { onContinue: () => void }) {
       <p className="mt-2 text-center text-sm text-muted-foreground">
         Your database is configured and ready. Start tracking your issues.
       </p>
-      <Button className="mt-6" onClick={onContinue}>
+      <Button className="mt-6 gap-1.5" onClick={onContinue}>
         Get started
+        <ArrowRightIcon />
       </Button>
     </div>
   );

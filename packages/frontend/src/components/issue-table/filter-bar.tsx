@@ -1,6 +1,7 @@
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { FilterIcon, XIcon } from "@/components/ui/icons";
 import { LabelPicker } from "@/components/ui/label-picker";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -261,12 +262,14 @@ export function FilterBar({
       {/* More filters toggle */}
       {!showMore && (
         <button
+          type="button"
           onClick={() => setShowMore(true)}
           className={cn(
-            "h-8 rounded border border-dashed border-border px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors",
+            "inline-flex h-8 items-center gap-1.5 rounded border border-dashed border-border px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors",
             isMobile && "min-h-[44px]",
           )}
         >
+          <FilterIcon size={12} />
           More filters
         </button>
       )}
@@ -309,16 +312,18 @@ export function FilterBar({
 
       {hasActiveFilters(filters) && (
         <button
+          type="button"
           onClick={() => {
             onChange(SHOW_ALL_FILTERS);
             selectPreset(null);
             setShowMore(false);
           }}
           className={cn(
-            "h-8 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+            "inline-flex h-8 items-center gap-1.5 rounded px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
             isMobile && "min-h-[44px]",
           )}
         >
+          <XIcon size={12} />
           Clear all
         </button>
       )}
