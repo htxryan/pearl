@@ -59,6 +59,31 @@
       "trailingCommas": "all"
     }
   },
+  "overrides": [
+    {
+      "includes": ["packages/frontend/src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useButtonType": "off",
+            "useKeyWithClickEvents": "off",
+            "noSvgWithoutTitle": "off",
+            "noStaticElementInteractions": "off",
+            "useSemanticElements": "off",
+            "noNoninteractiveElementToInteractiveRole": "off",
+            "useFocusableInteractive": "off",
+            "noAutofocus": "off",
+            "useValidAnchor": "off",
+            "useAriaPropsSupportedByRole": "off",
+            "noLabelWithoutControl": "off"
+          },
+          "correctness": {
+            "noUnusedImports": "off"
+          }
+        }
+      }
+    }
+  ],
   "files": {
     "includes": [
       "packages/*/src/**",

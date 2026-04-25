@@ -5,10 +5,6 @@ import { getDefaultTheme, getTheme } from "@/themes";
 const STORAGE_KEY = "pearl-theme";
 const CACHE_KEY = "pearl-theme-cache";
 
-// ---------------------------------------------------------------------------
-// Internal state
-// ---------------------------------------------------------------------------
-
 let listeners: Array<() => void> = [];
 
 function subscribe(listener: () => void) {
@@ -22,15 +18,10 @@ function emitChange() {
   listeners.forEach((l) => l());
 }
 
-// ---------------------------------------------------------------------------
-// Resolve the effective theme from storage or system default
-// ---------------------------------------------------------------------------
-
 function getStoredThemeId(): string | null {
   try {
     return localStorage.getItem(STORAGE_KEY);
   } catch {
-    // localStorage unavailable
     return null;
   }
 }
@@ -44,25 +35,17 @@ function getEffectiveTheme(): ThemeDefinition {
   return getDefaultTheme();
 }
 
-// ---------------------------------------------------------------------------
-// Apply a theme to the document
-// ---------------------------------------------------------------------------
-
 function applyTheme(theme: ThemeDefinition) {
   const root = document.documentElement;
-
-  // Toggle .dark class and color-scheme property based on colorScheme
   const isDark = theme.colorScheme === "dark";
+
   root.classList.toggle("dark", isDark);
   root.style.colorScheme = isDark ? "dark" : "light";
 
-  // Clear any previously-set --color-* inline styles so stale dark-theme
-  // values don't persist when switching to a light theme (or vice-versa).
-  // We iterate a snapshot because removing properties mutates the live object.
   const toRemove: string[] = [];
   for (let i = 0; i < root.style.length; i++) {
     const prop = root.style[i];
-    if (prop.startsWith("--color-")) {
+    if (prop.startsWith("--") && !prop.startsWith("--shadow") && !prop.startsWith("--spacing")) {
       toRemove.push(prop);
     }
   }
@@ -70,15 +53,10 @@ function applyTheme(theme: ThemeDefinition) {
     root.style.removeProperty(prop);
   }
 
-  // Apply CSS custom properties
   for (const [token, value] of Object.entries(theme.colors)) {
-    root.style.setProperty(`--color-${token}`, value);
+    root.style.setProperty("--" + token, value);
   }
 }
-
-// ---------------------------------------------------------------------------
-// Persist theme choice
-// ---------------------------------------------------------------------------
 
 function persistTheme(theme: ThemeDefinition) {
   try {
@@ -92,28 +70,15 @@ function persistTheme(theme: ThemeDefinition) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Module-level initialization — runs at import time to prevent FOTC
-// ---------------------------------------------------------------------------
-
 if (typeof document !== "undefined") {
   applyTheme(getEffectiveTheme());
 }
-
-// ---------------------------------------------------------------------------
-// Snapshot for useSyncExternalStore — must return a referentially-stable value
-// when nothing has changed.
-// ---------------------------------------------------------------------------
 
 let currentSnapshot = getEffectiveTheme();
 
 function getSnapshot(): ThemeDefinition {
   return currentSnapshot;
 }
-
-// ---------------------------------------------------------------------------
-// Public hook
-// ---------------------------------------------------------------------------
 
 export function useTheme(): {
   themeId: string;

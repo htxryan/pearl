@@ -31,7 +31,7 @@ describe("useTheme", () => {
       result.current.setTheme("vscode-monokai");
     });
 
-    expect(document.documentElement.style.getPropertyValue("--color-background")).toBe("#272822");
+    expect(document.documentElement.style.getPropertyValue("--background")).toBe("#272822");
   });
 
   it("setTheme toggles .dark class for dark themes", () => {

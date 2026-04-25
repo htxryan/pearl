@@ -297,12 +297,12 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
 
-    it("sets --color-background to the theme's background value", () => {
+    it("sets --background to the theme's background value", () => {
       renderApp("/settings");
 
       selectThemeViaSettings("Monokai");
 
-      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--background")).toBe(
         monokai.colors.background,
       );
     });
@@ -340,12 +340,12 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
 
-    it("sets --color-background to the theme's background value via command palette", () => {
+    it("sets --background to the theme's background value via command palette", () => {
       renderApp("/list");
 
       selectThemeViaCommandPalette("Monokai");
 
-      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--background")).toBe(
         monokai.colors.background,
       );
     });
@@ -363,7 +363,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       const { unmount: unmount1 } = renderApp("/list");
       selectThemeViaCommandPalette("Monokai");
 
-      const cpBackground = document.documentElement.style.getPropertyValue("--color-background");
+      const cpBackground = document.documentElement.style.getPropertyValue("--background");
       const cpDark = document.documentElement.classList.contains("dark");
       const cpStored = localStorage.getItem("pearl-theme");
 
@@ -376,7 +376,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       renderApp("/settings");
       selectThemeViaSettings("Monokai");
 
-      const settBackground = document.documentElement.style.getPropertyValue("--color-background");
+      const settBackground = document.documentElement.style.getPropertyValue("--background");
       const settDark = document.documentElement.classList.contains("dark");
       const settStored = localStorage.getItem("pearl-theme");
 
@@ -406,19 +406,19 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       renderApp("/settings");
 
       selectThemeViaSettings("Monokai");
-      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--background")).toBe(
         monokai.colors.background,
       );
 
       selectThemeViaSettings("Solarized Light");
-      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--background")).toBe(
         solarizedLight.colors.background,
       );
       // Verify additional tokens (border, surface-raised) update correctly
-      expect(document.documentElement.style.getPropertyValue("--color-border")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--border")).toBe(
         solarizedLight.colors.border,
       );
-      expect(document.documentElement.style.getPropertyValue("--color-surface-raised")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--surface-raised")).toBe(
         solarizedLight.colors["surface-raised"],
       );
     });
@@ -469,7 +469,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       // Re-render — CSS custom properties survive on the shared document element
       renderApp("/list");
 
-      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--background")).toBe(
         monokai.colors.background,
       );
       expect(document.documentElement.classList.contains("dark")).toBe(true);
@@ -584,7 +584,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       // Now apply the default theme (Light+) explicitly
       selectThemeViaSettings("Light+ (Default Light)");
 
-      expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+      expect(document.documentElement.style.getPropertyValue("--background")).toBe(
         lightPlus.colors.background,
       );
       expect(document.documentElement.classList.contains("dark")).toBe(false);
@@ -653,8 +653,8 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
 
       // Verify every COLOR_TOKEN has a truthy CSS custom property
       for (const token of COLOR_TOKENS) {
-        const value = document.documentElement.style.getPropertyValue(`--color-${token}`);
-        expect(value, `Theme "${theme.name}" is missing --color-${token}`).toBeTruthy();
+        const value = document.documentElement.style.getPropertyValue(`--${token}`);
+        expect(value, `Theme "${theme.name}" is missing --${token}`).toBeTruthy();
       }
 
       // Verify .dark class matches colorScheme
@@ -673,7 +673,7 @@ describe("Cross-Boundary Integration: Theme Engine x Settings UI x Command Palet
       selectThemeViaCommandPalette(theme.name);
 
       for (const token of COLOR_TOKENS) {
-        const actual = document.documentElement.style.getPropertyValue(`--color-${token}`);
+        const actual = document.documentElement.style.getPropertyValue(`--${token}`);
         const expected = theme.colors[token];
         expect(actual).toBe(expected);
       }

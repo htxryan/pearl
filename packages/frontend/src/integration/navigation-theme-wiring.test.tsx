@@ -358,7 +358,7 @@ describe("E2E theme selection flow", () => {
     expect(localStorage.getItem("pearl-theme")).toBe(monokai.id);
 
     // CSS custom properties should be applied
-    expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+    expect(document.documentElement.style.getPropertyValue("--background")).toBe(
       monokai.colors.background,
     );
 
@@ -385,7 +385,7 @@ describe("E2E theme selection flow", () => {
     renderApp("/list");
 
     // CSS variables should still reflect the persisted theme
-    expect(document.documentElement.style.getPropertyValue("--color-background")).toBe(
+    expect(document.documentElement.style.getPropertyValue("--background")).toBe(
       monokai.colors.background,
     );
     expect(document.documentElement.classList.contains("dark")).toBe(true);

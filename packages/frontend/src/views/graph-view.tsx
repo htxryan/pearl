@@ -108,9 +108,9 @@ export function GraphView() {
               nodeColor={minimapNodeColor}
               maskColor={minimapMaskColor}
               style={{
-                backgroundColor: "var(--color-surface, var(--color-muted))",
+                backgroundColor: "var(--surface, var(--muted))",
                 borderRadius: "var(--radius)",
-                border: "1px solid var(--color-border)",
+                border: "1px solid var(--border)",
               }}
             />
             <Panel position="bottom-left">

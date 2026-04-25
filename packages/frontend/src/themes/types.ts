@@ -1,15 +1,27 @@
 export type ColorToken =
   | "background"
   | "foreground"
-  | "muted"
-  | "muted-foreground"
-  | "border"
+  | "card"
+  | "card-foreground"
+  | "popover"
+  | "popover-foreground"
   | "primary"
   | "primary-foreground"
+  | "secondary"
+  | "secondary-foreground"
+  | "muted"
+  | "muted-foreground"
   | "accent"
   | "accent-foreground"
   | "destructive"
+  | "border"
+  | "input"
   | "ring"
+  | "chart-1"
+  | "chart-2"
+  | "chart-3"
+  | "chart-4"
+  | "chart-5"
   | "info"
   | "info-foreground"
   | "success"
@@ -31,15 +43,27 @@ export interface ThemeDefinition {
 export const COLOR_TOKENS = [
   "background",
   "foreground",
-  "muted",
-  "muted-foreground",
-  "border",
+  "card",
+  "card-foreground",
+  "popover",
+  "popover-foreground",
   "primary",
   "primary-foreground",
+  "secondary",
+  "secondary-foreground",
+  "muted",
+  "muted-foreground",
   "accent",
   "accent-foreground",
   "destructive",
+  "border",
+  "input",
   "ring",
+  "chart-1",
+  "chart-2",
+  "chart-3",
+  "chart-4",
+  "chart-5",
   "info",
   "info-foreground",
   "success",

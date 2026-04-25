@@ -18,16 +18,16 @@
               root.classList.add("dark");
             }
             if (data.colors) {
-              var validTokens = ["background","foreground","muted","muted-foreground","border","primary","primary-foreground","accent","accent-foreground","destructive","ring","info","info-foreground","success","success-foreground","warning","warning-foreground","danger","danger-foreground","surface","surface-raised"];
+              var validTokens = ["background","foreground","card","card-foreground","popover","popover-foreground","primary","primary-foreground","secondary","secondary-foreground","muted","muted-foreground","accent","accent-foreground","destructive","border","input","ring","chart-1","chart-2","chart-3","chart-4","chart-5","info","info-foreground","success","success-foreground","warning","warning-foreground","danger","danger-foreground","surface","surface-raised"];
               for (var i = 0; i < validTokens.length; i++) {
                 if (data.colors[validTokens[i]]) {
-                  root.style.setProperty("--color-" + validTokens[i], data.colors[validTokens[i]]);
+                  root.style.setProperty("--" + validTokens[i], data.colors[validTokens[i]]);
                 }
               }
             }
           } else {
             // No cache — check system preference for .dark class only.
-            // CSS @theme defaults handle colors until React loads.
+            // CSS defaults handle colors until React loads.
             if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
               document.documentElement.classList.add("dark");
             }
