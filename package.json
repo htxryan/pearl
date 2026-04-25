@@ -17,6 +17,7 @@
     "test:e2e:ui": "playwright test --ui",
     "lint:deps": "depcruise packages/*/src --config .dependency-cruiser.cjs",
     "lint:lucide": "bash scripts/lint-lucide-imports.sh",
+    "lint:invariants": "bash scripts/lint-invariants.sh",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -24,7 +25,8 @@
       "biome check --write --no-errors-on-unmatched"
     ],
     "packages/frontend/src/**/*.{ts,tsx}": [
-      "bash scripts/lint-lucide-imports.sh"
+      "bash scripts/lint-lucide-imports.sh",
+      "bash scripts/lint-invariants.sh"
     ]
   },
   "devDependencies": {
