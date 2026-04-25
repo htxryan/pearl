@@ -58,17 +58,13 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
     [isMulti, props],
   );
 
-  const getDisplayLabel = (): string => {
-    if (isMulti) {
-      const selected = (props as MultiSelectProps<T>).value;
-      if (selected.length === 0) return placeholder ?? "Select...";
-      const labels = selected.map((v) => options.find((o) => o.value === v)?.label ?? String(v));
-      return labels.join(", ");
-    }
+  const getSingleDisplayLabel = (): string => {
     const val = (props as SingleSelectProps<T>).value;
     if (val === null || val === undefined) return placeholder ?? "Select...";
     return options.find((o) => o.value === val)?.label ?? String(val);
   };
+
+  const triggerLabel = placeholder ?? "Select...";
 
   const hasValue = isMulti
     ? (props as MultiSelectProps<T>).value.length > 0
@@ -190,7 +186,9 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
   );
 
   const sizeClasses =
-    size === "sm" ? "h-7 px-2 text-xs" : "min-h-[44px] sm:min-h-0 h-8 px-2 text-xs sm:text-sm";
+    size === "sm"
+      ? "min-h-[28px] px-2 text-xs"
+      : "min-h-[44px] sm:min-h-[32px] px-2 text-xs sm:text-sm";
 
   const activeDescendantId =
     open && highlightIndex >= 0 ? `${listboxId}-opt-${highlightIndex}` : undefined;
@@ -223,7 +221,44 @@ export function CustomSelect<T extends string | number = string>(props: CustomSe
           triggerClassName,
         )}
       >
-        <span className="truncate">{getDisplayLabel()}</span>
+        {isMulti ? (
+          <span className="inline-flex items-center gap-1 flex-wrap min-w-0">
+            <span className="shrink-0">{triggerLabel}</span>
+            {(props as MultiSelectProps<T>).value.map((v) => {
+              const optLabel = options.find((o) => o.value === v)?.label ?? String(v);
+              return (
+                <span
+                  key={String(v)}
+                  className="inline-flex items-center gap-0.5 rounded-full bg-primary/15 px-1.5 py-0 text-[11px] leading-tight font-medium"
+                >
+                  <span className="truncate max-w-[120px]">{optLabel}</span>
+                  {/* biome-ignore lint/a11y/useSemanticElements: nested <button> inside the trigger <button> is invalid HTML */}
+                  <span
+                    role="button"
+                    tabIndex={-1}
+                    aria-label={`Remove ${optLabel}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelect(v);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSelect(v);
+                      }
+                    }}
+                    className="ml-0.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full hover:bg-primary/25 cursor-pointer"
+                  >
+                    &times;
+                  </span>
+                </span>
+              );
+            })}
+          </span>
+        ) : (
+          <span className="truncate">{getSingleDisplayLabel()}</span>
+        )}
         <svg
           width="12"
           height="12"
