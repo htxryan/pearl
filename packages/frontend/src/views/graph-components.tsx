@@ -1,6 +1,7 @@
 import { BaseEdge, type EdgeProps, getBezierPath, Panel, useReactFlow } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { FitViewIcon, ZoomInIcon, ZoomOutIcon } from "@/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // ─── Custom Edge with hover label ────────────────────
 
@@ -63,36 +64,40 @@ export function GraphControls() {
   return (
     <Panel position="top-right">
       <div className="flex flex-col gap-1 bg-background/80 backdrop-blur-sm rounded-lg border border-border p-1 shadow-sm">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => zoomIn()}
-          title="Zoom in"
-          aria-label="Zoom in"
-        >
-          <ZoomInIcon />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => zoomOut()}
-          title="Zoom out"
-          aria-label="Zoom out"
-        >
-          <ZoomOutIcon />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => fitView({ padding: 0.3, minZoom: 0.5, maxZoom: 2 })}
-          title="Fit view"
-          aria-label="Fit view"
-        >
-          <FitViewIcon />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon-sm" onClick={() => zoomIn()} aria-label="Zoom in">
+              <ZoomInIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Zoom in</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => zoomOut()}
+              aria-label="Zoom out"
+            >
+              <ZoomOutIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Zoom out</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => fitView({ padding: 0.3, minZoom: 0.5, maxZoom: 2 })}
+              aria-label="Fit view"
+            >
+              <FitViewIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Fit view</TooltipContent>
+        </Tooltip>
       </div>
     </Panel>
   );

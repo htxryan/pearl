@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { AppShell } from "@/components/app-shell";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SetupGuard } from "@/components/setup-guard";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "@/lib/query-client";
 import { ListView } from "@/views/list-view";
 import { SetupView } from "@/views/setup-view";
@@ -38,65 +39,67 @@ export function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="__showcase"
-              element={
-                <Suspense fallback={<ViewFallback />}>
-                  <PrimitiveShowcase />
-                </Suspense>
-              }
-            />
-            <Route element={<SetupGuard />}>
-              <Route path="setup" element={<SetupView />} />
-              <Route element={<AppShell />}>
-                <Route index element={<Navigate to="/list" replace />} />
-                <Route path="list" element={<ListView />} />
-                <Route
-                  path="board"
-                  element={
-                    <Suspense fallback={<ViewFallback />}>
-                      <BoardView />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="graph"
-                  element={
-                    <Suspense fallback={<ViewFallback />}>
-                      <GraphView />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="issues/:id"
-                  element={
-                    <Suspense fallback={<ViewFallback />}>
-                      <DetailView />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="settings/*"
-                  element={
-                    <Suspense fallback={<ViewFallback />}>
-                      <SettingsView />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="*"
-                  element={
-                    <Suspense fallback={<ViewFallback />}>
-                      <NotFoundView />
-                    </Suspense>
-                  }
-                />
+        <TooltipProvider delayDuration={300}>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="__showcase"
+                element={
+                  <Suspense fallback={<ViewFallback />}>
+                    <PrimitiveShowcase />
+                  </Suspense>
+                }
+              />
+              <Route element={<SetupGuard />}>
+                <Route path="setup" element={<SetupView />} />
+                <Route element={<AppShell />}>
+                  <Route index element={<Navigate to="/list" replace />} />
+                  <Route path="list" element={<ListView />} />
+                  <Route
+                    path="board"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <BoardView />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="graph"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <GraphView />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="issues/:id"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <DetailView />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="settings/*"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <SettingsView />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="*"
+                    element={
+                      <Suspense fallback={<ViewFallback />}>
+                        <NotFoundView />
+                      </Suspense>
+                    }
+                  />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

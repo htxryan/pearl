@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { XIcon } from "@/components/ui/icons";
 import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TypePill } from "@/components/ui/type-pill";
 
 interface DetailHeaderProps {
@@ -110,25 +111,37 @@ export function DetailHeader({
           />
           <div className="w-px h-5 bg-border" />
           {onToggleMode && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleMode}
-              title={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
-              aria-label={currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
-            >
-              {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onToggleMode}
+                  aria-label={
+                    currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"
+                  }
+                >
+                  {currentMode === "panel" ? <MaximizeIcon /> : <SidebarIcon />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {currentMode === "panel" ? "Switch to modal view" : "Switch to panel view"}
+              </TooltipContent>
+            </Tooltip>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onNavigateBack}
-            aria-label={currentMode ? "Close panel" : "Close detail view"}
-            title="Close (Esc)"
-          >
-            <XIcon size={16} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={onNavigateBack}
+                aria-label={currentMode ? "Close panel" : "Close detail view"}
+              >
+                <XIcon size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Close (Esc)</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 

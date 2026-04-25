@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { DetailView } from "./detail-view";
 
 // Mock the hooks
@@ -88,12 +89,14 @@ function renderWithProviders(issueId: string) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[`/issues/${issueId}`]}>
-        <Routes>
-          <Route path="/issues/:id" element={<DetailView />} />
-          <Route path="/list" element={<div>List View</div>} />
-        </Routes>
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter initialEntries={[`/issues/${issueId}`]}>
+          <Routes>
+            <Route path="/issues/:id" element={<DetailView />} />
+            <Route path="/list" element={<div>List View</div>} />
+          </Routes>
+        </MemoryRouter>
+      </TooltipProvider>
     </QueryClientProvider>,
   );
 }

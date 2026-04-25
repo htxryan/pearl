@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Mock detail panel
 const mockOpenDetail = vi.fn();
@@ -285,9 +286,11 @@ function renderGraph() {
   const queryClient = createQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={["/graph"]}>
-        <GraphView />
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter initialEntries={["/graph"]}>
+          <GraphView />
+        </MemoryRouter>
+      </TooltipProvider>
     </QueryClientProvider>,
   );
 }
@@ -330,9 +333,9 @@ describe("GraphView", () => {
 
     expect(screen.getByTestId("rf-background")).toBeInTheDocument();
     // Custom GraphControls renders zoom buttons instead of built-in Controls
-    expect(screen.getByTitle("Zoom in")).toBeInTheDocument();
-    expect(screen.getByTitle("Zoom out")).toBeInTheDocument();
-    expect(screen.getByTitle("Fit view")).toBeInTheDocument();
+    expect(screen.getByLabelText("Zoom in")).toBeInTheDocument();
+    expect(screen.getByLabelText("Zoom out")).toBeInTheDocument();
+    expect(screen.getByLabelText("Fit view")).toBeInTheDocument();
     expect(screen.getByTestId("rf-minimap")).toBeInTheDocument();
   });
 

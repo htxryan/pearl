@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Navigate, Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // ─── Mock navigation ─────────────────────────────────────
 const mockNavigate = vi.fn();
@@ -275,18 +276,20 @@ function renderApp(initialPath = "/list") {
   const queryClient = createQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        <Routes>
-          <Route element={<AppShell />}>
-            <Route index element={<Navigate to="/list" replace />} />
-            <Route path="list" element={<ListView />} />
-            <Route path="board" element={<BoardView />} />
-            <Route path="graph" element={<GraphView />} />
-            <Route path="issues/:id" element={<DetailView />} />
-            <Route path="*" element={<Navigate to="/list" replace />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <TooltipProvider>
+        <MemoryRouter initialEntries={[initialPath]}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route index element={<Navigate to="/list" replace />} />
+              <Route path="list" element={<ListView />} />
+              <Route path="board" element={<BoardView />} />
+              <Route path="graph" element={<GraphView />} />
+              <Route path="issues/:id" element={<DetailView />} />
+              <Route path="*" element={<Navigate to="/list" replace />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </TooltipProvider>
     </QueryClientProvider>,
   );
 }

@@ -16,6 +16,7 @@ import {
   SaveIcon,
   XIcon,
 } from "@/components/ui/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AttachmentProvider } from "@/hooks/use-attachment-context";
 import { extractImageFiles, useImageUpload } from "@/hooks/use-image-upload";
 import { insertAttachments } from "@/lib/insert-attachments";
@@ -220,20 +221,24 @@ export function MarkdownSection({
           </h2>
         )}
         {!isEditing && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setEditValue(content ?? "");
-              setIsEditing(true);
-              setActiveTab("write");
-            }}
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-            aria-label={`Edit ${title}`}
-            title={`Edit ${title}`}
-          >
-            <PencilIcon />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => {
+                  setEditValue(content ?? "");
+                  setIsEditing(true);
+                  setActiveTab("write");
+                }}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Edit ${title}`}
+              >
+                <PencilIcon />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit {title}</TooltipContent>
+          </Tooltip>
         )}
       </div>
 
