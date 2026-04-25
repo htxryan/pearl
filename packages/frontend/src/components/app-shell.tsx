@@ -28,7 +28,6 @@ import { OnboardingBanner } from "./onboarding";
 import { PageTransition } from "./page-transition";
 import { SearchPalette } from "./search-palette";
 import { MobileDrawer, MobileMenuButton, Sidebar, toggleSidebar } from "./sidebar";
-import { ToastContainer } from "./toast-container";
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -252,7 +251,6 @@ export function AppShell() {
               onClose={() => setCreateDialogOpen(false)}
             />
             <KeyboardHelpOverlay />
-            <ToastContainer />
           </div>
         </DetailPanelProvider>
       </NavListProvider>

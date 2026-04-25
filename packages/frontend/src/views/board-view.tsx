@@ -26,7 +26,7 @@ import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { useSetNavList } from "@/hooks/use-nav-list";
 import { usePersistedState } from "@/hooks/use-persisted-state";
-import { useToastActions } from "@/hooks/use-toast";
+import { useToasts } from "@/hooks/use-toasts";
 import { useUndoActions } from "@/hooks/use-undo";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
@@ -84,7 +84,7 @@ export function BoardView() {
   const updateMutation = useUpdateIssue();
   const { mutate: updateStatus } = updateMutation;
   const createMutation = useCreateIssue();
-  const toast = useToastActions();
+  const toast = useToasts();
   const undo = useUndoActions();
 
   // Quick add handler for board columns

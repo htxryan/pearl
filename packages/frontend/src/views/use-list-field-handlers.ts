@@ -1,13 +1,13 @@
 import type { IssueListItem, IssueStatus, Priority } from "@pearl/shared";
 import { useCallback } from "react";
 import { useUpdateIssue } from "@/hooks/use-issues";
-import { useToastActions } from "@/hooks/use-toast";
+import { useToasts } from "@/hooks/use-toasts";
 import { useUndoActions } from "@/hooks/use-undo";
 import { VALID_PRIORITIES, VALID_STATUSES } from "@/hooks/use-url-filters";
 
 export function useListFieldHandlers(issues: IssueListItem[]) {
   const updateMutation = useUpdateIssue();
-  const toast = useToastActions();
+  const toast = useToasts();
   const undo = useUndoActions();
 
   const handleStatusChange = useCallback(

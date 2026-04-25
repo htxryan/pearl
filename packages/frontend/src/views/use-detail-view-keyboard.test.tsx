@@ -23,8 +23,15 @@ vi.mock("@/hooks/use-issues", () => ({
   useRemoveDependency: () => ({ mutate: vi.fn() }),
 }));
 
-vi.mock("@/hooks/use-toast", () => ({
-  useToastActions: () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }),
+vi.mock("@/hooks/use-toasts", () => ({
+  useToasts: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warning: vi.fn(),
+    loading: vi.fn(),
+    dismiss: vi.fn(),
+  }),
 }));
 
 vi.mock("@/hooks/use-undo", () => ({

@@ -19,7 +19,7 @@ import {
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useNavList } from "@/hooks/use-nav-list";
 import { useParseField } from "@/hooks/use-parse-field";
-import { useToastActions } from "@/hooks/use-toast";
+import { useToasts } from "@/hooks/use-toasts";
 import { useUndoActions } from "@/hooks/use-undo";
 import { markIssueOpened } from "@/lib/issue-recency";
 
@@ -106,7 +106,7 @@ export function useDetailView(id: string, options: UseDetailViewOptions = {}) {
   const addDepMutation = useAddDependency();
   const removeDepMutation = useRemoveDependency();
 
-  const toast = useToastActions();
+  const toast = useToasts();
   const undo = useUndoActions();
 
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);

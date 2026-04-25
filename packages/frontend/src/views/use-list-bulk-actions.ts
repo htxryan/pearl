@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { RowSelectionState } from "@tanstack/react-table";
 import { useCallback, useRef, useState } from "react";
 import { issueKeys, useCloseIssue, useDeleteIssue, useUpdateIssue } from "@/hooks/use-issues";
-import { useToastActions } from "@/hooks/use-toast";
+import { useToasts } from "@/hooks/use-toasts";
 import * as api from "@/lib/api-client";
 
 interface UseBulkActionsOptions {
@@ -23,7 +23,7 @@ export function useListBulkActions({
   const updateMutation = useUpdateIssue();
   const closeMutation = useCloseIssue();
   const deleteMutation = useDeleteIssue();
-  const toast = useToastActions();
+  const toast = useToasts();
 
   const [isClosing, setIsClosing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);

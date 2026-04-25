@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
-import { addToast } from "@/hooks/use-toast";
+import { addToast } from "@/hooks/use-toasts";
 import {
   ACTIVE_FILTERS,
   DATE_RANGE_LABELS,

@@ -16,7 +16,7 @@ import { prefetchIssueDetail, useCreateIssue, useIssues } from "@/hooks/use-issu
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { useSetNavList } from "@/hooks/use-nav-list";
-import { useToastActions } from "@/hooks/use-toast";
+import { useToasts } from "@/hooks/use-toasts";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
 import { useListBulkActions } from "@/views/use-list-bulk-actions";
@@ -59,7 +59,7 @@ export function ListView() {
     handleDueDateChange,
   } = useListFieldHandlers(issues);
   const createMutation = useCreateIssue();
-  const toast = useToastActions();
+  const toast = useToasts();
 
   const {
     table,

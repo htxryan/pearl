@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import * as api from "@/lib/api-client";
-import { addToast } from "./use-toast";
+import { addToast } from "./use-toasts";
 
 export interface UndoEntry {
   id: string;
