@@ -7,9 +7,10 @@
  * Outputs to docs/polish-evidence/<bead-id>-<slug>.png
  */
 
-import { mkdirSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const OUT = resolve(__dirname, "../docs/polish-evidence");
 mkdirSync(OUT, { recursive: true });
@@ -402,10 +403,73 @@ test.describe("polish evidence", () => {
     }
   });
 
-  test("0t2c: image attachment inline mode — settings page evidence", async ({ page }) => {
-    await seed(page, "/settings/attachments");
-    await page.waitForTimeout(800);
-    await shoot(page, "0t2c-attachments-settings-inline-mode-config", true);
+  test("0t2c: image attachment inline mode — REAL round-trip", async ({ page, request }) => {
+    // Real test of the 0t2c bug fix: inline base64 attachments larger than
+    // the original 10KB cap must round-trip through API → DB → render.
+    // Reads a real PNG (~21KB → ~28KB base64), POSTs an issue with the
+    // Pearl attachment syntax, then verifies the rendered <img> appears.
+    const pngPath = resolve(__dirname, "../docs/demo/setup-wizard-server-config.png");
+    const pngBytes = readFileSync(pngPath);
+    const base64 = pngBytes.toString("base64");
+    const ref = randomBytes(6).toString("hex"); // 12 hex chars
+    const stamp = Date.now();
+
+    const description = [
+      `# 0t2c regression evidence (${stamp})`,
+      "",
+      `Inline image attachment of ${pngBytes.length} raw bytes (${base64.length} base64 chars).`,
+      "Pre-fix this would have been rejected by the 10KB API field schema.",
+      "",
+      `[img:${ref}]`,
+      "",
+      `<!-- pearl-attachment:v1:${ref}`,
+      "type: inline",
+      "mime: image/png",
+      `data: ${base64}`,
+      "-->",
+    ].join("\n");
+
+    // POST a fresh issue via API
+    const createRes = await request.post("http://127.0.0.1:3456/api/issues", {
+      data: {
+        title: `0t2c E2E inline-attachment round-trip ${stamp}`,
+        description,
+        issue_type: "task",
+        priority: 2,
+      },
+    });
+    expect(createRes.ok()).toBeTruthy();
+    const created = (await createRes.json()) as { data: { id: string } };
+    const issueId = created.data.id;
+
+    // Read it back to verify the description survived round-trip intact
+    const readRes = await request.get(`http://127.0.0.1:3456/api/issues/${issueId}`);
+    expect(readRes.ok()).toBeTruthy();
+    const read = (await readRes.json()) as { description: string };
+    expect(read.description.length).toBeGreaterThan(base64.length);
+    expect(read.description).toContain(`[img:${ref}]`);
+    expect(read.description).toContain(`pearl-attachment:v1:${ref}`);
+    expect(read.description).toContain(base64.slice(0, 100));
+    expect(read.description).toContain(base64.slice(-100));
+
+    // Now render in browser and capture the actual decoded image
+    await seed(page, `/issues/${issueId}`);
+    await page.waitForURL(`**/issues/${issueId}`);
+    // Wait for the rendered <img> to appear (decoded from base64 in markdown)
+    const img = page
+      .locator("img")
+      .filter({ hasNot: page.locator("svg") })
+      .first();
+    await img.waitFor({ state: "visible", timeout: 10_000 });
+    // Verify the image actually has natural dimensions (not a broken icon)
+    const dims = await img.evaluate((el: HTMLImageElement) => ({
+      w: el.naturalWidth,
+      h: el.naturalHeight,
+    }));
+    expect(dims.w).toBeGreaterThan(50);
+    expect(dims.h).toBeGreaterThan(50);
+
+    await shoot(page, "0t2c-real-roundtrip-rendered", true);
   });
 
   test("huds: detail Edit links use pencil icon", async ({ page }) => {

@@ -201,7 +201,7 @@ export function BulkActionBar({
             ref={menuRef}
             role="menu"
             onKeyDown={handleMenuKeyDown}
-            className="absolute top-full left-0 z-50 mt-1 w-56 rounded border border-border bg-popover py-1 shadow-md"
+            className="absolute top-full left-0 z-50 mt-1 w-56 rounded border border-border bg-background py-1 shadow-md"
           >
             <MenuItem
               icon={<ReassignIcon />}
@@ -462,7 +462,7 @@ function SubmenuPanel({
 }) {
   return (
     <div
-      className={`absolute top-full left-0 z-50 mt-1 rounded border border-border bg-popover shadow-md ${
+      className={`absolute top-full left-0 z-50 mt-1 rounded border border-border bg-background shadow-md ${
         wide ? "w-64" : "w-48"
       }`}
     >

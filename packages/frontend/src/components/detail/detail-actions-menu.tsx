@@ -120,7 +120,7 @@ export function DetailActionsMenu({
           ref={menuRef}
           role="menu"
           onKeyDown={handleMenuKeyDown}
-          className="absolute top-full right-0 z-50 mt-1 w-48 rounded border border-border bg-popover py-1 shadow-md"
+          className="absolute top-full right-0 z-50 mt-1 w-48 rounded border border-border bg-background py-1 shadow-md"
         >
           {!isClosed && (
             <>
