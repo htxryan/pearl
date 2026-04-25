@@ -197,15 +197,28 @@ describe("MetadataSidebar (inline layout)", () => {
 });
 
 describe("useMetadataSidebarState", () => {
-  it("persists collapsed state and clamps width to the allowed range", () => {
+  it("persists sidebar and inline collapsed state independently", () => {
     const { result, rerender } = renderHook(() => useMetadataSidebarState());
-    expect(result.current.collapsed).toBe(false);
+    expect(result.current.sidebarCollapsed).toBe(false);
+    expect(result.current.inlineCollapsed).toBe(false);
     expect(result.current.width).toBe(DEFAULT_SIDEBAR_WIDTH);
 
-    act(() => result.current.setCollapsed(true));
+    act(() => result.current.setSidebarCollapsed(true));
+    rerender();
+    expect(result.current.sidebarCollapsed).toBe(true);
+    expect(result.current.inlineCollapsed).toBe(false);
+
+    act(() => result.current.setInlineCollapsed(true));
+    rerender();
+    expect(result.current.sidebarCollapsed).toBe(true);
+    expect(result.current.inlineCollapsed).toBe(true);
+  });
+
+  it("clamps width to the allowed range", () => {
+    const { result, rerender } = renderHook(() => useMetadataSidebarState());
+
     act(() => result.current.setWidth(9999));
     rerender();
-    expect(result.current.collapsed).toBe(true);
     expect(result.current.width).toBe(MAX_SIDEBAR_WIDTH);
 
     act(() => result.current.setWidth(10));
@@ -215,9 +228,11 @@ describe("useMetadataSidebarState", () => {
 
   it("reads previously persisted state from localStorage", () => {
     window.localStorage.setItem("issueDetail.sidebarCollapsed", "true");
+    window.localStorage.setItem("issueDetail.inlineCollapsed", "false");
     window.localStorage.setItem("issueDetail.sidebarWidth", "300");
     const { result } = renderHook(() => useMetadataSidebarState());
-    expect(result.current.collapsed).toBe(true);
+    expect(result.current.sidebarCollapsed).toBe(true);
+    expect(result.current.inlineCollapsed).toBe(false);
     expect(result.current.width).toBe(300);
   });
 });

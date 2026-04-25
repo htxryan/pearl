@@ -8,14 +8,22 @@ import { RelativeTime } from "@/components/ui/relative-time";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { FieldRow, SelectField, statusLabel } from "@/views/detail-components";
 
-const COLLAPSED_KEY = "issueDetail.sidebarCollapsed";
+const SIDEBAR_COLLAPSED_KEY = "issueDetail.sidebarCollapsed";
+const INLINE_COLLAPSED_KEY = "issueDetail.inlineCollapsed";
 const WIDTH_KEY = "issueDetail.sidebarWidth";
 export const DEFAULT_SIDEBAR_WIDTH = 280;
 export const MIN_SIDEBAR_WIDTH = 220;
 export const MAX_SIDEBAR_WIDTH = 480;
 
 export function useMetadataSidebarState() {
-  const [collapsed, setCollapsed] = usePersistedState<boolean>(COLLAPSED_KEY, false);
+  const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState<boolean>(
+    SIDEBAR_COLLAPSED_KEY,
+    false,
+  );
+  const [inlineCollapsed, setInlineCollapsed] = usePersistedState<boolean>(
+    INLINE_COLLAPSED_KEY,
+    false,
+  );
   const [rawWidth, setRawWidth] = usePersistedState<number>(WIDTH_KEY, DEFAULT_SIDEBAR_WIDTH);
   const clamp = useCallback(
     (v: number) => Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, v)),
@@ -23,7 +31,14 @@ export function useMetadataSidebarState() {
   );
   const width = clamp(rawWidth);
   const setWidth = useCallback((v: number) => setRawWidth(clamp(v)), [setRawWidth, clamp]);
-  return { collapsed, setCollapsed, width, setWidth };
+  return {
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    inlineCollapsed,
+    setInlineCollapsed,
+    width,
+    setWidth,
+  };
 }
 
 export type MetadataSidebarLayout = "sidebar" | "inline";

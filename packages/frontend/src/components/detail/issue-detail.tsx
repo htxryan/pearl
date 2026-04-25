@@ -49,8 +49,10 @@ export function IssueDetail({
   const isMobile = useIsMobile();
   const isCompact = useIsCompact();
   const {
-    collapsed: sidebarCollapsed,
-    setCollapsed: setSidebarCollapsed,
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    inlineCollapsed,
+    setInlineCollapsed,
     width: sidebarWidth,
     setWidth: setSidebarWidth,
   } = useMetadataSidebarState();
@@ -229,8 +231,8 @@ export function IssueDetail({
                 <MetadataSidebar
                   issue={issue}
                   onFieldUpdate={handleFieldUpdate}
-                  collapsed={sidebarCollapsed}
-                  onToggleCollapsed={() => setSidebarCollapsed((p) => !p)}
+                  collapsed={inlineCollapsed}
+                  onToggleCollapsed={() => setInlineCollapsed((p) => !p)}
                   width={sidebarWidth}
                   onWidthChange={setSidebarWidth}
                   layout="inline"
