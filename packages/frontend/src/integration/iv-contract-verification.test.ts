@@ -1,5 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { COLOR_TOKENS } from "@/themes/types";
 
@@ -12,18 +13,24 @@ function readSrc(relPath: string): string {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// IV Check #5: Bundle ceiling ≤ +75 KB gzip
+// IV Check #5: Bundle ceiling ≤ 600 KB gzip
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 describe("IV-5: Bundle gzip ceiling", () => {
-  it("dist/assets contains JS files (build output exists)", () => {
+  it("total JS gzip size is within 600KB budget", () => {
     const jsFiles = readdirSync(DIST).filter((f) => f.endsWith(".js"));
     expect(jsFiles.length).toBeGreaterThan(0);
 
-    let totalBytes = 0;
+    let totalGzipBytes = 0;
     for (const f of jsFiles) {
-      totalBytes += statSync(resolve(DIST, f)).size;
+      const content = readFileSync(resolve(DIST, f));
+      totalGzipBytes += gzipSync(content).length;
     }
-    expect(totalBytes).toBeGreaterThan(0);
+
+    const BUDGET_KB = 600;
+    const totalKB = Math.ceil(totalGzipBytes / 1024);
+    expect(totalKB, `Bundle gzip ${totalKB}KB exceeds ${BUDGET_KB}KB budget`).toBeLessThanOrEqual(
+      BUDGET_KB,
+    );
   });
 });
 
@@ -48,9 +55,7 @@ describe("IV-11: Z-index discipline in overlay primitives", () => {
         `${file} has arbitrary z-index: ${arbitraryZIndex?.join(", ")}`,
       ).toBeNull();
 
-      if (content.includes("z-50")) {
-        expect(content).toContain("z-50");
-      }
+      expect(content, `${file} must use z-50 for overlay stacking`).toContain("z-50");
     });
   }
 
@@ -103,7 +108,7 @@ describe("IV-14: Sonner adapter is sole export path", () => {
   it("only use-toasts.ts and app.tsx import from 'sonner'", () => {
     const srcFiles = getAllTsFiles(SRC);
     const sonnerImporters: string[] = [];
-    const allowedSonnerFiles = ["use-toasts.ts", "use-toasts.test.ts", "app.tsx"];
+    const allowedSonnerFiles = ["use-toasts.ts", "app.tsx"];
     for (const file of srcFiles) {
       if (file.includes(".test.") || file.includes("iv-contract-verification")) continue;
       const content = readFileSync(file, "utf8");
@@ -144,12 +149,18 @@ describe("SC-IV-1: Token completeness for all themes", () => {
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SC-IV-2: Portal stacking total order
-// ��━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 describe("SC-IV-2: Portal stacking total order", () => {
-  it("Sonner Toaster renders after Dialog/DropdownMenu in app.tsx DOM order", () => {
+  it("Toaster renders at app root before Routes (always visible, not route-conditional)", () => {
     const appContent = readSrc("app.tsx");
-    const toasterPos = appContent.indexOf("Toaster");
+    const toasterPos = appContent.indexOf("<Toaster");
+    const routesPos = appContent.indexOf("<Routes");
     expect(toasterPos, "Toaster not found in app.tsx").toBeGreaterThan(-1);
+    expect(routesPos, "Routes not found in app.tsx").toBeGreaterThan(-1);
+    expect(
+      toasterPos,
+      "Toaster must render before Routes so it is not route-conditional",
+    ).toBeLessThan(routesPos);
   });
 
   it("all overlay components use z-50 for consistent stacking base", () => {
@@ -181,7 +192,7 @@ describe("SC-IV-4: No imports of deleted files", () => {
       const content = readFileSync(file, "utf8");
       for (const deleted of deletedModules) {
         const base = deleted.replace(/\.tsx?$/, "");
-        if (content.match(new RegExp(`from\\s+["'].*\\/${base}["']`))) {
+        if (content.match(new RegExp(`from\\s+["'](?:\\.|@).*\\/${base}["']`))) {
           violations.push(`${file.replace(SRC, "")} imports deleted ${deleted}`);
         }
       }

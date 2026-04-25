@@ -26,11 +26,18 @@ test.describe("Overlays — SC-IV-3: focus trap + return", () => {
       await page.keyboard.press("Tab");
     }
 
-    const focusIsNotOnTrigger = await page.evaluate(
-      (triggerId) => document.activeElement?.getAttribute("data-testid") !== triggerId,
-      "dialog-trigger",
-    );
-    expect(focusIsNotOnTrigger).toBe(true);
+    const focusContainedInDialog = await page.evaluate(() => {
+      const closeBtn = document.querySelector('[data-testid="dialog-close"]');
+      const activeEl = document.activeElement;
+      if (!closeBtn || !activeEl || activeEl === document.body) return false;
+      let container = closeBtn.parentElement;
+      while (container && container !== document.body) {
+        if (container.contains(activeEl)) return true;
+        container = container.parentElement;
+      }
+      return false;
+    });
+    expect(focusContainedInDialog, "Focus escaped the dialog after Tab presses").toBe(true);
 
     await page.keyboard.press("Escape");
     await expect(closeBtn).not.toBeVisible();

@@ -10,7 +10,8 @@
 
 set -euo pipefail
 
-DIST="packages/frontend/dist/assets"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DIST="${SCRIPT_DIR}/../packages/frontend/dist/assets"
 
 if [ ! -d "$DIST" ]; then
   echo "ERROR: dist/ not found. Run 'pnpm build' first."
