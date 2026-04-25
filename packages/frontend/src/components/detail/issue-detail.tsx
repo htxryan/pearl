@@ -136,6 +136,7 @@ export function IssueDetail({
             field="design"
             onSave={(val) => handleFieldUpdate("design", val)}
             hideTitle={isMobile}
+            collapseWhenEmpty
           />
         </CollapsibleSection>
       )}
@@ -148,6 +149,7 @@ export function IssueDetail({
             field="acceptance_criteria"
             onSave={(val) => handleFieldUpdate("acceptance_criteria", val)}
             hideTitle={isMobile}
+            collapseWhenEmpty
           />
         </CollapsibleSection>
       )}
@@ -160,6 +162,7 @@ export function IssueDetail({
             field="notes"
             onSave={(val) => handleFieldUpdate("notes", val)}
             hideTitle={isMobile}
+            collapseWhenEmpty
           />
         </CollapsibleSection>
       )}
@@ -300,6 +303,10 @@ function CollapsibleSection({
   }, [hasContent]);
 
   if (!isMobile) return <>{children}</>;
+
+  // On mobile when empty, skip the toggle wrapper — let the collapsed
+  // "Add {title}" button (rendered inside MarkdownSection) stand alone.
+  if (!hasContent) return <>{children}</>;
 
   return (
     <div>

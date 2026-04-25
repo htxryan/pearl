@@ -26,6 +26,13 @@ interface MarkdownSectionProps {
   field: string;
   onSave: (value: string) => void;
   hideTitle?: boolean;
+  /**
+   * When true and content is empty (and not editing), render a single compact
+   * "Add {title}" button in place of the full section. Used for secondary
+   * fields (Design Notes, Acceptance Criteria, Notes) where an empty section
+   * would just be visual noise.
+   */
+  collapseWhenEmpty?: boolean;
 }
 
 type EditorTab = "write" | "preview";
@@ -69,6 +76,7 @@ export function MarkdownSection({
   field,
   onSave,
   hideTitle,
+  collapseWhenEmpty,
 }: MarkdownSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content ?? "");
@@ -172,6 +180,27 @@ export function MarkdownSection({
         break;
     }
   }, []);
+
+  const isEmpty = !content;
+
+  if (collapseWhenEmpty && isEmpty && !isEditing) {
+    return (
+      <section>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setEditValue("");
+            setIsEditing(true);
+            setActiveTab("write");
+          }}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          + Add {title}
+        </Button>
+      </section>
+    );
+  }
 
   return (
     <section>

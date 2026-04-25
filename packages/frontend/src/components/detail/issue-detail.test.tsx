@@ -142,6 +142,42 @@ describe("IssueDetail (shared component)", () => {
     expect(screen.getByLabelText(/switch to modal view/i)).toBeDefined();
   });
 
+  it("hides empty Design/Acceptance/Notes sections behind Add buttons", () => {
+    renderDetail(<IssueDetail id="pearl-beads-test" />);
+
+    // Empty secondary fields collapse to a single "Add ..." button each.
+    expect(screen.getByRole("button", { name: /add design notes/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /add acceptance criteria/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /add notes/i })).toBeDefined();
+
+    // The empty-state placeholder ("No ... yet. Click to add.") must NOT be
+    // rendered alongside the button — the button replaces the section.
+    expect(screen.queryByText(/no design notes yet/i)).toBeNull();
+    expect(screen.queryByText(/no acceptance criteria yet/i)).toBeNull();
+    expect(screen.queryByText(/no notes yet/i)).toBeNull();
+
+    // Description must always render its full section heading, even when empty.
+    expect(screen.getByRole("heading", { name: "Description" })).toBeDefined();
+  });
+
+  it("renders full section for non-empty secondary fields", () => {
+    (useIssue as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: { ...mockIssue, design: "design body", notes: "note body" },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail(<IssueDetail id="pearl-beads-test" />);
+
+    // Filled fields render their section, not an Add button.
+    expect(screen.getByText("design body")).toBeDefined();
+    expect(screen.getByText("note body")).toBeDefined();
+    expect(screen.queryByRole("button", { name: /add design notes/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /add notes/i })).toBeNull();
+
+    // Acceptance criteria is still empty → still shows Add button.
+    expect(screen.getByRole("button", { name: /add acceptance criteria/i })).toBeDefined();
+  });
+
   it("close button has context-aware aria-label", () => {
     // Full-page → "Close detail view"
     const { unmount } = renderDetail(<IssueDetail id="pearl-beads-test" />);
