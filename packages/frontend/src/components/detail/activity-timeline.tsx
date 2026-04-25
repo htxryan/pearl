@@ -1,8 +1,9 @@
 import type { Event } from "@pearl/shared";
-import { useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { RelativeTime } from "@/components/ui/relative-time";
+import { cn } from "@/lib/utils";
 
 interface ActivityTimelineProps {
   events: Event[];
@@ -102,13 +103,38 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
             const event = group.representative;
             const count = group.events.length;
             const { verb, changes } = group.parsed;
+            const meta = getEventTypeMeta(event.event_type);
             return (
               <div key={group.key} id={`event-${event.id}`} className="relative">
-                <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-border" />
+                <div
+                  className={cn(
+                    "absolute -left-[26px] top-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-background",
+                    meta.iconBgClass,
+                  )}
+                  aria-hidden="true"
+                >
+                  <EventTypeIcon
+                    kind={meta.key}
+                    className={cn("w-2.5 h-2.5", meta.iconColorClass)}
+                  />
+                </div>
 
                 <div className="text-sm">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium">{event.actor}</span>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                        meta.badgeClass,
+                      )}
+                      title={`Event type: ${meta.label}`}
+                    >
+                      <EventTypeIcon
+                        kind={meta.key}
+                        className={cn("w-2.5 h-2.5", meta.iconColorClass)}
+                      />
+                      {meta.label}
+                    </span>
                     <span className="text-muted-foreground">{verb}</span>
                     {count > 1 && (
                       <span className="text-xs text-muted-foreground/60 font-medium">
@@ -391,6 +417,278 @@ function parseJsonObj(val: string | null): Record<string, unknown> | null {
     // not JSON
   }
   return null;
+}
+
+// ─── Event-type metadata (icon + label + color) ─────
+
+export interface EventTypeMeta {
+  key: EventTypeKey;
+  label: string;
+  iconBgClass: string;
+  iconColorClass: string;
+  badgeClass: string;
+}
+
+type EventTypeKey =
+  | "create"
+  | "close"
+  | "reopen"
+  | "claim"
+  | "comment"
+  | "status"
+  | "priority"
+  | "edit"
+  | "assignee"
+  | "labels"
+  | "depend-add"
+  | "depend-remove"
+  | "update"
+  | "other";
+
+const EVENT_TYPE_META_BY_TYPE: Record<string, EventTypeMeta> = {
+  created: {
+    key: "create",
+    label: "created",
+    iconBgClass: "bg-success/20",
+    iconColorClass: "text-success",
+    badgeClass: "bg-success/15 text-success-foreground",
+  },
+  closed: {
+    key: "close",
+    label: "closed",
+    iconBgClass: "bg-success/20",
+    iconColorClass: "text-success",
+    badgeClass: "bg-success/15 text-success-foreground",
+  },
+  reopened: {
+    key: "reopen",
+    label: "reopened",
+    iconBgClass: "bg-warning/20",
+    iconColorClass: "text-warning",
+    badgeClass: "bg-warning/15 text-warning-foreground",
+  },
+  claimed: {
+    key: "claim",
+    label: "claimed",
+    iconBgClass: "bg-info/20",
+    iconColorClass: "text-info",
+    badgeClass: "bg-info/15 text-info-foreground",
+  },
+  comment_added: {
+    key: "comment",
+    label: "comment",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+  commented: {
+    key: "comment",
+    label: "comment",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+  status_change: {
+    key: "status",
+    label: "status",
+    iconBgClass: "bg-warning/20",
+    iconColorClass: "text-warning",
+    badgeClass: "bg-warning/15 text-warning-foreground",
+  },
+  status_changed: {
+    key: "status",
+    label: "status",
+    iconBgClass: "bg-warning/20",
+    iconColorClass: "text-warning",
+    badgeClass: "bg-warning/15 text-warning-foreground",
+  },
+  priority_change: {
+    key: "priority",
+    label: "priority",
+    iconBgClass: "bg-danger/20",
+    iconColorClass: "text-danger",
+    badgeClass: "bg-danger/15 text-danger-foreground",
+  },
+  title_change: {
+    key: "edit",
+    label: "title",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+  assignee_change: {
+    key: "assignee",
+    label: "assignee",
+    iconBgClass: "bg-info/20",
+    iconColorClass: "text-info",
+    badgeClass: "bg-info/15 text-info-foreground",
+  },
+  description_change: {
+    key: "edit",
+    label: "description",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+  label_change: {
+    key: "labels",
+    label: "labels",
+    iconBgClass: "bg-info/20",
+    iconColorClass: "text-info",
+    badgeClass: "bg-info/15 text-info-foreground",
+  },
+  label_added: {
+    key: "labels",
+    label: "label added",
+    iconBgClass: "bg-info/20",
+    iconColorClass: "text-info",
+    badgeClass: "bg-info/15 text-info-foreground",
+  },
+  label_removed: {
+    key: "labels",
+    label: "label removed",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+  dependency_added: {
+    key: "depend-add",
+    label: "dependency added",
+    iconBgClass: "bg-info/20",
+    iconColorClass: "text-info",
+    badgeClass: "bg-info/15 text-info-foreground",
+  },
+  dependency_removed: {
+    key: "depend-remove",
+    label: "dependency removed",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+  updated: {
+    key: "update",
+    label: "update",
+    iconBgClass: "bg-muted",
+    iconColorClass: "text-muted-foreground",
+    badgeClass: "bg-muted text-muted-foreground",
+  },
+};
+
+const FALLBACK_META: EventTypeMeta = {
+  key: "other",
+  label: "event",
+  iconBgClass: "bg-muted",
+  iconColorClass: "text-muted-foreground",
+  badgeClass: "bg-muted text-muted-foreground",
+};
+
+export function getEventTypeMeta(eventType: string): EventTypeMeta {
+  const meta = EVENT_TYPE_META_BY_TYPE[eventType];
+  if (meta) return meta;
+  return { ...FALLBACK_META, label: eventType.replace(/_/g, " ") };
+}
+
+function EventTypeIcon({ kind, className }: { kind: EventTypeKey; className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      {renderIconPath(kind)}
+    </svg>
+  );
+}
+
+function renderIconPath(kind: EventTypeKey): ReactNode {
+  switch (kind) {
+    case "create":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z"
+          clipRule="evenodd"
+        />
+      );
+    case "close":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+          clipRule="evenodd"
+        />
+      );
+    case "reopen":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0v2.43l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+          clipRule="evenodd"
+        />
+      );
+    case "claim":
+    case "assignee":
+      return (
+        <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
+      );
+    case "comment":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M3.505 2.365A41.369 41.369 0 019 2c1.863 0 3.697.124 5.495.365 1.247.167 2.18 1.108 2.435 2.268a4.45 4.45 0 00-.577-.069 43.141 43.141 0 00-4.706 0C9.229 4.696 7.5 6.727 7.5 8.998v2.24c0 1.413.67 2.735 1.76 3.562l-2.98 2.98A.75.75 0 015 17.25v-3.443c-.501-.048-1-.106-1.495-.172C2.033 13.438 1 12.162 1 10.72V5.28c0-1.441 1.033-2.717 2.505-2.914z"
+          clipRule="evenodd"
+        />
+      );
+    case "status":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0v2.43l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+          clipRule="evenodd"
+        />
+      );
+    case "priority":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M3.5 2.75a.75.75 0 00-1.5 0v14.5a.75.75 0 001.5 0v-4.392l1.657-.348a6.449 6.449 0 014.271.572 7.948 7.948 0 005.965.524l2.078-.64A.75.75 0 0018 12.25v-8.5a.75.75 0 00-.904-.734l-2.38.501a7.25 7.25 0 01-4.186-.363l-.502-.2a8.75 8.75 0 00-5.053-.439l-1.475.31V2.75z"
+          clipRule="evenodd"
+        />
+      );
+    case "edit":
+    case "update":
+      return (
+        <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+      );
+    case "labels":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M5.5 16.5a8.045 8.045 0 005.715-2.365l4.985-4.985a3 3 0 00-4.243-4.243L6.972 9.892A8.045 8.045 0 004.607 15.6l-.857.857a.75.75 0 101.06 1.06l.69-.69c.25.108.516.193.793.252.227.05.46.082.694.097a.75.75 0 00.052-.001zM13 7a1 1 0 100-2 1 1 0 000 2z"
+          clipRule="evenodd"
+        />
+      );
+    case "depend-add":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.667l3-3zm-3.586 9.586a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 105.656 5.656l3-3a4 4 0 00-.225-5.865.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.667l-3 3z"
+          clipRule="evenodd"
+        />
+      );
+    case "depend-remove":
+      return (
+        <path
+          fillRule="evenodd"
+          d="M2.22 2.22a.75.75 0 011.06 0l14.5 14.5a.75.75 0 11-1.06 1.06L13.6 14.66l-1.954 1.954a4 4 0 01-5.656-5.656l1.224-1.224a.75.75 0 011.06 0l.001.001a.75.75 0 010 1.06l-1.224 1.224a2.5 2.5 0 003.536 3.536l1.954-1.954-7.32-7.32-.001.001a4 4 0 00.225 5.865.75.75 0 11-.977 1.138 5.5 5.5 0 01-.69-7.59L2.22 3.28a.75.75 0 010-1.06z"
+          clipRule="evenodd"
+        />
+      );
+    default:
+      return <circle cx="10" cy="10" r="3" />;
+  }
 }
 
 function deepEqual(a: unknown, b: unknown): boolean {

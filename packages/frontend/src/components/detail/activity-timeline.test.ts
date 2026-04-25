@@ -1,6 +1,11 @@
 import type { Event } from "@pearl/shared";
 import { describe, expect, it } from "vitest";
-import { extractFieldChanges, groupAdjacentEvents, parseEvent } from "./activity-timeline";
+import {
+  extractFieldChanges,
+  getEventTypeMeta,
+  groupAdjacentEvents,
+  parseEvent,
+} from "./activity-timeline";
 
 function makeEvent(overrides: Partial<Event> = {}): Event {
   return {
@@ -246,5 +251,32 @@ describe("parseEvent verbs", () => {
   });
   it("commented", () => {
     expect(parseEvent(makeEvent({ event_type: "comment_added" })).verb).toBe("added a comment");
+  });
+});
+
+describe("getEventTypeMeta", () => {
+  it("maps known event types to a category key + label", () => {
+    expect(getEventTypeMeta("created").key).toBe("create");
+    expect(getEventTypeMeta("created").label).toBe("created");
+    expect(getEventTypeMeta("closed").key).toBe("close");
+    expect(getEventTypeMeta("status_change").key).toBe("status");
+    expect(getEventTypeMeta("status_changed").key).toBe("status");
+    expect(getEventTypeMeta("priority_change").key).toBe("priority");
+    expect(getEventTypeMeta("comment_added").key).toBe("comment");
+    expect(getEventTypeMeta("commented").key).toBe("comment");
+    expect(getEventTypeMeta("dependency_added").key).toBe("depend-add");
+    expect(getEventTypeMeta("dependency_removed").key).toBe("depend-remove");
+    expect(getEventTypeMeta("label_added").key).toBe("labels");
+    expect(getEventTypeMeta("title_change").label).toBe("title");
+    expect(getEventTypeMeta("description_change").label).toBe("description");
+  });
+
+  it("returns a fallback meta with humanized label for unknown types", () => {
+    const meta = getEventTypeMeta("some_unknown_thing");
+    expect(meta.key).toBe("other");
+    expect(meta.label).toBe("some unknown thing");
+    expect(meta.iconBgClass).toBeTruthy();
+    expect(meta.iconColorClass).toBeTruthy();
+    expect(meta.badgeClass).toBeTruthy();
   });
 });
