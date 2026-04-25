@@ -2,8 +2,10 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { memo, useRef, useState } from "react";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
+import { BOARD_SORT_MODES, type BoardSortMode } from "@/views/board-sort";
 import { KanbanCard } from "./kanban-card";
 
 interface KanbanColumnProps {
@@ -16,6 +18,8 @@ interface KanbanColumnProps {
   blockedIds?: Set<string>;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  sortMode?: BoardSortMode;
+  onSortChange?: (status: IssueStatus, mode: BoardSortMode) => void;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -28,6 +32,8 @@ export const KanbanColumn = memo(function KanbanColumn({
   blockedIds,
   collapsed,
   onToggleCollapse,
+  sortMode,
+  onSortChange,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
@@ -79,7 +85,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       {/* Column header */}
       <div
         className={cn(
-          "flex items-center justify-between px-3 py-2.5",
+          "flex items-center justify-between gap-2 px-3 py-2.5",
           onToggleCollapse && "cursor-pointer",
         )}
         onClick={onToggleCollapse}
@@ -98,10 +104,28 @@ export const KanbanColumn = memo(function KanbanColumn({
         aria-expanded={onToggleCollapse ? true : undefined}
         aria-label={onToggleCollapse ? `Collapse ${status} column` : undefined}
       >
-        <StatusBadge status={status} />
-        <span className="text-xs font-medium text-muted-foreground tabular-nums">
-          {issues.length}
-        </span>
+        <div className="flex items-center gap-2 min-w-0">
+          <StatusBadge status={status} />
+          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+            {issues.length}
+          </span>
+        </div>
+        {sortMode && onSortChange && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            role="presentation"
+          >
+            <CustomSelect<BoardSortMode>
+              options={BOARD_SORT_MODES.map((o) => ({ value: o.value, label: o.label }))}
+              value={sortMode}
+              onChange={(value) => onSortChange(status, value)}
+              size="sm"
+              triggerClassName="border-transparent bg-transparent hover:bg-muted/60"
+              aria-label={`Sort ${status} column`}
+            />
+          </div>
+        )}
       </div>
 
       {/* Card list */}

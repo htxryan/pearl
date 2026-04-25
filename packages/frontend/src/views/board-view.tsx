@@ -23,10 +23,18 @@ import { useDetailPanel } from "@/hooks/use-detail-panel";
 import { useCreateIssue, useIssues, useUpdateIssue } from "@/hooks/use-issues";
 import { useKeyboardScope } from "@/hooks/use-keyboard-scope";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import { useToastActions } from "@/hooks/use-toast";
 import { useUndoActions } from "@/hooks/use-undo";
 import { buildApiParams, useUrlFilters } from "@/hooks/use-url-filters";
 import { cn } from "@/lib/utils";
+import {
+  BOARD_COLUMN_SORT_STORAGE_KEY,
+  type BoardColumnSort,
+  type BoardSortMode,
+  getColumnSort,
+  sortIssuesForColumn,
+} from "@/views/board-sort";
 import { statusLabel } from "@/views/detail-components";
 
 /** Statuses that users can drag cards into — same as board columns */
@@ -104,6 +112,20 @@ export function BoardView() {
   const [overColumnStatus, setOverColumnStatus] = useState<IssueStatus | null>(null);
   const isDragging = activeId !== null;
 
+  // Per-column sort selection, persisted across sessions. Missing entries fall
+  // back to the default ("modified") so existing users get the new behavior.
+  const [columnSort, setColumnSort] = usePersistedState<BoardColumnSort>(
+    BOARD_COLUMN_SORT_STORAGE_KEY,
+    {},
+  );
+
+  const handleColumnSortChange = useCallback(
+    (status: IssueStatus, mode: BoardSortMode) => {
+      setColumnSort((prev) => ({ ...prev, [status]: mode }));
+    },
+    [setColumnSort],
+  );
+
   // Group issues by status — items with status "blocked" fall into "open"
   const columnData = useMemo(() => {
     const grouped: Record<IssueStatus, IssueListItem[]> = {
@@ -122,8 +144,11 @@ export function BoardView() {
         grouped[col].push(issue);
       }
     }
+    for (const status of COLUMN_ORDER) {
+      grouped[status] = sortIssuesForColumn(grouped[status], getColumnSort(columnSort, status));
+    }
     return grouped;
-  }, [issues, showBlocked, blockedIds]);
+  }, [issues, showBlocked, blockedIds, columnSort]);
 
   // Find the active issue for the drag overlay
   const activeIssue = useMemo(
@@ -400,6 +425,8 @@ export function BoardView() {
                   onQuickAdd={handleColumnQuickAdd}
                   mobile={isMobile}
                   blockedIds={blockedIds}
+                  sortMode={getColumnSort(columnSort, COLUMN_ORDER[mobileColumnIdx])}
+                  onSortChange={handleColumnSortChange}
                 />
               </section>
             </div>
@@ -433,6 +460,8 @@ export function BoardView() {
                   onToggleCollapse={
                     status === "closed" ? () => setClosedCollapsed((v) => !v) : undefined
                   }
+                  sortMode={getColumnSort(columnSort, status)}
+                  onSortChange={handleColumnSortChange}
                 />
               ))}
             </section>

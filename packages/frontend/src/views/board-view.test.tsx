@@ -201,6 +201,7 @@ function renderBoard({
 describe("BoardView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     mockUseUpdateIssue.mockReturnValue({
       mutate: mockMutate,
       isError: false,
@@ -357,6 +358,98 @@ describe("BoardView", () => {
 
     const expandBtn = screen.getByRole("button", { name: /Expand closed column/i });
     expect(expandBtn).toHaveTextContent("1");
+  });
+
+  it("orders open column by reverse-modified date by default (newest at top)", () => {
+    // Two open issues: beads-001 (updated 2026-01-16), beads-003 (updated 2026-01-18, status=blocked → falls into open)
+    renderBoard();
+
+    const openList = screen.getByRole("list", { name: "open issues" });
+    const items = within(openList).getAllByRole("listitem");
+    // Most-recently-updated first: beads-003 (Jan 18) before beads-001 (Jan 16)
+    expect(items[0]).toHaveTextContent("Blocked migration");
+    expect(items[1]).toHaveTextContent("Fix login bug");
+  });
+
+  it("renders a per-column sort selector with a default of Modified", () => {
+    renderBoard();
+
+    const selectors = screen.getAllByRole("combobox", { name: /Sort .* column/ });
+    // 4 visible columns: open, in_progress, deferred, closed
+    expect(selectors.length).toBe(4);
+    for (const selector of selectors) {
+      expect(selector).toHaveTextContent("Modified");
+    }
+  });
+
+  it("re-orders an open column when its sort selector switches to Priority", () => {
+    // Add a higher-priority but older-updated issue so the sort change is observable.
+    const issues: IssueListItem[] = [
+      ...mockIssues,
+      {
+        id: "beads-006",
+        title: "Critical security gap",
+        status: "open",
+        priority: 0,
+        issue_type: "bug",
+        assignee: null,
+        owner: "alice",
+        // older `updated_at` than beads-003 (Jan 18) and beads-001 (Jan 16)
+        created_at: "2025-12-01T10:00:00Z",
+        updated_at: "2025-12-15T10:00:00Z",
+        due_at: null,
+        pinned: false,
+        has_attachments: false,
+        labels: [],
+        labelColors: {},
+      },
+    ];
+    renderBoard({ issues });
+
+    // Default Modified sort: beads-003 (Jan 18), beads-001 (Jan 16), beads-006 (Dec 15)
+    let openList = screen.getByRole("list", { name: "open issues" });
+    let items = within(openList).getAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("Blocked migration");
+    expect(items[2]).toHaveTextContent("Critical security gap");
+
+    // Switch the open column to Priority
+    const openSorter = screen.getByRole("combobox", { name: "Sort open column" });
+    fireEvent.click(openSorter);
+    fireEvent.click(screen.getByRole("option", { name: "Priority" }));
+
+    // Priority sort: P0 (beads-006), P0 (beads-003), P1 (beads-001)
+    openList = screen.getByRole("list", { name: "open issues" });
+    items = within(openList).getAllByRole("listitem");
+    // Both P0 items first (order between them broken by reverse-modified)
+    // beads-003 was updated Jan 18, beads-006 was updated Dec 15 — so beads-003 first
+    expect(items[0]).toHaveTextContent("Blocked migration");
+    expect(items[1]).toHaveTextContent("Critical security gap");
+    expect(items[2]).toHaveTextContent("Fix login bug");
+  });
+
+  it("persists per-column sort to localStorage", () => {
+    renderBoard();
+
+    const openSorter = screen.getByRole("combobox", { name: "Sort open column" });
+    fireEvent.click(openSorter);
+    fireEvent.click(screen.getByRole("option", { name: "Priority" }));
+
+    const stored = localStorage.getItem("pearl:board:column-sort");
+    expect(stored).toBeTruthy();
+    expect(JSON.parse(stored ?? "{}")).toEqual({ open: "priority" });
+  });
+
+  it("clicking the sort selector does not toggle column collapse", () => {
+    renderBoard();
+
+    // closed column starts expanded
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
+
+    // Click the sort selector on the closed column header
+    fireEvent.click(screen.getByRole("combobox", { name: "Sort closed column" }));
+
+    // Column is still expanded — selector click was not propagated to the header
+    expect(screen.getByRole("list", { name: "closed issues" })).toBeInTheDocument();
   });
 
   it("shows labels on cards", () => {
