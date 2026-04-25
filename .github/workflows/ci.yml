@@ -32,7 +32,7 @@ jobs:
         run: pnpm --filter @pearl/shared run build
 
       - name: Cache workspace
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             node_modules
@@ -56,7 +56,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -85,7 +85,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -112,7 +112,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -139,7 +139,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -170,7 +170,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore build
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -199,7 +199,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -211,7 +211,7 @@ jobs:
       - run: pnpm build
 
       - name: Cache build output
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: |
             node_modules
@@ -237,7 +237,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore build
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -304,7 +304,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Restore build
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
