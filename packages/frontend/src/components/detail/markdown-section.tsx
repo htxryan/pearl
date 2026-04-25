@@ -181,16 +181,15 @@ export function MarkdownSection({
     }
   }, []);
 
-  const isEmpty = !content;
+  const isEmpty = !content?.trim();
 
   if (collapseWhenEmpty && isEmpty && !isEditing) {
     return (
-      <section>
+      <div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => {
-            setEditValue("");
             setIsEditing(true);
             setActiveTab("write");
           }}
@@ -198,14 +197,14 @@ export function MarkdownSection({
         >
           + Add {title}
         </Button>
-      </section>
+      </div>
     );
   }
 
   return (
     <section>
       <div className="flex items-center justify-between mb-2">
-        {!hideTitle && (
+        {(!hideTitle || isEditing) && (
           <h2 className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
             {title}
           </h2>
