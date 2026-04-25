@@ -1,14 +1,20 @@
-import { type ReactNode, useCallback, useEffect, useRef } from "react";
+import { type ReactNode, useEffect } from "react";
 import { NavLink, useLocation, useSearchParams } from "react-router";
 import { XIcon } from "@/components/ui/icons";
+import {
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  Sidebar as SidebarPrimitive,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { VIEW_PATHS } from "@/hooks/use-filter-sync";
-import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { useHealth } from "@/hooks/use-issues";
-import { useIsMobile } from "@/hooks/use-media-query";
-import { usePersistedState } from "@/hooks/use-persisted-state";
 import { cn } from "@/lib/utils";
 
-// Inline SVG icons — consistent 16x16, stroke-based
 function ListIcon() {
   return (
     <svg
@@ -208,86 +214,99 @@ function NavItem({
   );
 }
 
-const SIDEBAR_COLLAPSED_KEY = "pearl:sidebar-collapsed";
 const TOGGLE_EVENT = "pearl:toggle-sidebar";
 
 export function toggleSidebar() {
   window.dispatchEvent(new CustomEvent(TOGGLE_EVENT));
 }
 
-/** Desktop sidebar — always visible at >= 768px */
-export function Sidebar() {
-  const isMobile = useIsMobile();
+function SidebarBranding({ collapsed }: { collapsed?: boolean }) {
   const { data: health } = useHealth();
   const projectPrefix = health?.project_prefix;
-  const [collapsed, setCollapsed] = usePersistedState(SIDEBAR_COLLAPSED_KEY, false);
-
-  useEffect(() => {
-    if (isMobile) return;
-    const handler = () => setCollapsed((prev) => !prev);
-    window.addEventListener(TOGGLE_EVENT, handler);
-    return () => window.removeEventListener(TOGGLE_EVENT, handler);
-  }, [setCollapsed, isMobile]);
-
-  if (isMobile) return null;
 
   return (
-    <aside
+    <div
       className={cn(
-        "flex shrink-0 flex-col bg-surface-raised border-r border-border transition-[width] duration-200 ease-in-out",
-        collapsed ? "w-14" : "w-56",
+        "flex flex-col overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
+        collapsed ? "max-w-0 opacity-0" : "max-w-48 opacity-100",
       )}
     >
-      <div className="flex h-14 items-center justify-between px-3">
-        <div
-          className={cn(
-            "flex flex-col overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-200",
-            collapsed ? "max-w-0 opacity-0" : "max-w-48 opacity-100",
-          )}
-        >
-          <span className="text-lg font-semibold tracking-tight leading-tight truncate">
-            {projectPrefix ?? "Pearl"}
-          </span>
-          {projectPrefix && (
-            <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => setCollapsed((prev) => !prev)}
-          className={cn(
-            "inline-flex items-center justify-center h-8 w-8 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0",
-            collapsed && "mx-auto",
-          )}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ExpandIcon /> : <CollapseIcon />}
-        </button>
-      </div>
-      <nav className="flex flex-1 flex-col p-2 overflow-hidden">
-        <div className="flex flex-col gap-1">
-          {mainNavItems.map((item) => (
-            <NavItem key={item.to} item={item} collapsed={collapsed} />
-          ))}
-        </div>
-        <div className="mt-auto border-t border-border pt-2">
-          <NavItem item={settingsItem} collapsed={collapsed} />
-        </div>
-      </nav>
-    </aside>
+      <span className="text-lg font-semibold tracking-tight leading-tight truncate">
+        {projectPrefix ?? "Pearl"}
+      </span>
+      {projectPrefix && (
+        <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
+      )}
+    </div>
   );
 }
 
-/** Mobile hamburger button — visible at < 768px */
-export function MobileMenuButton({ onClick }: { onClick: () => void }) {
-  const isMobile = useIsMobile();
+export function AppSidebar() {
+  const { open, toggleOpen, isMobile, setOpenMobile } = useSidebar();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (isMobile) return;
+    const handler = () => toggleOpen();
+    window.addEventListener(TOGGLE_EVENT, handler);
+    return () => window.removeEventListener(TOGGLE_EVENT, handler);
+  }, [toggleOpen, isMobile]);
+
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [location.pathname, setOpenMobile]);
+
+  const collapsed = !open && !isMobile;
+
+  return (
+    <SidebarPrimitive>
+      <SidebarHeader className="justify-between">
+        {isMobile ? (
+          <>
+            <SidebarBranding />
+            <button
+              type="button"
+              onClick={() => setOpenMobile(false)}
+              className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              aria-label="Close navigation menu"
+            >
+              <XIcon size={20} />
+            </button>
+          </>
+        ) : (
+          <>
+            <SidebarBranding collapsed={collapsed} />
+            <SidebarTrigger className={cn(collapsed && "mx-auto")}>
+              {collapsed ? <ExpandIcon /> : <CollapseIcon />}
+            </SidebarTrigger>
+          </>
+        )}
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {mainNavItems.map((item) => (
+            <SidebarMenuItem key={item.to}>
+              <NavItem item={item} mobile={isMobile} collapsed={collapsed} />
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+        <SidebarFooter>
+          <NavItem item={settingsItem} mobile={isMobile} collapsed={collapsed} />
+        </SidebarFooter>
+      </SidebarContent>
+    </SidebarPrimitive>
+  );
+}
+
+export function MobileMenuButton() {
+  const { isMobile, setOpenMobile } = useSidebar();
 
   if (!isMobile) return null;
 
   return (
     <button
-      onClick={onClick}
+      type="button"
+      onClick={() => setOpenMobile(true)}
       className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-foreground hover:bg-accent transition-colors"
       aria-label="Open navigation menu"
     >
@@ -296,90 +315,4 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/** Mobile drawer overlay — slides in from left */
-export function MobileDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const location = useLocation();
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const { data: health } = useHealth();
-  const projectPrefix = health?.project_prefix;
-
-  // Focus trap — confines Tab navigation inside the drawer while open
-  useFocusTrap(drawerRef, isOpen);
-
-  // Close drawer on route change.
-  // Intentionally omits isOpen and onClose from deps: we only want to fire
-  // when the pathname changes, not on every render (onClose is often an inline arrow).
-  useEffect(() => {
-    if (isOpen) onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
-
-  // Close on Escape
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    },
-    [onClose],
-  );
-
-  useEffect(() => {
-    if (!isOpen) return;
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleKeyDown]);
-
-  // Prevent body scroll when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "";
-      };
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      ref={drawerRef}
-      className="fixed inset-0 z-50"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Navigation menu"
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      {/* Drawer panel */}
-      <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-background shadow-lg flex flex-col animate-slide-in-left">
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold tracking-tight leading-tight">
-              {projectPrefix ?? "Pearl"}
-            </span>
-            {projectPrefix && (
-              <span className="text-[10px] text-muted-foreground leading-tight">Pearl</span>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="inline-flex items-center justify-center h-11 w-11 rounded-[var(--radius)] text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Close navigation menu"
-          >
-            <XIcon size={20} />
-          </button>
-        </div>
-        <nav className="flex flex-1 flex-col p-2">
-          <div className="flex flex-col gap-1">
-            {mainNavItems.map((item) => (
-              <NavItem key={item.to} item={item} mobile />
-            ))}
-          </div>
-          <div className="mt-auto border-t border-border pt-2">
-            <NavItem item={settingsItem} mobile />
-          </div>
-        </nav>
-      </aside>
-    </div>
-  );
-}
+export { SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem };

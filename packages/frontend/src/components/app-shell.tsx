@@ -27,14 +27,14 @@ import { KeyboardHelpOverlay, toggleKeyboardHelp } from "./keyboard-help";
 import { OnboardingBanner } from "./onboarding";
 import { PageTransition } from "./page-transition";
 import { SearchPalette } from "./search-palette";
-import { MobileDrawer, MobileMenuButton, Sidebar, toggleSidebar } from "./sidebar";
+import { AppSidebar, MobileMenuButton, toggleSidebar } from "./sidebar";
+import { SidebarProvider } from "./ui/sidebar";
 
 export function AppShell() {
   const navigate = useNavigate();
   const viewNavigate = useViewNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const openCreateDialog = useCallback(() => setCreateDialogOpen(true), []);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const canUndo = useCanUndo();
   const { setTheme } = useTheme();
   const { isEmbedded, showModal } = useEmbeddedModeDetection();
@@ -205,53 +205,58 @@ export function AppShell() {
     <EmbeddedModeProvider value={isEmbedded}>
       <NavListProvider>
         <DetailPanelProvider>
-          <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
-            {showModal && <EmbeddedModeModal />}
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("main-content")?.focus();
-              }}
-            >
-              Skip to content
-            </a>
-            <div
-              ref={announcerRef}
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              className="sr-only"
-            />
-            <Sidebar />
-            <MobileDrawer isOpen={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
-            <div className="flex flex-1 flex-col overflow-hidden">
-              <HealthBanner />
-              <Header
-                mobileMenuButton={<MobileMenuButton onClick={() => setMobileDrawerOpen(true)} />}
-                onCreateIssue={openCreateDialog}
-                onSearchIssues={() => toggleSearchPalette()}
-                onOpenCommands={() => toggleCommandPalette()}
+          <SidebarProvider>
+            <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
+              {showModal && <EmbeddedModeModal />}
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:text-sm focus:font-medium focus:shadow-lg"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("main-content")?.focus();
+                }}
+              >
+                Skip to content
+              </a>
+              <div
+                ref={announcerRef}
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                className="sr-only"
               />
-              <OnboardingBanner />
-              <div className="flex flex-1 overflow-hidden">
-                <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto outline-none">
-                  <PageTransition>
-                    <Outlet />
-                  </PageTransition>
-                </main>
-                <DetailContainer />
+              <AppSidebar />
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <HealthBanner />
+                <Header
+                  mobileMenuButton={<MobileMenuButton />}
+                  onCreateIssue={openCreateDialog}
+                  onSearchIssues={() => toggleSearchPalette()}
+                  onOpenCommands={() => toggleCommandPalette()}
+                />
+                <OnboardingBanner />
+                <div className="flex flex-1 overflow-hidden">
+                  <main
+                    id="main-content"
+                    tabIndex={-1}
+                    className="flex-1 overflow-auto outline-none"
+                  >
+                    <PageTransition>
+                      <Outlet />
+                    </PageTransition>
+                  </main>
+                  <DetailContainer />
+                </div>
               </div>
+              <CommandPalette />
+              <SearchPalette />
+              <CreateIssueDialog
+                isOpen={createDialogOpen}
+                onClose={() => setCreateDialogOpen(false)}
+              />
+              <KeyboardHelpOverlay />
             </div>
-            <CommandPalette />
-            <SearchPalette />
-            <CreateIssueDialog
-              isOpen={createDialogOpen}
-              onClose={() => setCreateDialogOpen(false)}
-            />
-            <KeyboardHelpOverlay />
-          </div>
+          </SidebarProvider>
         </DetailPanelProvider>
       </NavListProvider>
     </EmbeddedModeProvider>

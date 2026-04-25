@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Sidebar, toggleSidebar } from "./sidebar";
+import { AppSidebar, toggleSidebar } from "./sidebar";
+import { SidebarProvider } from "./ui/sidebar";
 
 vi.mock("@/hooks/use-issues", () => ({
   useHealth: () => ({ data: { project_prefix: "TEST" } }),
@@ -11,10 +12,24 @@ vi.mock("@/hooks/use-media-query", () => ({
   useIsMobile: () => false,
 }));
 
+function getCookie(name: string): string | undefined {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : undefined;
+}
+
+function clearCookies() {
+  document.cookie.split(";").forEach((c) => {
+    const name = c.split("=")[0].trim();
+    if (name) document.cookie = `${name}=; max-age=0; path=/`;
+  });
+}
+
 function renderSidebar() {
   return render(
     <MemoryRouter initialEntries={["/list"]}>
-      <Sidebar />
+      <SidebarProvider>
+        <AppSidebar />
+      </SidebarProvider>
     </MemoryRouter>,
   );
 }
@@ -22,6 +37,7 @@ function renderSidebar() {
 describe("Sidebar", () => {
   beforeEach(() => {
     localStorage.clear();
+    clearCookies();
   });
 
   it("renders expanded by default with nav labels visible", () => {
@@ -50,14 +66,14 @@ describe("Sidebar", () => {
     expect(screen.getByText("List")).toBeInTheDocument();
   });
 
-  it("persists collapsed state to localStorage", () => {
+  it("persists collapsed state to cookie", () => {
     renderSidebar();
     fireEvent.click(screen.getByRole("button", { name: /collapse sidebar/i }));
-    expect(JSON.parse(localStorage.getItem("pearl:sidebar-collapsed") ?? "false")).toBe(true);
+    expect(getCookie("sidebar:state")).toBe("false");
   });
 
-  it("restores collapsed state from localStorage", () => {
-    localStorage.setItem("pearl:sidebar-collapsed", "true");
+  it("restores collapsed state from cookie", () => {
+    document.cookie = "sidebar:state=false; path=/";
     renderSidebar();
     expect(screen.getByText("List")).toHaveClass("opacity-0");
     expect(screen.getByRole("button", { name: /expand sidebar/i })).toBeInTheDocument();
@@ -75,5 +91,34 @@ describe("Sidebar", () => {
     fireEvent.click(screen.getByRole("button", { name: /collapse sidebar/i }));
     const listLink = screen.getByRole("link", { name: /list/i });
     expect(listLink).toHaveAttribute("title", "List");
+  });
+});
+
+describe("Sidebar legacy migration (F5)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    clearCookies();
+  });
+
+  it("reads legacy pearl:sidebar-collapsed from localStorage, writes cookie, deletes legacy key", () => {
+    localStorage.setItem("pearl:sidebar-collapsed", "true");
+    renderSidebar();
+    expect(getCookie("sidebar:state")).toBe("false");
+    expect(localStorage.getItem("pearl:sidebar-collapsed")).toBeNull();
+    expect(screen.getByText("List")).toHaveClass("opacity-0");
+  });
+
+  it("migrates expanded state from legacy localStorage", () => {
+    localStorage.setItem("pearl:sidebar-collapsed", "false");
+    renderSidebar();
+    expect(getCookie("sidebar:state")).toBe("true");
+    expect(localStorage.getItem("pearl:sidebar-collapsed")).toBeNull();
+  });
+
+  it("ignores legacy key if cookie already set", () => {
+    localStorage.setItem("pearl:sidebar-collapsed", "true");
+    document.cookie = "sidebar:state=true; path=/";
+    renderSidebar();
+    expect(screen.getByText("List")).not.toHaveClass("opacity-0");
   });
 });
