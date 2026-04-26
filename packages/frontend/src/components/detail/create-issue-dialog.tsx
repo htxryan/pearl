@@ -117,7 +117,7 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
         if (!open) handleCancel();
       }}
     >
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Issue</DialogTitle>
         </DialogHeader>
@@ -198,10 +198,10 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the issue (supports markdown)"
-                className="w-full min-h-[80px] text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+                className="w-full min-h-[160px] text-sm bg-transparent border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring resize-y"
               />
             ) : (
-              <div className="w-full min-h-[80px] text-sm border border-border rounded-lg px-3 py-2 overflow-y-auto">
+              <div className="w-full min-h-[160px] text-sm border border-border rounded-lg px-3 py-2 overflow-y-auto">
                 {description.trim() ? (
                   <div className="prose prose-sm dark:prose-invert max-w-none">
                     <Markdown remarkPlugins={[remarkGfm]}>{description}</Markdown>
