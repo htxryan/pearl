@@ -93,7 +93,7 @@ export function FieldEditor({
       {renderDisplay ? (
         renderDisplay(value)
       ) : (
-        <span className={cn("text-sm", !value && "text-muted-foreground italic")}>
+        <span className={cn("text-sm truncate block", !value && "text-muted-foreground italic")}>
           {value || placeholder}
         </span>
       )}

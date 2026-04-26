@@ -14,7 +14,7 @@ const SIDEBAR_COLLAPSED_KEY = "issueDetail.sidebarCollapsed";
 const INLINE_COLLAPSED_KEY = "issueDetail.inlineCollapsed";
 const WIDTH_KEY = "issueDetail.sidebarWidth";
 export const DEFAULT_SIDEBAR_WIDTH = 280;
-export const MIN_SIDEBAR_WIDTH = 220;
+export const MIN_SIDEBAR_WIDTH = 260;
 export const MAX_SIDEBAR_WIDTH = 480;
 
 export function useMetadataSidebarState() {
@@ -291,7 +291,10 @@ function FieldsList({
         <RelativeTime iso={issue.updated_at} className="text-sm text-muted-foreground" />
       </FieldRow>
       <FieldRow label="Created">
-        <span className="text-sm text-muted-foreground">
+        <span
+          className="text-sm text-muted-foreground truncate block"
+          title={`${issue.created_at} by ${issue.created_by}`}
+        >
           <RelativeTime iso={issue.created_at} /> by {issue.created_by}
         </span>
       </FieldRow>
@@ -339,7 +342,9 @@ function FieldsList({
         />
       </FieldRow>
       <FieldRow label="Owner">
-        <span className="text-sm">{issue.owner}</span>
+        <span className="text-sm truncate block" title={issue.owner}>
+          {issue.owner}
+        </span>
       </FieldRow>
       {issue.closed_at && (
         <FieldRow label="Closed">

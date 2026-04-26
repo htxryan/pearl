@@ -138,6 +138,80 @@ describe("MetadataSidebar (sidebar layout)", () => {
     expect(onToggle).toHaveBeenCalledTimes(2);
   });
 
+  it("sidebar aside element has minimum width of 260px", () => {
+    renderSidebar(
+      <MetadataSidebar
+        issue={baseIssue}
+        onFieldUpdate={() => {}}
+        collapsed={false}
+        onToggleCollapsed={() => {}}
+        width={MIN_SIDEBAR_WIDTH}
+        onWidthChange={() => {}}
+      />,
+    );
+    const aside = screen.getByRole("complementary", { name: "Issue metadata" });
+    expect(aside.style.width).toBe(`${MIN_SIDEBAR_WIDTH}px`);
+    expect(MIN_SIDEBAR_WIDTH).toBe(260);
+  });
+
+  it("Owner field text has truncation and title tooltip", () => {
+    renderSidebar(
+      <MetadataSidebar
+        issue={baseIssue}
+        onFieldUpdate={() => {}}
+        collapsed={false}
+        onToggleCollapsed={() => {}}
+        width={DEFAULT_SIDEBAR_WIDTH}
+        onWidthChange={() => {}}
+      />,
+    );
+    // The Owner value "bob" should have a title attribute for tooltip on truncation.
+    const ownerEl = screen.getByTitle("bob");
+    expect(ownerEl).toBeDefined();
+    expect(ownerEl.textContent).toBe("bob");
+    // The element (or its parent FieldRow content div) should have overflow-hidden for clipping.
+    expect(ownerEl.className).toContain("truncate");
+  });
+
+  it("Created field text has truncation for long author names", () => {
+    const longAuthorIssue: Issue = {
+      ...baseIssue,
+      created_by: "verylongusername@example.com",
+    };
+    renderSidebar(
+      <MetadataSidebar
+        issue={longAuthorIssue}
+        onFieldUpdate={() => {}}
+        collapsed={false}
+        onToggleCollapsed={() => {}}
+        width={DEFAULT_SIDEBAR_WIDTH}
+        onWidthChange={() => {}}
+      />,
+    );
+    // The Created field value span should have truncation to prevent overflow.
+    const createdTitle = screen.getByTitle(/verylongusername@example\.com/);
+    expect(createdTitle).toBeDefined();
+    expect(createdTitle.className).toContain("truncate");
+  });
+
+  it("FieldRow content div has overflow-hidden to clip overflowing children", () => {
+    renderSidebar(
+      <MetadataSidebar
+        issue={baseIssue}
+        onFieldUpdate={() => {}}
+        collapsed={false}
+        onToggleCollapsed={() => {}}
+        width={MIN_SIDEBAR_WIDTH}
+        onWidthChange={() => {}}
+      />,
+    );
+    // The Owner value's parent content div (FieldRow's flex-1 div) should have overflow-hidden.
+    const ownerEl = screen.getByTitle("bob");
+    const contentDiv = ownerEl.closest("div.flex-1");
+    expect(contentDiv).not.toBeNull();
+    expect(contentDiv?.className).toContain("overflow-hidden");
+  });
+
   it("exposes a resize separator on the sidebar's left edge", () => {
     const onWidthChange = vi.fn();
     renderSidebar(
