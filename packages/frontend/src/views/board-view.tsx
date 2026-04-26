@@ -50,9 +50,11 @@ export function BoardView() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Shared URL filter state (same as List view)
-  const { filters, sorting, setFilters } = useUrlFilters();
+  const { filters, setFilters } = useUrlFilters();
 
-  const apiParams = useMemo(() => buildApiParams(filters, sorting), [filters, sorting]);
+  // Board view does its own per-column sort, so don't send URL sort/direction
+  // to the API — they only control the list view's ordering.
+  const apiParams = useMemo(() => buildApiParams(filters, []), [filters]);
 
   // Data fetching — shared cache with List view
   const { data: issues = [], isLoading } = useIssues(apiParams);
