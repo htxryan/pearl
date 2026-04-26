@@ -16,7 +16,7 @@ import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 export function DetailSections({ children }: { children: React.ReactNode }) {
   const items = Children.toArray(children).filter(Boolean);
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-8">
+    <div className="px-4 sm:px-6 py-6 space-y-8">
       {items.map((child, i) => (
         <ScrollRevealSection key={i} index={i}>
           {child}
@@ -92,7 +92,7 @@ export function DetailSkeleton() {
         <div className="h-7 skeleton-shimmer rounded w-80" />
       </div>
       {/* Content skeleton */}
-      <div className="flex-1 p-4 sm:p-6 space-y-8 max-w-4xl">
+      <div className="flex-1 p-4 sm:p-6 space-y-8">
         {/* Fields grid skeleton */}
         <div className="space-y-2">
           <div className="h-3 skeleton-shimmer rounded w-16 mb-3" />
