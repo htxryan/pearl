@@ -4,6 +4,7 @@ import { Plus, X } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { BeadId } from "@/components/ui/bead-id";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -18,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateIssue } from "@/hooks/use-issues";
+import { sonnerToast } from "@/hooks/use-toasts";
 import { cn } from "@/lib/utils";
 
 const TITLE_MAX = 200;
@@ -83,9 +85,20 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
         due: due || undefined,
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          const newId = response.data?.id;
           resetForm();
           onClose();
+          if (newId) {
+            sonnerToast.success(
+              <span className="inline-flex items-center gap-1.5">
+                Issue created:{" "}
+                <a href={`/issues/${encodeURIComponent(newId)}`}>
+                  <BeadId id={newId} interactive={false} />
+                </a>
+              </span>,
+            );
+          }
         },
       },
     );
