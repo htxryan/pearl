@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LabelPicker } from "./label-picker";
 
@@ -198,6 +199,22 @@ describe("LabelPicker", () => {
       fireEvent.keyDown(input, { key: "Enter" });
 
       expect(onChange).toHaveBeenCalledWith(["frontend", "backend"]);
+    });
+  });
+
+  describe("create option keyboard", () => {
+    it("ArrowDown to Create option then Enter opens color picker, not direct create", async () => {
+      const user = userEvent.setup();
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      await user.type(input, "newlabel");
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 

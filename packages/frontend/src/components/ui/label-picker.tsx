@@ -53,6 +53,16 @@ export function LabelPicker({
 
   const itemCount = filteredLabels.length + (canCreate ? 1 : 0);
 
+  const activeDescendantId = useMemo(() => {
+    if (highlightedIndex >= 0 && highlightedIndex < filteredLabels.length) {
+      return `label-option-${highlightedIndex}`;
+    }
+    if (highlightedIndex === filteredLabels.length && canCreate) {
+      return "label-option-create";
+    }
+    return undefined;
+  }, [highlightedIndex, filteredLabels.length, canCreate]);
+
   const selectLabel = useCallback(
     (labelName: string) => {
       onChange([...selected, labelName]);
@@ -119,23 +129,27 @@ export function LabelPicker({
       switch (e.key) {
         case "ArrowDown": {
           e.preventDefault();
+          e.stopPropagation();
           if (itemCount === 0) break;
           setHighlightedIndex((prev) => (prev < itemCount - 1 ? prev + 1 : 0));
           break;
         }
         case "ArrowUp": {
           e.preventDefault();
+          e.stopPropagation();
           if (itemCount === 0) break;
           setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : itemCount - 1));
           break;
         }
         case "Home": {
           e.preventDefault();
+          e.stopPropagation();
           if (itemCount > 0) setHighlightedIndex(0);
           break;
         }
         case "End": {
           e.preventDefault();
+          e.stopPropagation();
           if (itemCount > 0) setHighlightedIndex(itemCount - 1);
           break;
         }
@@ -157,8 +171,10 @@ export function LabelPicker({
           break;
         }
         case "Escape": {
-          e.stopPropagation();
-          setHighlightedIndex(-1);
+          if (highlightedIndex >= 0) {
+            e.stopPropagation();
+            setHighlightedIndex(-1);
+          }
           break;
         }
         case "Backspace": {
@@ -216,6 +232,7 @@ export function LabelPicker({
             placeholder={selected.length === 0 ? placeholder : ""}
             className="min-w-[80px] flex-1 w-auto"
             aria-label="Search labels"
+            aria-activedescendant={activeDescendantId}
             onKeyDown={handleKeyDown}
           />
         </div>
@@ -240,6 +257,7 @@ export function LabelPicker({
                   />
                   {canCreate && (
                     <div
+                      id="label-option-create"
                       role="option"
                       tabIndex={-1}
                       aria-selected={false}
@@ -292,9 +310,13 @@ function LabelList({
 
   useEffect(() => {
     if (highlightedIndex < 0 || highlightedIndex >= labels.length) return;
-    const item = parentRef.current?.querySelector(`[data-index="${highlightedIndex}"]`);
-    item?.scrollIntoView({ block: "nearest" });
-  }, [highlightedIndex, labels.length]);
+    if (useVirtual) {
+      virtualizer.scrollToIndex(highlightedIndex, { align: "auto" });
+    } else {
+      const item = parentRef.current?.querySelector(`[data-index="${highlightedIndex}"]`);
+      item?.scrollIntoView({ block: "nearest" });
+    }
+  }, [highlightedIndex, labels.length, useVirtual, virtualizer]);
 
   if (!useVirtual) {
     return (
@@ -302,11 +324,13 @@ function LabelList({
         {labels.map((label, index) => (
           <ComboboxPrimitive.Item
             key={label.name}
+            ref={(el) => {
+              if (el) el.id = `label-option-${index}`;
+            }}
             data-index={index}
             value={label.name}
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm outline-none",
-              "data-[highlighted]:bg-accent",
               index === highlightedIndex && "bg-accent",
             )}
           >
@@ -326,11 +350,13 @@ function LabelList({
           return (
             <ComboboxPrimitive.Item
               key={label.name}
+              ref={(el) => {
+                if (el) el.id = `label-option-${virtualRow.index}`;
+              }}
               data-index={virtualRow.index}
               value={label.name}
               className={cn(
                 "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm outline-none absolute left-0 right-0",
-                "data-[highlighted]:bg-accent",
                 virtualRow.index === highlightedIndex && "bg-accent",
               )}
               style={{
