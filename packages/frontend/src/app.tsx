@@ -40,14 +40,14 @@ export function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Toaster
-          position="bottom-right"
-          visibleToasts={3}
-          toastOptions={{ className: "font-sans" }}
-          theme="system"
-        />
         <TooltipProvider delay={300}>
           <BrowserRouter>
+            <Toaster
+              position="bottom-right"
+              visibleToasts={3}
+              toastOptions={{ className: "font-sans" }}
+              theme="system"
+            />
             <Routes>
               <Route
                 path="__showcase"

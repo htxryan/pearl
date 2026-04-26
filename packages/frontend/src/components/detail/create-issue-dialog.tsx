@@ -92,12 +92,11 @@ export function CreateIssueDialog({ isOpen, onClose }: CreateIssueDialogProps) {
           if (newId) {
             sonnerToast.success(
               <span className="inline-flex items-center gap-1.5">
-                Issue created:{" "}
-                <a href={`/issues/${encodeURIComponent(newId)}`}>
-                  <BeadId id={newId} interactive={false} />
-                </a>
+                Issue created: <BeadId id={newId} />
               </span>,
             );
+          } else {
+            sonnerToast.success("Issue created");
           }
         },
       },
