@@ -218,6 +218,43 @@ describe("LabelPicker", () => {
     });
   });
 
+  describe("color picker keyboard", () => {
+    it("Escape while color picker is showing closes it and restores keyboard navigation", async () => {
+      const user = userEvent.setup();
+      renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      await user.type(input, "newlabel");
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      fireEvent.keyDown(input, { key: "Escape" });
+      expect(input).toHaveFocus();
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+    });
+
+    it("keys other than Escape are ignored while color picker is showing", async () => {
+      const user = userEvent.setup();
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      await user.type(input, "newlabel");
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
   describe("API contract", () => {
     it("onChange receives string[] of label names", () => {
       const onChange = vi.fn();

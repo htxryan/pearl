@@ -122,6 +122,7 @@ export function LabelPicker({
           e.stopPropagation();
           e.preventDefault();
           setShowColorPicker(false);
+          inputRef.current?.focus();
         }
         return;
       }
@@ -246,7 +247,10 @@ export function LabelPicker({
                   selectedColor={newLabelColor}
                   onSelectColor={setNewLabelColor}
                   onConfirm={() => handleCreateNew(searchTrimmed, newLabelColor ?? undefined)}
-                  onCancel={() => setShowColorPicker(false)}
+                  onCancel={() => {
+                    setShowColorPicker(false);
+                    inputRef.current?.focus();
+                  }}
                 />
               ) : (
                 <>
@@ -378,6 +382,8 @@ function LabelList({
   );
 }
 
+const COLOR_GRID_COLS = 5;
+
 function ColorPickerPanel({
   labelName,
   selectedColor,
@@ -393,21 +399,77 @@ function ColorPickerPanel({
 }) {
   const { theme } = useTheme();
   const isDark = theme.colorScheme === "dark";
+  const colorRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    colorRefs.current[0]?.focus();
+  }, []);
+
+  const handleColorKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      let next = index;
+      switch (e.key) {
+        case "ArrowRight":
+          next = (index + 1) % LABEL_COLORS.length;
+          break;
+        case "ArrowLeft":
+          next = (index - 1 + LABEL_COLORS.length) % LABEL_COLORS.length;
+          break;
+        case "ArrowDown":
+          next = index + COLOR_GRID_COLS < LABEL_COLORS.length ? index + COLOR_GRID_COLS : index;
+          break;
+        case "ArrowUp":
+          next = index - COLOR_GRID_COLS >= 0 ? index - COLOR_GRID_COLS : index;
+          break;
+        case "Escape":
+          e.preventDefault();
+          e.stopPropagation();
+          onCancel();
+          return;
+        default:
+          return;
+      }
+      e.preventDefault();
+      colorRefs.current[next]?.focus();
+    },
+    [onCancel],
+  );
+
+  const handlePanelKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onCancel();
+      }
+    },
+    [onCancel],
+  );
 
   return (
-    <div className="p-3 space-y-3">
+    // biome-ignore lint/a11y/noStaticElementInteractions: keyboard handler provides Escape fallback for child elements
+    <div className="p-3 space-y-3" onKeyDown={handlePanelKeyDown}>
       <div className="text-sm font-medium">Color for &ldquo;{labelName}&rdquo;</div>
-      <div className="grid grid-cols-5 gap-2">
-        {LABEL_COLORS.map((c) => {
+      <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label="Label color">
+        {LABEL_COLORS.map((c, i) => {
           const pal = LABEL_PALETTE[c];
           const bg = isDark ? pal.darkBg : pal.bg;
-          const border = selectedColor === c ? "ring-2 ring-ring ring-offset-1" : "";
+          const isSelected = selectedColor === c;
           return (
             <button
               key={c}
+              ref={(el) => {
+                colorRefs.current[i] = el;
+              }}
               type="button"
+              role="radio"
+              aria-checked={isSelected}
               onClick={() => onSelectColor(c)}
-              className={cn("h-7 w-full rounded-md transition-shadow", border)}
+              onKeyDown={(e) => handleColorKeyDown(e, i)}
+              className={cn(
+                "h-7 w-full rounded-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                isSelected && "ring-2 ring-ring ring-offset-1",
+              )}
               style={{ backgroundColor: bg }}
               aria-label={c}
               title={c}
