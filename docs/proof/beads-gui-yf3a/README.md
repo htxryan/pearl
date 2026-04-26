@@ -9,8 +9,8 @@ This directory holds visual proof that every primitive migrated by epics E1a →
 ## Highlights — proof per epic
 
 ### E2 Atomic primitives — Button, Tooltip, Card, Badge, Avatar, Input, Separator, Skeleton, Label
-- Buttons visible in every screenshot. Variants: `default` (purple Create Issue), `outline` (cancel), `destructive` (red Delete Issue), `ghost` (icon-only filter triggers). Sizes: `default`, `sm`, `icon`.
-- See: `01-list-view-default.png`, `05-create-issue-dialog.png`, `v3-09-list-view-monokai.png`, `v4-04-alert-dialog-delete.png`.
+- **Button**: visible in every screenshot. Variants: `default` (purple Create Issue), `outline` (cancel), `destructive` (red Delete Issue), `ghost` (icon-only filter triggers). Sizes: `default`, `sm`, `icon`. See: `01-list-view-default.png`, `05-create-issue-dialog.png`, `v3-09-list-view-monokai.png`, `v4-04-alert-dialog-delete.png`.
+- **Tooltip** ⭐ — captured live: `v5-01-tooltip-edit-description.png` shows the BaseUI Tooltip rendering "Edit Description" above the pencil icon in the issue detail's Description section. Confirmed via direct chrome MCP hover, then reproduced headlessly with a 2s post-hover wait (BaseUI Tooltip default delay ≈ 700ms).
 
 ### E3 Overlay primitives — Dialog, AlertDialog, DropdownMenu, Popover, Sheet, HoverCard
 - **Dialog** (BaseUI portal-based, replacing native `<dialog>`): `05-create-issue-dialog.png`, `v3-10-create-dialog-monokai.png`. Backdrop scrim, focus trap, scroll lock all working.
@@ -50,8 +50,7 @@ This directory holds visual proof that every primitive migrated by epics E1a →
 
 ## Notable absences (intentional)
 
-- No screenshot proves a working **Tooltip** — the bell button has `aria-label="Notifications"` but the tooltip didn't appear during automated hover. Visual inspection of the running app confirms tooltips render; not captured automatically.
-- The `v3-01-tooltip-on-bell.png` screenshot inadvertently shows the **expanded Sidebar** instead — kept as proof for the Sidebar.
+- The bell button (`aria-label="Notifications"`) is not Tooltip-wrapped — tooltips in this app live on `markdown-section.tsx` Edit pencils and `detail-header.tsx` controls, not on header chrome.
 
 ## What this proof does NOT verify
 
@@ -71,4 +70,5 @@ cd packages/frontend && pnpm dev # frontend, separate terminal
 ./packages/frontend/node_modules/.bin/tsx scripts/proof-shadcn-baseui-v2.ts  # filters + theme attempts
 ./packages/frontend/node_modules/.bin/tsx scripts/proof-shadcn-baseui-v3.ts  # themes + popovers
 ./packages/frontend/node_modules/.bin/tsx scripts/proof-shadcn-baseui-v4.ts  # alert dialog + sonner
+./packages/frontend/node_modules/.bin/tsx scripts/proof-shadcn-baseui-v5-tooltip.ts  # tooltip
 ```
