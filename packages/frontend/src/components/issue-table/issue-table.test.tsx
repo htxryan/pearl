@@ -259,7 +259,9 @@ describe("IssueTable", () => {
       const ids = getHeaderColumnIds();
       expect(ids[0]).toBe("select");
       expect(ids[1]).toBe("id");
-      expect(ids[2]).toBe("title");
+      expect(ids[2]).toBe("issue_type");
+      expect(ids[3]).toBe("title");
+      expect(ids[4]).toBe("status");
     });
 
     it("drag handle has accessible roledescription", () => {

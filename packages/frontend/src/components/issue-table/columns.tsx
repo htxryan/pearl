@@ -374,6 +374,11 @@ export function buildColumns({
       cell: (info) => <BeadId id={info.getValue()} className="whitespace-nowrap text-[11px]" />,
       enableResizing: false,
     }),
+    col.accessor("issue_type", {
+      header: "Type",
+      cell: (info) => <TypePill type={info.getValue()} />,
+      enableResizing: false,
+    }),
     col.accessor("title", {
       header: "Title",
       cell: (info) => {
@@ -509,11 +514,6 @@ export function buildColumns({
         }
         return <PriorityIndicator priority={priority} />;
       },
-      enableResizing: false,
-    }),
-    col.accessor("issue_type", {
-      header: "Type",
-      cell: (info) => <TypePill type={info.getValue()} />,
       enableResizing: false,
     }),
     col.accessor("assignee", {
