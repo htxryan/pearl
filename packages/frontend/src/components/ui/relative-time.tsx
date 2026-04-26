@@ -1,6 +1,6 @@
 import { formatRelativeTime } from "@/lib/utils";
 
-function formatAbsoluteTime(iso: string): string {
+export function formatAbsoluteTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", {
     year: "numeric",

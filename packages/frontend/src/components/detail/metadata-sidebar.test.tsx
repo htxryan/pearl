@@ -173,7 +173,7 @@ describe("MetadataSidebar (sidebar layout)", () => {
     expect(ownerEl.className).toContain("truncate");
   });
 
-  it("Created field text has truncation for long author names", () => {
+  it("Created field text has truncation and formatted date tooltip", () => {
     const longAuthorIssue: Issue = {
       ...baseIssue,
       created_by: "verylongusername@example.com",
@@ -188,13 +188,16 @@ describe("MetadataSidebar (sidebar layout)", () => {
         onWidthChange={() => {}}
       />,
     );
-    // The Created field value span should have truncation to prevent overflow.
+    // The Created field value span should have truncation and a formatted date tooltip.
     const createdTitle = screen.getByTitle(/verylongusername@example\.com/);
     expect(createdTitle).toBeDefined();
     expect(createdTitle.className).toContain("truncate");
+    // Title should use formatted date, not raw ISO string.
+    expect(createdTitle.title).not.toContain("T");
+    expect(createdTitle.title).toContain("Apr");
   });
 
-  it("FieldRow content div has overflow-hidden to clip overflowing children", () => {
+  it("FieldRow content div uses min-w-0 for flex truncation without clipping focus rings", () => {
     renderSidebar(
       <MetadataSidebar
         issue={baseIssue}
@@ -205,11 +208,11 @@ describe("MetadataSidebar (sidebar layout)", () => {
         onWidthChange={() => {}}
       />,
     );
-    // The Owner value's parent content div (FieldRow's flex-1 div) should have overflow-hidden.
     const ownerEl = screen.getByTitle("bob");
     const contentDiv = ownerEl.closest("div.flex-1");
     expect(contentDiv).not.toBeNull();
-    expect(contentDiv?.className).toContain("overflow-hidden");
+    expect(contentDiv?.className).toContain("min-w-0");
+    expect(contentDiv?.className).not.toContain("overflow-hidden");
   });
 
   it("exposes a resize separator on the sidebar's left edge", () => {

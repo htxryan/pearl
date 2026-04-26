@@ -6,7 +6,7 @@ import { FieldEditor } from "@/components/detail/field-editor";
 const DatePicker = lazy(() => import("@/components/ui/date-picker"));
 
 import { LabelPicker } from "@/components/ui/label-picker";
-import { RelativeTime } from "@/components/ui/relative-time";
+import { formatAbsoluteTime, RelativeTime } from "@/components/ui/relative-time";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { FieldRow, SelectField, statusLabel } from "@/views/detail-components";
 
@@ -293,7 +293,7 @@ function FieldsList({
       <FieldRow label="Created">
         <span
           className="text-sm text-muted-foreground truncate block"
-          title={`${issue.created_at} by ${issue.created_by}`}
+          title={`${formatAbsoluteTime(issue.created_at)} by ${issue.created_by}`}
         >
           <RelativeTime iso={issue.created_at} /> by {issue.created_by}
         </span>

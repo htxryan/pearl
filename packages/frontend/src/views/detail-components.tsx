@@ -44,7 +44,7 @@ export function FieldRow({ label, children }: { label: string; children: React.R
   return (
     <div className="flex items-center gap-3">
       <span className="text-sm text-muted-foreground w-24 shrink-0">{label}</span>
-      <div className="flex-1 min-w-0 overflow-hidden">{children}</div>
+      <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
 }
