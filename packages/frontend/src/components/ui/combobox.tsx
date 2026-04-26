@@ -50,10 +50,10 @@ function ComboboxContent({
 }) {
   return (
     <ComboboxPrimitive.Portal>
-      <ComboboxPrimitive.Positioner sideOffset={sideOffset}>
+      <ComboboxPrimitive.Positioner sideOffset={sideOffset} className="z-[60]">
         <ComboboxPrimitive.Popup
           className={cn(
-            "z-50 rounded-lg border border-border bg-background shadow-lg overflow-y-auto max-h-64 py-1",
+            "rounded-lg border border-border bg-background shadow-lg overflow-y-auto max-h-64 py-1",
             "transition-[opacity,transform] duration-150",
             "data-[starting-style]:opacity-0 data-[starting-style]:scale-95",
             "data-[ending-style]:opacity-0 data-[ending-style]:scale-95",

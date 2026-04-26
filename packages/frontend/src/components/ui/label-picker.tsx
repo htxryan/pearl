@@ -149,8 +149,8 @@ export function LabelPicker({
         </div>
 
         <ComboboxPrimitive.Portal>
-          <ComboboxPrimitive.Positioner sideOffset={4}>
-            <ComboboxPrimitive.Popup className="z-50 w-[var(--anchor-width)] rounded-lg border border-border bg-background shadow-lg max-h-60 overflow-hidden transition-[opacity,transform] duration-150 data-[starting-style]:opacity-0 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:scale-95">
+          <ComboboxPrimitive.Positioner sideOffset={4} className="z-[60]">
+            <ComboboxPrimitive.Popup className="w-[var(--anchor-width)] rounded-lg border border-border bg-background shadow-lg max-h-60 overflow-hidden transition-[opacity,transform] duration-150 data-[starting-style]:opacity-0 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:scale-95">
               {showColorPicker ? (
                 <ColorPickerPanel
                   labelName={searchTrimmed}

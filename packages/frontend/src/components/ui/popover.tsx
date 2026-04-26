@@ -20,10 +20,10 @@ function PopoverContent({
 }) {
   return (
     <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Positioner sideOffset={sideOffset} align={align}>
+      <PopoverPrimitive.Positioner sideOffset={sideOffset} align={align} className="z-[60]">
         <PopoverPrimitive.Popup
           className={cn(
-            "z-50 w-72 rounded-md border border-border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+            "w-72 rounded-md border border-border bg-popover p-4 text-popover-foreground shadow-md outline-none",
             "transition-[opacity,transform] duration-150",
             "data-[starting-style]:opacity-0 data-[starting-style]:scale-95",
             "data-[ending-style]:opacity-0 data-[ending-style]:scale-95",

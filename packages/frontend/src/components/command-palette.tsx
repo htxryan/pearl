@@ -71,7 +71,7 @@ export function CommandPalette() {
       />
 
       <Command
-        className="relative z-50 w-full max-w-lg overflow-hidden border border-border shadow-2xl"
+        className="relative z-50 flex max-h-[60vh] w-full max-w-lg flex-col overflow-hidden border border-border shadow-2xl"
         style={{
           animation:
             prefersReducedMotion || isVisible === null

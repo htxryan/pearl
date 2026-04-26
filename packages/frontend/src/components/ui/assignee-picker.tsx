@@ -75,7 +75,7 @@ export function AssigneePicker({
     <div
       ref={containerRef}
       className={cn(
-        "fixed z-50 rounded-lg border border-border bg-background shadow-lg w-56 max-h-64 overflow-hidden",
+        "fixed z-[60] rounded-lg border border-border bg-background shadow-lg w-56 max-h-64 overflow-hidden",
         className,
       )}
       style={style}

@@ -1,0 +1,8 @@
+Virtualization proof for LabelPicker (react-virtual)
+
+Backend mocked to return 200 synthetic labels.
+User typed "synthetic-label-0" → 100 labels match.
+Rendered options in DOM: 13
+Popup containers in DOM: 0
+
+✓ Virtualization is active: fewer DOM nodes than matching labels.

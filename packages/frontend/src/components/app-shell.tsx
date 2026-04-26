@@ -206,7 +206,7 @@ export function AppShell() {
       <NavListProvider>
         <DetailPanelProvider>
           <SidebarProvider>
-            <div className="flex h-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
+            <div className="mx-auto flex h-screen w-screen max-w-[2560px] overflow-hidden bg-background text-foreground">
               {showModal && <EmbeddedModeModal />}
               <a
                 href="#main-content"

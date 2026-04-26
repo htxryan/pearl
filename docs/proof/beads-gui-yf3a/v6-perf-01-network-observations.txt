@@ -1,0 +1,4 @@
+DatePicker / react-day-picker chunk requests observed AFTER opening Create Dialog:
+
+http://localhost:5173/src/components/ui/date-picker.tsx
+http://localhost:5173/node_modules/.vite/deps/react-day-picker.js?v=9c5135da

@@ -39,10 +39,10 @@ function DropdownMenuPortal(props: React.ComponentProps<typeof Menu.Portal>) {
 
 function DropdownMenuSubContent({ className, ...props }: React.ComponentProps<typeof Menu.Popup>) {
   return (
-    <Menu.Positioner sideOffset={-4}>
+    <Menu.Positioner sideOffset={-4} className="z-[60]">
       <Menu.Popup
         className={cn(
-          "z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg",
+          "min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg",
           "transition-[opacity,transform] duration-150",
           "data-[starting-style]:opacity-0 data-[starting-style]:scale-95",
           "data-[ending-style]:opacity-0 data-[ending-style]:scale-95",
@@ -65,10 +65,10 @@ function DropdownMenuContent({
 }) {
   return (
     <DropdownMenuPortal>
-      <Menu.Positioner sideOffset={sideOffset} align={align}>
+      <Menu.Positioner sideOffset={sideOffset} align={align} className="z-[60]">
         <Menu.Popup
           className={cn(
-            "z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md",
+            "min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md",
             "transition-[opacity,transform] duration-150",
             "data-[starting-style]:opacity-0 data-[starting-style]:scale-95",
             "data-[ending-style]:opacity-0 data-[ending-style]:scale-95",
