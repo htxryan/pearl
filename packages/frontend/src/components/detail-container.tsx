@@ -16,7 +16,10 @@ function usePanelWidth() {
     (v: number) => Math.min(MAX_PANEL_WIDTH, Math.max(MIN_PANEL_WIDTH, v)),
     [],
   );
-  const width = clamp(rawWidth);
+  const width =
+    typeof rawWidth === "number" && Number.isFinite(rawWidth)
+      ? clamp(rawWidth)
+      : DEFAULT_PANEL_WIDTH;
   const setWidth = useCallback((v: number) => setRawWidth(clamp(v)), [setRawWidth, clamp]);
   return { width, setWidth };
 }
@@ -27,7 +30,10 @@ export function DetailContainer() {
   const isCompact = useIsCompact();
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, setWidth } = usePanelWidth();
+  const widthRef = useRef(width);
+  widthRef.current = width;
   const isDraggingRef = useRef(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   const isOpen = openIssueId !== null;
   const isOverlay = mode === "modal" || isCompact;
@@ -42,7 +48,7 @@ export function DetailContainer() {
       document.body.style.userSelect = "none";
 
       const startX = e.clientX;
-      const startWidth = width;
+      const startWidth = widthRef.current;
 
       const onMove = (ev: MouseEvent) => {
         if (!isDraggingRef.current) return;
@@ -56,11 +62,16 @@ export function DetailContainer() {
         document.body.style.userSelect = "";
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
+        cleanupRef.current = null;
       };
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
+      cleanupRef.current = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
     },
-    [width, setWidth],
+    [setWidth],
   );
 
   useEffect(() => {
@@ -69,6 +80,7 @@ export function DetailContainer() {
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
       }
+      cleanupRef.current?.();
     };
   }, []);
 
@@ -105,11 +117,10 @@ export function DetailContainer() {
   return (
     <div
       data-testid="detail-panel"
-      className="relative shrink-0 border-l border-border bg-background overflow-hidden animate-slide-in-right"
+      className="relative shrink-0 border-l border-border bg-background animate-slide-in-right"
       style={{ width: `${width}px` }}
     >
-      <button
-        type="button"
+      <div
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize detail panel"
@@ -128,17 +139,21 @@ export function DetailContainer() {
             setWidth(Math.max(MIN_PANEL_WIDTH, width - step));
           }
         }}
-        className="absolute left-0 top-0 bottom-0 w-1 -translate-x-1/2 cursor-col-resize hover:bg-primary/40 active:bg-primary/60 transition-colors z-10"
-      />
-      <IssueDetail
-        key={openIssueId}
-        id={openIssueId}
-        onClose={closeDetail}
-        onToggleMode={toggleMode}
-        currentMode={mode}
-        onSetCloseGuard={setCloseGuard}
-        forceInlineMetadata
-      />
+        className="absolute left-0 top-0 bottom-0 w-4 -translate-x-1/2 cursor-col-resize z-10 flex items-stretch justify-center group"
+      >
+        <div className="w-0.5 group-hover:bg-primary/40 group-active:bg-primary/60 transition-colors" />
+      </div>
+      <div className="overflow-hidden h-full">
+        <IssueDetail
+          key={openIssueId}
+          id={openIssueId}
+          onClose={closeDetail}
+          onToggleMode={toggleMode}
+          currentMode={mode}
+          onSetCloseGuard={setCloseGuard}
+          forceInlineMetadata
+        />
+      </div>
     </div>
   );
 }
