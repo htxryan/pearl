@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCreateLabel, useLabels } from "@/hooks/use-labels";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
+import { ComboboxEmpty, ComboboxInput } from "./combobox";
 import { LABEL_PALETTE, LabelBadge } from "./label-badge";
 
 interface LabelPickerProps {
@@ -28,6 +29,7 @@ export function LabelPicker({
   const [search, setSearch] = useState("");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [newLabelColor, setNewLabelColor] = useState<LabelColor | null>(null);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +50,8 @@ export function LabelPicker({
   const exactMatch = allLabels.some((l) => l.name.toLowerCase() === searchTrimmed.toLowerCase());
   const canCreate =
     allowCreate && searchTrimmed.length > 0 && !exactMatch && !selectedSet.has(searchTrimmed);
+
+  const itemCount = filteredLabels.length + (canCreate ? 1 : 0);
 
   const selectLabel = useCallback(
     (labelName: string) => {
@@ -101,17 +105,101 @@ export function LabelPicker({
     [selectedSet, selectLabel, onChange],
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (showColorPicker) {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          e.preventDefault();
+          setShowColorPicker(false);
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case "ArrowDown": {
+          e.preventDefault();
+          if (itemCount === 0) break;
+          setHighlightedIndex((prev) => (prev < itemCount - 1 ? prev + 1 : 0));
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          if (itemCount === 0) break;
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : itemCount - 1));
+          break;
+        }
+        case "Home": {
+          e.preventDefault();
+          if (itemCount > 0) setHighlightedIndex(0);
+          break;
+        }
+        case "End": {
+          e.preventDefault();
+          if (itemCount > 0) setHighlightedIndex(itemCount - 1);
+          break;
+        }
+        case "Enter": {
+          if (highlightedIndex >= 0 && highlightedIndex < filteredLabels.length) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectLabel(filteredLabels[highlightedIndex].name);
+            setHighlightedIndex(-1);
+          } else if (highlightedIndex === filteredLabels.length && canCreate) {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowColorPicker(true);
+          } else if (canCreate && filteredLabels.length === 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCreateNew(searchTrimmed);
+          }
+          break;
+        }
+        case "Escape": {
+          e.stopPropagation();
+          setHighlightedIndex(-1);
+          break;
+        }
+        case "Backspace": {
+          if (!search && selected.length > 0) {
+            removeLabel(selected[selected.length - 1]);
+          }
+          break;
+        }
+      }
+    },
+    [
+      showColorPicker,
+      itemCount,
+      highlightedIndex,
+      filteredLabels,
+      canCreate,
+      searchTrimmed,
+      search,
+      selected,
+      selectLabel,
+      removeLabel,
+      handleCreateNew,
+    ],
+  );
+
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       <ComboboxPrimitive.Root
         multiple
         value={selected}
         onValueChange={handleValueChange}
-        onInputValueChange={(val) => setSearch(val)}
+        onInputValueChange={(val) => {
+          setSearch(val);
+          setHighlightedIndex(-1);
+        }}
         modal={false}
       >
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: click delegates focus to inner ComboboxInput */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: visual container delegates to inner input */}
         <div
-          className="flex flex-wrap items-center gap-1.5 min-h-[36px] rounded-lg border border-border bg-background px-2 py-1 cursor-text focus-within:ring-2 focus-within:ring-ring"
+          className="flex flex-wrap items-center gap-1.5 min-h-[36px] rounded-lg border border-border bg-background px-2 py-1 cursor-text ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
           onClick={() => inputRef.current?.focus()}
         >
           {selected.map((label) => (
@@ -123,28 +211,12 @@ export function LabelPicker({
               onRemove={() => removeLabel(label)}
             />
           ))}
-          <ComboboxPrimitive.Input
+          <ComboboxInput
             ref={inputRef}
             placeholder={selected.length === 0 ? placeholder : ""}
-            className="text-sm bg-transparent border-none outline-none min-w-[80px] flex-1"
+            className="min-w-[80px] flex-1 w-auto"
             aria-label="Search labels"
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.stopPropagation();
-                e.preventDefault();
-                if (showColorPicker) {
-                  setShowColorPicker(false);
-                }
-              }
-              if (e.key === "Backspace" && !search && selected.length > 0) {
-                removeLabel(selected[selected.length - 1]);
-              }
-              if (e.key === "Enter" && canCreate && filteredLabels.length === 0) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleCreateNew(searchTrimmed);
-              }
-            }}
+            onKeyDown={handleKeyDown}
           />
         </div>
 
@@ -161,13 +233,20 @@ export function LabelPicker({
                 />
               ) : (
                 <>
-                  <VirtualizedLabelList labels={filteredLabels} labelColorMap={labelColorMap} />
+                  <LabelList
+                    labels={filteredLabels}
+                    labelColorMap={labelColorMap}
+                    highlightedIndex={highlightedIndex}
+                  />
                   {canCreate && (
                     <div
                       role="option"
-                      tabIndex={0}
+                      tabIndex={-1}
                       aria-selected={false}
-                      className="flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm hover:bg-accent focus:bg-accent outline-none border-t border-border"
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm hover:bg-accent outline-none border-t border-border",
+                        highlightedIndex === filteredLabels.length && "bg-accent",
+                      )}
                       onClick={() => setShowColorPicker(true)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -180,9 +259,7 @@ export function LabelPicker({
                       <span className="font-medium">&ldquo;{searchTrimmed}&rdquo;</span>
                     </div>
                   )}
-                  <ComboboxPrimitive.Empty className="px-3 py-2 text-sm text-muted-foreground">
-                    No matching labels
-                  </ComboboxPrimitive.Empty>
+                  <ComboboxEmpty>No matching labels</ComboboxEmpty>
                 </>
               )}
             </ComboboxPrimitive.Popup>
@@ -193,12 +270,14 @@ export function LabelPicker({
   );
 }
 
-function VirtualizedLabelList({
+function LabelList({
   labels,
   labelColorMap,
+  highlightedIndex,
 }: {
   labels: LabelWithCount[];
   labelColorMap: Record<string, LabelColor>;
+  highlightedIndex: number;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const useVirtual = labels.length > 50;
@@ -211,16 +290,24 @@ function VirtualizedLabelList({
     enabled: useVirtual,
   });
 
+  useEffect(() => {
+    if (highlightedIndex < 0 || highlightedIndex >= labels.length) return;
+    const item = parentRef.current?.querySelector(`[data-index="${highlightedIndex}"]`);
+    item?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex, labels.length]);
+
   if (!useVirtual) {
     return (
-      <div className="overflow-y-auto max-h-52 py-1">
-        {labels.map((label) => (
+      <div ref={parentRef} className="overflow-y-auto max-h-52 py-1">
+        {labels.map((label, index) => (
           <ComboboxPrimitive.Item
             key={label.name}
+            data-index={index}
             value={label.name}
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm outline-none",
               "data-[highlighted]:bg-accent",
+              index === highlightedIndex && "bg-accent",
             )}
           >
             <LabelBadge name={label.name} color={label.color as LabelColor} size="sm" />
@@ -239,10 +326,12 @@ function VirtualizedLabelList({
           return (
             <ComboboxPrimitive.Item
               key={label.name}
+              data-index={virtualRow.index}
               value={label.name}
               className={cn(
                 "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm outline-none absolute left-0 right-0",
                 "data-[highlighted]:bg-accent",
+                virtualRow.index === highlightedIndex && "bg-accent",
               )}
               style={{
                 height: virtualRow.size,

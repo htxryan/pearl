@@ -98,6 +98,109 @@ describe("LabelPicker", () => {
     });
   });
 
+  describe("keyboard navigation", () => {
+    it("ArrowDown then Enter selects the first unselected label", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["frontend"]);
+    });
+
+    it("ArrowDown twice then Enter selects the second label", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["backend"]);
+    });
+
+    it("ArrowDown wraps around to the first option", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["frontend"]);
+    });
+
+    it("ArrowUp highlights the last option first", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowUp" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["urgent"]);
+    });
+
+    it("ArrowUp wraps around to the last option", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowUp" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["urgent"]);
+    });
+
+    it("Escape clears the highlight so Enter does nothing", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Escape" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("Home jumps to the first option", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Home" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["frontend"]);
+    });
+
+    it("End jumps to the last option", () => {
+      const { onChange } = renderPicker();
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "End" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["urgent"]);
+    });
+
+    it("skips already-selected labels in the dropdown", () => {
+      const { onChange } = renderPicker({
+        selected: ["frontend"],
+        selectedColors: { frontend: "blue" },
+      });
+      const input = screen.getByRole("combobox", { name: /search labels/i });
+
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(onChange).toHaveBeenCalledWith(["frontend", "backend"]);
+    });
+  });
+
   describe("API contract", () => {
     it("onChange receives string[] of label names", () => {
       const onChange = vi.fn();
