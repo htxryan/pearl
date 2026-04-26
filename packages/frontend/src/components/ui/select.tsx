@@ -43,13 +43,22 @@ function SelectTrigger({
 function SelectContent({
   className,
   sideOffset = 4,
+  align = "start",
+  alignItemWithTrigger = false,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Popup> & {
   sideOffset?: number;
+  align?: "start" | "center" | "end";
+  alignItemWithTrigger?: boolean;
 }) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner sideOffset={sideOffset} className="z-[60]">
+      <SelectPrimitive.Positioner
+        sideOffset={sideOffset}
+        align={align}
+        alignItemWithTrigger={alignItemWithTrigger}
+        className="z-[60]"
+      >
         <SelectPrimitive.Popup
           className={cn(
             "rounded-lg border border-border bg-background shadow-lg overflow-y-auto max-h-64 py-1",
