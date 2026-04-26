@@ -60,9 +60,13 @@ export function sortIssuesForColumn(
     case "title":
       next.sort(compareTitleAsc);
       break;
-    default:
+    case "modified":
       next.sort(compareModifiedDesc);
       break;
+    default: {
+      const _exhaustive: never = mode;
+      throw new Error(`Unknown board sort mode: ${_exhaustive}`);
+    }
   }
   return next;
 }

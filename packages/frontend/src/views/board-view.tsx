@@ -52,11 +52,15 @@ export function BoardView() {
   // Shared URL filter state (same as List view)
   const { filters, setFilters } = useUrlFilters();
 
-  // Board view does its own per-column sort, so don't send URL sort/direction
-  // to the API — they only control the list view's ordering.
-  const apiParams = useMemo(() => buildApiParams(filters, []), [filters]);
+  // Board view does its own per-column sort, so don't forward URL sort params.
+  // Explicitly request updated_at DESC so the backend's LIMIT returns the most
+  // recently active issues rather than defaulting to priority ASC.
+  const apiParams = useMemo(
+    () => buildApiParams(filters, [{ id: "updated_at", desc: true }]),
+    [filters],
+  );
 
-  // Data fetching — shared cache with List view
+  // Data fetching — shares the issueKeys.lists() cache prefix with List view
   const { data: issues = [], isLoading } = useIssues(apiParams);
   const { data: allDeps = [] } = useAllDependencies();
 
