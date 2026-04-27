@@ -35,32 +35,43 @@ describe("IV-5: Bundle gzip ceiling", () => {
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// IV Check #11: Z-index discipline — overlays use z-50, no arbitrary z-index
+// IV Check #11: Z-index discipline — two tiers, no inline styles
+// Modal overlays (dialog, sheet) sit at z-50; popups that may render above
+// modals (dropdown-menu, popover, combobox) sit at z-[60]. See commit
+// 2710df8 for the rationale (BaseUI Popup is position:static, so z-index
+// must live on the Positioner, and Combobox/Popover popups inside Dialog
+// were paint-stacked behind the z-50 backdrop).
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 describe("IV-11: Z-index discipline in overlay primitives", () => {
-  const overlayFiles = [
-    "components/ui/dialog.tsx",
-    "components/ui/sheet.tsx",
+  const modalOverlayFiles = ["components/ui/dialog.tsx", "components/ui/sheet.tsx"];
+  const popupOverlayFiles = [
     "components/ui/dropdown-menu.tsx",
     "components/ui/popover.tsx",
     "components/ui/combobox.tsx",
   ];
+  const allOverlayFiles = [...modalOverlayFiles, ...popupOverlayFiles];
 
-  for (const file of overlayFiles) {
-    it(`${file}: uses z-50 (Tailwind) — no arbitrary z-[N] values`, () => {
+  for (const file of modalOverlayFiles) {
+    it(`${file}: modal backdrop uses z-50 — no arbitrary z-[N]`, () => {
       const content = readSrc(file);
       const arbitraryZIndex = content.match(/z-\[\d+\]/g);
       expect(
         arbitraryZIndex,
         `${file} has arbitrary z-index: ${arbitraryZIndex?.join(", ")}`,
       ).toBeNull();
+      expect(content, `${file} must use z-50 for modal stacking`).toContain("z-50");
+    });
+  }
 
-      expect(content, `${file} must use z-50 for overlay stacking`).toContain("z-50");
+  for (const file of popupOverlayFiles) {
+    it(`${file}: popup uses z-[60] so it stacks above modal backdrops (z-50)`, () => {
+      const content = readSrc(file);
+      expect(content, `${file} must use z-[60] to layer above modals`).toContain("z-[60]");
     });
   }
 
   it("no overlay uses inline style zIndex", () => {
-    for (const file of overlayFiles) {
+    for (const file of allOverlayFiles) {
       const content = readSrc(file);
       expect(content, `${file} has inline zIndex`).not.toMatch(/style=.*zIndex/);
     }
@@ -163,11 +174,14 @@ describe("SC-IV-2: Portal stacking total order", () => {
     ).toBeLessThan(routesPos);
   });
 
-  it("all overlay components use z-50 for consistent stacking base", () => {
-    const overlays = ["dialog.tsx", "sheet.tsx", "dropdown-menu.tsx"];
-    for (const file of overlays) {
+  it("modals stack at z-50 and popups stack at z-[60] above them", () => {
+    for (const file of ["dialog.tsx", "sheet.tsx"]) {
       const content = readSrc(`components/ui/${file}`);
       expect(content, `${file} missing z-50`).toContain("z-50");
+    }
+    for (const file of ["dropdown-menu.tsx", "popover.tsx", "combobox.tsx"]) {
+      const content = readSrc(`components/ui/${file}`);
+      expect(content, `${file} missing z-[60]`).toContain("z-[60]");
     }
   });
 

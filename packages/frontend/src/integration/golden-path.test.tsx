@@ -534,9 +534,11 @@ describe("SC2+SC1: Create issue via form", () => {
       due: undefined,
     });
 
-    // Simulate successful creation triggering onSuccess
+    // Simulate successful creation triggering onSuccess.
+    // The handler reads `response.data?.id` to render a toast; pass a stand-in
+    // response that matches the MutationResponse contract.
     act(() => {
-      capturedCallbacks?.onSuccess?.();
+      capturedCallbacks?.onSuccess?.({ success: true, data: { id: "test-new" } });
     });
 
     // Verify dialog closes after success
@@ -572,9 +574,9 @@ describe("SC2+SC1: Create issue via form", () => {
     const submitButton = screen.getByRole("button", { name: /create issue/i });
     fireEvent.click(submitButton);
 
-    // Trigger onSuccess to reset form
+    // Trigger onSuccess to reset form (handler reads response.data?.id).
     act(() => {
-      capturedCallbacks?.onSuccess?.();
+      capturedCallbacks?.onSuccess?.({ success: true, data: { id: "test-new" } });
     });
 
     unmount();
