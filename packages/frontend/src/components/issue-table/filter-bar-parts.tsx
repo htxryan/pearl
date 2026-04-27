@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useFilterPresets } from "@/hooks/use-filter-presets";
 import { addToast } from "@/hooks/use-toasts";
+import { PRIORITY_LABELS, STATUS_LABELS, TYPE_LABELS } from "@/lib/issue-labels";
 import {
   ACTIVE_FILTERS,
   DATE_RANGE_LABELS,
@@ -20,32 +21,7 @@ import { cn } from "@/lib/utils";
 import type { FilterState } from "./filter-bar-types";
 import { GROUP_BY_LABELS, isDefaultStatuses, isShowingAllStatuses } from "./filter-bar-types";
 
-// ─── Constants ────────────────────────────────────────
-
-export const PRIORITY_LABELS: Record<number, string> = {
-  0: "P0",
-  1: "P1",
-  2: "P2",
-  3: "P3",
-  4: "P4",
-};
-export const STATUS_LABELS: Record<string, string> = {
-  open: "Open",
-  in_progress: "In Progress",
-  closed: "Closed",
-  blocked: "Blocked",
-  deferred: "Deferred",
-};
-export const TYPE_LABELS: Record<string, string> = {
-  task: "Task",
-  bug: "Bug",
-  epic: "Epic",
-  feature: "Feature",
-  chore: "Chore",
-  event: "Event",
-  gate: "Gate",
-  molecule: "Molecule",
-};
+export { PRIORITY_LABELS, STATUS_LABELS, TYPE_LABELS };
 
 // ─── MultiSelect ──────────────────────────────────────
 

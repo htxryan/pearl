@@ -1,28 +1,10 @@
 import type { IssueListItem, IssueStatus, IssueType, Priority } from "@pearl/shared";
 import { flexRender, type Row, type Table } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
+import { PRIORITY_LABELS, STATUS_LABELS, TYPE_LABELS } from "@/lib/issue-labels";
 import { cn } from "@/lib/utils";
 import { getColumnStyle } from "./column-style";
 import type { GroupByField } from "./filter-bar";
-
-const PRIORITY_LABELS: Record<Priority, string> = { 0: "P0", 1: "P1", 2: "P2", 3: "P3", 4: "P4" };
-const STATUS_LABELS: Record<IssueStatus, string> = {
-  open: "Open",
-  in_progress: "In Progress",
-  closed: "Closed",
-  blocked: "Blocked",
-  deferred: "Deferred",
-};
-const TYPE_LABELS: Record<IssueType, string> = {
-  task: "Task",
-  bug: "Bug",
-  epic: "Epic",
-  feature: "Feature",
-  chore: "Chore",
-  event: "Event",
-  gate: "Gate",
-  molecule: "Molecule",
-};
 
 interface GroupedIssueTableProps {
   issues: IssueListItem[];

@@ -169,11 +169,16 @@ export function BoardView() {
   }, [columnData]);
   useSetNavList(navListIds);
 
+  // O(1) lookup keyed by issue id — drag handlers fire many times per drag,
+  // so an array .find() per event becomes O(n) hot-path work on long lists.
+  const issueById = useMemo(() => {
+    const map = new Map<string, IssueListItem>();
+    for (const issue of issues) map.set(issue.id, issue);
+    return map;
+  }, [issues]);
+
   // Find the active issue for the drag overlay
-  const activeIssue = useMemo(
-    () => (activeId ? issues.find((i) => i.id === activeId) : undefined),
-    [activeId, issues],
-  );
+  const activeIssue = activeId ? issueById.get(activeId) : undefined;
 
   // DnD sensors — TouchSensor with delay avoids conflicts with scroll on mobile
   const pointerSensor = useSensor(PointerSensor, {
@@ -196,10 +201,9 @@ export function BoardView() {
         return strId.slice("column-".length) as IssueStatus;
       }
       // Otherwise it's a card ID — find its column
-      const issue = issues.find((i) => i.id === strId);
-      return issue?.status ?? null;
+      return issueById.get(strId)?.status ?? null;
     },
-    [issues],
+    [issueById],
   );
 
   // Drag handlers
@@ -233,7 +237,7 @@ export function BoardView() {
       if (!targetStatus) return;
 
       // Find the issue's current status
-      const issue = issues.find((i) => i.id === issueId);
+      const issue = issueById.get(issueId);
       if (!issue) return;
 
       // No-op if same column
@@ -255,7 +259,7 @@ export function BoardView() {
         },
       );
     },
-    [issues, getStatusFromDroppableId, updateStatus, undo],
+    [issueById, getStatusFromDroppableId, updateStatus, undo],
   );
 
   const handleDragCancel = useCallback(() => {

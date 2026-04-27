@@ -1,11 +1,5 @@
-import type {
-  CreateIssueRequest,
-  IssueStatus,
-  IssueType,
-  Priority,
-  UpdateIssueRequest,
-} from "@pearl/shared";
-import { ISSUE_LIST_FIELDS } from "@pearl/shared";
+import type { CreateIssueRequest, UpdateIssueRequest } from "@pearl/shared";
+import { ISSUE_LIST_FIELDS, ISSUE_STATUSES, ISSUE_TYPES } from "@pearl/shared";
 import type { FastifyInstance } from "fastify";
 import type { RowDataPacket } from "mysql2";
 import type { Config } from "../config.js";
@@ -16,8 +10,6 @@ import type { WriteService } from "../write-service/write-service.js";
 import { fetchLabelColors } from "./labels.js";
 
 // ─── JSON Schema for request body validation ───────────
-const ISSUE_TYPES = ["task", "bug", "epic", "feature", "chore", "event", "gate", "molecule"];
-const ISSUE_STATUSES = ["open", "in_progress", "closed", "blocked", "deferred"];
 
 // Field size cap chosen to fit MEDIUMTEXT (~16MB) while still rejecting
 // pathological payloads. Inline base64 image attachments need >>10KB headroom.
