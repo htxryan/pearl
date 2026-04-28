@@ -137,7 +137,7 @@ Pearl is local-first; the backend is usually on `localhost`. But the backend can
 
 ### Offline toasts
 
-When a mutation fails due to network, the toast retry-retries automatically up to 3 times before surfacing to the user. Manual retry via toast action button.
+When a mutation fails due to network, the toast retries automatically up to 3 times before surfacing to the user. Manual retry via toast action button. Toasts are powered by `sonner` (`Toaster` in `app.tsx`) with the `use-toasts.ts` hook for programmatic control.
 
 ## State interactions matrix
 

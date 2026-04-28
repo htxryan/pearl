@@ -12,24 +12,32 @@ Pearl has a **semantic** color system, not a palette of raw hues. Components ref
 
 | Token | Role | Light default | Dark default |
 |---|---|---|---|
-| `background` | App canvas | `#ffffff` | `#111113` |
-| `foreground` | Default text | `#0a0a0a` | `#ececef` |
-| `surface` | Panel / card base | `#ffffff` | `#111113` |
-| `surface-raised` | Elevated surface (modals, dropdowns) | `#fafafa` | `#1a1a1e` |
-| `muted` | Subdued fills (skeletons, disabled) | `#f5f5f5` | `#1c1c1f` |
-| `muted-foreground` | Secondary / meta text | `#737373` | `#9898a0` |
-| `border` | Dividers, input borders | `#e5e5e5` | `#2a2a2e` |
+| `background` | App canvas | `oklch(1 0 0)` | `oklch(0.179 0.004 285.9)` |
+| `foreground` | Default text | `oklch(0.145 0 0)` | `oklch(0.944 0.004 285.9)` |
+| `card` | Card / panel background | `oklch(1 0 0)` | `oklch(0.179 0.004 285.9)` |
+| `card-foreground` | Text on card surface | `oklch(0.145 0 0)` | `oklch(0.944 0.004 285.9)` |
+| `popover` | Popover / dropdown background | `oklch(1 0 0)` | `oklch(0.179 0.004 285.9)` |
+| `popover-foreground` | Text in popovers | `oklch(0.145 0 0)` | `oklch(0.944 0.004 285.9)` |
+| `surface` | Panel / card base | `oklch(1 0 0)` | `oklch(0.179 0.004 285.9)` |
+| `surface-raised` | Elevated surface (modals, dropdowns) | `oklch(0.985 0 0)` | `oklch(0.22 0.008 285.7)` |
+| `muted` | Subdued fills (skeletons, disabled) | `oklch(0.97 0 0)` | `oklch(0.228 0.006 285.9)` |
+| `muted-foreground` | Secondary / meta text | `oklch(0.556 0 0)` | `oklch(0.682 0.012 286)` |
+| `border` | Dividers, input borders | `oklch(0.922 0 0)` | `oklch(0.287 0.007 285.9)` |
+| `input` | Input field border (distinct from general border) | `oklch(0.922 0 0)` | `oklch(0.287 0.007 285.9)` |
 
 ### Interactive tokens
 
 | Token | Role | Light default | Dark default |
 |---|---|---|---|
-| `primary` | Brand / primary action fill | `#4f46e5` | `#818cf8` |
-| `primary-foreground` | Text on primary | `#ffffff` | `#0f0a2e` |
-| `accent` | Hover / selection tint | `#eef2ff` | `#1e1b4b` |
-| `accent-foreground` | Text on accent | `#3730a3` | `#c7d2fe` |
-| `ring` | Focus ring | `#6366f1` | `#818cf8` |
-| `destructive` | Destructive action fill | `#ef4444` | `#f87171` |
+| `primary` | Brand / primary action fill | `oklch(0.511 0.23 277)` | `oklch(0.68 0.158 276.9)` |
+| `primary-foreground` | Text on primary | `oklch(1 0 0)` | `oklch(0.179 0.069 283.3)` |
+| `secondary` | Secondary action / subtle fill | `oklch(0.97 0 0)` | `oklch(0.228 0.006 285.9)` |
+| `secondary-foreground` | Text on secondary | `oklch(0.205 0 0)` | `oklch(0.944 0.004 285.9)` |
+| `accent` | Hover / selection tint | `oklch(0.962 0.018 272.3)` | `oklch(0.257 0.086 281.3)` |
+| `accent-foreground` | Text on accent | `oklch(0.398 0.177 277.4)` | `oklch(0.87 0.062 274)` |
+| `ring` | Focus ring | `oklch(0.585 0.204 277.1)` | `oklch(0.68 0.158 276.9)` |
+| `destructive` | Destructive action fill | `oklch(0.637 0.208 25.3)` | `oklch(0.711 0.166 22.2)` |
+| `destructive-foreground` | Text on destructive | `oklch(1 0 0)` | `oklch(1 0 0)` |
 
 ### Semantic status tokens
 
@@ -43,6 +51,20 @@ For states with shared meaning across the app (issue status, toasts, banners):
 | `danger` / `danger-foreground` | Error or blocking | `StatusBadge` (blocked), error toasts |
 
 **Pattern for tinted badges:** fill with `bg-<token>/15` (15% alpha), text in `<token>-foreground`. See `status-badge.tsx`. This gives the color semantic recognition without overwhelming saturation.
+
+### Chart tokens
+
+For data visualization (charts, graphs). Five sequential colors that maintain contrast in both themes:
+
+| Token | Role |
+|---|---|
+| `chart-1` | Primary data series |
+| `chart-2` | Secondary data series |
+| `chart-3` | Tertiary data series |
+| `chart-4` | Fourth data series |
+| `chart-5` | Fifth data series |
+
+These remap per-theme. Use them via `bg-chart-1`, `text-chart-2`, etc. Never hard-code chart colors.
 
 ### Rules
 
@@ -90,15 +112,15 @@ More space *between* groups than *within* groups. A form's label and input shoul
 
 ## Elevation (shadows)
 
-Five-level elevation scale. Use the `.elevation-N` utility classes (or `var(--shadow-N)`) — never arbitrary `box-shadow:` values.
+Five-level elevation scale defined as `--shadow-N` tokens in the `@theme` block. Use `shadow-[var(--shadow-N)]` or the elevation utility classes — never arbitrary `box-shadow:` values.
 
-| Level | Class | Use |
-|---|---|---|
-| 0 | `elevation-0` | Flush with surface (no shadow) |
-| 1 | `elevation-1` | Resting cards, list items on hover |
-| 2 | `elevation-2` | Dropdowns, popovers, default button hover |
-| 3 | `elevation-3` | Modal panels, command palette |
-| 4 | `elevation-4` | Full-screen dialogs, highest-layer toasts |
+| Level | Token | CSS value | Use |
+|---|---|---|---|
+| 0 | `--shadow-0` | `none` | Flush with surface (no shadow) |
+| 1 | `--shadow-1` | `0 1px 2px rgba(0,0,0,0.05)` | Resting cards, list items on hover |
+| 2 | `--shadow-2` | `0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)` | Dropdowns, popovers, default button hover |
+| 3 | `--shadow-3` | `0 4px 16px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05)` | Modal panels, command palette |
+| 4 | `--shadow-4` | `0 8px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06)` | Full-screen dialogs, highest-layer toasts |
 
 **Dark mode variant:** shadows are barely visible on dark backgrounds, so dark theme elevation adds a `0 0 0 1px var(--color-border)` ring — a subtle border-glow that reads as elevation. This is applied automatically by the `.elevation-N` classes in `.dark`.
 
@@ -152,10 +174,10 @@ Hand-managed (not tokenized yet). Current layers, low to high:
 | Layer | z-index | Use |
 |---|---|---|
 | Base | `z-0` | Default stacking |
-| Sticky headers | `z-10` | Table headers, sidebar sticky sections |
-| Dropdowns / popovers | `z-20` | Menus, tooltips |
-| Modals | `z-40` | Dialogs |
-| Command palette | `z-50` | Sits above modals |
-| Toasts | `z-50` | Toast stack |
+| Sticky / inset | `z-10` | Table headers, sidebar sticky sections, resize handles |
+| Inline dropdowns | `z-20` | Column menus, inline popovers (non-modal context) |
+| Overlays | `z-50` | Modals, dialogs, command palette, tooltips, sheets, toasts |
+| Above-overlay | `z-[60]` | Selects, pickers, dropdown menus that render inside modals |
+| Skip link | `z-[100]` | Accessibility skip-to-content link |
 
 If a new layer is needed, extend this table and the CSS together.

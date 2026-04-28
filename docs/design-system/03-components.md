@@ -25,15 +25,34 @@ Every primitive in `components/ui/` must satisfy these.
 |---|---|---|
 | `Button` | `button.tsx` | All button actions. Variants: `default`, `outline`, `ghost`, `destructive`. Sizes: `default`, `sm`, `lg`, `icon`. |
 | `StatusBadge` | `status-badge.tsx` | Issue status pill. Reads `IssueStatus` from `@pearl/shared`. |
-| `TypeBadge` | `type-badge.tsx` | Issue type chip (task, bug, feature, …). |
+| `TypePill` | `type-pill.tsx` | Issue type chip (task, bug, feature, …) with icon and color. |
 | `PriorityIndicator` | `priority-indicator.tsx` | Priority dot/label (P0–P4). |
 | `LabelBadge` / `LabelPicker` | `label-badge.tsx`, `label-picker.tsx` | Issue labels with user-defined colors. |
 | `AssigneePicker` | `assignee-picker.tsx` | Avatar + name picker. |
-| `CustomSelect` | `custom-select.tsx` | Themed replacement for `<select>`. Use this over native for non-trivial selects. |
+| `Select` | `select.tsx` | Themed replacement for `<select>` built on Base UI. Use for non-trivial selects. |
 | `DatePicker` | `date-picker.tsx` | Date input with calendar popover. |
 | `RelativeTime` | `relative-time.tsx` | "3h ago" with `<time datetime>` for accessibility. |
 | `EmptyState` | `empty-state.tsx` | Standard empty-state layout (icon + title + description + optional CTA). |
 | `ConfirmDialog` | `confirm-dialog.tsx` | Destructive-action confirmation modal. |
+| `Card` | `card.tsx` | Surface container with border and padding. Variants: default. |
+| `Dialog` | `dialog.tsx` | Modal dialog with backdrop, focus trap, and close handling. |
+| `AlertDialog` | `alert-dialog.tsx` | Confirmation dialog for destructive actions (wraps Dialog). |
+| `Tooltip` | `tooltip.tsx` | Hover/focus tooltip built on Base UI. Use for keyboard shortcut hints and non-essential context. |
+| `Command` / `Combobox` | `command.tsx`, `combobox.tsx` | Command palette and searchable combobox primitives. |
+| `DropdownMenu` | `dropdown-menu.tsx` | Context menu / action menu. |
+| `Popover` | `popover.tsx` | Positioned popup container for non-modal content. |
+| `Input` / `Textarea` | `input.tsx`, `textarea.tsx` | Themed text inputs with consistent border/focus styling. |
+| `Checkbox` / `Switch` / `RadioGroup` | `checkbox.tsx`, `switch.tsx`, `radio-group.tsx` | Form toggle controls. |
+| `Avatar` | `avatar.tsx` | User avatar with fallback initial. |
+| `Badge` | `badge.tsx` | Generic badge (distinct from `StatusBadge` — used for counts, tags). |
+| `Skeleton` | `skeleton.tsx` | Loading placeholder shape with shimmer animation. |
+| `Progress` | `progress.tsx` | Determinate progress bar. |
+| `Separator` | `separator.tsx` | Horizontal/vertical divider. |
+| `Sheet` | `sheet.tsx` | Slide-in panel from screen edge (mobile drawer, side panels). |
+| `Sidebar` | `sidebar.tsx` | App-level navigation sidebar. |
+| `BeadId` | `bead-id.tsx` | Monospace issue identifier display (`beads-gui-xxxx`). |
+| `AttachmentIcon` | `attachment-icon.tsx` | File-type icon for attachments. |
+| `DomainIcons` | `domain-icons.tsx` | Domain-specific icon set (issue types, priorities). |
 
 ### `Button` — the canonical example
 
@@ -91,15 +110,16 @@ Use `inline-flex items-center gap-1.5` (for 14px text) or `gap-2` (for 16px+). I
 
 ### Card pattern
 
-Pearl doesn't have a `<Card>` primitive yet — the pattern is used inline:
+Use the `<Card>` primitive (`card.tsx`) for surface containers:
 
 ```tsx
-<div className="rounded-[var(--radius)] border border-border bg-surface-raised p-4">
-  ...
-</div>
+<Card className="p-4">
+  <CardHeader>...</CardHeader>
+  <CardContent>...</CardContent>
+</Card>
 ```
 
-If this pattern appears a fourth time with the same props, promote it to `components/ui/card.tsx`. Three occurrences is still better than a premature abstraction.
+The Card provides `rounded-[var(--radius)] border border-border bg-card` by default. Sub-components (`CardHeader`, `CardContent`, `CardFooter`, `CardTitle`, `CardDescription`) are exported for structured layouts.
 
 ### Form field pattern
 
@@ -125,7 +145,7 @@ If any of these fails, keep the code inline. Shallow abstractions are worse than
 
 These don't exist yet. If you need one, build it following the rules above and add it here:
 
-- `Card` — use the inline pattern until the fourth occurrence
 - `Tabs` — no multi-tab view exists yet; reach for router segments first
-- `Tooltip` — native `title=` is acceptable for keyboard shortcut hints; build a real one when hover-only tooltips are needed
-- `Toast` primitive — toasts exist (`toast-container.tsx`) but aren't split into a standalone primitive yet
+- `Toast` primitive — toasts use `sonner` directly (`Toaster` in `app.tsx`, `use-toasts.ts` hook) but no Pearl-specific primitive wrapper exists yet
+- `Breadcrumb` — navigation doesn't go deep enough yet to justify
+- `Accordion` — no collapsible sections needed currently
