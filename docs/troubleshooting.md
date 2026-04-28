@@ -12,7 +12,7 @@ The backend cannot reach the Dolt SQL server.
 
 **Causes & fixes:**
 
-1. **Pearl-managed server failed to start.** Check `.beads/dolt-server.log` for errors. Common: the Dolt binary is not on `$PATH` — install Dolt or set `DOLT_PATH`.
+1. **Pearl-managed server failed to start.** Check the Pearl backend's console output (Pino logs) for errors. Common: the Dolt binary is not on `$PATH` — install Dolt or set `DOLT_PATH`.
 2. **External server is down.** Verify with `dolt sql-server --host 127.0.0.1 --port 3307` or check the process you're connecting to.
 3. **Wrong host/port.** Verify `DOLT_HOST` and `DOLT_PORT` env vars match your running server. Check `.beads/metadata.json` for the configured values.
 
@@ -69,7 +69,7 @@ After 10 consecutive restart failures, the manager enters `error` state and stop
 
 **Symptoms:** Logs show repeated `[dolt] Managed server state: error`. All queries fail with "Dolt unavailable".
 
-**Fix:** Check `.beads/dolt-server.log` for the underlying crash cause (corrupt data, permission issues, incompatible Dolt version). After fixing, restart Pearl.
+**Fix:** Check the Pearl backend's console output (Pino logs) for the underlying crash cause (corrupt data, permission issues, incompatible Dolt version). After fixing, restart Pearl.
 
 ## Backend Startup
 
@@ -134,7 +134,8 @@ Prove It epics start the backend server for verification. If the session ends wi
 
 ```bash
 # Find the full process tree
-ps -p $(cat .beads/dolt-server.pid) -o ppid,command 2>/dev/null
+pgrep -af 'dolt sql-server'
+pgrep -af 'tsx watch'
 
 # Kill parent-first: tsx watch → node backend → dolt sql-server
 pkill -f 'tsx watch'
@@ -151,7 +152,7 @@ Kill the `tsx watch` parent first — it respawns children via DoltServerManager
 Install the beads CLI:
 
 ```bash
-npx ca install-beads
+npx compound-agent install-beads
 ```
 
 Or set `BD_PATH` to point to the binary location.
