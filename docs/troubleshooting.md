@@ -40,7 +40,7 @@ Or switch to external server mode and manage the Dolt server yourself.
 
 ### Embedded lock contention
 
-The Dolt embedded lock (`dolt-server.lock`) prevents concurrent access. Only one process can use the embedded database at a time.
+The Dolt embedded database lock prevents concurrent access. Only one process can use the embedded database at a time.
 
 **Symptoms:** `bd` commands hang indefinitely. The infinity loop script appears stuck.
 
