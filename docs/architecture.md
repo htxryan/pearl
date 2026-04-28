@@ -106,3 +106,5 @@ Views: List (table), Board (kanban), Graph (DAG), Detail (editor), Settings, Set
 | `BEADS_DB_PATH` | _(auto)_ | Override `.beads/embeddeddolt/<db>/` path |
 | `BD_PATH` | `bd` | Path to the `bd` CLI binary |
 | `DOLT_PATH` | `dolt` | Path to the `dolt` binary |
+| `LOG_LEVEL` | `info` | Pino log level (`debug`, `info`, `warn`, `error`) |
+| `NODE_ENV` | _(unset)_ | Set to `production` to disable pretty-print logging |

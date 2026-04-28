@@ -22,7 +22,7 @@ Pearl auto-discovers the nearest `.beads/` directory (searching up the directory
 
 If your project uses the legacy embedded Dolt mode, Pearl shows a migration dialog on first launch with two options:
 
-1. **Pearl-managed server**: Pearl spawns and supervises a `dolt sql-server` for you. Recommended for single-user setups. Data is stored in `.beads/dolt-data/`.
+1. **Pearl-managed server**: Pearl spawns and supervises a `dolt sql-server` for you. Recommended for single-user setups. Data is stored in `.beads/doltdb/`.
 
 2. **External server**: You run `dolt sql-server` yourself and tell Pearl where to connect. Use this for team setups or when you need custom Dolt configuration.
 
@@ -48,6 +48,8 @@ Pearl reads configuration from environment variables and `.beads/metadata.json`:
 | `DOLT_PASSWORD` | _(empty)_ | Dolt SQL password |
 | `BD_PATH` | `bd` | Path to the `bd` CLI binary |
 | `DOLT_PATH` | `dolt` | Path to the `dolt` binary |
+| `LOG_LEVEL` | `info` | Pino log level (`debug`, `info`, `warn`, `error`) |
+| `NODE_ENV` | _(unset)_ | Set to `production` to disable pretty-print logging |
 
 ---
 
@@ -152,7 +154,7 @@ pearl/
 | [lint-staged](https://github.com/lint-staged/lint-staged) | Run checks on staged files | `package.json` |
 | [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) | Architecture validation | `.dependency-cruiser.cjs` |
 | [Taskfile](https://taskfile.dev/) | Task runner for publishing | `Taskfile.yml` |
-| [release-please](https://github.com/googleapis/release-please) | Automated releases | `release-please-manifest.json` |
+| [release-please](https://github.com/googleapis/release-please) | Automated releases | `.release-please-manifest.json`, `release-please-config.json` |
 
 ### Publishing
 
