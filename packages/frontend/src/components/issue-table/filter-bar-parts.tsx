@@ -322,7 +322,7 @@ export function PresetDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 min-w-[220px] rounded-lg border border-border bg-background shadow-lg py-1">
+        <div className="absolute left-0 top-full mt-1 z-20 min-w-[220px] rounded-lg border border-border bg-background shadow-lg py-1">
           {/* Active Issues (clear) */}
           <button
             type="button"

@@ -295,7 +295,7 @@ function DependencyAutocomplete({
           ref={listRef}
           id="dep-autocomplete-list"
           role="listbox"
-          className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-lg border border-border bg-background shadow-lg"
+          className="absolute z-20 mt-1 w-full max-h-64 overflow-auto rounded-lg border border-border bg-background shadow-lg"
         >
           {results.length === 0 && !isSearching && query.trim() && (
             <div className="px-3 py-4 text-center text-sm text-muted-foreground">

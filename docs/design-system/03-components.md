@@ -43,6 +43,10 @@ Every primitive in `components/ui/` must satisfy these.
 | `Popover` | `popover.tsx` | Positioned popup container for non-modal content. |
 | `Input` / `Textarea` | `input.tsx`, `textarea.tsx` | Themed text inputs with consistent border/focus styling. |
 | `Checkbox` / `Switch` / `RadioGroup` | `checkbox.tsx`, `switch.tsx`, `radio-group.tsx` | Form toggle controls. |
+| `Label` | `label.tsx` | Accessible form label primitive. |
+| `Slider` | `slider.tsx` | Range slider input control. |
+| `HoverCard` | `hover-card.tsx` | Hover-triggered content card for previews. |
+| `Calendar` | `calendar.tsx` | Calendar date-picker grid (used by `DatePicker`). |
 | `Avatar` | `avatar.tsx` | User avatar with fallback initial. |
 | `Badge` | `badge.tsx` | Generic badge (distinct from `StatusBadge` — used for counts, tags). |
 | `Skeleton` | `skeleton.tsx` | Loading placeholder shape with shimmer animation. |
