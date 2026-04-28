@@ -32,7 +32,6 @@ graph LR
     Fastify -->|reads via mysql2 pool| Dolt
     Fastify -->|mutations| WS
     WS -->|SQL writes| Dolt
-    WS -->|issue ops| BD
     Fastify -->|upload/download| FS
     BD -->|direct SQL| Dolt
 ```
@@ -41,7 +40,7 @@ graph LR
 
 ### Write Serialization
 
-All mutations flow through `WriteService`, which uses a `WriteQueue` to serialize writes. This prevents race conditions when the `bd` CLI and web UI write concurrently. After each write, the service emits `InvalidationHint` objects that tell the frontend which TanStack Query caches to refetch.
+All mutations flow through `WriteService`, which uses a `WriteQueue` to serialize writes via `IssueWriter`/`DependencyWriter`/`CommentWriter` with direct SQL. After each write, the service emits `InvalidationHint` objects that tell the frontend which TanStack Query caches to refetch.
 
 ### Dolt Server Mode
 
