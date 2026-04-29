@@ -26,7 +26,7 @@ test.describe("Close Issue", () => {
     await closeMenuItem.click();
 
     // Confirmation dialog should appear
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
     await expect(dialog.getByText("Close issue?")).toBeVisible();
     await expect(dialog.getByText(/are you sure/i)).toBeVisible();
@@ -44,7 +44,7 @@ test.describe("Close Issue", () => {
     await actionsBtn.click();
     await page.getByRole("menuitem", { name: "Close", exact: true }).click();
 
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Cancel
@@ -71,7 +71,7 @@ test.describe("Close Issue", () => {
       .click();
     await page.getByRole("menuitem", { name: "Close", exact: true }).click();
 
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Confirm close

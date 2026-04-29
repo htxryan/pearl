@@ -56,9 +56,10 @@ test.describe("Edit Issue", () => {
 
   test("change issue type via select dropdown", async ({ seededPage: page }) => {
     await navigateToIssue(page, OPEN_ISSUE_ID);
-    // Scope to the Fields section to avoid matching "Filter events by type"
-    const fieldsSection = page.getByRole("heading", { name: "Fields" }).locator("..");
-    const combo = fieldsSection.getByRole("combobox", { name: "Type" });
+    // Scope to the metadata sidebar to avoid matching "Filter events by type"
+    const sidebar = page.locator('[aria-label="Issue metadata"]');
+    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+    const combo = sidebar.getByRole("combobox", { name: "Type" });
     const original = ((await combo.textContent()) ?? "").trim();
     const target = /^bug$/i.test(original) ? /^feature$/i : /^bug$/i;
     await combo.click();
@@ -102,12 +103,11 @@ test.describe("Edit Issue", () => {
   test("edit assignee inline", async ({ seededPage: page }) => {
     await navigateToIssue(page, OPEN_ISSUE_ID);
 
-    const fieldsHeading = page.getByRole("heading", { name: "Fields" });
-    await expect(fieldsHeading).toBeVisible({ timeout: 15_000 });
-    const fieldsSection = fieldsHeading.locator("..");
+    const sidebar = page.locator('[aria-label="Issue metadata"]');
+    await expect(sidebar).toBeVisible({ timeout: 15_000 });
 
     // Scope to the Assignee row — locate by the field's label span
-    const assigneeRow = fieldsSection.getByText("Assignee", { exact: true }).locator("..");
+    const assigneeRow = sidebar.getByText("Assignee", { exact: true }).locator("..");
     const assigneeDisplay = assigneeRow.locator('[role="button"]').first();
     await expect(assigneeDisplay).toBeVisible({ timeout: 5_000 });
     await assigneeDisplay.click();

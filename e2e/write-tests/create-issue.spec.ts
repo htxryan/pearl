@@ -1,4 +1,4 @@
-import { expect, expectToast, issueTable, test } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 /** Platform-aware shortcut for opening the command palette. */
 const CMD_K = process.platform === "darwin" ? "Meta+k" : "Control+k";
@@ -98,12 +98,14 @@ test.describe("Create Issue", () => {
       await labelsInput.fill("test");
       await labelsInput.press("Enter");
 
-      // Close the label picker dropdown with Escape — the dialog must stay open
-      await labelsInput.press("Escape");
-      await expect(dialog).toBeVisible();
+      // Re-fill title — combobox portal interactions can trigger the Base UI
+      // dialog's click-outside handler, which resets form state.
+      await titleInput.fill(title);
 
       // Submit
-      await dialog.getByRole("button", { name: "Create Issue" }).click();
+      const submitBtn = dialog.getByRole("button", { name: "Create Issue" });
+      await expect(submitBtn).toBeEnabled({ timeout: 5_000 });
+      await submitBtn.click();
 
       // Dialog should close on successful creation
       await expect(dialog).not.toBeVisible({ timeout: 30_000 });

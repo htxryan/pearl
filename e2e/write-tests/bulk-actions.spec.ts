@@ -1,4 +1,4 @@
-import { expect, expectToast, issueTable, test } from "./fixtures";
+import { expect, issueTable, test } from "./fixtures";
 
 test.describe("Bulk Actions", () => {
   test("bulk close selected issues with confirmation", async ({ seededPage: page }) => {
@@ -19,7 +19,7 @@ test.describe("Bulk Actions", () => {
     await page.getByRole("menuitem", { name: /close selected/i }).click();
 
     // Confirmation dialog should appear
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Confirm via the button matching "Close N Issue(s)"
@@ -57,9 +57,8 @@ test.describe("Bulk Actions", () => {
       await assigneeInput.fill("Bulk E2E Tester");
       await assigneeInput.press("Enter");
 
-      // Wait for result
-      const toastRegion = page.getByLabel("Notifications");
-      await expect(toastRegion.getByRole("status").first()).toBeVisible({ timeout: 10_000 });
+      // Wait for toast confirmation
+      await expect(page.locator("[data-sonner-toast]").first()).toBeVisible({ timeout: 10_000 });
     }
 
     // Clear selection
@@ -90,15 +89,16 @@ test.describe("Bulk Actions", () => {
 
     await setPriorityBtn.click();
 
-    // A priority selector should appear — select P0 (label is "P0 — Critical")
-    const p0Option = page.getByRole("button", { name: /^P0/ });
-    if (await p0Option.isVisible().catch(() => false)) {
-      await p0Option.click();
+    // Priority submenu options render as menuitems
+    const p0Option = page.getByRole("menuitem", { name: /P0/ });
+    await expect(p0Option).toBeVisible({ timeout: 5_000 });
+    await p0Option.click();
 
-      // Wait for result
-      const toastRegion = page.getByLabel("Notifications");
-      await expect(toastRegion.getByRole("status").first()).toBeVisible({ timeout: 10_000 });
-    }
+    // Wait for the dropdown to close after selection
+    await expect(p0Option).not.toBeVisible({ timeout: 5_000 });
+
+    // Wait for toast confirmation
+    await expect(page.locator("[data-sonner-toast]").first()).toBeVisible({ timeout: 10_000 });
 
     // Clean up selection
     const clearBtn = page.getByRole("button", { name: /clear/i });
@@ -138,7 +138,7 @@ test.describe("Bulk Actions", () => {
     await page.getByRole("button", { name: /^actions$/i }).click();
     await page.getByRole("menuitem", { name: /close selected/i }).click();
 
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // The confirm button should show the correct count

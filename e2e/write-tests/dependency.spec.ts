@@ -1,4 +1,4 @@
-import { expect, expectToast, navigateToIssue, test } from "./fixtures";
+import { expect, navigateToIssue, test } from "./fixtures";
 
 // Use relative URLs; page.request resolves via playwright's baseURL and the
 // Vite proxy reaches whichever backend port this run uses.
@@ -37,7 +37,7 @@ test.describe("Dependency Management", () => {
     await expect(depHeading).toBeVisible({ timeout: 15_000 });
 
     // Click "+ Add" button
-    const addBtn = page.getByRole("button", { name: /\+ add/i });
+    const addBtn = page.getByRole("button", { name: /^add$/i });
     await expect(addBtn).toBeVisible();
     await addBtn.click();
 
@@ -83,7 +83,7 @@ test.describe("Dependency Management", () => {
     await removeButtons.first().click();
 
     // Confirmation dialog should appear
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
     await expect(dialog.getByText(/remove dependency/i)).toBeVisible();
 
@@ -99,7 +99,7 @@ test.describe("Dependency Management", () => {
     await depHeading.scrollIntoViewIfNeeded();
     await expect(depHeading).toBeVisible({ timeout: 15_000 });
 
-    const addBtn = page.getByRole("button", { name: /\+ add/i });
+    const addBtn = page.getByRole("button", { name: /^add$/i });
     await addBtn.click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
@@ -135,7 +135,7 @@ test.describe("Dependency Management", () => {
     await expect(depHeading).toBeVisible({ timeout: 15_000 });
 
     // Open add form
-    const addBtn = page.getByRole("button", { name: /\+ add/i });
+    const addBtn = page.getByRole("button", { name: /^add$/i });
     await addBtn.click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");

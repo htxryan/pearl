@@ -83,11 +83,10 @@ export async function navigateToIssue(page: Page, id: string): Promise<void> {
 
 /**
  * Wait for a toast notification with the given text pattern.
- * Toasts use role="status" inside an aria-live region.
+ * Sonner v2 renders toasts as `<li data-sonner-toast>` inside an aria-live region.
  */
 export async function expectToast(page: Page, textPattern: string | RegExp, timeout = 10_000) {
-  const toastRegion = page.getByLabel("Notifications");
-  const toast = toastRegion.getByRole("status").filter({ hasText: textPattern });
-  await expect(toast).toBeVisible({ timeout });
-  return toast;
+  const toast = page.locator("[data-sonner-toast]").filter({ hasText: textPattern });
+  await expect(toast.first()).toBeVisible({ timeout });
+  return toast.first();
 }

@@ -1,4 +1,4 @@
-import { expect, expectToast, navigateToIssue, test } from "./fixtures";
+import { expect, navigateToIssue, test } from "./fixtures";
 
 test.describe("Comments", () => {
   // Use an issue that has existing comments
@@ -7,15 +7,18 @@ test.describe("Comments", () => {
   test("existing comments are visible", async ({ seededPage: page }) => {
     await navigateToIssue(page, ISSUE_WITH_COMMENTS);
 
-    const commentsHeading = page.getByRole("heading", { name: /comments/i });
-    await commentsHeading.scrollIntoViewIfNeeded();
-    await expect(commentsHeading).toBeVisible({ timeout: 15_000 });
+    const commentsTab = page.getByRole("tab", { name: /comments/i });
+    await commentsTab.scrollIntoViewIfNeeded();
+    await expect(commentsTab).toBeVisible({ timeout: 15_000 });
+
+    // Ensure the comments tab is selected so the panel is visible
+    await commentsTab.click();
 
     // Should show comment count (at least the seed comments; may grow from prior test runs)
-    const headingText = await commentsHeading.textContent();
-    const match = headingText!.match(/\((\d+)\)/);
+    const tabText = (await commentsTab.textContent()) ?? "";
+    const match = tabText.match(/\((\d+)\)/);
     expect(match).toBeTruthy();
-    expect(Number(match![1])).toBeGreaterThanOrEqual(2);
+    expect(Number(match?.[1])).toBeGreaterThanOrEqual(2);
 
     // Comment text should be visible
     await expect(page.getByText(/empty email throws TypeError/i)).toBeVisible();
@@ -24,9 +27,10 @@ test.describe("Comments", () => {
   test("add comment via form submission", async ({ seededPage: page }) => {
     await navigateToIssue(page, ISSUE_WITH_COMMENTS);
 
-    const commentsHeading = page.getByRole("heading", { name: /comments/i });
-    await commentsHeading.scrollIntoViewIfNeeded();
-    await expect(commentsHeading).toBeVisible({ timeout: 15_000 });
+    const commentsTab = page.getByRole("tab", { name: /comments/i });
+    await commentsTab.scrollIntoViewIfNeeded();
+    await expect(commentsTab).toBeVisible({ timeout: 15_000 });
+    await commentsTab.click();
 
     // Find the comment textarea
     const commentTextarea = page.getByPlaceholder("Add a comment...");
@@ -47,9 +51,10 @@ test.describe("Comments", () => {
   test("comment submit button disabled when empty", async ({ seededPage: page }) => {
     await navigateToIssue(page, ISSUE_WITH_COMMENTS);
 
-    const commentsHeading = page.getByRole("heading", { name: /comments/i });
-    await commentsHeading.scrollIntoViewIfNeeded();
-    await expect(commentsHeading).toBeVisible({ timeout: 15_000 });
+    const commentsTab = page.getByRole("tab", { name: /comments/i });
+    await commentsTab.scrollIntoViewIfNeeded();
+    await expect(commentsTab).toBeVisible({ timeout: 15_000 });
+    await commentsTab.click();
 
     const commentTextarea = page.getByPlaceholder("Add a comment...");
     await expect(commentTextarea).toBeVisible();
@@ -65,9 +70,10 @@ test.describe("Comments", () => {
   test("Cmd+Enter submits comment", async ({ seededPage: page }) => {
     await navigateToIssue(page, ISSUE_WITH_COMMENTS);
 
-    const commentsHeading = page.getByRole("heading", { name: /comments/i });
-    await commentsHeading.scrollIntoViewIfNeeded();
-    await expect(commentsHeading).toBeVisible({ timeout: 15_000 });
+    const commentsTab = page.getByRole("tab", { name: /comments/i });
+    await commentsTab.scrollIntoViewIfNeeded();
+    await expect(commentsTab).toBeVisible({ timeout: 15_000 });
+    await commentsTab.click();
 
     const commentTextarea = page.getByPlaceholder("Add a comment...");
     await commentTextarea.fill(`Keyboard shortcut test ${Date.now()}`);
@@ -84,12 +90,13 @@ test.describe("Comments", () => {
     const NO_COMMENTS_ISSUE = "sample-project-3gr"; // "Add data export feature"
     await navigateToIssue(page, NO_COMMENTS_ISSUE);
 
-    const commentsHeading = page.getByRole("heading", { name: /comments/i });
-    await commentsHeading.scrollIntoViewIfNeeded();
-    await expect(commentsHeading).toBeVisible({ timeout: 15_000 });
+    const commentsTab = page.getByRole("tab", { name: /comments/i });
+    await commentsTab.scrollIntoViewIfNeeded();
+    await expect(commentsTab).toBeVisible({ timeout: 15_000 });
+    await commentsTab.click();
 
     // Should show 0 comments
-    await expect(commentsHeading).toContainText("0");
+    await expect(commentsTab).toContainText("0");
 
     // "No comments yet" message
     await expect(page.getByText(/no comments yet/i)).toBeVisible();
