@@ -35,7 +35,7 @@
     "url": "git+https://github.com/htxryan/pearl.git"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "dependencies": {
     "@fastify/busboy": "^3.2.0",
