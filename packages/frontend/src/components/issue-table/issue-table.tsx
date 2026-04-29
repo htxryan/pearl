@@ -152,25 +152,27 @@ function DraggableHeader({
             </svg>
           </button>
         )}
-        <button
-          type="button"
-          onClick={header.column.getToggleSortingHandler()}
-          disabled={!header.column.getCanSort()}
-          className={cn(
-            "flex items-center gap-1 min-w-0 text-left bg-transparent border-0 p-0 font-medium text-xs uppercase tracking-wider text-inherit",
-            header.column.getCanSort() ? "cursor-pointer hover:text-foreground" : "cursor-default",
-          )}
-        >
-          <span className="truncate">
+        {header.column.getCanSort() ? (
+          <button
+            type="button"
+            onClick={header.column.getToggleSortingHandler()}
+            className="flex items-center gap-1 min-w-0 text-left bg-transparent border-0 p-0 font-medium text-xs uppercase tracking-wider text-inherit cursor-pointer hover:text-foreground"
+          >
+            <span className="truncate">
+              {flexRender(header.column.columnDef.header, header.getContext())}
+            </span>
+            {header.column.getIsSorted() === "asc" && (
+              <span aria-label="Sorted ascending">&#9650;</span>
+            )}
+            {header.column.getIsSorted() === "desc" && (
+              <span aria-label="Sorted descending">&#9660;</span>
+            )}
+          </button>
+        ) : (
+          <span className="flex items-center gap-1 min-w-0 text-left font-medium text-xs uppercase tracking-wider text-inherit">
             {flexRender(header.column.columnDef.header, header.getContext())}
           </span>
-          {header.column.getIsSorted() === "asc" && (
-            <span aria-label="Sorted ascending">&#9650;</span>
-          )}
-          {header.column.getIsSorted() === "desc" && (
-            <span aria-label="Sorted descending">&#9660;</span>
-          )}
-        </button>
+        )}
       </div>
       {header.column.getCanResize() && (
         <div

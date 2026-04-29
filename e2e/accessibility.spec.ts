@@ -28,9 +28,11 @@ test.describe("Accessibility", () => {
     const firstCheckbox = table.locator("tbody tr").first().getByRole("checkbox");
     await firstCheckbox.click();
 
-    await page.getByRole("button", { name: /close selected/i }).click();
+    await expect(page.getByText("issue selected")).toBeVisible({ timeout: 5_000 });
+    await page.getByRole("button", { name: /^actions$/i }).click();
+    await page.getByRole("menuitem", { name: /close selected/i }).click();
 
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Cancel it

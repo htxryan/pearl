@@ -430,37 +430,42 @@ export function buildColumns({
         const status = info.getValue();
         if (onStatusChange) {
           return (
-            <Select
-              value={status}
-              onValueChange={(v) => {
-                if (v) onStatusChange(info.row.original.id, v as IssueStatus);
-              }}
-              modal={false}
-            >
-              <SelectTrigger
-                size="sm"
-                className="border-none bg-transparent px-0 hover:bg-accent"
-                aria-label={`Change status for ${info.row.original.title}`}
+            // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation prevents row click
+            <div onClick={(e) => e.stopPropagation()}>
+              <Select
+                value={status}
+                onValueChange={(v) => {
+                  if (v) onStatusChange(info.row.original.id, v as IssueStatus);
+                }}
+                modal={false}
               >
-                <SelectValue>
-                  {(v: string | null) => (v ? <StatusBadge status={v as IssueStatus} /> : "Status")}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(
-                  [
-                    { value: "open", label: "Open" },
-                    { value: "in_progress", label: "In Progress" },
-                    { value: "closed", label: "Closed" },
-                    { value: "deferred", label: "Deferred" },
-                  ] as const
-                ).map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} label={opt.label}>
-                    <StatusBadge status={opt.value} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  size="sm"
+                  className="border-none bg-transparent px-0 hover:bg-accent"
+                  aria-label={`Change status for ${info.row.original.title}`}
+                >
+                  <SelectValue>
+                    {(v: string | null) =>
+                      v ? <StatusBadge status={v as IssueStatus} /> : "Status"
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    [
+                      { value: "open", label: "Open" },
+                      { value: "in_progress", label: "In Progress" },
+                      { value: "closed", label: "Closed" },
+                      { value: "deferred", label: "Deferred" },
+                    ] as const
+                  ).map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} label={opt.label}>
+                      <StatusBadge status={opt.value} />
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           );
         }
         return <StatusBadge status={status} />;
@@ -473,43 +478,46 @@ export function buildColumns({
         const priority = info.getValue();
         if (onPriorityChange) {
           return (
-            <Select
-              value={priority}
-              onValueChange={(v) => {
-                if (v != null) onPriorityChange(info.row.original.id, v as Priority);
-              }}
-              modal={false}
-            >
-              <SelectTrigger
-                size="sm"
-                className="border-none bg-transparent px-0 hover:bg-accent"
-                aria-label={`Change priority for ${info.row.original.title}`}
+            // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation prevents row click
+            <div onClick={(e) => e.stopPropagation()}>
+              <Select
+                value={priority}
+                onValueChange={(v) => {
+                  if (v != null) onPriorityChange(info.row.original.id, v as Priority);
+                }}
+                modal={false}
               >
-                <SelectValue>
-                  {(v: number | null) =>
-                    v != null ? <PriorityIndicator priority={v as Priority} /> : "Priority"
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(
-                  [
-                    { value: 0, label: "P0 — Critical" },
-                    { value: 1, label: "P1 — High" },
-                    { value: 2, label: "P2 — Medium" },
-                    { value: 3, label: "P3 — Low" },
-                    { value: 4, label: "P4 — Backlog" },
-                  ] as const
-                ).map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} label={opt.label}>
-                    <span className="flex items-center gap-2">
-                      <PriorityIndicator priority={opt.value as Priority} />
-                      <span>{opt.label}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  size="sm"
+                  className="border-none bg-transparent px-0 hover:bg-accent"
+                  aria-label={`Change priority for ${info.row.original.title}`}
+                >
+                  <SelectValue>
+                    {(v: number | null) =>
+                      v != null ? <PriorityIndicator priority={v as Priority} /> : "Priority"
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    [
+                      { value: 0, label: "P0 — Critical" },
+                      { value: 1, label: "P1 — High" },
+                      { value: 2, label: "P2 — Medium" },
+                      { value: 3, label: "P3 — Low" },
+                      { value: 4, label: "P4 — Backlog" },
+                    ] as const
+                  ).map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} label={opt.label}>
+                      <span className="flex items-center gap-2">
+                        <PriorityIndicator priority={opt.value as Priority} />
+                        <span>{opt.label}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           );
         }
         return <PriorityIndicator priority={priority} />;

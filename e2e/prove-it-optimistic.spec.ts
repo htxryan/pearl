@@ -34,13 +34,13 @@ async function pickDifferentOption(page: import("@playwright/test").Page) {
   const count = await options.count();
   for (let i = 0; i < count; i++) {
     const opt = options.nth(i);
-    const selected = await opt.getAttribute("aria-selected");
-    if (selected !== "true") {
+    const selected = await opt.getAttribute("data-selected");
+    if (selected === null) {
       await opt.click();
       return;
     }
   }
-  throw new Error("No unselected option found in listbox");
+  throw new Error(`No unselected option found (${count} options, all have data-selected)`);
 }
 
 test.describe("Optimistic mutations", () => {

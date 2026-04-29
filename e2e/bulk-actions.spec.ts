@@ -33,8 +33,8 @@ test.describe("Bulk Actions", () => {
     await page.getByRole("button", { name: /^actions$/i }).click();
     await page.getByRole("menuitem", { name: /close selected/i }).click();
 
-    // Confirmation dialog
-    const dialog = page.getByRole("dialog");
+    // Confirmation dialog (Base UI AlertDialog renders as role="alertdialog")
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible();
 
     // Cancel (don't mutate data)

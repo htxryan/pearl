@@ -14,7 +14,7 @@ test.describe("Dependency Autocomplete", () => {
     await heading.scrollIntoViewIfNeeded();
     await expect(heading).toBeVisible({ timeout: 15_000 });
 
-    await page.getByRole("button", { name: /\+ add/i }).click();
+    await page.getByRole("button", { name: /^add$/i }).click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
     await expect(searchInput).toBeVisible();
@@ -26,7 +26,7 @@ test.describe("Dependency Autocomplete", () => {
     await heading.scrollIntoViewIfNeeded();
     await expect(heading).toBeVisible({ timeout: 15_000 });
 
-    await page.getByRole("button", { name: /\+ add/i }).click();
+    await page.getByRole("button", { name: /^add$/i }).click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
     // Search for a term that matches multiple issues in the sample dataset
@@ -44,7 +44,7 @@ test.describe("Dependency Autocomplete", () => {
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
 
-    await page.getByRole("button", { name: /\+ add/i }).click();
+    await page.getByRole("button", { name: /^add$/i }).click();
 
     const searchInput = page.getByPlaceholder("Search issues by title or ID...");
     await expect(searchInput).toHaveAttribute("role", "combobox");
@@ -56,7 +56,7 @@ test.describe("Dependency Autocomplete", () => {
     const heading = page.getByRole("heading", { name: /dependencies/i });
     await heading.scrollIntoViewIfNeeded();
 
-    await page.getByRole("button", { name: /\+ add/i }).click();
+    await page.getByRole("button", { name: /^add$/i }).click();
     await expect(page.getByPlaceholder("Search issues by title or ID...")).toBeVisible();
 
     await page.getByRole("button", { name: /cancel/i }).click();

@@ -47,7 +47,7 @@ test.describe("Keyboard Shortcuts", () => {
       timeout: 5_000,
     });
 
-    await page.getByLabel("Close").click();
+    await page.getByRole("button", { name: "Close" }).click();
     await expect(page.getByRole("heading", { name: "Keyboard Shortcuts" })).not.toBeVisible({
       timeout: 5_000,
     });

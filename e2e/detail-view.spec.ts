@@ -96,16 +96,16 @@ test.describe("Detail View", () => {
 
   test("comments section is visible", async ({ seededPage: page }) => {
     await navigateToFirstIssue(page);
-    const heading = page.getByRole("heading", { name: /comments/i });
-    await heading.scrollIntoViewIfNeeded();
-    await expect(heading).toBeVisible({ timeout: 15_000 });
+    const tab = page.getByRole("tab", { name: /comments/i });
+    await tab.scrollIntoViewIfNeeded();
+    await expect(tab).toBeVisible({ timeout: 15_000 });
   });
 
   test("activity timeline section is visible", async ({ seededPage: page }) => {
     await navigateToFirstIssue(page);
-    const heading = page.getByRole("heading", { name: /activity/i });
-    await heading.scrollIntoViewIfNeeded();
-    await expect(heading).toBeVisible({ timeout: 15_000 });
+    const tab = page.getByRole("tab", { name: /activity/i });
+    await tab.scrollIntoViewIfNeeded();
+    await expect(tab).toBeVisible({ timeout: 15_000 });
   });
 
   test("close button triggers confirmation dialog", async ({ seededPage: page }) => {
@@ -120,7 +120,7 @@ test.describe("Detail View", () => {
     await expect(closeItem).toBeVisible();
     await closeItem.click();
 
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("alertdialog");
     await expect(dialog).toBeVisible();
 
     // Cancel
