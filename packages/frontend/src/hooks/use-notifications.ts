@@ -341,8 +341,9 @@ export function useNotificationPreferences(): NotificationPreferences {
  * Hook that polls issues and generates notifications from detected changes.
  * Should be mounted once at the app shell level.
  */
-export function useNotificationPoller() {
-  const isEmbedded = useIsEmbeddedMode();
+export function useNotificationPoller(isEmbedded?: boolean) {
+  const contextEmbedded = useIsEmbeddedMode();
+  const embedded = isEmbedded ?? contextEmbedded;
   const prefs = useNotificationPreferences();
   const prefsRef = useRef(prefs);
   prefsRef.current = prefs;
@@ -355,7 +356,7 @@ export function useNotificationPoller() {
       const result = await fetchIssues();
       return result ?? [];
     },
-    enabled: !isEmbedded,
+    enabled: !embedded,
     refetchInterval: 30_000,
     staleTime: 10_000,
   });

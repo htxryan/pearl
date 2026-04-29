@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useHealth } from "./use-issues";
 
 export { EmbeddedModeProvider, useIsEmbeddedMode } from "./embedded-mode-context";
@@ -12,13 +12,14 @@ export function useEmbeddedModeDetection(): {
   const { data: health, isLoading } = useHealth();
   const isEmbedded = health?.dolt_mode === "embedded";
 
-  if (isEmbedded) lockedRef.current = true;
+  const locked = useMemo(() => {
+    if (isEmbedded) lockedRef.current = true;
+    return lockedRef.current;
+  }, [isEmbedded]);
 
-  const locked = lockedRef.current;
   return {
     isEmbedded: locked,
-    showModal:
-      locked && typeof window !== "undefined" && !window.__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__,
+    showModal: locked && !window.__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__,
     isLoading: locked ? false : isLoading,
   };
 }

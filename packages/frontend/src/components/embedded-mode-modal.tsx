@@ -1,5 +1,5 @@
 import { ArrowRight, Check, Plug } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api-client";
 
 type MigrationState = "idle" | "testing" | "migrating" | "error";
@@ -26,11 +26,21 @@ export function EmbeddedModeModal() {
     };
   }, []);
 
-  const handleManagedMigration = useCallback(() => {
+  const handleManagedMigration = useCallback(async () => {
     setState("migrating");
     setError("");
-    api.migrate({ target: "managed" }).catch(() => {});
-    reloadTimerRef.current = setTimeout(() => window.location.reload(), 3000);
+    try {
+      const result = await api.migrate({ target: "managed" });
+      if (result.ok) {
+        reloadTimerRef.current = setTimeout(() => window.location.reload(), 1000);
+      } else {
+        setState("error");
+        setError(result.error || "Migration failed");
+      }
+    } catch (err) {
+      setState("error");
+      setError(err instanceof Error ? err.message : "Migration failed");
+    }
   }, []);
 
   const handleTestConnection = useCallback(async () => {
@@ -87,6 +97,25 @@ export function EmbeddedModeModal() {
 
   const isBusy = state === "migrating" || state === "testing";
 
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const focusable = panel.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 bg-black/80" role="presentation">
       <div
@@ -96,6 +125,7 @@ export function EmbeddedModeModal() {
         aria-labelledby="migration-title"
         aria-describedby="migration-desc"
         tabIndex={-1}
+        onKeyDown={handleKeyDown}
         className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-background p-6 shadow-lg sm:rounded-lg outline-none"
         data-testid="embedded-mode-modal"
       >

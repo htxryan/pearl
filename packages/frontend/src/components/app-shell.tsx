@@ -40,7 +40,7 @@ export function AppShell() {
   const { isEmbedded, showModal } = useEmbeddedModeDetection();
 
   useFilterSync();
-  useNotificationPoller();
+  useNotificationPoller(isEmbedded);
 
   const bindings = useMemo(
     () => [

@@ -17,6 +17,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import * as api from "@/lib/api-client";
+import { useIsEmbeddedMode } from "./embedded-mode-context";
 import { dependencyKeys, healthKeys, issueKeys, setupKeys, statsKeys } from "./issue-keys";
 import { labelKeys } from "./use-labels";
 import { notifyCommentAdded } from "./use-notifications";
@@ -524,10 +525,11 @@ export function useRemoveDependency() {
 
 // ─── Stats Hook ─────────────────────────────────────────
 export function useStats() {
+  const isEmbedded = useIsEmbeddedMode();
   return useQuery({
     queryKey: statsKeys.all,
     queryFn: api.fetchStats,
-    refetchInterval: 60_000,
+    refetchInterval: isEmbedded ? false : 60_000,
   });
 }
 
