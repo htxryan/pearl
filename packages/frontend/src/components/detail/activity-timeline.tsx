@@ -38,6 +38,7 @@ interface EventGroup {
   events: Event[];
   representative: Event;
   parsed: ParsedEvent;
+  parsedEvents: ParsedEvent[];
 }
 
 const PAGE_SIZE = 20;
@@ -203,7 +204,7 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
                         onClick={() => toggleGroup(group.key)}
                         className="inline-flex items-center gap-0.5 text-xs text-muted-foreground/60 font-medium hover:text-foreground cursor-pointer bg-transparent border-none p-0"
                         aria-expanded={isExpanded}
-                        aria-label={`${isExpanded ? "Collapse" : "Expand"} ${count} grouped events`}
+                        aria-label={`${isExpanded ? "Collapse" : "Expand"} ${count - 1} more grouped events`}
                       >
                         <ChevronDown
                           size={12}
@@ -212,7 +213,7 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
                             isExpanded && "rotate-180",
                           )}
                         />
-                        &times;{count}
+                        +{count - 1}
                       </button>
                     )}
                   </div>
@@ -231,8 +232,8 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
 
                   {count > 1 && isExpanded && (
                     <div className="mt-2 ml-2 pl-3 border-l border-border/50 space-y-2">
-                      {group.events.slice(1).map((evt) => {
-                        const evtParsed = parseEvent(evt);
+                      {group.events.slice(1).map((evt, idx) => {
+                        const evtParsed = group.parsedEvents[idx + 1];
                         const evtMeta = getEventTypeMeta(evt.event_type);
                         return (
                           <div key={evt.id} id={`event-${evt.id}`} className="text-sm">
@@ -393,12 +394,14 @@ export function groupAdjacentEvents(events: Event[]): EventGroup[] {
       !prev.representative.comment
     ) {
       prev.events.push(event);
+      prev.parsedEvents.push(parsed);
     } else {
       groups.push({
         key: event.id,
         events: [event],
         representative: event,
         parsed,
+        parsedEvents: [parsed],
       });
     }
   }

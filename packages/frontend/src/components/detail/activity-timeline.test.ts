@@ -315,7 +315,7 @@ describe("getActorColor", () => {
 
   it("returns different colors for different names", () => {
     const colors = new Set(["Alice", "Bob", "Charlie", "Diana", "Eve"].map(getActorColor));
-    expect(colors.size).toBeGreaterThan(1);
+    expect(colors.size).toBeGreaterThan(2);
   });
 
   it("returns a valid Tailwind class string", () => {
