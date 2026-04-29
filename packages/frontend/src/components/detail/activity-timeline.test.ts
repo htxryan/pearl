@@ -2,6 +2,7 @@ import type { Event } from "@pearl/shared";
 import { describe, expect, it } from "vitest";
 import {
   extractFieldChanges,
+  getActorColor,
   getEventTypeMeta,
   groupAdjacentEvents,
   parseEvent,
@@ -302,5 +303,47 @@ describe("getEventTypeMeta", () => {
     const meta = getEventTypeMeta("");
     expect(meta.key).toBe("other");
     expect(meta.label).toBe("event");
+  });
+});
+
+describe("getActorColor", () => {
+  it("returns a consistent color for the same name", () => {
+    const color1 = getActorColor("Alice");
+    const color2 = getActorColor("Alice");
+    expect(color1).toBe(color2);
+  });
+
+  it("returns different colors for different names", () => {
+    const colors = new Set(["Alice", "Bob", "Charlie", "Diana", "Eve"].map(getActorColor));
+    expect(colors.size).toBeGreaterThan(1);
+  });
+
+  it("returns a valid Tailwind class string", () => {
+    const color = getActorColor("TestUser");
+    expect(color).toMatch(/^bg-/);
+    expect(color).toContain("text-");
+  });
+});
+
+describe("collapsible group structure", () => {
+  it("grouped events can be enumerated from the group object", () => {
+    const events = [
+      makeEvent({ actor: "Alice", event_type: "closed", id: "a" }),
+      makeEvent({ actor: "Alice", event_type: "closed", id: "b" }),
+      makeEvent({ actor: "Alice", event_type: "closed", id: "c" }),
+    ];
+    const groups = groupAdjacentEvents(events);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].events).toHaveLength(3);
+    expect(groups[0].events[0].id).toBe("a");
+    expect(groups[0].events[1].id).toBe("b");
+    expect(groups[0].events[2].id).toBe("c");
+  });
+
+  it("single-event groups have exactly one event", () => {
+    const events = [makeEvent({ event_type: "created" })];
+    const groups = groupAdjacentEvents(events);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].events).toHaveLength(1);
   });
 });

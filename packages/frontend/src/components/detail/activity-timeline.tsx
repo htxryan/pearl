@@ -1,6 +1,8 @@
 import type { Event } from "@pearl/shared";
 import { ChevronDown } from "lucide-react";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { RelativeTime } from "@/components/ui/relative-time";
 import {
@@ -73,9 +75,24 @@ const FILTER_EVENT_TYPES: Record<string, string[]> = {
   reopened: ["reopened"],
 };
 
+const commentRemarkPlugins = [remarkGfm];
+
 export function ActivityTimeline({ events, hideTitle = false }: ActivityTimelineProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [filterType, setFilterType] = useState<string>("all");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = useCallback((groupKey: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  }, []);
 
   const sortedEvents = useMemo(
     () =>
@@ -146,6 +163,7 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
             const count = group.events.length;
             const { verb, changes } = group.parsed;
             const meta = getEventTypeMeta(event.event_type);
+            const isExpanded = expandedGroups.has(group.key);
             return (
               <div key={group.key} id={`event-${event.id}`} className="relative">
                 <div
@@ -163,7 +181,8 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
 
                 <div className="text-sm">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium">{event.actor}</span>
+                    <ActorAvatar name={event.actor} />
+                    <span className="font-semibold text-foreground">{event.actor}</span>
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
@@ -179,32 +198,25 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
                     </span>
                     <span className="text-muted-foreground">{verb}</span>
                     {count > 1 && (
-                      <span className="text-xs text-muted-foreground/60 font-medium">
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup(group.key)}
+                        className="inline-flex items-center gap-0.5 text-xs text-muted-foreground/60 font-medium hover:text-foreground cursor-pointer bg-transparent border-none p-0"
+                        aria-expanded={isExpanded}
+                        aria-label={`${isExpanded ? "Collapse" : "Expand"} ${count} grouped events`}
+                      >
+                        <ChevronDown
+                          size={12}
+                          className={cn(
+                            "transition-transform duration-200",
+                            isExpanded && "rotate-180",
+                          )}
+                        />
                         &times;{count}
-                      </span>
+                      </button>
                     )}
                   </div>
-                  {changes.length > 0 && (
-                    <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-                      {changes.map((change) => (
-                        <li key={change.field} className="flex flex-wrap items-baseline gap-1">
-                          <span className="font-medium text-foreground/80">{change.label}</span>
-                          {change.longText ? (
-                            <span className="italic">updated</span>
-                          ) : (
-                            <>
-                              <ValueChip value={change.before} />
-                              <span aria-hidden="true">→</span>
-                              <ValueChip value={change.after} />
-                            </>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {event.comment && (
-                    <p className="mt-1 text-muted-foreground text-xs">{event.comment}</p>
-                  )}
+                  <EventDetails changes={changes} comment={event.comment} />
                   <button
                     type="button"
                     onClick={() => handleTimestampClick(event.id)}
@@ -216,6 +228,44 @@ export function ActivityTimeline({ events, hideTitle = false }: ActivityTimeline
                       className="text-xs text-muted-foreground"
                     />
                   </button>
+
+                  {count > 1 && isExpanded && (
+                    <div className="mt-2 ml-2 pl-3 border-l border-border/50 space-y-2">
+                      {group.events.slice(1).map((evt) => {
+                        const evtParsed = parseEvent(evt);
+                        const evtMeta = getEventTypeMeta(evt.event_type);
+                        return (
+                          <div key={evt.id} id={`event-${evt.id}`} className="text-sm">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <ActorAvatar name={evt.actor} size="sm" />
+                              <span className="font-medium text-foreground/80">{evt.actor}</span>
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                                  evtMeta.badgeClass,
+                                )}
+                              >
+                                {evtMeta.label}
+                              </span>
+                              <span className="text-muted-foreground">{evtParsed.verb}</span>
+                            </div>
+                            <EventDetails changes={evtParsed.changes} comment={evt.comment} />
+                            <button
+                              type="button"
+                              onClick={() => handleTimestampClick(evt.id)}
+                              className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer bg-transparent border-none p-0"
+                              title="Copy link to this event"
+                            >
+                              <RelativeTime
+                                iso={evt.created_at}
+                                className="text-xs text-muted-foreground"
+                              />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -257,6 +307,73 @@ function ValueChip({ value }: { value: string | null }) {
   }
   return (
     <span className="font-mono text-foreground/80 bg-muted/40 rounded px-1 break-all">{value}</span>
+  );
+}
+
+function EventDetails({ changes, comment }: { changes: FieldChange[]; comment: string | null }) {
+  return (
+    <>
+      {changes.length > 0 && (
+        <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+          {changes.map((change) => (
+            <li key={change.field} className="flex flex-wrap items-baseline gap-1">
+              <span className="font-medium text-foreground/80">{change.label}</span>
+              {change.longText ? (
+                <span className="italic">updated</span>
+              ) : (
+                <>
+                  <ValueChip value={change.before} />
+                  <span aria-hidden="true">→</span>
+                  <ValueChip value={change.after} />
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {comment && (
+        <div className="mt-1 text-xs text-muted-foreground prose prose-sm dark:prose-invert max-w-none [&_p]:text-xs [&_p]:text-muted-foreground [&_p]:m-0 [&_code]:text-[10px] [&_pre]:text-[10px] [&_ul]:text-xs [&_ol]:text-xs [&_a]:text-xs">
+          <Markdown remarkPlugins={commentRemarkPlugins}>{comment}</Markdown>
+        </div>
+      )}
+    </>
+  );
+}
+
+const AVATAR_COLORS = [
+  "bg-blue-500/20 text-blue-700 dark:text-blue-300",
+  "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+  "bg-amber-500/20 text-amber-700 dark:text-amber-300",
+  "bg-purple-500/20 text-purple-700 dark:text-purple-300",
+  "bg-rose-500/20 text-rose-700 dark:text-rose-300",
+  "bg-cyan-500/20 text-cyan-700 dark:text-cyan-300",
+  "bg-orange-500/20 text-orange-700 dark:text-orange-300",
+  "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300",
+];
+
+export function getActorColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function ActorAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
+  const initial = name.charAt(0).toUpperCase();
+  const colorClass = getActorColor(name);
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center rounded-full font-semibold shrink-0",
+        size === "sm" ? "w-4 h-4 text-[8px]" : "w-5 h-5 text-[10px]",
+        colorClass,
+      )}
+      aria-hidden="true"
+      title={name}
+    >
+      {initial}
+    </span>
   );
 }
 
