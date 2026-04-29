@@ -10,6 +10,7 @@ permissions:
   contents: write
   pull-requests: write
   id-token: write
+  issues: write
 
 concurrency:
   group: release-please
@@ -22,6 +23,7 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success'
     outputs:
       release_created: ${{ steps.release.outputs['packages/pearl-bdui--release_created'] }}
+      version: ${{ steps.release.outputs['packages/pearl-bdui--version'] }}
     steps:
       - uses: googleapis/release-please-action@v5
         id: release
@@ -56,3 +58,68 @@ jobs:
       - name: Build & publish
         working-directory: packages/pearl-bdui
         run: npm publish
+
+  smoke-test:
+    name: Smoke Test Published Package
+    needs: [publish, release-please]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Wait for npm propagation
+        run: |
+          VERSION="${{ needs.release-please.outputs.version }}"
+          echo "Waiting for pearl-bdui@${VERSION} to appear on npm..."
+          for i in $(seq 1 30); do
+            if npm view "pearl-bdui@${VERSION}" version 2>/dev/null; then
+              echo "Package available on npm"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::pearl-bdui@${VERSION} not available on npm after 5 minutes"
+          exit 1
+
+      - name: Install published package
+        run: npm install -g "pearl-bdui@${{ needs.release-please.outputs.version }}"
+
+      - name: Verify CLI version
+        run: pearl-bdui --version
+
+      - name: Verify server starts and health endpoint responds
+        run: |
+          pearl-bdui --no-open &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3456/api/health > /tmp/health.json 2>/dev/null; then
+              echo "Health check passed:"
+              cat /tmp/health.json
+              kill $SERVER_PID 2>/dev/null || true
+              wait $SERVER_PID 2>/dev/null || true
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Server failed to respond to health check within 30 seconds"
+          kill $SERVER_PID 2>/dev/null || true
+          wait $SERVER_PID 2>/dev/null || true
+          exit 1
+
+      - name: Create GitHub issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ needs.release-please.outputs.version }}"
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "Smoke test failed for pearl-bdui@${VERSION}" \
+            --body "The post-publish smoke test failed for \`pearl-bdui@${VERSION}\`.
+
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          The published package may be broken. Investigate and publish a patch if needed." \
+            --label "bug" || true
