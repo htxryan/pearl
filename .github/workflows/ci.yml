@@ -223,7 +223,7 @@ jobs:
 
   e2e:
     name: E2E Tests
-    needs: [test, build]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
