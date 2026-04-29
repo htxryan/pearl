@@ -171,6 +171,26 @@ vi.mock("@/hooks/use-issues", () => ({
   dependencyKeys: { all: ["dependencies"] },
 }));
 
+// ─── Mock use-labels hooks ─────────────────────────────
+const mockCreateLabelMutateAsync = vi
+  .fn()
+  .mockResolvedValue({ success: true, invalidationHints: [] });
+
+vi.mock("@/hooks/use-labels", () => ({
+  useLabels: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  })),
+  useCreateLabel: vi.fn(() => ({
+    ...baseMutation,
+    mutateAsync: mockCreateLabelMutateAsync,
+  })),
+  labelKeys: {
+    all: ["labels"],
+  },
+}));
+
 // ─── Mock use-dependencies ──────────────────────────────
 vi.mock("@/hooks/use-dependencies", () => ({
   useAllDependencies: vi.fn(() => ({
@@ -184,6 +204,19 @@ vi.mock("@/hooks/use-dependencies", () => ({
     status: "success",
     refetch: vi.fn(),
   })),
+}));
+
+// ─── Mock lazy-loaded DatePicker (eliminates Suspense race) ─
+vi.mock("@/components/ui/date-picker", () => ({
+  default: (props: any) => (
+    <input
+      type="text"
+      aria-label="due date"
+      value={props.value || ""}
+      onChange={(e: any) => props.onChange?.(e.target.value || null)}
+      placeholder={props.placeholder}
+    />
+  ),
 }));
 
 // ─── Mock React Flow ────────────────────────────────────
