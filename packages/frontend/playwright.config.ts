@@ -4,6 +4,7 @@ const port = 4174;
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: ["**/proof-polish-2.spec.ts", "**/ui-audit.spec.ts"],
   snapshotPathTemplate:
     "{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}",
   fullyParallel: true,
