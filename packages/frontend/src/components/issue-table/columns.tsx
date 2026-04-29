@@ -430,7 +430,7 @@ export function buildColumns({
         const status = info.getValue();
         if (onStatusChange) {
           return (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation prevents row click
+            // biome-ignore lint/a11y/useKeyWithClickEvents: propagation barrier only, not interactive
             <div onClick={(e) => e.stopPropagation()}>
               <Select
                 value={status}
@@ -478,7 +478,7 @@ export function buildColumns({
         const priority = info.getValue();
         if (onPriorityChange) {
           return (
-            // biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation prevents row click
+            // biome-ignore lint/a11y/useKeyWithClickEvents: propagation barrier only, not interactive
             <div onClick={(e) => e.stopPropagation()}>
               <Select
                 value={priority}

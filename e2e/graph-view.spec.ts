@@ -6,11 +6,16 @@ async function navigateToGraph(page: import("@playwright/test").Page) {
     const reactFlow = page.locator(".react-flow");
     const errorHeading = page.getByRole("heading", { name: "Something went wrong" });
     const winner = await Promise.race([
-      reactFlow.waitFor({ state: "visible", timeout: 15_000 }).then(() => "ok" as const),
-      errorHeading.waitFor({ state: "visible", timeout: 15_000 }).then(() => "error" as const),
+      reactFlow
+        .waitFor({ state: "visible", timeout: 15_000 })
+        .then(() => "ok" as const)
+        .catch(() => "timeout" as const),
+      errorHeading
+        .waitFor({ state: "visible", timeout: 15_000 })
+        .then(() => "error" as const)
+        .catch(() => "timeout" as const),
     ]);
     if (winner === "ok") return;
-    await page.reload();
   }
   throw new Error("Graph view failed to load after 3 attempts");
 }
