@@ -1,12 +1,5 @@
 import { ArrowRight, Check, Plug } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import * as api from "@/lib/api-client";
 
 type MigrationState = "idle" | "testing" | "migrating" | "error";
@@ -24,8 +17,10 @@ export function EmbeddedModeModal() {
   const [port, setPort] = useState("3307");
   const [connectionOk, setConnectionOk] = useState(false);
   const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    panelRef.current?.focus();
     return () => {
       if (reloadTimerRef.current) clearTimeout(reloadTimerRef.current);
     };
@@ -93,19 +88,32 @@ export function EmbeddedModeModal() {
   const isBusy = state === "migrating" || state === "testing";
 
   return (
-    <AlertDialog open>
-      <AlertDialogContent data-testid="embedded-mode-modal">
-        <AlertDialogHeader>
+    <div className="fixed inset-0 z-50 bg-black/80" role="presentation">
+      <div
+        ref={panelRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="migration-title"
+        aria-describedby="migration-desc"
+        tabIndex={-1}
+        className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-background p-6 shadow-lg sm:rounded-lg outline-none"
+        data-testid="embedded-mode-modal"
+      >
+        <div className="flex flex-col space-y-2 text-center sm:text-left">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning-foreground text-lg">
               !
             </div>
             <div>
-              <AlertDialogTitle>Migration Required</AlertDialogTitle>
-              <AlertDialogDescription>Embedded mode is deprecated</AlertDialogDescription>
+              <h2 id="migration-title" className="text-lg font-semibold">
+                Migration Required
+              </h2>
+              <p id="migration-desc" className="text-sm text-muted-foreground">
+                Embedded mode is deprecated
+              </p>
             </div>
           </div>
-        </AlertDialogHeader>
+        </div>
 
         <p className="text-sm text-muted-foreground mb-6">
           Pearl now requires a Dolt SQL server for reliable data access. Choose how you'd like to
@@ -246,7 +254,7 @@ export function EmbeddedModeModal() {
             {error}
           </div>
         )}
-      </AlertDialogContent>
-    </AlertDialog>
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,8 @@
 import type { IssueListItem, IssueStatus } from "@pearl/shared";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { fetchIssues } from "@/lib/api-client";
+import { useIsEmbeddedMode } from "./embedded-mode-context";
 import { issueKeys } from "./issue-keys";
 
 // ─── Types ────────────────────────────────────────────
@@ -341,6 +342,7 @@ export function useNotificationPreferences(): NotificationPreferences {
  * Should be mounted once at the app shell level.
  */
 export function useNotificationPoller() {
+  const isEmbedded = useIsEmbeddedMode();
   const prefs = useNotificationPreferences();
   const prefsRef = useRef(prefs);
   prefsRef.current = prefs;
@@ -353,6 +355,7 @@ export function useNotificationPoller() {
       const result = await fetchIssues();
       return result ?? [];
     },
+    enabled: !isEmbedded,
     refetchInterval: 30_000,
     staleTime: 10_000,
   });

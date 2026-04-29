@@ -1,33 +1,24 @@
-import { createContext, useContext } from "react";
+import { useRef } from "react";
 import { useHealth } from "./use-issues";
 
-const EmbeddedModeContext = createContext(false);
-
-export const EmbeddedModeProvider = EmbeddedModeContext.Provider;
-
-export function useIsEmbeddedMode(): boolean {
-  return useContext(EmbeddedModeContext);
-}
+export { EmbeddedModeProvider, useIsEmbeddedMode } from "./embedded-mode-context";
 
 export function useEmbeddedModeDetection(): {
   isEmbedded: boolean;
   showModal: boolean;
   isLoading: boolean;
 } {
+  const lockedRef = useRef(false);
   const { data: health, isLoading } = useHealth();
   const isEmbedded = health?.dolt_mode === "embedded";
-  return {
-    isEmbedded,
-    showModal:
-      isEmbedded &&
-      typeof window !== "undefined" &&
-      !window.__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__,
-    isLoading,
-  };
-}
 
-declare global {
-  interface Window {
-    __PEARL_TEST_SUPPRESS_MIGRATION_MODAL__?: boolean;
-  }
+  if (isEmbedded) lockedRef.current = true;
+
+  const locked = lockedRef.current;
+  return {
+    isEmbedded: locked,
+    showModal:
+      locked && typeof window !== "undefined" && !window.__PEARL_TEST_SUPPRESS_MIGRATION_MODAL__,
+    isLoading: locked ? false : isLoading,
+  };
 }

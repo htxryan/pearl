@@ -536,7 +536,10 @@ export function useHealth() {
   return useQuery({
     queryKey: healthKeys.all,
     queryFn: api.fetchHealth,
-    refetchInterval: 15_000,
+    refetchInterval: (query) => {
+      if (query.state.data?.dolt_mode === "embedded") return false;
+      return 15_000;
+    },
     retry: 0,
   });
 }
