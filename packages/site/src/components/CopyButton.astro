@@ -111,6 +111,12 @@ const { text } = Astro.props;
   .copy-snippet.copied .copy-toast {
     opacity: 1;
   }
+
+  .copy-snippet.copy-error .copy-toast {
+    opacity: 1;
+    background: var(--pearl-danger);
+    color: var(--pearl-danger-fg);
+  }
 </style>
 
 <script>
@@ -128,8 +134,8 @@ const { text } = Astro.props;
         setTimeout(() => el.classList.remove("copied"), 2000);
       } catch {
         toast.textContent = "Failed to copy";
-        el.classList.add("copied");
-        setTimeout(() => el.classList.remove("copied"), 2000);
+        el.classList.add("copy-error");
+        setTimeout(() => el.classList.remove("copy-error"), 2000);
       }
     });
   });

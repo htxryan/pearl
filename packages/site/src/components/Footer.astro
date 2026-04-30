@@ -1,5 +1,5 @@
 ---
-const repoUrl = "https://github.com/htxryan/pearl";
+import { repoUrl } from "../config";
 const year = new Date().getFullYear();
 ---
 
@@ -11,7 +11,7 @@ const year = new Date().getFullYear();
     </div>
     <div class="footer-links">
       <a href={repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="/docs/">Docs</a>
+      <a href={`${repoUrl}#readme`}>Docs</a>
     </div>
   </div>
 </footer>

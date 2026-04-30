@@ -1,0 +1,8 @@
+# Astro generated types and metadata
+.astro/
+
+# Build output (also covered by root gitignore)
+dist/
+
+# Node modules (also covered by root gitignore)
+node_modules/
