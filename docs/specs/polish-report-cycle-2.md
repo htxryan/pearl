@@ -1,16 +1,16 @@
 # Polish Report -- Cycle 2
 
-Generated: 2026-04-30T17:32:40Z
+Generated: 2026-04-30T18:09:34Z
 
 ## claude-sonnet
 
-(dry run -- no actual review)
+Nothing to act on — let me know what you'd like to work on.
 
 ## claude-opus
 
-(dry run -- no actual review)
+What can I help you with?
 
 ## gemini
 
-(dry run -- no actual review)
+(no output -- reviewer may have crashed or timed out)
 
