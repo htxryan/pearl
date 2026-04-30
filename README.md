@@ -1,6 +1,7 @@
 # Pearl: A Beads Web UI
 
 [![CI](https://github.com/htxryan/pearl/actions/workflows/ci.yml/badge.svg)](https://github.com/htxryan/pearl/actions/workflows/ci.yml)
+[![Website](https://img.shields.io/badge/website-getpearl.dev-blue)](https://getpearl.dev)
 
 Rich web UI for the [Beads](https://github.com/mantoni/beads) AI work management system.
 
