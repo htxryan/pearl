@@ -5,9 +5,9 @@
   ],
   "scripts": {
     "dev": "pnpm --filter pearl-bdui dev",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r --filter='!@pearl/site' build",
+    "test": "pnpm -r --filter='!@pearl/site' test",
+    "typecheck": "pnpm -r --filter='!@pearl/site' typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",

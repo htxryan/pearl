@@ -1,0 +1,136 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<div class="copy-snippet" data-copy-text={text}>
+  <div class="snippet-display">
+    <span class="snippet-prompt" aria-hidden="true">$</span>
+    <code class="snippet-text">{text}</code>
+  </div>
+  <button class="copy-btn" type="button" aria-label={`Copy ${text} to clipboard`}>
+    <svg class="icon-copy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+    </svg>
+    <svg class="icon-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </button>
+  <span class="copy-toast" aria-live="polite"></span>
+</div>
+
+<style>
+  .copy-snippet {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--pearl-surface-raised);
+    border: 1px solid var(--pearl-border);
+    border-radius: var(--pearl-radius);
+    padding: 0.75rem 1rem;
+    font-family: var(--pearl-font-mono);
+    font-size: 1rem;
+    max-width: 100%;
+  }
+
+  .snippet-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .snippet-prompt {
+    color: var(--pearl-primary);
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .snippet-text {
+    color: var(--pearl-fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: var(--pearl-muted-fg);
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
+  }
+
+  .copy-btn:hover {
+    background: var(--pearl-accent);
+    color: var(--pearl-fg);
+  }
+
+  .icon-check {
+    display: none;
+    color: var(--pearl-success);
+  }
+
+  .copy-snippet.copied .icon-copy {
+    display: none;
+  }
+
+  .copy-snippet.copied .icon-check {
+    display: block;
+  }
+
+  .copy-toast {
+    position: absolute;
+    top: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--pearl-fg);
+    color: var(--pearl-bg);
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-family: var(--pearl-font-sans);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .copy-snippet.copied .copy-toast {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".copy-snippet").forEach((el) => {
+    const btn = el.querySelector(".copy-btn");
+    const toast = el.querySelector(".copy-toast");
+    const text = el.dataset.copyText;
+    if (!btn || !toast || !text) return;
+
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.textContent = "Copied!";
+        el.classList.add("copied");
+        setTimeout(() => el.classList.remove("copied"), 2000);
+      } catch {
+        toast.textContent = "Failed to copy";
+        el.classList.add("copied");
+        setTimeout(() => el.classList.remove("copied"), 2000);
+      }
+    });
+  });
+</script>

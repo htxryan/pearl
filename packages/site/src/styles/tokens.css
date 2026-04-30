@@ -1,0 +1,92 @@
+/*
+ * Pearl Design Tokens — Single source of truth for marketing + docs surfaces.
+ * Consumed by: packages/site/ (marketing), E3 Starlight (customCss import).
+ * Palette extracted from packages/frontend/src/index.css (OKLCH values).
+ */
+
+:root {
+  /* Core palette */
+  --pearl-bg: oklch(1 0 0);
+  --pearl-fg: oklch(0.145 0 0);
+  --pearl-primary: oklch(0.511 0.23 277);
+  --pearl-primary-fg: oklch(1 0 0);
+  --pearl-secondary: oklch(0.97 0 0);
+  --pearl-secondary-fg: oklch(0.205 0 0);
+  --pearl-muted: oklch(0.97 0 0);
+  --pearl-muted-fg: oklch(0.556 0 0);
+  --pearl-accent: oklch(0.962 0.018 272.3);
+  --pearl-accent-fg: oklch(0.398 0.177 277.4);
+  --pearl-border: oklch(0.922 0 0);
+  --pearl-ring: oklch(0.585 0.204 277.1);
+  --pearl-surface: oklch(1 0 0);
+  --pearl-surface-raised: oklch(0.985 0 0);
+
+  /* Semantic colors */
+  --pearl-success: oklch(0.723 0.192 149.6);
+  --pearl-success-fg: oklch(0.393 0.09 152.6);
+  --pearl-info: oklch(0.623 0.188 259.8);
+  --pearl-info-fg: oklch(0.346 0.074 256);
+  --pearl-warning: oklch(0.769 0.165 70.1);
+  --pearl-warning-fg: oklch(0.414 0.105 45.9);
+  --pearl-danger: oklch(0.637 0.208 25.3);
+  --pearl-danger-fg: oklch(0.396 0.133 25.7);
+
+  /* Typography */
+  --pearl-font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --pearl-font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code",
+    monospace;
+
+  /* Elevation */
+  --pearl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --pearl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --pearl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  /* Brand gradient (indigo) */
+  --pearl-gradient-from: #818cf8;
+  --pearl-gradient-to: #4f46e5;
+
+  /* Spacing */
+  --pearl-radius: 0.5rem;
+}
+
+html.dark {
+  --pearl-bg: oklch(0.179 0.004 285.9);
+  --pearl-fg: oklch(0.944 0.004 285.9);
+  --pearl-primary: oklch(0.68 0.158 276.9);
+  --pearl-primary-fg: oklch(0.179 0.069 283.3);
+  --pearl-secondary: oklch(0.228 0.006 285.9);
+  --pearl-secondary-fg: oklch(0.944 0.004 285.9);
+  --pearl-muted: oklch(0.228 0.006 285.9);
+  --pearl-muted-fg: oklch(0.682 0.012 286);
+  --pearl-accent: oklch(0.257 0.086 281.3);
+  --pearl-accent-fg: oklch(0.87 0.062 274);
+  --pearl-border: oklch(0.287 0.007 285.9);
+  --pearl-ring: oklch(0.68 0.158 276.9);
+  --pearl-surface: oklch(0.179 0.004 285.9);
+  --pearl-surface-raised: oklch(0.22 0.008 285.7);
+
+  --pearl-success: oklch(0.8 0.182 151.7);
+  --pearl-success-fg: oklch(0.925 0.081 156.1);
+  --pearl-info: oklch(0.714 0.143 254.6);
+  --pearl-info-fg: oklch(0.882 0.057 254.1);
+  --pearl-warning: oklch(0.837 0.164 84.4);
+  --pearl-warning-fg: oklch(0.962 0.058 95.6);
+  --pearl-danger: oklch(0.711 0.166 22.2);
+  --pearl-danger-fg: oklch(0.885 0.059 18.3);
+
+  --pearl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --pearl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.15);
+  --pearl-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

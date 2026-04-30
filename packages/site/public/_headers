@@ -1,0 +1,14 @@
+/*
+  # --- Content sections (E2: style-src, font-src, img-src) ---
+  # These content-specific directives are authored here by the site package.
+  # E4 will layer envelope headers (HSTS, Permissions-Policy, Referrer-Policy,
+  # X-Content-Type-Options, frame-ancestors) around these without conflict.
+
+  # Content-Security-Policy content directives
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'
+
+  # --- Envelope headers (authored by E4; placeholders below for local dev) ---
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()

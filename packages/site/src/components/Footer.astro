@@ -1,0 +1,60 @@
+---
+const repoUrl = "https://github.com/htxryan/pearl";
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-name">Pearl</span>
+      <span class="footer-copy">&copy; {year}</span>
+    </div>
+    <div class="footer-links">
+      <a href={repoUrl} target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="/docs/">Docs</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--pearl-border);
+    padding: 2rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--pearl-muted-fg);
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer-name {
+    font-weight: 600;
+    color: var(--pearl-fg);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  .footer-links a {
+    color: var(--pearl-muted-fg);
+    transition: color 0.15s;
+  }
+
+  .footer-links a:hover {
+    color: var(--pearl-fg);
+  }
+</style>

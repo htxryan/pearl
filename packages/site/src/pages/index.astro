@@ -1,0 +1,260 @@
+---
+import CopyButton from "../components/CopyButton.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const features = [
+  {
+    icon: "📦",
+    title: "Lives in your repo",
+    description:
+      "Issues stored as data alongside your code. No external service, no account, no sync conflicts.",
+  },
+  {
+    icon: "⚡",
+    title: "Instant setup",
+    description:
+      "One command to start. No configuration, no database provisioning, no infrastructure to manage.",
+  },
+  {
+    icon: "🔀",
+    title: "Git-native versioning",
+    description:
+      "Built on Dolt — every change is a commit. Branch, merge, diff, and time-travel your issues.",
+  },
+  {
+    icon: "🖥️",
+    title: "Full web UI",
+    description: "Table views, board views, graph views. Keyboard-driven, theme-aware, and fast.",
+  },
+  {
+    icon: "🤖",
+    title: "AI-agent ready",
+    description:
+      "A CLI that AI coding agents already use. Your agent creates, updates, and closes issues autonomously.",
+  },
+  {
+    icon: "🔒",
+    title: "Private by default",
+    description: "Your data never leaves your machine. No telemetry, no cloud, no vendor lock-in.",
+  },
+];
+---
+
+<BaseLayout title="Pearl — Issue Tracking in Your Repo" description="A local-first issue tracker that lives in your repository. No SaaS, no accounts, no nonsense.">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">Open Source Issue Tracker</div>
+      <h1 class="hero-title">
+        Issue tracking that<br />
+        <span class="hero-accent">lives in your repo</span>
+      </h1>
+      <p class="hero-subtitle">
+        A local-first issue tracker powered by Git-native versioning.
+        No SaaS, no accounts — just run one command.
+      </p>
+      <div class="hero-cta">
+        <CopyButton text="npx pearl-bdui" />
+      </div>
+      <p class="hero-note">
+        Requires Node.js 18+. Starts a local server with the web UI.
+      </p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="features-inner">
+      <h2 class="section-title">Why Pearl?</h2>
+      <div class="features-grid">
+        {features.map((feature) => (
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">{feature.icon}</div>
+            <h3 class="feature-title">{feature.title}</h3>
+            <p class="feature-description">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="cta-inner">
+      <h2 class="cta-title">Get started in seconds</h2>
+      <p class="cta-subtitle">One command. No signup. No credit card.</p>
+      <div class="cta-copy">
+        <CopyButton text="npx pearl-bdui" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    padding: 6rem 1.5rem 4rem;
+    text-align: center;
+  }
+
+  .hero-inner {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 0.375rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--pearl-primary);
+    background: var(--pearl-accent);
+    border-radius: 9999px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    color: var(--pearl-fg);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-accent {
+    background: linear-gradient(135deg, var(--pearl-gradient-from), var(--pearl-gradient-to));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    line-height: 1.7;
+    color: var(--pearl-muted-fg);
+    max-width: 36rem;
+    margin: 0 auto 2.5rem;
+  }
+
+  .hero-cta {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .hero-note {
+    font-size: 0.8125rem;
+    color: var(--pearl-muted-fg);
+    opacity: 0.7;
+  }
+
+  /* Features */
+  .features {
+    padding: 4rem 1.5rem;
+    border-top: 1px solid var(--pearl-border);
+  }
+
+  .features-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.025em;
+    color: var(--pearl-fg);
+    margin-bottom: 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 1.75rem;
+    border: 1px solid var(--pearl-border);
+    border-radius: var(--pearl-radius);
+    background: var(--pearl-surface-raised);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .feature-card:hover {
+    box-shadow: var(--pearl-shadow-md);
+    border-color: var(--pearl-primary);
+  }
+
+  .feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--pearl-fg);
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-description {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--pearl-muted-fg);
+  }
+
+  /* CTA */
+  .cta {
+    padding: 5rem 1.5rem;
+    text-align: center;
+    border-top: 1px solid var(--pearl-border);
+  }
+
+  .cta-inner {
+    max-width: 36rem;
+    margin: 0 auto;
+  }
+
+  .cta-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--pearl-fg);
+    margin-bottom: 0.75rem;
+  }
+
+  .cta-subtitle {
+    font-size: 1.125rem;
+    color: var(--pearl-muted-fg);
+    margin-bottom: 2rem;
+  }
+
+  .cta-copy {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero {
+      padding: 4rem 1rem 3rem;
+    }
+
+    .features {
+      padding: 3rem 1rem;
+    }
+
+    .cta {
+      padding: 3rem 1rem;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

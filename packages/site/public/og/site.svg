@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1625"/>
+      <stop offset="100%" stop-color="#1e1b2e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.05" stroke="#818cf8" stroke-width="0.5">
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(60,0)" />
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(120,0)" />
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(180,0)" />
+    <line x1="0" y1="0" x2="0" y2="630" transform="translate(240,0)" />
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,60)" />
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,120)" />
+    <line x1="0" y1="0" x2="1200" y2="0" transform="translate(0,180)" />
+  </g>
+
+  <!-- Pearl icon -->
+  <circle cx="600" cy="220" r="50" fill="url(#accent)"/>
+  <text x="600" y="245" text-anchor="middle" fill="white" font-family="system-ui,-apple-system,sans-serif" font-weight="700" font-size="48">P</text>
+
+  <!-- Title -->
+  <text x="600" y="340" text-anchor="middle" fill="#f0eef6" font-family="system-ui,-apple-system,sans-serif" font-weight="700" font-size="64" letter-spacing="-1">Pearl</text>
+
+  <!-- Tagline -->
+  <text x="600" y="400" text-anchor="middle" fill="#9b96a8" font-family="system-ui,-apple-system,sans-serif" font-weight="400" font-size="28">Issue tracking that lives in your repo</text>
+
+  <!-- Install command -->
+  <rect x="400" y="440" width="400" height="50" rx="8" fill="#2a2540" stroke="#3d3656" stroke-width="1"/>
+  <text x="420" y="472" fill="#818cf8" font-family="ui-monospace,monospace" font-size="20">$</text>
+  <text x="445" y="472" fill="#c4c0d0" font-family="ui-monospace,monospace" font-size="20">npx pearl-bdui</text>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="620" width="1200" height="10" fill="url(#accent)"/>
+</svg>

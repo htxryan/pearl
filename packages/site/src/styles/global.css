@@ -1,0 +1,58 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--pearl-font-sans);
+  color: var(--pearl-fg);
+  background-color: var(--pearl-bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--pearl-font-mono);
+}
+
+a {
+  color: var(--pearl-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+::selection {
+  background-color: var(--pearl-accent);
+  color: var(--pearl-accent-fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--pearl-ring);
+  outline-offset: 2px;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
