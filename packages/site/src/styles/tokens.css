@@ -46,6 +46,11 @@
   --pearl-gradient-from: #818cf8;
   --pearl-gradient-to: #4f46e5;
 
+  /* Chrome (window decoration dots) */
+  --pearl-chrome-red: oklch(0.637 0.237 25.3);
+  --pearl-chrome-yellow: oklch(0.795 0.184 86.1);
+  --pearl-chrome-green: oklch(0.723 0.219 149.6);
+
   /* Spacing */
   --pearl-radius: 0.5rem;
 }
@@ -75,6 +80,10 @@ html.dark,
   --pearl-warning-fg: oklch(0.962 0.058 95.6);
   --pearl-danger: oklch(0.711 0.166 22.2);
   --pearl-danger-fg: oklch(0.885 0.059 18.3);
+
+  --pearl-chrome-red: oklch(0.711 0.194 25.3);
+  --pearl-chrome-yellow: oklch(0.837 0.164 86.1);
+  --pearl-chrome-green: oklch(0.8 0.182 149.6);
 
   --pearl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --pearl-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.15);

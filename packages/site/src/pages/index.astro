@@ -67,7 +67,7 @@ const features = [
   <!-- Product Preview -->
   <section class="preview" aria-label="Product preview">
     <div class="preview-inner">
-      <div class="preview-window">
+      <div class="preview-window" aria-hidden="true">
         <div class="preview-titlebar">
           <div class="preview-dots">
             <span class="dot dot-red"></span>
@@ -317,9 +317,9 @@ const features = [
     border-radius: 50%;
   }
 
-  .dot-red { background: #ef4444; }
-  .dot-yellow { background: #eab308; }
-  .dot-green { background: #22c55e; }
+  .dot-red { background: var(--pearl-chrome-red); }
+  .dot-yellow { background: var(--pearl-chrome-yellow); }
+  .dot-green { background: var(--pearl-chrome-green); }
 
   .preview-title {
     font-size: 0.75rem;
