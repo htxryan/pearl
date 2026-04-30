@@ -51,6 +51,23 @@ a:hover {
   outline-offset: 2px;
 }
 
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: var(--pearl-primary);
+  color: var(--pearl-primary-fg);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0 0 var(--pearl-radius) 0;
+}
+
+.skip-nav:focus {
+  left: 0;
+}
+
 img,
 svg {
   display: block;

@@ -44,10 +44,10 @@ const features = [
 
 <BaseLayout title="Pearl — The Web UI for Beads" description="Pearl is the web UI for the Beads issue tracker. Visual triage, keyboard-driven workflows, and AI-agent collaboration — running locally from a single command.">
   <!-- Hero -->
-  <section class="hero">
+  <section class="hero" aria-labelledby="hero-heading">
     <div class="hero-inner">
       <div class="hero-badge">The Web UI for Beads</div>
-      <h1 class="hero-title">
+      <h1 class="hero-title" id="hero-heading">
         See your issues,<br />
         <span class="hero-accent">not just track them</span>
       </h1>
@@ -65,7 +65,7 @@ const features = [
   </section>
 
   <!-- Product Preview -->
-  <section class="preview">
+  <section class="preview" aria-label="Product preview">
     <div class="preview-inner">
       <div class="preview-window">
         <div class="preview-titlebar">
@@ -126,9 +126,9 @@ const features = [
   </section>
 
   <!-- Features -->
-  <section class="features" id="features">
+  <section class="features" id="features" aria-labelledby="features-heading">
     <div class="features-inner">
-      <h2 class="section-title">Why Pearl?</h2>
+      <h2 class="section-title" id="features-heading">Why Pearl?</h2>
       <div class="features-grid">
         {features.map((feature) => (
           <div class="feature-card">
@@ -142,9 +142,9 @@ const features = [
   </section>
 
   <!-- CTA -->
-  <section class="cta">
+  <section class="cta" aria-labelledby="cta-heading">
     <div class="cta-inner">
-      <h2 class="cta-title">Start triaging in seconds</h2>
+      <h2 class="cta-title" id="cta-heading">Start triaging in seconds</h2>
       <p class="cta-subtitle">One command gives you a full issue-tracking UI. No accounts, no setup.</p>
       <div class="cta-copy">
         <CopyButton text="npx pearl-bdui" />

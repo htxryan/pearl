@@ -1,0 +1,74 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Page not found — Pearl">
+  <section class="not-found">
+    <div class="not-found-inner">
+      <span class="not-found-code">404</span>
+      <h1 class="not-found-title">Page not found</h1>
+      <p class="not-found-message">
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <a href="/" class="not-found-link">Back to home</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 4rem 1.5rem;
+    text-align: center;
+  }
+
+  .not-found-inner {
+    max-width: 28rem;
+  }
+
+  .not-found-code {
+    display: block;
+    font-size: 5rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--pearl-gradient-from), var(--pearl-gradient-to));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+  }
+
+  .not-found-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--pearl-fg);
+    margin-bottom: 0.75rem;
+  }
+
+  .not-found-message {
+    color: var(--pearl-muted-fg);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .not-found-link {
+    display: inline-block;
+    padding: 0.625rem 1.5rem;
+    background: var(--pearl-primary);
+    color: var(--pearl-primary-fg);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--pearl-radius);
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .not-found-link:hover {
+    opacity: 0.9;
+    text-decoration: none;
+  }
+</style>

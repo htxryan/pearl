@@ -54,6 +54,7 @@ export default defineConfig({
         },
       ],
       pagefind: true,
+      disable404Route: true,
     }),
   ],
   build: {
