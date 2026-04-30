@@ -1,8 +1,9 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import { siteUrl, ogImageUrl } from "./src/config";
 
 export default defineConfig({
-  site: "https://pearl.dev",
+  site: siteUrl,
   integrations: [
     starlight({
       title: "Pearl",
@@ -48,7 +49,7 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             property: "og:image",
-            content: "https://pearl.dev/og/site.png",
+            content: ogImageUrl,
           },
         },
       ],
