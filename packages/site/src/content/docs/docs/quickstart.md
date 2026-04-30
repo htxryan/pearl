@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Get Pearl up and running in your project in under a minute.
+Pearl is a local-first issue tracker that lives in your repository. Get it running in under a minute.
 
 ## Prerequisites
 
@@ -20,14 +20,26 @@ The fastest way to try Pearl is with `npx`:
 npx pearl-bdui
 ```
 
-Pearl will start a local web server and open the issue tracker UI in your browser.
+Pearl auto-discovers the nearest `.beads/` directory, starts a Dolt SQL server if needed, and opens the web UI in your browser.
+
+### CLI options
+
+```
+pearl-bdui [options]
+
+  -h, --help     Show help
+  -v, --version  Show version
+  --no-open      Don't open browser automatically
+```
 
 ## What happens on first run
 
-1. Pearl looks for a `.beads/` directory in your project root
+1. Pearl looks for a `.beads/` directory by searching up the directory tree from the current working directory
 2. If none exists, it offers to create one and initialize the database
-3. A Dolt database starts automatically (Pearl-managed mode)
-4. The web UI opens at `http://localhost:3120`
+3. A Dolt SQL server starts automatically (Pearl-managed mode)
+4. The web UI opens at `http://localhost:3456`
+
+If your project uses the legacy embedded Dolt mode, Pearl shows a one-time migration dialog. See [Install & Modes](/docs/install/) for details.
 
 ## Create your first issue
 
@@ -35,10 +47,24 @@ Once the UI loads:
 
 1. Click **New Issue** in the toolbar
 2. Fill in a title and description
-3. Set priority and type
+3. Set priority (P0–P4) and type (bug, feature, task, etc.)
 4. Click **Create**
 
 Your issue is now tracked in a Git-friendly Dolt database right inside your repository.
+
+## Initializing a new project
+
+If you don't have a `.beads/` directory yet, use the `bd` CLI to create one:
+
+```bash
+bd init
+```
+
+Then start Pearl:
+
+```bash
+npx pearl-bdui
+```
 
 ## Next steps
 
