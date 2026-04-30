@@ -48,7 +48,7 @@ export default defineConfig({
           tag: "meta",
           attrs: {
             property: "og:image",
-            content: "https://pearl.dev/og/docs.png",
+            content: "https://pearl.dev/og/site.png",
           },
         },
       ],

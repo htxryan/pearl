@@ -50,7 +50,8 @@
   --pearl-radius: 0.5rem;
 }
 
-html.dark {
+html.dark,
+[data-theme="dark"] {
   --pearl-bg: oklch(0.179 0.004 285.9);
   --pearl-fg: oklch(0.944 0.004 285.9);
   --pearl-primary: oklch(0.68 0.158 276.9);
