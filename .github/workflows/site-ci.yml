@@ -1,0 +1,161 @@
+name: Site CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/site/**"
+      - "docs/specs/headers-golden.txt"
+      - ".github/workflows/site-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/site/**"
+      - "docs/specs/headers-golden.txt"
+      - ".github/workflows/site-ci.yml"
+
+concurrency:
+  group: site-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        run: pnpm --filter @pearl/site build
+
+      - name: Cache site build
+        uses: actions/cache/save@v5
+        with:
+          path: packages/site/dist
+          key: site-dist-${{ github.sha }}
+
+  headers:
+    name: Security headers
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore site build
+        uses: actions/cache/restore@v5
+        with:
+          path: packages/site/dist
+          key: site-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Verify _headers matches golden file
+        run: diff -u docs/specs/headers-golden.txt packages/site/dist/_headers
+
+  pagefind:
+    name: Pagefind integrity
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore site build
+        uses: actions/cache/restore@v5
+        with:
+          path: packages/site/dist
+          key: site-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Assert Pagefind index exists
+        run: |
+          if [ ! -d packages/site/dist/pagefind ]; then
+            echo "::error::Pagefind directory missing from build output"
+            exit 1
+          fi
+
+      - name: Assert Pagefind has entries
+        run: |
+          if [ ! -f packages/site/dist/pagefind/pagefind-entry.json ]; then
+            echo "::error::pagefind-entry.json missing"
+            exit 1
+          fi
+          PAGE_COUNT=$(python3 -c "
+          import json, sys
+          d = json.load(open('packages/site/dist/pagefind/pagefind-entry.json'))
+          total = sum(lang.get('page_count', 0) for lang in d.get('languages', {}).values())
+          print(total)
+          sys.exit(0 if total >= 1 else 1)
+          ")
+          echo "Pagefind page count: $PAGE_COUNT"
+          FRAG_COUNT=$(ls packages/site/dist/pagefind/fragment/ 2>/dev/null | wc -l)
+          echo "Fragment file count: $FRAG_COUNT"
+          if [ "$FRAG_COUNT" -lt 1 ]; then
+            echo "::error::Pagefind index has no fragment files"
+            exit 1
+          fi
+
+  links-internal:
+    name: Internal link check
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore site build
+        uses: actions/cache/restore@v5
+        with:
+          path: packages/site/dist
+          key: site-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Check internal links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --offline
+            --no-progress
+            --base packages/site/dist
+            --include-fragments
+            packages/site/dist
+          fail: true
+
+  lighthouse:
+    name: Lighthouse CI
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Restore site build
+        uses: actions/cache/restore@v5
+        with:
+          path: packages/site/dist
+          key: site-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse CI
+        run: lhci autorun --config=packages/site/lighthouserc.cjs

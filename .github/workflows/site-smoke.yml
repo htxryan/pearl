@@ -1,0 +1,87 @@
+name: Site Smoke Test
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Base URL to smoke test"
+        required: true
+        type: string
+
+jobs:
+  smoke:
+    name: Post-deploy smoke
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       contains(github.event.deployment.environment, 'pearl-site'))
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Determine base URL
+        id: url
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "base=${{ inputs.url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=${{ github.event.deployment_status.target_url }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Smoke test critical paths
+        run: |
+          BASE="${{ steps.url.outputs.base }}"
+          BASE="${BASE%/}"
+          FAILED=0
+
+          check_url() {
+            local url="$1"
+            local status
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$url")
+            if [ "$status" = "200" ]; then
+              echo "✓ $status $url"
+            else
+              echo "✗ $status $url"
+              FAILED=$((FAILED + 1))
+            fi
+          }
+
+          echo "=== Critical paths ==="
+          check_url "$BASE/"
+          check_url "$BASE/docs/"
+          check_url "$BASE/sitemap-index.xml"
+
+          echo ""
+          echo "=== Sitemap URLs ==="
+          SITEMAP=$(curl -s --max-time 15 "$BASE/sitemap-index.xml")
+          SITEMAPS=$(echo "$SITEMAP" | grep -oP '(?<=<loc>).*?(?=</loc>)')
+          for sm in $SITEMAPS; do
+            # Rewrite sitemap loc to use the deploy base URL (previews differ from prod domain)
+            REWRITTEN_SM=$(echo "$sm" | sed "s|https://getpearl.dev|$BASE|")
+            SM_CONTENT=$(curl -s --max-time 15 "$REWRITTEN_SM")
+            URLS=$(echo "$SM_CONTENT" | grep -oP '(?<=<loc>).*?(?=</loc>)')
+            for page_url in $URLS; do
+              REWRITTEN_URL=$(echo "$page_url" | sed "s|https://getpearl.dev|$BASE|")
+              check_url "$REWRITTEN_URL"
+            done
+          done
+
+          echo ""
+          echo "=== Security headers ==="
+          HEADERS=$(curl -s -I --max-time 15 "$BASE/")
+          for h in "strict-transport-security" "content-security-policy" "x-content-type-options" "referrer-policy" "permissions-policy"; do
+            if echo "$HEADERS" | grep -qi "^$h:"; then
+              echo "✓ $h present"
+            else
+              echo "✗ $h missing"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          echo ""
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::error::$FAILED smoke check(s) failed"
+            exit 1
+          fi
+          echo "All smoke checks passed"
