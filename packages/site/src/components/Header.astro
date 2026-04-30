@@ -1,5 +1,7 @@
 ---
 import { repoUrl } from "../config";
+
+const gradientId = `pearl-icon-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
 <header class="site-header">
@@ -7,12 +9,12 @@ import { repoUrl } from "../config";
     <a href="/" class="wordmark" aria-label="Pearl home">
       <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
         <defs>
-          <linearGradient id="pearl-icon" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="var(--pearl-gradient-from)"/>
             <stop offset="100%" stop-color="var(--pearl-gradient-to)"/>
           </linearGradient>
         </defs>
-        <circle cx="16" cy="16" r="14" fill="url(#pearl-icon)"/>
+        <circle cx="16" cy="16" r="14" fill={`url(#${gradientId})`}/>
         <text x="16" y="22" text-anchor="middle" fill="white" font-family="system-ui,sans-serif" font-weight="700" font-size="18">P</text>
       </svg>
       <span>Pearl</span>

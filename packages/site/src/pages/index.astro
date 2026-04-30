@@ -245,12 +245,13 @@ const features = [
     border: 1px solid var(--pearl-border);
     border-radius: var(--pearl-radius);
     background: var(--pearl-surface-raised);
-    transition: box-shadow 0.2s, border-color 0.2s;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
   }
 
   .feature-card:hover {
     box-shadow: var(--pearl-shadow-md);
     border-color: var(--pearl-primary);
+    transform: translateY(-2px);
   }
 
   .feature-icon {
