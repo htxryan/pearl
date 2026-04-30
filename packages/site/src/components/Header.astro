@@ -102,13 +102,18 @@ const gradientId = `pearl-icon-${Math.random().toString(36).slice(2, 8)}`;
     border: 1px solid var(--pearl-border);
     border-radius: var(--pearl-radius);
     text-decoration: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
   }
 
   .star-btn:hover {
     border-color: var(--pearl-primary);
     box-shadow: var(--pearl-shadow-sm);
+    background: var(--pearl-accent);
     text-decoration: none;
+  }
+
+  .star-btn:hover svg:first-child {
+    fill: currentColor;
   }
 
   .star-btn svg {
@@ -118,5 +123,12 @@ const gradientId = `pearl-icon-${Math.random().toString(36).slice(2, 8)}`;
   .external-icon {
     opacity: 0.5;
     margin-left: -0.125rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star-btn,
+    .header-link {
+      transition: none;
+    }
   }
 </style>
