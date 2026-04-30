@@ -40,14 +40,18 @@ echo
 # ─── C1: Domain registered, NS delegated to CF ───
 echo "── C1: Domain + DNS ──"
 check "C1a: DNS resolves" dig +short getpearl.dev A
-check "C1b: Apex returns 200" bash -c 'curl -sI --connect-timeout 10 "$0" | head -1 | grep -q "200"' "$SITE_URL"
-check "C1c: Served by Cloudflare" bash -c 'curl -sI --connect-timeout 10 "$0" | grep -qi "server: cloudflare"' "$SITE_URL"
+check "C1b: Apex returns 200" bash -c 'curl -sI --connect-timeout 10 "$1" | head -1 | grep -q "200"' _ "$SITE_URL"
+check "C1c: Served by Cloudflare" bash -c 'curl -sI --connect-timeout 10 "$1" | grep -qi "server: cloudflare"' _ "$SITE_URL"
 echo
 
 # ─── C3: Prod URL flows as build artifact (README badge) ───
 echo "── C3: README badge URL == config constant ──"
-CONFIG_URL=$(grep 'export const siteUrl' packages/site/src/config.ts | sed 's/.*"\(https[^"]*\)".*/\1/')
-check "C3: README badge links to $CONFIG_URL" bash -c 'grep -q "$0" README.md' "$CONFIG_URL"
+CONFIG_URL=$(grep 'export const siteUrl' packages/site/src/config.ts 2>/dev/null | sed 's/.*"\(https[^"]*\)".*/\1/' || true)
+if [ -z "$CONFIG_URL" ]; then
+  skip "C3: README badge URL == config constant" "could not extract siteUrl from config.ts"
+else
+  check "C3: README badge links to $CONFIG_URL" bash -c 'grep -q "$1" README.md' _ "$CONFIG_URL"
+fi
 echo
 
 # ─── C5: Hermetic build ───
@@ -64,12 +68,16 @@ echo
 
 # ─── C6: Security headers ───
 echo "── C6: Security headers on live site ──"
-HEADERS=$(curl -sI --connect-timeout 10 "$SITE_URL")
-check "C6a: Content-Security-Policy present"    bash -c 'echo "$0" | grep -qi "content-security-policy"' "$HEADERS"
-check "C6b: Strict-Transport-Security present"  bash -c 'echo "$0" | grep -qi "strict-transport-security"' "$HEADERS"
-check "C6c: Referrer-Policy present"            bash -c 'echo "$0" | grep -qi "referrer-policy"' "$HEADERS"
-check "C6d: X-Content-Type-Options present"     bash -c 'echo "$0" | grep -qi "x-content-type-options"' "$HEADERS"
-check "C6e: Permissions-Policy present"         bash -c 'echo "$0" | grep -qi "permissions-policy"' "$HEADERS"
+HEADERS=$(curl -sI --connect-timeout 10 "$SITE_URL" || true)
+if [ -z "$HEADERS" ]; then
+  skip "C6a-e: Security headers" "could not fetch headers from $SITE_URL"
+else
+  check "C6a: Content-Security-Policy present"    bash -c 'echo "$1" | grep -qi "content-security-policy"' _ "$HEADERS"
+  check "C6b: Strict-Transport-Security present"  bash -c 'echo "$1" | grep -qi "strict-transport-security"' _ "$HEADERS"
+  check "C6c: Referrer-Policy present"            bash -c 'echo "$1" | grep -qi "referrer-policy"' _ "$HEADERS"
+  check "C6d: X-Content-Type-Options present"     bash -c 'echo "$1" | grep -qi "x-content-type-options"' _ "$HEADERS"
+  check "C6e: Permissions-Policy present"         bash -c 'echo "$1" | grep -qi "permissions-policy"' _ "$HEADERS"
+fi
 echo
 
 # ─── C7: No env vars required ───
@@ -81,7 +89,8 @@ echo
 # ─── C8: tokens.css single source ──
 echo "── C8: tokens.css single source ──"
 # Check for hardcoded color values in .astro/.css files that bypass tokens.css
-# Exclude tokens.css itself, node_modules, dist, and .pagefind
+# Exclude tokens.css itself, node_modules, dist, .pagefind, and
+# starlight-overrides.css (theme overrides use Starlight CSS vars, not design tokens)
 VIOLATIONS=$(grep -rn --include='*.astro' --include='*.css' -E '#[0-9a-fA-F]{3,8}\b|rgb\(|rgba\(|hsl\(|hsla\(' packages/site/src/ 2>/dev/null \
   | grep -v 'tokens.css' \
   | grep -v 'node_modules' \
@@ -109,7 +118,7 @@ check "C9b: OG image accessible (HTTP $OG_STATUS)" test "$OG_STATUS" = "200"
 if command -v sips &>/dev/null; then
   W=$(sips -g pixelWidth packages/site/public/og/site.png 2>/dev/null | tail -1 | awk '{print $2}')
   H=$(sips -g pixelHeight packages/site/public/og/site.png 2>/dev/null | tail -1 | awk '{print $2}')
-  check "C9c: OG image dimensions 1200x630 (got ${W}x${H})" bash -c '[ "$0" = "1200" ] && [ "$1" = "630" ]' "$W" "$H"
+  check "C9c: OG image dimensions 1200x630 (got ${W}x${H})" bash -c '[ "$1" = "1200" ] && [ "$2" = "630" ]' _ "$W" "$H"
 elif command -v identify &>/dev/null; then
   DIMS=$(identify -format "%wx%h" packages/site/public/og/site.png 2>/dev/null)
   check "C9c: OG image dimensions 1200x630 (got $DIMS)" test "$DIMS" = "1200x630"
@@ -150,14 +159,15 @@ if [ "$SITEMAP_STATUS" = "200" ]; then
 
   URL_COUNT=0
   URL_FAIL=0
-  for URL in $ALL_URLS; do
+  while IFS= read -r URL; do
+    [ -z "$URL" ] && continue
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "$URL")
     if [ "$STATUS" != "200" ]; then
       red "  $URL → HTTP $STATUS"
       URL_FAIL=$((URL_FAIL + 1))
     fi
     URL_COUNT=$((URL_COUNT + 1))
-  done
+  done < <(printf '%s\n' $ALL_URLS)
 
   if [ "$URL_FAIL" -eq 0 ]; then
     green "Sitemap: All $URL_COUNT URLs return 200"

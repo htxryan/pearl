@@ -29,7 +29,7 @@ Run the launch verification script for a comprehensive contract check:
 bash scripts/verify-launch.sh
 ```
 
-This tests 25 contracts including DNS, headers, OG images, Pagefind, sitemap parity, README badge, and GitHub repo homepage. Run after any infrastructure change (domain, DNS, Cloudflare Pages config).
+This tests 26 assertions across 13 contract groups (DNS, headers, OG images, Pagefind, sitemap parity, README badge, and GitHub repo homepage). Run after any infrastructure change (domain, DNS, Cloudflare Pages config).
 
 ## 3. What to Monitor
 
