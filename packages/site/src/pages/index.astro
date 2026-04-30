@@ -20,12 +20,14 @@ const features = [
     title: "AI-agent collaboration",
     description:
       "Agents use the Beads CLI to create, update, and close issues. Pearl surfaces their work in real time — triage what your agents produce.",
+    featured: true,
   },
   {
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6"/><path d="M12 17v6"/><path d="m5.6 5.6 4.25 4.25"/><path d="m14.15 14.15 4.25 4.25"/><path d="M1 12h6"/><path d="M17 12h6"/><path d="m5.6 18.4 4.25-4.25"/><path d="m14.15 9.85 4.25-4.25"/></svg>`,
     title: "Git-native data layer",
     description:
       "Built on Dolt, every change is a commit. Branch issues alongside code, merge across workstreams, and time-travel through history.",
+    featured: true,
   },
   {
     icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`,
@@ -46,19 +48,19 @@ const features = [
   <!-- Hero -->
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero-inner">
-      <div class="hero-badge">The Web UI for Beads</div>
-      <h1 class="hero-title" id="hero-heading">
+      <div class="hero-badge hero-animate" style="animation-delay: 0ms;">The Web UI for Beads</div>
+      <h1 class="hero-title hero-animate" id="hero-heading" style="animation-delay: 80ms;">
         See your issues,<br />
         <span class="hero-accent">not just track them</span>
       </h1>
-      <p class="hero-subtitle">
+      <p class="hero-subtitle hero-animate" style="animation-delay: 160ms;">
         Pearl is the visual interface for the Beads issue tracker.
         Table views, board views, keyboard-driven workflows — all running locally from one command.
       </p>
-      <div class="hero-cta">
+      <div class="hero-cta hero-animate" style="animation-delay: 240ms;">
         <CopyButton text="npx pearl-bdui" />
       </div>
-      <p class="hero-note">
+      <p class="hero-note hero-animate" style="animation-delay: 320ms;">
         Requires Node.js 22+. Starts a local server with the web UI.
       </p>
     </div>
@@ -131,7 +133,7 @@ const features = [
       <h2 class="section-title" id="features-heading">Why Pearl?</h2>
       <div class="features-grid">
         {features.map((feature) => (
-          <div class="feature-card">
+          <div class:list={["feature-card", { "feature-card--featured": feature.featured }]}>
             <div class="feature-icon" aria-hidden="true" set:html={feature.icon} />
             <h3 class="feature-title">{feature.title}</h3>
             <p class="feature-description">{feature.description}</p>
@@ -149,6 +151,11 @@ const features = [
       <div class="cta-copy">
         <CopyButton text="npx pearl-bdui" />
       </div>
+      <ol class="cta-steps" aria-label="Getting started steps">
+        <li class="cta-step"><span class="cta-step-num">1</span> Copy the command</li>
+        <li class="cta-step"><span class="cta-step-num">2</span> Paste in terminal</li>
+        <li class="cta-step"><span class="cta-step-num">3</span> Triage your issues</li>
+      </ol>
     </div>
   </section>
 </BaseLayout>
@@ -165,11 +172,17 @@ const features = [
     margin: 0 auto;
   }
 
+  .hero-animate {
+    opacity: 0;
+    animation: fade-up 0.6s ease-out forwards;
+    will-change: transform, opacity;
+  }
+
   .hero-badge {
     display: inline-block;
     padding: 0.375rem 1rem;
     margin-bottom: 1.5rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -196,7 +209,7 @@ const features = [
 
   .hero-subtitle {
     font-size: 1.25rem;
-    line-height: 1.7;
+    line-height: 1.6;
     color: var(--pearl-muted-fg);
     max-width: 36rem;
     margin: 0 auto 2.5rem;
@@ -211,7 +224,6 @@ const features = [
   .hero-note {
     font-size: 0.8125rem;
     color: var(--pearl-muted-fg);
-    opacity: 0.7;
   }
 
   /* Features */
@@ -254,6 +266,11 @@ const features = [
     transform: translateY(-2px);
   }
 
+  .feature-card--featured {
+    border-left: 3px solid var(--pearl-primary);
+    background: var(--pearl-accent);
+  }
+
   .feature-icon {
     display: flex;
     align-items: center;
@@ -281,7 +298,7 @@ const features = [
 
   /* Preview */
   .preview {
-    padding: 0 1.5rem 4rem;
+    padding: 2rem 1.5rem 4rem;
   }
 
   .preview-inner {
@@ -421,12 +438,15 @@ const features = [
   }
 
   .status-dot.open { background: var(--pearl-info); }
-  .status-dot.in-progress { background: var(--pearl-warning); }
+  .status-dot.in-progress {
+    background: var(--pearl-warning);
+    animation: pulse-dot 3s ease-in-out infinite;
+  }
   .status-dot.closed { background: var(--pearl-success); }
 
   /* CTA */
   .cta {
-    padding: 5rem 1.5rem;
+    padding: 4rem 1.5rem;
     text-align: center;
     border-top: 1px solid var(--pearl-border);
   }
@@ -455,6 +475,37 @@ const features = [
     justify-content: center;
   }
 
+  .cta-steps {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cta-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--pearl-muted-fg);
+  }
+
+  .cta-step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--pearl-primary);
+    background: var(--pearl-accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
   /* Responsive */
   @media (max-width: 640px) {
     .hero {
@@ -470,7 +521,13 @@ const features = [
     }
 
     .preview {
-      padding: 0 1rem 3rem;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .cta-steps {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
     }
 
     .preview-sidebar {
