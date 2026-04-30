@@ -4,54 +4,56 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 const features = [
   {
-    icon: "📦",
-    title: "Lives in your repo",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>`,
+    title: "Visual triage at a glance",
     description:
-      "Issues stored as data alongside your code. No external service, no account, no sync conflicts.",
+      "Table views, board views, and dependency graphs. See status, priority, and blockers without leaving your editor's mental model.",
   },
   {
-    icon: "⚡",
-    title: "Instant setup",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="m6 12 2 2 4-4"/></svg>`,
+    title: "Keyboard-first workflows",
     description:
-      "One command to start. No configuration, no database provisioning, no infrastructure to manage.",
+      "Navigate, filter, and update issues without touching the mouse. Vim-style shortcuts, command palette, and bulk actions built in.",
   },
   {
-    icon: "🔀",
-    title: "Git-native versioning",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="8" y="8" width="8" height="8" rx="1"/><path d="M4 12h4"/><path d="M16 12h4"/><path d="M12 16v4"/></svg>`,
+    title: "AI-agent collaboration",
     description:
-      "Built on Dolt — every change is a commit. Branch, merge, diff, and time-travel your issues.",
+      "Agents use the Beads CLI to create, update, and close issues. Pearl surfaces their work in real time — triage what your agents produce.",
   },
   {
-    icon: "🖥️",
-    title: "Full web UI",
-    description: "Table views, board views, graph views. Keyboard-driven, theme-aware, and fast.",
-  },
-  {
-    icon: "🤖",
-    title: "AI-agent ready",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6"/><path d="M12 17v6"/><path d="m5.6 5.6 4.25 4.25"/><path d="m14.15 14.15 4.25 4.25"/><path d="M1 12h6"/><path d="M17 12h6"/><path d="m5.6 18.4 4.25-4.25"/><path d="m14.15 9.85 4.25-4.25"/></svg>`,
+    title: "Git-native data layer",
     description:
-      "A CLI that AI coding agents already use. Your agent creates, updates, and closes issues autonomously.",
+      "Built on Dolt, every change is a commit. Branch issues alongside code, merge across workstreams, and time-travel through history.",
   },
   {
-    icon: "🔒",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`,
+    title: "One command to start",
+    description:
+      "Run npx pearl-bdui and you have a full web UI. No accounts, no infrastructure, no configuration files to write.",
+  },
+  {
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
     title: "Private by default",
-    description: "Your data never leaves your machine. No telemetry, no cloud, no vendor lock-in.",
+    description:
+      "Everything runs on your machine. No telemetry, no cloud sync, no vendor lock-in. Your issues stay yours.",
   },
 ];
 ---
 
-<BaseLayout title="Pearl — Issue Tracking in Your Repo" description="A local-first issue tracker that lives in your repository. No SaaS, no accounts, no nonsense.">
+<BaseLayout title="Pearl — The Web UI for Beads" description="Pearl is the web UI for the Beads issue tracker. Visual triage, keyboard-driven workflows, and AI-agent collaboration — running locally from a single command.">
   <!-- Hero -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="hero-badge">Open Source Issue Tracker</div>
+      <div class="hero-badge">The Web UI for Beads</div>
       <h1 class="hero-title">
-        Issue tracking that<br />
-        <span class="hero-accent">lives in your repo</span>
+        See your issues,<br />
+        <span class="hero-accent">not just track them</span>
       </h1>
       <p class="hero-subtitle">
-        A local-first issue tracker powered by Git-native versioning.
-        No SaaS, no accounts — just run one command.
+        Pearl is the visual interface for the Beads issue tracker.
+        Table views, board views, keyboard-driven workflows — all running locally from one command.
       </p>
       <div class="hero-cta">
         <CopyButton text="npx pearl-bdui" />
@@ -62,6 +64,67 @@ const features = [
     </div>
   </section>
 
+  <!-- Product Preview -->
+  <section class="preview">
+    <div class="preview-inner">
+      <div class="preview-window">
+        <div class="preview-titlebar">
+          <div class="preview-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <span class="preview-title">Pearl — Issues</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-sidebar">
+            <div class="sidebar-item active">All Issues</div>
+            <div class="sidebar-item">Board View</div>
+            <div class="sidebar-item">Dependencies</div>
+          </div>
+          <div class="preview-main">
+            <div class="preview-toolbar">
+              <span class="toolbar-filter">Filter</span>
+              <span class="toolbar-sort">Priority ↓</span>
+            </div>
+            <div class="preview-table">
+              <div class="table-row header-row">
+                <span class="col-status">Status</span>
+                <span class="col-title">Title</span>
+                <span class="col-priority">Priority</span>
+                <span class="col-type">Type</span>
+              </div>
+              <div class="table-row">
+                <span class="col-status"><span class="status-dot in-progress"></span></span>
+                <span class="col-title">Add visual triage board view</span>
+                <span class="col-priority priority-high">P1</span>
+                <span class="col-type">feature</span>
+              </div>
+              <div class="table-row">
+                <span class="col-status"><span class="status-dot open"></span></span>
+                <span class="col-title">Keyboard shortcut for bulk assign</span>
+                <span class="col-priority priority-med">P2</span>
+                <span class="col-type">feature</span>
+              </div>
+              <div class="table-row">
+                <span class="col-status"><span class="status-dot closed"></span></span>
+                <span class="col-title">Fix dependency graph rendering</span>
+                <span class="col-priority priority-med">P2</span>
+                <span class="col-type">bug</span>
+              </div>
+              <div class="table-row">
+                <span class="col-status"><span class="status-dot open"></span></span>
+                <span class="col-title">Agent auto-triage pipeline</span>
+                <span class="col-priority priority-low">P3</span>
+                <span class="col-type">task</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features -->
   <section class="features" id="features">
     <div class="features-inner">
@@ -69,7 +132,7 @@ const features = [
       <div class="features-grid">
         {features.map((feature) => (
           <div class="feature-card">
-            <div class="feature-icon" aria-hidden="true">{feature.icon}</div>
+            <div class="feature-icon" aria-hidden="true" set:html={feature.icon} />
             <h3 class="feature-title">{feature.title}</h3>
             <p class="feature-description">{feature.description}</p>
           </div>
@@ -81,8 +144,8 @@ const features = [
   <!-- CTA -->
   <section class="cta">
     <div class="cta-inner">
-      <h2 class="cta-title">Get started in seconds</h2>
-      <p class="cta-subtitle">One command. No signup. No credit card.</p>
+      <h2 class="cta-title">Start triaging in seconds</h2>
+      <p class="cta-subtitle">One command gives you a full issue-tracking UI. No accounts, no setup.</p>
       <div class="cta-copy">
         <CopyButton text="npx pearl-bdui" />
       </div>
@@ -191,8 +254,15 @@ const features = [
   }
 
   .feature-icon {
-    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
     margin-bottom: 0.75rem;
+    color: var(--pearl-primary);
+    background: var(--pearl-accent);
+    border-radius: 0.5rem;
   }
 
   .feature-title {
@@ -207,6 +277,151 @@ const features = [
     line-height: 1.6;
     color: var(--pearl-muted-fg);
   }
+
+  /* Preview */
+  .preview {
+    padding: 0 1.5rem 4rem;
+  }
+
+  .preview-inner {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .preview-window {
+    border: 1px solid var(--pearl-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: var(--pearl-surface);
+    box-shadow: var(--pearl-shadow-lg);
+  }
+
+  .preview-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    background: var(--pearl-surface-raised);
+    border-bottom: 1px solid var(--pearl-border);
+  }
+
+  .preview-dots {
+    display: flex;
+    gap: 0.375rem;
+  }
+
+  .dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+  }
+
+  .dot-red { background: #ef4444; }
+  .dot-yellow { background: #eab308; }
+  .dot-green { background: #22c55e; }
+
+  .preview-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--pearl-muted-fg);
+  }
+
+  .preview-body {
+    display: flex;
+    min-height: 16rem;
+  }
+
+  .preview-sidebar {
+    width: 10rem;
+    flex-shrink: 0;
+    border-right: 1px solid var(--pearl-border);
+    padding: 0.75rem 0;
+  }
+
+  .sidebar-item {
+    padding: 0.375rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--pearl-muted-fg);
+    cursor: default;
+  }
+
+  .sidebar-item.active {
+    color: var(--pearl-primary);
+    font-weight: 600;
+    background: var(--pearl-accent);
+  }
+
+  .preview-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .preview-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--pearl-border);
+    font-size: 0.75rem;
+    color: var(--pearl-muted-fg);
+  }
+
+  .toolbar-filter,
+  .toolbar-sort {
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--pearl-border);
+    border-radius: 0.25rem;
+    background: var(--pearl-surface-raised);
+  }
+
+  .preview-table {
+    font-size: 0.8125rem;
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr 3rem 4rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--pearl-border);
+  }
+
+  .table-row:last-child {
+    border-bottom: none;
+  }
+
+  .header-row {
+    font-weight: 600;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--pearl-muted-fg);
+    background: var(--pearl-surface-raised);
+  }
+
+  .col-title {
+    color: var(--pearl-fg);
+  }
+
+  .col-priority,
+  .col-type {
+    color: var(--pearl-muted-fg);
+    font-size: 0.75rem;
+  }
+
+  .priority-high { color: var(--pearl-danger); font-weight: 600; }
+  .priority-med { color: var(--pearl-warning); font-weight: 600; }
+  .priority-low { color: var(--pearl-muted-fg); }
+
+  .status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+  }
+
+  .status-dot.open { background: var(--pearl-info); }
+  .status-dot.in-progress { background: var(--pearl-warning); }
+  .status-dot.closed { background: var(--pearl-success); }
 
   /* CTA */
   .cta {
@@ -251,6 +466,19 @@ const features = [
 
     .cta {
       padding: 3rem 1rem;
+    }
+
+    .preview {
+      padding: 0 1rem 3rem;
+    }
+
+    .preview-sidebar {
+      display: none;
+    }
+
+    .table-row {
+      grid-template-columns: 2rem 1fr 2.5rem 3.5rem;
+      font-size: 0.75rem;
     }
 
     .features-grid {
