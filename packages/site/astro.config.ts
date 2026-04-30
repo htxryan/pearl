@@ -53,6 +53,7 @@ export default defineConfig({
           },
         },
       ],
+      lastUpdated: true,
       pagefind: true,
       disable404Route: true,
     }),

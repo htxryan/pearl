@@ -19,26 +19,26 @@ Pearl's visual identity is defined by a set of CSS custom properties in the `:ro
 
 ### Core palette
 
-| Token | Purpose |
-|-------|---------|
-| `--pearl-bg` | Page background |
-| `--pearl-fg` | Primary text color |
-| `--pearl-primary` | Brand accent (indigo) |
-| `--pearl-secondary` | Secondary surfaces |
-| `--pearl-muted` | Subdued backgrounds |
-| `--pearl-accent` | Highlighted elements |
-| `--pearl-border` | Border color |
-| `--pearl-ring` | Focus ring color |
-| `--pearl-surface` | Card/panel backgrounds |
+| Token | Purpose | Swatch |
+|-------|---------|--------|
+| `--pearl-bg` | Page background | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(1 0 0)"></span> |
+| `--pearl-fg` | Primary text color | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.145 0 0)"></span> |
+| `--pearl-primary` | Brand accent (indigo) | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.511 0.23 277)"></span> |
+| `--pearl-secondary` | Secondary surfaces | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.97 0 0)"></span> |
+| `--pearl-muted` | Subdued backgrounds | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.97 0 0)"></span> |
+| `--pearl-accent` | Highlighted elements | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.962 0.018 272.3)"></span> |
+| `--pearl-border` | Border color | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.922 0 0)"></span> |
+| `--pearl-ring` | Focus ring color | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.585 0.204 277.1)"></span> |
+| `--pearl-surface` | Card/panel backgrounds | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(1 0 0)"></span> |
 
 ### Semantic colors
 
-| Token | Purpose |
-|-------|---------|
-| `--pearl-success` | Positive states (green) |
-| `--pearl-info` | Informational states (blue) |
-| `--pearl-warning` | Warning states (yellow/orange) |
-| `--pearl-danger` | Error/destructive states (red) |
+| Token | Purpose | Swatch |
+|-------|---------|--------|
+| `--pearl-success` | Positive states (green) | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.723 0.192 149.6)"></span> |
+| `--pearl-info` | Informational states (blue) | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.623 0.188 259.8)"></span> |
+| `--pearl-warning` | Warning states (yellow/orange) | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.769 0.165 70.1)"></span> |
+| `--pearl-danger` | Error/destructive states (red) | <span style="display:inline-block;width:2rem;height:1rem;border-radius:4px;border:1px solid #ccc;background:oklch(0.637 0.208 25.3)"></span> |
 
 Each semantic color has a corresponding `-fg` variant for text on that background (e.g., `--pearl-success-fg`).
 

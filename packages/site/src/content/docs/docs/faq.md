@@ -7,7 +7,7 @@ sidebar:
 
 ## What is Pearl?
 
-Pearl is the web UI for the [Beads](https://github.com/gastownhall/beads) AI work management system. It stores its data in a [Dolt](https://www.dolthub.com/) database inside your repository, giving you visual triage, keyboard-driven workflows, and AI-agent collaboration — all running locally.
+Pearl is the web UI for the [Beads](https://github.com/gastownhall/beads) issue tracker. It stores its data in a [Dolt](https://www.dolthub.com/) database inside your repository, giving you visual triage, keyboard-driven workflows, and AI-agent collaboration — all running locally.
 
 ## What is Dolt?
 

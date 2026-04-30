@@ -1,0 +1,24 @@
+---
+title: Pearl Documentation
+description: Learn how to use Pearl, the web UI for the Beads issue tracker.
+template: splash
+hero:
+  tagline: Pearl is the web UI for Beads — from quick setup to advanced configuration.
+  actions:
+    - text: Quickstart
+      link: /docs/quickstart/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/htxryan/pearl
+      icon: external
+      variant: minimal
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard title="Quick Setup" description="Get Pearl running in under a minute with npx." href="/docs/quickstart/" />
+  <LinkCard title="How It Works" description="Installation methods and database mode options." href="/docs/install/" />
+  <LinkCard title="Configuration" description="Environment variables and settings reference." href="/docs/configuration/" />
+</CardGrid>

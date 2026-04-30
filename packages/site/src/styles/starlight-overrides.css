@@ -32,4 +32,23 @@
 
   --sl-color-bg-inline-code: var(--pearl-muted);
   --sl-color-border-badge-default: var(--pearl-border);
+
+  --sl-nav-height: 3.5rem;
+  --sl-nav-pad-x: 1.5rem;
+}
+
+header.header {
+  border-bottom: 1px solid var(--pearl-border);
+  background-color: color-mix(in oklch, var(--pearl-bg) 85%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.site-title {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+footer.starlight-aside {
+  border-top: 1px solid var(--pearl-border);
 }

@@ -74,7 +74,9 @@ curl http://localhost:3456/api/issues
 
 A 500 response often indicates a database table issue after a mode change.
 
-## Development
+## For Contributors
+
+These issues only apply if you are developing Pearl itself, not using it as an end user.
 
 ### TypeScript errors after changing shared types
 

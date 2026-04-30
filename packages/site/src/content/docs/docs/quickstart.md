@@ -7,6 +7,8 @@ sidebar:
 
 Pearl is the web UI for the Beads issue tracker. Get it running in under a minute.
 
+> **Current version:** 0.12.0 — see the [changelog on GitHub](https://github.com/htxryan/pearl/releases).
+
 ## Prerequisites
 
 - **Node.js** 22 or later
