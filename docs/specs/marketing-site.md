@@ -265,3 +265,36 @@ Cross-epic contracts that Phase 3 must explicitly capture:
 
 - **2026-04-29 draft**: Initial spec from Phase 2 Socratic synthesis.
 - **2026-04-29 advisory amendments (Gate 2 approved)**: Added U11 (security headers), U12 (build provenance), U13 (dep hygiene), U14 (workspace isolation), E5 (smoke check), S2 integrity assertion, UB2 split into UB2a/UB2b, softened U6 perf budget, tightened U7 OG scope, clarified UB1 to CF-Pages-honest semantics, dropped O1 (analytics) and VRT, collapsed decomposition preview from 7 → 4 epics, constrained Starlight theming to CSS custom properties only.
+
+## 16. Polish Cycle Brief (2026-04-30)
+
+This section is the authoritative brief for polish cycles run against this spec. The audit fleet and polish architect must treat it as load-bearing alongside §1–§14.
+
+### 16.1 Positioning (most important)
+
+Pearl is a **web UI for the existing Beads issue tracker** — Beads is upstream (`github.com/gastownhall/beads`); Pearl is the GUI on top. Marketing copy and docs must make this crystal clear, on the landing page above the fold and in every relevant docs entry point.
+
+- **Lead with the UI value, not Beads itself.** Visibility into your beads database, smooth collaboration with coding agents, fast triage, sane filtering, keyboard-first ergonomics, multi-pane workflows. Assume the visitor already uses Beads (or is choosing it because their agent does).
+- **Do not re-explain what Beads is** beyond a one-line "Pearl is the web UI for [Beads](https://github.com/gastownhall/beads), the issue tracker that lives in your repo." Link to upstream Beads docs for anything Beads-specific.
+- **Conversion goals (unchanged from §1)**: Run → Star → Read. The hero install snippet (`npx pearl-bdui`) and the GitHub link must remain prominent. The audit fleet should pressure-test that the page actually drives those actions.
+- **Avoid ambiguity** that could read as "Pearl replaces Beads" or "Pearl is a fork of Beads." Use phrasing like "the Pearl UI for Beads," "Pearl + Beads," or "use Pearl with your Beads-tracked repo."
+
+### 16.2 Audit Focus (in priority order)
+
+1. **Landing-page craft.** Typography hierarchy, color system tension, motion (purposeful, not decorative), section rhythm, hero conversion (install snippet visibility, CTA clarity, GitHub star affordance), copy quality. Reference `compound:build-great-things` during architect sessions.
+2. **Starlight docs polish.** Theme overrides via CSS custom properties only (per U4); sidebar IA across the 6 guides (Quickstart, Install/Modes, Configuration, Themes, FAQ, Troubleshooting); prose quality (each guide should answer one question well, with skimmable headings and runnable snippets); search results readability; mobile docs ergonomics.
+3. **Accessibility.** Keyboard navigation across landing + docs; visible focus rings; color contrast (≥ AA, AAA where feasible for body text); reduced-motion respected for any motion added; semantic landmarks; alt text on every image including OG. Lighthouse Accessibility ≥ 95 (U6) is a floor, not a target.
+4. **Lighthouse.** Performance ≥ 85, Best Practices ≥ 95, SEO ≥ 95 on cold mobile (Moto G4). Address LCP regressions introduced by polish (hero imagery, font weights, motion JS).
+5. **Visual rhythm.** Consistent spacing scale, type scale, and component density between landing and docs. The two surfaces should feel like one product. Audit the seam where `/` transitions to `/docs/`.
+
+### 16.3 Out of Scope for Polish
+
+- Adding routes, content collections, or guides beyond the 6 already specified.
+- Replacing Astro / Starlight / Cloudflare Pages / pnpm workspace isolation decisions (§4.1 U-rules are frozen).
+- Visual regression infrastructure (still out of scope per §2).
+- Marketing-funnel analytics (still out of scope per §2).
+- Re-explaining or re-positioning Beads itself; that lives upstream.
+
+### 16.4 Acceptance Signal
+
+A polish cycle is "done" when an outside developer landing on the production URL can, in under 30 seconds: (a) understand Pearl is a UI for Beads, (b) find and copy the install command, (c) reach the docs sidebar, and (d) feel the surface is crafted, not generic-Astro-template.
