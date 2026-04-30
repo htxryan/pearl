@@ -1,9 +1,9 @@
 ---
 title: Pearl Documentation
-description: Learn how to use Pearl, the local-first issue tracker that lives in your repository.
+description: Learn how to use Pearl, the web UI for the Beads issue tracker.
 template: splash
 hero:
-  tagline: Everything you need to get started with Pearl — from quick setup to advanced configuration.
+  tagline: Pearl is the web UI for Beads — from quick setup to advanced configuration.
   actions:
     - text: Quickstart
       link: /docs/quickstart/

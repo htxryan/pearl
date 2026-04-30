@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Pearl is a local-first issue tracker that lives in your repository. Get it running in under a minute.
+Pearl is the web UI for the Beads issue tracker. Get it running in under a minute.
 
 ## Prerequisites
 
