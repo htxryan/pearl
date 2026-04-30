@@ -4,7 +4,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter pearl-bdui dev",
+    "dev": "pnpm --filter @redhale/pearl-bdui dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",

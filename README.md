@@ -9,7 +9,7 @@ Rich web UI for the [Beads](https://github.com/mantoni/beads) AI work management
 Run Pearl in any project directory that has a `.beads/` folder:
 
 ```bash
-npx pearl-bdui
+npx @redhale/pearl-bdui
 ```
 
 This starts the Pearl server and opens your browser to the UI.
@@ -37,7 +37,7 @@ pearl-bdui [options]
 ### Via npx (recommended)
 
 ```bash
-npx pearl-bdui
+npx @redhale/pearl-bdui
 ```
 
 Always runs the latest version. No install needed.
@@ -45,9 +45,11 @@ Always runs the latest version. No install needed.
 ### Global install
 
 ```bash
-npm install -g pearl-bdui
+npm install -g @redhale/pearl-bdui
 pearl-bdui
 ```
+
+> Note: the package was previously published as the unscoped `pearl-bdui`. As of v0.13.0 it lives at `@redhale/pearl-bdui` under the redhale npm organization. The CLI command remains `pearl-bdui`. The old name is deprecated and will not receive further updates.
 
 ### Requirements
 

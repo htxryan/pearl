@@ -131,7 +131,7 @@ tasks:
   # --- Publishing ---
 
   publish:
-    desc: Build and publish pearl-bdui to npm
+    desc: Build and publish @redhale/pearl-bdui to npm
     dir: packages/pearl-bdui
     cmds:
       - |

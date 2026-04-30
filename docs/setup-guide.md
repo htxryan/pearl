@@ -13,7 +13,7 @@ This guide covers both end-user setup (running Pearl) and contributor setup (dev
 ### Running Pearl
 
 ```bash
-npx pearl-bdui
+npx @redhale/pearl-bdui
 ```
 
 Pearl auto-discovers the nearest `.beads/` directory (searching up the directory tree), starts a Dolt SQL server if needed, and opens the UI in your browser at `http://127.0.0.1:3456`.
@@ -32,7 +32,7 @@ cd /path/to/project
 dolt sql-server --host 127.0.0.1 --port 3307
 
 # Then point Pearl at it
-DOLT_HOST=127.0.0.1 DOLT_PORT=3307 npx pearl-bdui
+DOLT_HOST=127.0.0.1 DOLT_PORT=3307 npx @redhale/pearl-bdui
 ```
 
 ### Configuration
