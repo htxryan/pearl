@@ -1,0 +1,128 @@
+[
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "accessibility",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "best-practices",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "seo",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "accessibility",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/docs/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "best-practices",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/docs/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "seo",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/docs/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "accessibility",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/docs/quickstart/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "best-practices",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/docs/quickstart/"
+  },
+  {
+    "name": "auditRan",
+    "expected": 1,
+    "actual": 0,
+    "values": [
+      0
+    ],
+    "operator": ">=",
+    "passed": false,
+    "auditProperty": "seo",
+    "auditId": "categories",
+    "level": "error",
+    "url": "http://localhost:57312/docs/quickstart/"
+  }
+]

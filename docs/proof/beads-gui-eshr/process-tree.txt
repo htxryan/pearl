@@ -1,0 +1,20 @@
+# Process Tree After Migration
+
+## pearl-bdui process (PID parent of npm exec)
+  PID  PPID COMMAND
+35992     1 npm exec pearl-bdui@0.12.1 --no-open    
+
+## Children of pearl-bdui (npm exec wrapper)
+  PID  PPID COMMAND
+36661 35992 node /Users/redhale/.npm/_npx/e1a71df58efa4954/node_modules/.bin/pearl-bdui --no-open
+
+## Grandchildren — should be exactly one dolt sql-server
+  PID  PPID COMMAND
+58791 36661 dolt sql-server --host 127.0.0.1 --port 3307 --no-auto-commit
+
+## All dolt sql-server processes on candidate ports (3307/3308/3309)
+redhale          58791   0.0  0.2 443822528 102528   ??  SN   10:04PM   0:00.10 dolt sql-server --host 127.0.0.1 --port 3307 --no-auto-commit
+
+## Listening sockets on candidate ports
+COMMAND   PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+dolt    58791 redhale   16u  IPv4 0x55fd571916f61e67      0t0  TCP 127.0.0.1:3307 (LISTEN)
