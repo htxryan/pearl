@@ -19,16 +19,12 @@ vi.mock("@/lib/encoding-pipeline", () => ({
 
 // Mock the storage adapters
 vi.mock("@/lib/storage-adapter", () => ({
-  InlineStorageAdapter: vi.fn().mockImplementation(() => ({
-    mode: "inline",
-    store: vi.fn(),
-    load: vi.fn(),
-  })),
-  LocalStorageAdapter: vi.fn().mockImplementation(() => ({
-    mode: "local",
-    store: vi.fn(),
-    load: vi.fn(),
-  })),
+  InlineStorageAdapter: vi
+    .fn()
+    .mockImplementation(() => ({ mode: "inline", store: vi.fn(), load: vi.fn() })),
+  LocalStorageAdapter: vi
+    .fn()
+    .mockImplementation(() => ({ mode: "local", store: vi.fn(), load: vi.fn() })),
 }));
 
 // Mock settings hook
