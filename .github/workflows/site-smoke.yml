@@ -61,11 +61,11 @@ jobs:
           SITEMAPS=$(echo "$SITEMAP" | grep -oP '(?<=<loc>).*?(?=</loc>)')
           for sm in $SITEMAPS; do
             # Rewrite sitemap loc to use the deploy base URL (previews differ from prod domain)
-            REWRITTEN_SM=$(echo "$sm" | sed "s|https://getpearl.dev|$BASE|")
+            REWRITTEN_SM="${sm//https:\/\/getpearl.dev/$BASE}"
             SM_CONTENT=$(curl -s --max-time 15 "$REWRITTEN_SM")
             URLS=$(echo "$SM_CONTENT" | grep -oP '(?<=<loc>).*?(?=</loc>)')
             for page_url in $URLS; do
-              REWRITTEN_URL=$(echo "$page_url" | sed "s|https://getpearl.dev|$BASE|")
+              REWRITTEN_URL="${page_url//https:\/\/getpearl.dev/$BASE}"
               check_url "$REWRITTEN_URL"
             done
           done

@@ -98,7 +98,7 @@ jobs:
           sys.exit(0 if total >= 1 else 1)
           ")
           echo "Pagefind page count: $PAGE_COUNT"
-          FRAG_COUNT=$(ls packages/site/dist/pagefind/fragment/ 2>/dev/null | wc -l)
+          FRAG_COUNT=$(find packages/site/dist/pagefind/fragment/ -mindepth 1 -maxdepth 1 2>/dev/null | wc -l)
           echo "Fragment file count: $FRAG_COUNT"
           if [ "$FRAG_COUNT" -lt 1 ]; then
             echo "::error::Pagefind index has no fragment files"
