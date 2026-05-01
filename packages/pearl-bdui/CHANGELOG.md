@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.12.2](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.12.1...pearl-bdui-v0.12.2) (2026-05-01)
+
+
+### Bug Fixes
+
+* **deps:** bump fastify 5.8.4→5.8.5 to clear GHSA-247c-9743-5963 ([6efb0f6](https://github.com/htxryan/pearl/commit/6efb0f6e65ab36d4685bc87c4e9cccc02e1d36da))
+* remove generated artifacts from tracking and exclude test files from dist ([0f98412](https://github.com/htxryan/pearl/commit/0f9841226e9182d49f054e7769ca56108832676c))
+* resolve flaky sql-writer parity test via ROLLBACK before reads ([9101f90](https://github.com/htxryan/pearl/commit/9101f901616ac482690ded5b7d25b3c75dbf44f0))
+
 ## [0.12.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.12.0...pearl-bdui-v0.12.1) (2026-05-01)
 
 
