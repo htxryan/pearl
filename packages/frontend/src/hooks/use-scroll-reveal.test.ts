@@ -16,7 +16,8 @@ let ioInstances: Array<{
 function installIntersectionObserverMock() {
   ioInstances = [];
 
-  const MockIO = vi.fn((callback: IOCallback) => {
+  // biome-ignore lint/complexity/useArrowFunction: must be constructible with `new` (vitest 4)
+  const MockIO = vi.fn(function (callback: IOCallback) {
     const instance = {
       callback,
       elements: new Set<Element>(),

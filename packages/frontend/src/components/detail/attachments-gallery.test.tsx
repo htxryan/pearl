@@ -26,16 +26,21 @@ import { useAllAttachmentRefs, useAttachmentBlob } from "@/hooks/use-attachment-
 const mockUseAllRefs = vi.mocked(useAllAttachmentRefs);
 const mockUseBlob = vi.mocked(useAttachmentBlob);
 
-const mockIntersectionObserver = vi.fn().mockImplementation((cb: IntersectionObserverCallback) => ({
-  observe: vi.fn().mockImplementation((el: Element) => {
-    cb(
-      [{ isIntersecting: true, target: el } as IntersectionObserverEntry],
-      {} as IntersectionObserver,
-    );
-  }),
-  disconnect: vi.fn(),
-  unobserve: vi.fn(),
-}));
+// biome-ignore lint/complexity/useArrowFunction: must be constructible with `new` (vitest 4)
+const mockIntersectionObserver = vi.fn().mockImplementation(function (
+  cb: IntersectionObserverCallback,
+) {
+  return {
+    observe: vi.fn().mockImplementation((el: Element) => {
+      cb(
+        [{ isIntersecting: true, target: el } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      );
+    }),
+    disconnect: vi.fn(),
+    unobserve: vi.fn(),
+  };
+});
 vi.stubGlobal("IntersectionObserver", mockIntersectionObserver);
 
 describe("AttachmentsGallery", () => {

@@ -271,7 +271,10 @@ vi.mock("@dagrejs/dagre", () => {
   return {
     default: {
       graphlib: {
-        Graph: vi.fn(() => mockGraph),
+        // biome-ignore lint/complexity/useArrowFunction: must be constructible with `new` (vitest 4)
+        Graph: vi.fn(function () {
+          return mockGraph;
+        }),
       },
       layout: vi.fn(),
     },
