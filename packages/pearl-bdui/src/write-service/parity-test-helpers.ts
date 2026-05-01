@@ -254,8 +254,19 @@ export async function runCli(ctx: ParityContext, args: string[]): Promise<string
   return result.stdout;
 }
 
+export async function freshQuery(pool: Pool, sql: string, params?: unknown[]): Promise<unknown[]> {
+  const conn = await pool.getConnection();
+  try {
+    await conn.query("ROLLBACK");
+    const [rows] = params ? await conn.execute(sql, params) : await conn.execute(sql);
+    return rows as unknown[];
+  } finally {
+    conn.release();
+  }
+}
+
 export async function getIds(pool: Pool): Promise<string[]> {
-  const [rows] = await pool.execute("SELECT id FROM issues ORDER BY created_at");
+  const rows = await freshQuery(pool, "SELECT id FROM issues ORDER BY created_at");
   return (rows as Array<{ id: string }>).map((r) => r.id);
 }
 
@@ -320,8 +331,8 @@ export async function assertTablesParity(
   const { expect } = await import("vitest");
 
   for (const table of tables) {
-    const [sqlRows] = await ctx.sqlPool.execute(`SELECT * FROM \`${table}\``);
-    const [cliRows] = await ctx.cliPool.execute(`SELECT * FROM \`${table}\``);
+    const sqlRows = await freshQuery(ctx.sqlPool, `SELECT * FROM \`${table}\``);
+    const cliRows = await freshQuery(ctx.cliPool, `SELECT * FROM \`${table}\``);
 
     if (table === "events") {
       assertEventsParity(

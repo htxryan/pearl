@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDoltPool, destroyPool } from "../dolt/pool.js";
 import {
   assertTablesParity,
+  freshQuery,
   getIds,
   isDoltAvailable,
   makeSqlConfig,
@@ -261,10 +262,10 @@ const x = 42;
       // to align with frontend hierarchy views, while CLI creates 'parent-child'.
       await assertTablesParity(ctx, ["issues", "events"]);
 
-      const [sqlDeps] = await ctx.sqlPool.execute(
+      const deps = (await freshQuery(
+        ctx.sqlPool,
         "SELECT issue_id, depends_on_id, type FROM dependencies",
-      );
-      const deps = sqlDeps as Array<{ issue_id: string; depends_on_id: string; type: string }>;
+      )) as Array<{ issue_id: string; depends_on_id: string; type: string }>;
       const childId = (await getIds(ctx.sqlPool))[1];
       expect(deps).toHaveLength(1);
       expect(deps[0].type).toBe("contains");
@@ -312,11 +313,10 @@ const x = 42;
       await sqlAddDependency(config, sqlIds[1], sqlIds[0]);
       await runCli(ctx, ["dep", "add", cliIds[1], cliIds[0]]);
 
-      // Delete via SQL (mirroring the server-mode delete logic from issue-writer.ts)
-      await ctx.sqlPool.execute("DELETE FROM parity_sql.dependencies WHERE depends_on_id = ?", [
+      await freshQuery(ctx.sqlPool, "DELETE FROM parity_sql.dependencies WHERE depends_on_id = ?", [
         sqlIds[0],
       ]);
-      await ctx.sqlPool.execute("DELETE FROM parity_sql.issues WHERE id = ?", [sqlIds[0]]);
+      await freshQuery(ctx.sqlPool, "DELETE FROM parity_sql.issues WHERE id = ?", [sqlIds[0]]);
       await runCli(ctx, ["delete", cliIds[0], "--force"]);
 
       await assertTablesParity(ctx, ["issues", "dependencies"]);
