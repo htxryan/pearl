@@ -40,3 +40,13 @@ docs/proof/**/*.png
 # Generated perf/bundle visualization artifacts
 docs/perf/baseline.json
 docs/perf/baseline.html
+
+# macOS metadata
+.DS_Store
+
+# Lighthouse CI ephemeral artifacts
+.lighthouseci/
+
+# Machine-generated proof reports (keep summaries, not raw blobs)
+docs/proof/**/*.report.html
+docs/proof/**/*.report.json
