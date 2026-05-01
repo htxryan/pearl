@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, issueTable, test } from "./fixtures";
 
 test.describe("Accessibility", () => {
@@ -87,5 +88,96 @@ test.describe("Accessibility", () => {
 
     const sortIndicator = page.getByLabel(/sorted/i).first();
     await expect(sortIndicator).toBeVisible({ timeout: 3_000 });
+  });
+
+  // ── axe-core a11y scans (EARS-11, AC-11, beads-gui-0n3t) ───────────
+  // Asserts zero serious/critical WCAG 2.0/2.1 A and AA violations on each
+  // canonical route. Pre-existing violations are surfaced via test.fixme()
+  // with a linked beads task.
+  const A11Y_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+
+  test("axe-core: list view (/) has no serious/critical violations", async ({
+    seededPage: page,
+  }) => {
+    const violations = (await new AxeBuilder({ page }).withTags(A11Y_TAGS).analyze()).violations;
+    const blockers = violations.filter((v) => ["serious", "critical"].includes(v.impact ?? ""));
+    expect(
+      blockers,
+      JSON.stringify(
+        blockers.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })),
+        null,
+        2,
+      ),
+    ).toEqual([]);
+  });
+
+  test("axe-core: board view (/board) has no serious/critical violations", async ({
+    seededPage: page,
+  }) => {
+    await page.goto("/board");
+    await expect(page.getByRole("region", { name: "Kanban board" })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const violations = (await new AxeBuilder({ page }).withTags(A11Y_TAGS).analyze()).violations;
+    const blockers = violations.filter((v) => ["serious", "critical"].includes(v.impact ?? ""));
+    expect(
+      blockers,
+      JSON.stringify(
+        blockers.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })),
+        null,
+        2,
+      ),
+    ).toEqual([]);
+  });
+
+  test("axe-core: graph view (/graph) has no serious/critical violations", async ({
+    seededPage: page,
+  }) => {
+    await page.goto("/graph");
+    // React-flow may not always mount (empty graph) so just wait for either
+    // the canvas or an empty-state heading to settle.
+    const reactFlow = page.locator(".react-flow");
+    await Promise.race([
+      reactFlow.waitFor({ state: "visible", timeout: 15_000 }).catch(() => {}),
+      page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {}),
+    ]);
+
+    const violations = (await new AxeBuilder({ page }).withTags(A11Y_TAGS).analyze()).violations;
+    const blockers = violations.filter((v) => ["serious", "critical"].includes(v.impact ?? ""));
+    expect(
+      blockers,
+      JSON.stringify(
+        blockers.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })),
+        null,
+        2,
+      ),
+    ).toEqual([]);
+  });
+
+  test("axe-core: detail view (/issues/:id) has no serious/critical violations", async ({
+    seededPage: page,
+  }) => {
+    // Use the data-loaded row selector (skeletons don't have aria-label on checkboxes).
+    const dataRow = page
+      .locator('table[aria-label="Issue list"] tbody tr:has(input[type="checkbox"][aria-label])')
+      .first();
+    await expect(dataRow).toBeVisible({ timeout: 15_000 });
+    const issueId = await dataRow.getAttribute("data-issue-id");
+    if (!issueId) throw new Error("Row missing data-issue-id attribute");
+    await page.goto(`/issues/${issueId}`);
+    await page.waitForURL(`**/issues/${issueId}`);
+    await expect(page.getByLabel("Breadcrumb")).toBeVisible({ timeout: 15_000 });
+
+    const violations = (await new AxeBuilder({ page }).withTags(A11Y_TAGS).analyze()).violations;
+    const blockers = violations.filter((v) => ["serious", "critical"].includes(v.impact ?? ""));
+    expect(
+      blockers,
+      JSON.stringify(
+        blockers.map((v) => ({ id: v.id, impact: v.impact, nodes: v.nodes.length })),
+        null,
+        2,
+      ),
+    ).toEqual([]);
   });
 });

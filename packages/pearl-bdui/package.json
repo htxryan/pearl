@@ -34,6 +34,10 @@
     "type": "git",
     "url": "git+https://github.com/htxryan/pearl.git"
   },
+  "publishConfig": {
+    "provenance": true,
+    "access": "public"
+  },
   "engines": {
     "node": ">=24"
   },
@@ -54,6 +58,7 @@
     "@types/node": "^22.19.17",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.1.0"
+    "vitest": "^3.1.0",
+    "zod": "^4.4.1"
   }
 }

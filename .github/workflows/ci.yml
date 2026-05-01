@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,11 +18,11 @@ jobs:
     name: Install dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -30,36 +33,40 @@ jobs:
         run: pnpm --filter @pearl/shared run build
 
       - name: Cache workspace
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
 
   lint:
     name: Lint
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
-          fail-on-cache-miss: true
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
+          restore-keys: |
+            workspace-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @pearl/shared run build
 
       - run: pnpm lint
       - run: pnpm lint:lucide
@@ -70,23 +77,27 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
-          fail-on-cache-miss: true
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
+          restore-keys: |
+            workspace-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @pearl/shared run build
 
       - run: pnpm lint:deps
 
@@ -95,23 +106,27 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
-          fail-on-cache-miss: true
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
+          restore-keys: |
+            workspace-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @pearl/shared run build
 
       - run: pnpm typecheck
 
@@ -120,23 +135,26 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
-          fail-on-cache-miss: true
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
+          restore-keys: |
+            workspace-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
 
       - name: Rebuild @pearl/shared
         run: pnpm --filter @pearl/shared run build
@@ -144,21 +162,76 @@ jobs:
       - name: Verify shared dist is up to date
         run: git diff --exit-code packages/shared/dist/
 
+  audit:
+    name: Dependency audit
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore workspace
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            packages/shared/dist
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
+          restore-keys: |
+            workspace-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm audit (production deps, fail on high+)
+        run: pnpm audit --prod --audit-level=high
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+
+  actionlint:
+    name: Actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install actionlint
+        id: install
+        run: |
+          bash <(curl -s https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          echo "path=$(pwd)/actionlint" >> "$GITHUB_OUTPUT"
+
+      - name: Run actionlint
+        run: ${{ steps.install.outputs.path }} -color
+
   test:
     name: Test
     needs: [install, build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
@@ -166,38 +239,51 @@ jobs:
             packages/shared/dist
             packages/pearl-bdui/dist
             packages/frontend/dist
-          key: build-${{ github.sha }}
+          key: build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/**/src/**', 'packages/**/tsconfig.json', '.nvmrc') }}
           fail-on-cache-miss: true
 
-      - run: pnpm test
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@aa56896cf108bd10b5eb883cd1d24196da57f695 # v5.5.4
+        if: ${{ !cancelled() }}
+        with:
+          files: ./packages/shared/coverage/lcov.info,./packages/pearl-bdui/coverage/lcov.info,./packages/frontend/coverage/lcov.info
+          flags: shared,pearl-bdui,frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
   build:
     name: Build
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore workspace
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
             packages/*/node_modules
             packages/shared/dist
-          key: workspace-${{ github.sha }}
-          fail-on-cache-miss: true
+          key: workspace-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', '.nvmrc') }}
+          restore-keys: |
+            workspace-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
 
       - run: pnpm build
 
       - name: Cache build output
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
@@ -205,23 +291,27 @@ jobs:
             packages/shared/dist
             packages/pearl-bdui/dist
             packages/frontend/dist
-          key: build-${{ github.sha }}
+          key: build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/**/src/**', 'packages/**/tsconfig.json', '.nvmrc') }}
 
   e2e:
-    name: E2E Tests
+    name: E2E Tests (shard ${{ matrix.shard }}/3)
     needs: [build]
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
@@ -229,7 +319,7 @@ jobs:
             packages/shared/dist
             packages/pearl-bdui/dist
             packages/frontend/dist
-          key: build-${{ github.sha }}
+          key: build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/**/src/**', 'packages/**/tsconfig.json', '.nvmrc') }}
           fail-on-cache-miss: true
 
       - name: Install Dolt
@@ -254,21 +344,21 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: pnpm test:e2e -- --shard=${{ matrix.shard }}/3
 
       - name: Upload test results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 14
 
       - name: Upload failure screenshots
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: test-failure-artifacts
+          name: test-failure-artifacts-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
 
@@ -277,16 +367,16 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
 
       - name: Restore build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             node_modules
@@ -294,7 +384,7 @@ jobs:
             packages/shared/dist
             packages/pearl-bdui/dist
             packages/frontend/dist
-          key: build-${{ github.sha }}
+          key: build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/**/src/**', 'packages/**/tsconfig.json', '.nvmrc') }}
           fail-on-cache-miss: true
 
       - name: Install Playwright (browsers + system deps)
@@ -305,7 +395,7 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Upload primitive snapshot report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}
         with:
           name: primitive-playwright-report
@@ -313,7 +403,7 @@ jobs:
           retention-days: 14
 
       - name: Upload primitive failure artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: primitive-test-failure-artifacts

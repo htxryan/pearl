@@ -14,6 +14,9 @@ on:
       - "docs/specs/headers-golden.txt"
       - ".github/workflows/site-ci.yml"
 
+permissions:
+  contents: read
+
 concurrency:
   group: site-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -23,11 +26,11 @@ jobs:
     name: Build site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -38,23 +41,23 @@ jobs:
         run: pnpm --filter @pearl/site build
 
       - name: Cache site build
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: packages/site/dist
-          key: site-dist-${{ github.sha }}
+          key: site-dist-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/site/src/**', 'packages/site/astro.config.ts', 'packages/site/public/**') }}
 
   headers:
     name: Security headers
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Restore site build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: packages/site/dist
-          key: site-dist-${{ github.sha }}
+          key: site-dist-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/site/src/**', 'packages/site/astro.config.ts', 'packages/site/public/**') }}
           fail-on-cache-miss: true
 
       - name: Verify _headers matches golden file
@@ -65,13 +68,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Restore site build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: packages/site/dist
-          key: site-dist-${{ github.sha }}
+          key: site-dist-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/site/src/**', 'packages/site/astro.config.ts', 'packages/site/public/**') }}
           fail-on-cache-miss: true
 
       - name: Assert Pagefind index exists
@@ -107,17 +110,17 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Restore site build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: packages/site/dist
-          key: site-dist-${{ github.sha }}
+          key: site-dist-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/site/src/**', 'packages/site/astro.config.ts', 'packages/site/public/**') }}
           fail-on-cache-miss: true
 
       - name: Check internal links
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
         with:
           args: >-
             --offline
@@ -132,11 +135,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -144,10 +147,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Restore site build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: packages/site/dist
-          key: site-dist-${{ github.sha }}
+          key: site-dist-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'packages/site/src/**', 'packages/site/astro.config.ts', 'packages/site/public/**') }}
           fail-on-cache-miss: true
 
       - name: Install Lighthouse CI

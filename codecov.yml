@@ -1,0 +1,37 @@
+coverage:
+  range: "60...90"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 70%
+
+flags:
+  shared:
+    paths:
+      - packages/shared/src
+  pearl-bdui:
+    paths:
+      - packages/pearl-bdui/src
+  frontend:
+    paths:
+      - packages/frontend/src
+
+comment:
+  behavior: default
+  require_changes: true
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/test-setup.ts"
+  - "e2e/**"
+  - "dist/**"
+  - "**/vitest.config.ts"
+  - "scripts/**"
+  - "**/*.config.ts"
+  - "**/*.config.cjs"
+  - "**/*.config.js"

@@ -8,6 +8,9 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
     groups:
       minor-and-patch:
         update-types:
@@ -21,6 +24,10 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
     groups:
       minor-and-patch:
         update-types:

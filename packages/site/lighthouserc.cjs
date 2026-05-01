@@ -12,9 +12,10 @@ module.exports = {
         emulatedFormFactor: "mobile",
         chromeFlags: "--no-sandbox",
       },
-      numberOfRuns: 1,
+      numberOfRuns: 3,
     },
     assert: {
+      aggregationMethod: "median-run",
       assertions: {
         "categories:performance": ["warn", { minScore: 0.85 }],
         "categories:accessibility": ["error", { minScore: 0.95 }],
