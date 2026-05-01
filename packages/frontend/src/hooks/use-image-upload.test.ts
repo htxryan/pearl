@@ -19,16 +19,14 @@ vi.mock("@/lib/encoding-pipeline", () => ({
 
 // Mock the storage adapters
 vi.mock("@/lib/storage-adapter", () => ({
-  InlineStorageAdapter: vi.fn().mockImplementation(() => ({
-    mode: "inline",
-    store: vi.fn(),
-    load: vi.fn(),
-  })),
-  LocalStorageAdapter: vi.fn().mockImplementation(() => ({
-    mode: "local",
-    store: vi.fn(),
-    load: vi.fn(),
-  })),
+  // biome-ignore lint/complexity/useArrowFunction: must be constructible with `new` (vitest 4)
+  InlineStorageAdapter: vi.fn().mockImplementation(function () {
+    return { mode: "inline", store: vi.fn(), load: vi.fn() };
+  }),
+  // biome-ignore lint/complexity/useArrowFunction: must be constructible with `new` (vitest 4)
+  LocalStorageAdapter: vi.fn().mockImplementation(function () {
+    return { mode: "local", store: vi.fn(), load: vi.fn() };
+  }),
 }));
 
 // Mock settings hook
@@ -98,9 +96,10 @@ describe("useImageUpload", () => {
       store: vi.fn().mockResolvedValueOnce(mockBlock),
       load: vi.fn(),
     };
-    (InlineStorageAdapter as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      () => mockAdapter,
-    );
+    // biome-ignore lint/complexity/useArrowFunction: must be constructible with `new` (vitest 4)
+    (InlineStorageAdapter as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return mockAdapter;
+    });
 
     const { result } = renderHook(() => useImageUpload(), { wrapper });
 
