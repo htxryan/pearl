@@ -4,7 +4,6 @@ module.exports = {
       staticDistDir: "packages/site/dist",
       url: ["/", "/docs/", "/docs/quickstart/"],
       settings: {
-        preset: "perf",
         throttling: {
           rttMs: 150,
           throughputKbps: 1638.4,
