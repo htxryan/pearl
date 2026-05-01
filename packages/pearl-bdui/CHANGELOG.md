@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.12.0...pearl-bdui-v0.12.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* **migration:** await bootstrap dolt exit before handing off to manager ([#42](https://github.com/htxryan/pearl/issues/42)) ([75bf2e7](https://github.com/htxryan/pearl/commit/75bf2e7221fc6fbc0dfd5725f38261d9a69bce4f))
+
 ## [0.12.0](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.11.2...pearl-bdui-v0.12.0) (2026-04-29)
 
 
