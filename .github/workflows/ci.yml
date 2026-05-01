@@ -202,6 +202,10 @@ jobs:
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          # Required by gitleaks-action v2 to scan PRs (resolves the
+          # "GITHUB_TOKEN is now required to scan pull requests" error).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   actionlint:
     name: Actionlint
