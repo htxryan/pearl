@@ -442,34 +442,45 @@ test.describe("polish evidence", () => {
     const created = (await createRes.json()) as { data: { id: string } };
     const issueId = created.data.id;
 
-    // Read it back to verify the description survived round-trip intact
-    const readRes = await request.get(`http://127.0.0.1:3456/api/issues/${issueId}`);
-    expect(readRes.ok()).toBeTruthy();
-    const read = (await readRes.json()) as { description: string };
-    expect(read.description.length).toBeGreaterThan(base64.length);
-    expect(read.description).toContain(`[img:${ref}]`);
-    expect(read.description).toContain(`pearl-attachment:v1:${ref}`);
-    expect(read.description).toContain(base64.slice(0, 100));
-    expect(read.description).toContain(base64.slice(-100));
+    // Always permanent-delete the bead the test just minted, even on assertion
+    // failure. Without this, tests run against a `pnpm dev`-reused server
+    // (reuseExistingServer locally) leak a real bead per run into the user's DB.
+    try {
+      // Read it back to verify the description survived round-trip intact
+      const readRes = await request.get(`http://127.0.0.1:3456/api/issues/${issueId}`);
+      expect(readRes.ok()).toBeTruthy();
+      const read = (await readRes.json()) as { description: string };
+      expect(read.description.length).toBeGreaterThan(base64.length);
+      expect(read.description).toContain(`[img:${ref}]`);
+      expect(read.description).toContain(`pearl-attachment:v1:${ref}`);
+      expect(read.description).toContain(base64.slice(0, 100));
+      expect(read.description).toContain(base64.slice(-100));
 
-    // Now render in browser and capture the actual decoded image
-    await seed(page, `/issues/${issueId}`);
-    await page.waitForURL(`**/issues/${issueId}`);
-    // Wait for the rendered <img> to appear (decoded from base64 in markdown)
-    const img = page
-      .locator("img")
-      .filter({ hasNot: page.locator("svg") })
-      .first();
-    await img.waitFor({ state: "visible", timeout: 10_000 });
-    // Verify the image actually has natural dimensions (not a broken icon)
-    const dims = await img.evaluate((el: HTMLImageElement) => ({
-      w: el.naturalWidth,
-      h: el.naturalHeight,
-    }));
-    expect(dims.w).toBeGreaterThan(50);
-    expect(dims.h).toBeGreaterThan(50);
+      // Now render in browser and capture the actual decoded image
+      await seed(page, `/issues/${issueId}`);
+      await page.waitForURL(`**/issues/${issueId}`);
+      // Wait for the rendered <img> to appear (decoded from base64 in markdown)
+      const img = page
+        .locator("img")
+        .filter({ hasNot: page.locator("svg") })
+        .first();
+      await img.waitFor({ state: "visible", timeout: 10_000 });
+      // Verify the image actually has natural dimensions (not a broken icon)
+      const dims = await img.evaluate((el: HTMLImageElement) => ({
+        w: el.naturalWidth,
+        h: el.naturalHeight,
+      }));
+      expect(dims.w).toBeGreaterThan(50);
+      expect(dims.h).toBeGreaterThan(50);
 
-    await shoot(page, "0t2c-real-roundtrip-rendered", true);
+      await shoot(page, "0t2c-real-roundtrip-rendered", true);
+    } finally {
+      await request
+        .delete(`http://127.0.0.1:3456/api/issues/${issueId}?permanent=true`)
+        .catch(() => {
+          // best-effort cleanup; surface nothing if the server is gone
+        });
+    }
   });
 
   test("huds: detail Edit links use pencil icon", async ({ page }) => {
