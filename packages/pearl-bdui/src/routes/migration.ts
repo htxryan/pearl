@@ -224,14 +224,20 @@ async function migrateToPearlManaged(
 
     const ready = await waitForServer("127.0.0.1", managedPort);
     if (!ready) {
-      serverProc.kill("SIGTERM");
+      await killAndAwait(serverProc);
       writeFileSync(metadataPath, originalMetadata);
       await rm(managedDataDir, { recursive: true, force: true });
       return { ok: false, error: "Pearl-managed dolt sql-server failed to start" };
     }
 
-    // Kill the temporary bootstrap process — DoltServerManager will take over
-    serverProc.kill("SIGTERM");
+    // Kill the bootstrap process and *wait* for it to fully release the port
+    // before returning — DoltServerManager will spawn its own dolt sql-server
+    // on the same port, and starting it while the bootstrap still holds the
+    // port causes a silent collision: the new process exits with EADDRINUSE,
+    // but DoltServerManager's healthCheck still sees the still-shutting-down
+    // bootstrap responding and marks the manager "running". The pool then
+    // points at a dead server and the page hangs.
+    await killAndAwait(serverProc);
 
     return {
       ok: true,
@@ -246,6 +252,20 @@ async function migrateToPearlManaged(
       ok: false,
       error: err instanceof Error ? err.message : "Migration failed",
     };
+  }
+}
+
+async function killAndAwait(proc: import("execa").ResultPromise, graceMs = 5000): Promise<void> {
+  proc.kill("SIGTERM");
+  const sigkillTimer = setTimeout(() => {
+    proc.kill("SIGKILL");
+  }, graceMs);
+  try {
+    await proc;
+  } catch {
+    // Expected when the process is killed (reject:false should suppress, but be safe)
+  } finally {
+    clearTimeout(sigkillTimer);
   }
 }
 
