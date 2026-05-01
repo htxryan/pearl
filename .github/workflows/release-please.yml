@@ -80,7 +80,7 @@ jobs:
         run: |
           VERSION="${{ needs.release-please.outputs.version }}"
           echo "Waiting for pearl-bdui@${VERSION} to appear on npm..."
-          for i in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if npm view "pearl-bdui@${VERSION}" version 2>/dev/null; then
               echo "Package available on npm"
               exit 0
@@ -100,7 +100,7 @@ jobs:
         run: |
           pearl-bdui --no-open &
           SERVER_PID=$!
-          for i in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl -sf http://127.0.0.1:3456/api/health > /tmp/health.json 2>/dev/null; then
               echo "Health check passed:"
               cat /tmp/health.json

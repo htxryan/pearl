@@ -197,11 +197,18 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          # Full history on push to scan everything; PRs only need diff scope.
-          fetch-depth: ${{ github.event_name == 'push' && 0 || 1 }}
+          # gitleaks-action computes a diff range internally and resolves the
+          # parent of the first commit in the range, so PR runs need history
+          # beyond the merge commit. Push runs scan all of main. fetch-depth: 0
+          # is the configuration recommended by gitleaks-action's README.
+          fetch-depth: 0
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          # Required by gitleaks-action v2 to scan PRs (resolves the
+          # "GITHUB_TOKEN is now required to scan pull requests" error).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   actionlint:
     name: Actionlint
@@ -352,7 +359,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm test:e2e -- --shard=${{ matrix.shard }}/3
+        run: pnpm exec playwright test --shard=${{ matrix.shard }}/3
 
       - name: Upload test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
