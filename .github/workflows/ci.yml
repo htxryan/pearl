@@ -197,8 +197,11 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          # Full history on push to scan everything; PRs only need diff scope.
-          fetch-depth: ${{ github.event_name == 'push' && 0 || 1 }}
+          # gitleaks-action computes a diff range internally and resolves the
+          # parent of the first commit in the range, so PR runs need history
+          # beyond the merge commit. Push runs scan all of main. fetch-depth: 0
+          # is the configuration recommended by gitleaks-action's README.
+          fetch-depth: 0
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
