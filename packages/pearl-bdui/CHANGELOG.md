@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.12.2...pearl-bdui-v0.12.3) (2026-05-01)
+
+
+### Miscellaneous
+
+* **deps:** bump the minor-and-patch group across 1 directory with 11 updates ([#48](https://github.com/htxryan/pearl/issues/48)) ([8ec5b14](https://github.com/htxryan/pearl/commit/8ec5b14a9c6c33c0176a29254cf2cb2dfd41444b))
+
 ## [0.12.2](https://github.com/htxryan/pearl/compare/pearl-bdui-v0.12.1...pearl-bdui-v0.12.2) (2026-05-01)
 
 
