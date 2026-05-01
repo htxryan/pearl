@@ -1,42 +1,49 @@
 /**
  * API Contract Test (EARS-13, AC-13, beads-gui-0n3t)
  *
- * Validates that the canonical API responses conform to schemas derived
- * manually from `@pearl/shared` types. The test uses Zod schemas as the
- * runtime contract: if someone changes a `@pearl/shared` type without
- * updating the runtime response shape (or vice versa), the parse will
- * fail and the test will catch it.
+ * Validates that pearl-bdui's actual route handlers emit responses whose shapes
+ * conform to schemas derived from `@pearl/shared` types. Every schema is built
+ * from the canonical TypeScript interface — if either side drifts, this test
+ * catches it.
  *
  * Approach
  * --------
- * The shipping `createServer()` requires a real Config + Dolt pool. To keep
- * this a unit-level contract test, we build a minimal Fastify app per case
- * and register fake handlers that return canned fixtures shaped like the
- * real responses. We then parse those fixtures with Zod schemas mirroring
- * `@pearl/shared` types.
- *
- * Gap (documented for future work): this validates that the *fixture* matches
- * the schema. To validate the actual route handlers, the route modules would
- * need to expose their handler logic without requiring a live Dolt pool. The
- * label and health routes both pull from the pool, and `registerIssueRoutes`
- * needs both Config and a WriteService. A follow-up could refactor route
- * registration to accept an injectable data source so this test can drive
- * the real handlers with a mock layer instead of canned fixtures.
+ * The shipping `createServer()` requires a real Dolt pool. To keep this a
+ * unit-level test we boot only the route registration we want to exercise,
+ * with `queryWithRetry` mocked to return canned rows. This means the test
+ * drives the real handler logic (column projection, NULL handling, label
+ * enrichment, etc.) and validates the runtime shape against Zod schemas
+ * mirroring the shared types.
  */
 
 import type {
   HealthResponse,
-  Issue,
+  IssueListItem,
   IssueStatus,
   IssueType,
   LabelColor,
-  LabelDefinition,
   Priority,
 } from "@pearl/shared";
 import { ISSUE_PRIORITIES, ISSUE_STATUSES, ISSUE_TYPES, LABEL_COLORS } from "@pearl/shared";
 import Fastify from "fastify";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import type { Config } from "../src/config.js";
+
+// queryWithRetry is mocked at module-load time so route handlers see our stub.
+const queryWithRetryMock = vi.fn();
+vi.mock("./dolt/pool.js", () => ({
+  queryWithRetry: (...args: unknown[]) => queryWithRetryMock(...args),
+  getPool: () => ({
+    query: vi.fn().mockResolvedValue([[{ "1": 1 }]]),
+  }),
+}));
+
+// Now import the route registration functions — these import dolt/pool.js
+// which is mocked above.
+const { registerHealthRoutes } = await import("./routes/health.js");
+const { registerIssueRoutes } = await import("./routes/issues.js");
+const { registerLabelRoutes } = await import("./routes/labels.js");
 
 // ─── Zod schemas mirroring @pearl/shared ────────────────────────
 
@@ -67,45 +74,39 @@ const HealthResponseSchema = z
   .strict();
 
 /**
- * GET /api/issues — mirrors `Issue` from @pearl/shared.
+ * GET /api/issues (default field set) — mirrors `IssueListItem` from
+ * @pearl/shared exactly. `.strict()` enforces that no unexpected fields
+ * leak into the response.
  *
- * Uses `.passthrough()` because the list endpoint applies column projection
- * (`ISSUE_LIST_FIELDS`) and may return only a subset of fields rather than
- * a full `Issue`. We assert that any present field matches the shared type's
- * shape; absent fields are allowed for projection-friendliness.
- *
- * NOTE: `.passthrough()` is intentional here — the list response is a
- * *projection* of `Issue`, not the full type. The strict-shape contract
- * is enforced on `GET /api/issues/:id` (full detail), which we do NOT
- * exercise in this test because it needs a real DB.
+ * The handler does column projection via `ISSUE_LIST_FIELDS`. With no
+ * `?fields=` query param it returns ALL fields in `IssueListItem`, so
+ * the schema is fully strict on the default request.
  */
 const IssueListItemSchema = z
   .object({
     id: z.string(),
-    title: z.string().optional(),
-    status: IssueStatusSchema.optional(),
-    priority: PrioritySchema.optional(),
-    issue_type: IssueTypeSchema.optional(),
-    assignee: z.string().nullable().optional(),
-    owner: z.string().optional(),
-    created_at: z.string().optional(),
-    updated_at: z.string().optional(),
-    due_at: z.string().nullable().optional(),
-    pinned: z.boolean().optional(),
-    has_attachments: z.boolean().optional(),
+    title: z.string(),
+    status: IssueStatusSchema,
+    priority: PrioritySchema,
+    issue_type: IssueTypeSchema,
+    assignee: z.string().nullable(),
+    owner: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    due_at: z.string().nullable(),
+    pinned: z.boolean(),
+    has_attachments: z.boolean(),
     labels: z.array(z.string()),
     labelColors: z.record(z.string(), LabelColorSchema),
   })
-  .passthrough();
+  .strict();
 
 const IssueListSchema = z.array(IssueListItemSchema);
 
 /**
- * GET /api/labels — mirrors `LabelDefinition` from @pearl/shared, plus
- * a `count` field returned by the actual handler (LabelWithCount). The
- * `color` field can be NULL when a label is used but has no definition
- * (the route falls back to a SELECT that returns `NULL` color), so we
- * permit nullable here. We use `.strict()` to lock the shape.
+ * GET /api/labels — `LabelDefinition` plus a `count` field returned by
+ * the actual handler. `color` can be NULL when a label is used but has
+ * no definition row. `.strict()` locks the shape.
  */
 const LabelWithCountSchema = z
   .object({
@@ -117,34 +118,19 @@ const LabelWithCountSchema = z
 
 const LabelListSchema = z.array(LabelWithCountSchema);
 
-// ─── Fixtures shaped like real responses ────────────────────────
+// ─── Mocks ──────────────────────────────────────────────────────
 
-const healthFixture: HealthResponse = {
-  status: "healthy",
-  dolt_server: "running",
-  uptime_seconds: 42,
-  version: "0.1.0",
-  project_prefix: "sample-project",
-  dolt_mode: "embedded",
-};
+const stubConfig: Config = {
+  doltMode: "embedded",
+  doltDatabase: "sample_project",
+  needsSetup: false,
+} as Config;
 
-const issueFixture: Pick<
-  Issue,
-  | "id"
-  | "title"
-  | "status"
-  | "priority"
-  | "issue_type"
-  | "assignee"
-  | "owner"
-  | "created_at"
-  | "updated_at"
-  | "due_at"
-  | "pinned"
-  | "has_attachments"
-  | "labels"
-  | "labelColors"
-> = {
+// Real handler returns rows shaped like IssueListItem (the projection),
+// but BEFORE the handler enriches `labels` and `labelColors`. We canon-
+// icalize the SQL result so the handler's enrichment loop produces a
+// strict `IssueListItem` from end to end.
+const issueRowFromSql = {
   id: "test-001",
   title: "Test issue",
   status: "open",
@@ -156,106 +142,224 @@ const issueFixture: Pick<
   updated_at: "2026-05-01T00:00:00.000Z",
   due_at: null,
   pinned: false,
-  has_attachments: false,
-  labels: ["bug"],
-  labelColors: { bug: "red" },
+  // Stored as TINYINT — handler coerces to boolean.
+  has_attachments: 0,
 };
 
-const labelFixture: LabelDefinition & { count: number } = {
+const labelRowFromSql = {
   name: "bug",
   color: "red",
   count: 3,
 };
 
+// ─── Helpers ────────────────────────────────────────────────────
+
+/**
+ * Sequence the mock to return values for SPECIFIC SQL shapes. We can't
+ * match by SQL text (the handler passes a callback, not the SQL string,
+ * to queryWithRetry), so we count distinct response phases:
+ *
+ * - onReady setup hooks: drained as `[]` (no-op DDL operations)
+ * - first call after onReady drains: returns the per-test seed
+ * - subsequent calls in a single request: chained via `.mockResolvedValueOnce`
+ */
+function seedQueryResponses(...phases: unknown[]): void {
+  // Default: empty array so onReady hooks succeed silently.
+  queryWithRetryMock.mockResolvedValue([]);
+  // Override with phase-specific responses (consumed in order).
+  for (const phase of phases) {
+    queryWithRetryMock.mockResolvedValueOnce(phase);
+  }
+}
+
+async function buildIssuesApp() {
+  const app = Fastify();
+  registerIssueRoutes(
+    app,
+    () => stubConfig,
+    // The GET /api/issues handler does not invoke writeService — empty stub OK.
+    {} as Parameters<typeof registerIssueRoutes>[2],
+  );
+  await app.ready();
+  // After onReady drains its 3 setup-call defaults, reset and seed the
+  // GET path: SELECT issues, labels join, fetchLabelColors.
+  queryWithRetryMock.mockReset();
+  seedQueryResponses(
+    [issueRowFromSql], // SELECT issues result
+    [{ issue_id: "test-001", label: "bug" }], // labels join
+    [{ name: "bug", color: "red" }], // fetchLabelColors
+  );
+  return app;
+}
+
+async function buildLabelsApp() {
+  const app = Fastify();
+  registerLabelRoutes(app, () => stubConfig);
+  await app.ready();
+  queryWithRetryMock.mockReset();
+  seedQueryResponses([labelRowFromSql]);
+  return app;
+}
+
+async function buildHealthApp() {
+  const app = Fastify();
+  // Embedded mode short-circuits before any pool access — no mock needed.
+  registerHealthRoutes(
+    app,
+    () => null, // no DoltServerManager
+    () => stubConfig,
+  );
+  await app.ready();
+  return app;
+}
+
 // ─── Tests ──────────────────────────────────────────────────────
 
-describe("API contract — response shapes match @pearl/shared types", () => {
-  it("GET /api/health returns a HealthResponse-shaped body", async () => {
-    const app = Fastify();
-    app.get("/api/health", async (_req, reply) => reply.send(healthFixture));
-
-    const response = await app.inject({ method: "GET", url: "/api/health" });
-    expect(response.statusCode).toBe(200);
-
-    const parsed = HealthResponseSchema.safeParse(response.json());
-    if (!parsed.success) {
-      throw new Error(`Health schema mismatch: ${JSON.stringify(parsed.error.format(), null, 2)}`);
-    }
-
-    await app.close();
+describe("API contract — real handlers emit shapes that match @pearl/shared", () => {
+  beforeEach(() => {
+    queryWithRetryMock.mockReset();
   });
 
-  it("GET /api/issues returns an array of Issue-projection-shaped rows", async () => {
-    const app = Fastify();
-    app.get("/api/issues", async (_req, reply) => reply.send([issueFixture]));
-
-    const response = await app.inject({ method: "GET", url: "/api/issues" });
-    expect(response.statusCode).toBe(200);
-
-    const parsed = IssueListSchema.safeParse(response.json());
-    if (!parsed.success) {
-      throw new Error(
-        `Issue list schema mismatch: ${JSON.stringify(parsed.error.format(), null, 2)}`,
-      );
-    }
-    expect(parsed.data).toHaveLength(1);
-    expect(parsed.data[0].id).toBe("test-001");
-
-    await app.close();
+  afterEach(() => {
+    queryWithRetryMock.mockReset();
   });
 
-  it("GET /api/issues accepts an empty result set", async () => {
-    const app = Fastify();
-    app.get("/api/issues", async (_req, reply) => reply.send([]));
+  it("GET /api/health returns a strict HealthResponse", async () => {
+    const app = await buildHealthApp();
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/health" });
+      expect(response.statusCode).toBe(200);
 
-    const response = await app.inject({ method: "GET", url: "/api/issues" });
-    const parsed = IssueListSchema.safeParse(response.json());
-    expect(parsed.success).toBe(true);
-
-    await app.close();
+      const parsed = HealthResponseSchema.safeParse(response.json());
+      if (!parsed.success) {
+        throw new Error(
+          `Health schema mismatch: ${JSON.stringify(parsed.error.format(), null, 2)}`,
+        );
+      }
+      const body = parsed.data;
+      // Embedded mode without setup is "degraded" per the handler.
+      expect(body.dolt_mode).toBe("embedded");
+    } finally {
+      await app.close();
+    }
   });
 
-  it("GET /api/labels returns an array of LabelWithCount-shaped rows", async () => {
-    const app = Fastify();
-    app.get("/api/labels", async (_req, reply) => reply.send([labelFixture]));
+  it("GET /api/issues returns strict IssueListItem rows (real handler)", async () => {
+    const app = await buildIssuesApp();
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/issues" });
+      expect(response.statusCode).toBe(200);
 
-    const response = await app.inject({ method: "GET", url: "/api/labels" });
-    expect(response.statusCode).toBe(200);
-
-    const parsed = LabelListSchema.safeParse(response.json());
-    if (!parsed.success) {
-      throw new Error(`Labels schema mismatch: ${JSON.stringify(parsed.error.format(), null, 2)}`);
+      const parsed = IssueListSchema.safeParse(response.json());
+      if (!parsed.success) {
+        throw new Error(
+          `Issue list schema mismatch: ${JSON.stringify(parsed.error.format(), null, 2)}`,
+        );
+      }
+      expect(parsed.data).toHaveLength(1);
+      const item: IssueListItem = parsed.data[0]!;
+      expect(item.id).toBe("test-001");
+      // Handler coerces TINYINT -> boolean
+      expect(item.has_attachments).toBe(false);
+      expect(item.labels).toEqual(["bug"]);
+      expect(item.labelColors).toEqual({ bug: "red" });
+    } finally {
+      await app.close();
     }
-    expect(parsed.data).toHaveLength(1);
-    expect(parsed.data[0].name).toBe("bug");
+  });
 
-    await app.close();
+  it("GET /api/issues handles empty result set", async () => {
+    const app = Fastify();
+    registerIssueRoutes(app, () => stubConfig, {} as Parameters<typeof registerIssueRoutes>[2]);
+    await app.ready();
+    queryWithRetryMock.mockReset();
+    seedQueryResponses([]); // empty issue list
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/issues" });
+      const parsed = IssueListSchema.safeParse(response.json());
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).toEqual([]);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it("GET /api/labels returns LabelWithCount rows (real handler)", async () => {
+    const app = await buildLabelsApp();
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/labels" });
+      expect(response.statusCode).toBe(200);
+
+      const parsed = LabelListSchema.safeParse(response.json());
+      if (!parsed.success) {
+        throw new Error(
+          `Labels schema mismatch: ${JSON.stringify(parsed.error.format(), null, 2)}`,
+        );
+      }
+      expect(parsed.data).toHaveLength(1);
+      expect(parsed.data[0]!.name).toBe("bug");
+    } finally {
+      await app.close();
+    }
   });
 
   it("GET /api/labels permits null color (label used but no definition)", async () => {
     const app = Fastify();
-    app.get("/api/labels", async (_req, reply) =>
-      reply.send([{ name: "orphan", color: null, count: 1 }]),
-    );
-
-    const response = await app.inject({ method: "GET", url: "/api/labels" });
-    const parsed = LabelListSchema.safeParse(response.json());
-    expect(parsed.success).toBe(true);
-
-    await app.close();
+    registerLabelRoutes(app, () => stubConfig);
+    await app.ready();
+    queryWithRetryMock.mockReset();
+    seedQueryResponses([{ name: "orphan", color: null, count: 1 }]);
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/labels" });
+      const parsed = LabelListSchema.safeParse(response.json());
+      expect(parsed.success).toBe(true);
+    } finally {
+      await app.close();
+    }
   });
+});
 
-  // Negative-path sanity: schema rejects bad shapes. This guards the
-  // contract: if @pearl/shared evolves and the schema isn't updated to
-  // match, the schema must still flag obviously-wrong runtime payloads.
-  it("rejects an issue with an unknown status value", async () => {
-    const bad = { ...issueFixture, status: "frobnicated" };
+describe("API contract — schemas reject malformed payloads", () => {
+  it("rejects an issue row with an unknown status value", () => {
+    const bad = {
+      ...issueRowFromSql,
+      has_attachments: false,
+      labels: [],
+      labelColors: {},
+      status: "frobnicated",
+    };
     const parsed = IssueListItemSchema.safeParse(bad);
     expect(parsed.success).toBe(false);
   });
 
-  it("rejects a health response with extra unknown fields (strict)", async () => {
-    const bad = { ...healthFixture, surprise: "field" };
+  it("rejects an issue row missing required IssueListItem fields", () => {
+    const incomplete = { id: "x", title: "y", labels: [], labelColors: {} };
+    const parsed = IssueListItemSchema.safeParse(incomplete);
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects an issue row with an extra unknown field (.strict)", () => {
+    const extra = {
+      ...issueRowFromSql,
+      has_attachments: false,
+      labels: [],
+      labelColors: {},
+      surprise: "field",
+    };
+    const parsed = IssueListItemSchema.safeParse(extra);
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects a health response with extra unknown fields (.strict)", () => {
+    const bad: HealthResponse & { surprise: string } = {
+      status: "healthy",
+      dolt_server: "running",
+      uptime_seconds: 1,
+      version: "0.1.0",
+      project_prefix: "x",
+      dolt_mode: "embedded",
+      surprise: "field",
+    };
     const parsed = HealthResponseSchema.safeParse(bad);
     expect(parsed.success).toBe(false);
   });

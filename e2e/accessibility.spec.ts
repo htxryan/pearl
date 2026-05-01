@@ -91,10 +91,11 @@ test.describe("Accessibility", () => {
   });
 
   // ── axe-core a11y scans (EARS-11, AC-11, beads-gui-0n3t) ───────────
-  // Asserts zero serious/critical WCAG 2.0/2.1 A and AA violations on each
-  // canonical route. Pre-existing violations are surfaced via test.fixme()
-  // with a linked beads task.
-  const A11Y_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+  // Asserts zero serious/critical WCAG 2.0/2.1/2.2 A and AA violations on
+  // each canonical route. Pre-existing violations are surfaced via
+  // test.fixme() with a linked beads task. WCAG 2.2 (finalized 2023-10)
+  // adds rules like focus-not-obscured and dragging-movements.
+  const A11Y_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
   test("axe-core: list view (/) has no serious/critical violations", async ({
     seededPage: page,
