@@ -1,8 +1,19 @@
 ---
-title: "Performance Perception and Loading UX in Web Applications"
+title: Performance Perception and Loading UX in Web Applications
 date: 2026-03-25
-summary: "Surveys the psychology of waiting and human response-time thresholds alongside the full landscape of browser-side and design-side techniques -- skeleton screens, optimistic UI, speculation rules, streaming SSR, service workers, and Core Web Vitals -- that collectively shape whether users experience a web application as fast or slow, independent of actual clock time."
-keywords: [web-apps, performance, perceived-performance, skeleton-screens, optimistic-ui, core-web-vitals]
+summary: Surveys the psychology of waiting and human response-time thresholds alongside
+  the full landscape of browser-side and design-side techniques -- skeleton screens,
+  optimistic UI, speculation rules, streaming SSR, service workers, and Core Web Vitals
+  -- that collectively shape whether users experience a web application as fast or
+  slow, independent of actual clock time.
+keywords:
+- web-apps
+- performance
+- perceived-performance
+- skeleton-screens
+- optimistic-ui
+- core-web-vitals
+permalink: pearl/compound/research/design/web-apps/performance-perception-and-loading-ux
 ---
 
 # Performance Perception and Loading UX in Web Applications

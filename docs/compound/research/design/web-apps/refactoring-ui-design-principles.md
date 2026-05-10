@@ -1,8 +1,17 @@
 ---
-title: "Refactoring UI: Systematic Visual Design Principles for Developer-Designers"
+title: 'Refactoring UI: Systematic Visual Design Principles for Developer-Designers'
 date: 2026-03-26
-summary: A systematic survey of the visual design principles from Wathan and Schoger's "Refactoring UI", contextualized within the broader literature on visual perception, typography, color theory, and design systems.
-keywords: [visual-design, ui-design, typography, color-systems, spacing, refactoring-ui]
+summary: A systematic survey of the visual design principles from Wathan and Schoger's
+  "Refactoring UI", contextualized within the broader literature on visual perception,
+  typography, color theory, and design systems.
+keywords:
+- visual-design
+- ui-design
+- typography
+- color-systems
+- spacing
+- refactoring-ui
+permalink: pearl/compound/research/design/web-apps/refactoring-ui-design-principles
 ---
 
 # Refactoring UI: Systematic Visual Design Principles for Developer-Designers

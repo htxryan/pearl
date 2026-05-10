@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/proof/beads-gui-xnfa/readme
+---
+
 # Pearl Marketing Site Polish Loop — Proof
 
 **Meta-epic:** `beads-gui-xnfa` · **Spec:** `docs/specs/marketing-site.md` · **Captured:** 2026-04-30

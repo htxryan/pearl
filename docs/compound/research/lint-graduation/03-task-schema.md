@@ -1,3 +1,9 @@
+---
+title: 03-task-schema
+type: note
+permalink: pearl/compound/research/lint-graduation/03-task-schema
+---
+
 # Beads Task Schema for Lint Rule Proposals
 
 **Research for**: `learning_agent-fpbh`

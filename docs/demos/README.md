@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/demos/readme
+---
+
 # Pearl Demo Library
 
 Bite-sized, feature-focused walkthrough videos. Each demo lives in its own folder with a `scene.mjs` script so it can be re-recorded on demand without re-recording the entire library.

@@ -1,8 +1,18 @@
 ---
-title: "Optimistic UI and Local-First Patterns for Web Applications"
+title: Optimistic UI and Local-First Patterns for Web Applications
 date: 2026-03-26
-summary: Surveys the engineering landscape of optimistic user interfaces, local-first software architecture, and offline-capable web applications, covering CRDT theory and implementations, sync engine architectures, client-side storage, conflict resolution strategies, and the emerging ecosystem of tools that enable instant, network-independent user interactions.
-keywords: [optimistic-ui, local-first, crdt, offline-first, sync-engines]
+summary: Surveys the engineering landscape of optimistic user interfaces, local-first
+  software architecture, and offline-capable web applications, covering CRDT theory
+  and implementations, sync engine architectures, client-side storage, conflict resolution
+  strategies, and the emerging ecosystem of tools that enable instant, network-independent
+  user interactions.
+keywords:
+- optimistic-ui
+- local-first
+- crdt
+- offline-first
+- sync-engines
+permalink: pearl/compound/research/development/web-apps/optimistic-ui-local-first-patterns
 ---
 
 # Optimistic UI and Local-First Patterns for Web Applications

@@ -1,3 +1,9 @@
+---
+title: 03-components
+type: note
+permalink: pearl/design-system/03-components
+---
+
 # 03 — Components
 
 Pearl's component layer has two tiers:

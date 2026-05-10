@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-9ht/evidence
+---
+
 # Proof: GitHub Actions CI Pipeline (beads-gui-9ht)
 
 **Date**: 2026-04-12

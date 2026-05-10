@@ -1,3 +1,9 @@
+---
+title: domain-registration
+type: note
+permalink: pearl/runbooks/domain-registration
+---
+
 # Domain Registration Runbook (E1)
 
 > Bead: `beads-gui-85pk` — Marketing site E1: Domain & DNS

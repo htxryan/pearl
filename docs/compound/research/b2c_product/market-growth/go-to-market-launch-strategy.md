@@ -1,8 +1,18 @@
 ---
 title: Go-to-Market Strategy & Launch Mechanics
 date: 2026-03-18
-summary: Go-to-market strategy constitutes the systematic plan by which a company brings a product or service to customers, encompassing segment selection, channel choice, market narratives, and customer acquisition sequencing. This survey synthesizes academic research, venture-capital frameworks, and practitioner literature across eight principal GTM domains.
-keywords: [b2c_product, go-to-market, launch-strategy, market-positioning, customer-acquisition]
+summary: Go-to-market strategy constitutes the systematic plan by which a company
+  brings a product or service to customers, encompassing segment selection, channel
+  choice, market narratives, and customer acquisition sequencing. This survey synthesizes
+  academic research, venture-capital frameworks, and practitioner literature across
+  eight principal GTM domains.
+keywords:
+- b2c_product
+- go-to-market
+- launch-strategy
+- market-positioning
+- customer-acquisition
+permalink: pearl/compound/research/b2c-product/market-growth/go-to-market-launch-strategy
 ---
 
 # Go-to-Market Strategy & Launch Mechanics

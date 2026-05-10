@@ -1,3 +1,9 @@
+---
+title: ui-theming
+type: note
+permalink: pearl/specs/ui-theming
+---
+
 # UI Theming System Specification
 
 ## Overview

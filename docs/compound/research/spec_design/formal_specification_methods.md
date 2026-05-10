@@ -1,3 +1,9 @@
+---
+title: formal_specification_methods
+type: note
+permalink: pearl/compound/research/spec-design/formal-specification-methods
+---
+
 # Formal Specification Methods: TLA+, Alloy, Z, and VDM  
 
 *25 February 2026*

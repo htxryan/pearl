@@ -1,3 +1,9 @@
+---
+title: 006-deprecate-embedded-mode
+type: note
+permalink: pearl/adr/006-deprecate-embedded-mode
+---
+
 # ADR-006: Deprecate Embedded Dolt Mode
 
 ## Status

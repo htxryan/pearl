@@ -1,3 +1,9 @@
+---
+title: ui-theming-advisory-brief
+type: note
+permalink: pearl/specs/ui-theming-advisory-brief
+---
+
 # Advisory Fleet Brief — UI Theming System
 
 **Advisors consulted**: Security & Reliability (Claude Sonnet), Simplicity & Alternatives (Claude Sonnet), Scalability & Performance (Gemini), Organizational & Delivery (Gemini)

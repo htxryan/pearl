@@ -1,8 +1,19 @@
 ---
-title: "Onboarding and Progressive Feature Disclosure in Web Applications"
+title: Onboarding and Progressive Feature Disclosure in Web Applications
 date: 2026-03-25
-summary: "Surveys the theoretical foundations, empirical evidence, and practitioner implementations of user onboarding and progressive feature disclosure in web applications, covering first-run experience design, activation metrics, empty states, gamification, dark patterns, and case studies from Slack, Notion, Figma, Duolingo, Linear, and Canva."
-keywords: [web-apps, onboarding, progressive-disclosure, activation, empty-states, feature-adoption]
+summary: Surveys the theoretical foundations, empirical evidence, and practitioner
+  implementations of user onboarding and progressive feature disclosure in web applications,
+  covering first-run experience design, activation metrics, empty states, gamification,
+  dark patterns, and case studies from Slack, Notion, Figma, Duolingo, Linear, and
+  Canva.
+keywords:
+- web-apps
+- onboarding
+- progressive-disclosure
+- activation
+- empty-states
+- feature-adoption
+permalink: pearl/compound/research/design/web-apps/onboarding-and-progressive-feature-disclosure
 ---
 
 # Onboarding and Progressive Feature Disclosure in Web Applications

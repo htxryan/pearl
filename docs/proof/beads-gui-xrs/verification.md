@@ -1,3 +1,9 @@
+---
+title: verification
+type: note
+permalink: pearl/proof/beads-gui-xrs/verification
+---
+
 # Proof: beads-gui-xrs — Onboarding Verification
 
 **Date**: 2026-04-12

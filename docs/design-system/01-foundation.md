@@ -1,3 +1,9 @@
+---
+title: 01-foundation
+type: note
+permalink: pearl/design-system/01-foundation
+---
+
 # 01 — Foundation
 
 The non-visual layer: who the product is, how it talks, what its typography feels like.

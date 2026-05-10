@@ -1,3 +1,9 @@
+---
+title: systems_engineering_specifications_emergent_behavior_interface_contracts
+type: note
+permalink: pearl/compound/research/spec-design/systems-engineering-specifications-emergent-behavior-interface-contracts
+---
+
 # Systems Engineering Specifications, Emergent Behavior, and Interface Contracts in NASA/DoD Traditions
 
 *February 25, 2026*

@@ -1,8 +1,18 @@
 ---
-title: "State Management, Forms, and Complex Flow UX in Web Applications"
+title: State Management, Forms, and Complex Flow UX in Web Applications
 date: 2026-03-25
-summary: "Surveys the theory, empirical evidence, and implementation landscape of form usability, multi-step flows, inline validation, autosave, undo/redo, optimistic updates, state machines, drag-and-drop, and accessibility for complex data-entry interfaces in web applications."
-keywords: [web-apps, forms, state-management, validation, undo-redo, wizards]
+summary: Surveys the theory, empirical evidence, and implementation landscape of form
+  usability, multi-step flows, inline validation, autosave, undo/redo, optimistic
+  updates, state machines, drag-and-drop, and accessibility for complex data-entry
+  interfaces in web applications.
+keywords:
+- web-apps
+- forms
+- state-management
+- validation
+- undo-redo
+- wizards
+permalink: pearl/compound/research/design/web-apps/state-forms-and-complex-flow-ux
 ---
 
 # State Management, Forms, and Complex Flow UX in Web Applications

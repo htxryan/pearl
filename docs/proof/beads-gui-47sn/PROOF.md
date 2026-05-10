@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-47sn/proof
+---
+
 # Proof: Advanced Filtering & Search (beads-gui-47sn)
 
 **Date**: 2026-04-14

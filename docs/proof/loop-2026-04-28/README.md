@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/proof/loop-2026-04-28/readme
+---
+
 # Loop 2026-04-28 — Proof of 9 Closed Epics
 
 Autonomous loop run on 2026-04-28 closed 9 epics in 1 attempt each, no

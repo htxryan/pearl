@@ -1,8 +1,19 @@
 ---
-title: "Swiss International Typographic Style: A Comprehensive Survey"
+title: 'Swiss International Typographic Style: A Comprehensive Survey'
 date: 2026-02-22
-summary: "Surveys the Swiss International Typographic Style—mathematical grids, sans-serif typography, objective photography, and asymmetric composition—along its two principal axes: the Basel School (Hofmann, Ruder) emphasizing formal experimentation, and the Zurich School (Muller-Brockmann) championing the modular grid. Traces the movement's international influence on corporate identity, information design, and editorial layout through the Neue Grafik journal."
-keywords: [design, swiss-style, typography, grid-systems, international-style]
+summary: 'Surveys the Swiss International Typographic Style—mathematical grids, sans-serif
+  typography, objective photography, and asymmetric composition—along its two principal
+  axes: the Basel School (Hofmann, Ruder) emphasizing formal experimentation, and
+  the Zurich School (Muller-Brockmann) championing the modular grid. Traces the movement''s
+  international influence on corporate identity, information design, and editorial
+  layout through the Neue Grafik journal.'
+keywords:
+- design
+- swiss-style
+- typography
+- grid-systems
+- international-style
+permalink: pearl/compound/research/design/style/swiss-international
 ---
 
 # Swiss International Typographic Style: A Comprehensive Survey

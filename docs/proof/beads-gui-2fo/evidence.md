@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-2fo/evidence
+---
+
 # Proof Evidence: beads-gui-2fo — Embedded mode read replica + sync
 
 ## Epic Summary

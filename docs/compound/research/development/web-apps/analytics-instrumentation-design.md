@@ -1,8 +1,23 @@
 ---
 title: Analytics and Instrumentation Design for Web Applications
 date: 2026-03-26
-summary: A comprehensive survey of the analytics, telemetry, and instrumentation landscape for modern web applications, covering event design, collection architectures, product analytics platforms, performance monitoring, error tracking, experimentation systems, privacy-preserving techniques, and observability integration.
-keywords: [analytics, instrumentation, telemetry, product-analytics, observability, event-tracking, RUM, session-replay, A/B-testing, privacy, data-pipeline]
+summary: A comprehensive survey of the analytics, telemetry, and instrumentation landscape
+  for modern web applications, covering event design, collection architectures, product
+  analytics platforms, performance monitoring, error tracking, experimentation systems,
+  privacy-preserving techniques, and observability integration.
+keywords:
+- analytics
+- instrumentation
+- telemetry
+- product-analytics
+- observability
+- event-tracking
+- RUM
+- session-replay
+- A/B-testing
+- privacy
+- data-pipeline
+permalink: pearl/compound/research/development/web-apps/analytics-instrumentation-design
 ---
 
 # Analytics and Instrumentation Design for Web Applications

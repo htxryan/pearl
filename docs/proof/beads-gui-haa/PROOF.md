@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-haa/proof
+---
+
 # Proof: beads-gui-haa — Designed 404 page
 
 ## Evidence

@@ -1,3 +1,9 @@
+---
+title: secure-coding-failure
+type: note
+permalink: pearl/compound/research/security/secure-coding-failure
+---
+
 # Secure Coding Failure Modes in Automated Code Review for Web Applications
 
 *February 23, 2026*

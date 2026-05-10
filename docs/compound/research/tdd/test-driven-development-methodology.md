@@ -1,3 +1,9 @@
+---
+title: test-driven-development-methodology
+type: note
+permalink: pearl/compound/research/tdd/test-driven-development-methodology
+---
+
 # Test-Driven Development Methodology
 *PhD-Level Survey for Compound Agent Work Phase*
 

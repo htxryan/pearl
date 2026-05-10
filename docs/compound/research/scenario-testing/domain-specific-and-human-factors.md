@@ -1,3 +1,9 @@
+---
+title: domain-specific-and-human-factors
+type: note
+permalink: pearl/compound/research/scenario-testing/domain-specific-and-human-factors
+---
+
 # Scenario Testing for CS Development: Domain-Specific Applications & Human Factors
 
 *2026-03-07*

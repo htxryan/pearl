@@ -1,3 +1,9 @@
+---
+title: 03-emergent-behavior-in-composed-systems
+type: note
+permalink: pearl/compound/research/software-architecture/03-emergent-behavior-in-composed-systems
+---
+
 # Emergent Behavior in Composed Systems: Why Correct Parts Produce Incorrect Wholes
 
 *PhD-Level Survey — March 2026*

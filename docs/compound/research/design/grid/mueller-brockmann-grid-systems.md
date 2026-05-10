@@ -1,8 +1,17 @@
 ---
-title: "Grid Systems in Graphic Design: Muller-Brockmann, the Swiss Style, and the Intellectual History of Rational Visual Order"
+title: 'Grid Systems in Graphic Design: Muller-Brockmann, the Swiss Style, and the
+  Intellectual History of Rational Visual Order'
 date: 2026-03-19
-summary: "Traces the intellectual history of grid systems from medieval manuscript construction through the Swiss Style, with emphasis on Muller-Brockmann's theoretical formalization and the postmodern critique."
-keywords: [design, grid-systems, muller-brockmann, swiss-style, typography]
+summary: Traces the intellectual history of grid systems from medieval manuscript
+  construction through the Swiss Style, with emphasis on Muller-Brockmann's theoretical
+  formalization and the postmodern critique.
+keywords:
+- design
+- grid-systems
+- muller-brockmann
+- swiss-style
+- typography
+permalink: pearl/compound/research/design/grid/mueller-brockmann-grid-systems
 ---
 
 # Grid Systems in Graphic Design: Müller-Brockmann, the Swiss Style, and the Intellectual History of Rational Visual Order

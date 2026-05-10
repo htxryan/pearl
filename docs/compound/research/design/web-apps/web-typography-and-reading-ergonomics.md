@@ -1,8 +1,17 @@
 ---
-title: "Web Typography and Reading Ergonomics"
+title: Web Typography and Reading Ergonomics
 date: 2026-03-25
-summary: "Surveys web typography from its web-safe font origins through the variable font era, examining the empirical foundations of reading ergonomics—line length, leading, font rendering, contrast, and loading performance—as they apply to screen-based reading across devices and scripts."
-keywords: [web-apps, typography, variable-fonts, reading-ergonomics, fluid-type]
+summary: Surveys web typography from its web-safe font origins through the variable
+  font era, examining the empirical foundations of reading ergonomics—line length,
+  leading, font rendering, contrast, and loading performance—as they apply to screen-based
+  reading across devices and scripts.
+keywords:
+- web-apps
+- typography
+- variable-fonts
+- reading-ergonomics
+- fluid-type
+permalink: pearl/compound/research/design/web-apps/web-typography-and-reading-ergonomics
 ---
 
 # Web Typography and Reading Ergonomics

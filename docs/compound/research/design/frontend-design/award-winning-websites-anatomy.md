@@ -1,8 +1,20 @@
 ---
-title: "Anatomy of Award-Winning Websites: Structural and Experiential Patterns in Awwwards/FWA/SOTD Winners"
+title: 'Anatomy of Award-Winning Websites: Structural and Experiential Patterns in
+  Awwwards/FWA/SOTD Winners'
 date: 2026-02-23
-summary: Documents recurrent structural and experiential patterns in award-winning websites—linear narrative scrollytelling, modular section layouts, spatially immersive canvases, minimal editorial systems, and expressive brutalist compositions—and the hero treatments and interaction grammars common across diverse visual styles. Maps key trade-offs between cinematic immersion and legibility, novelty and predictability, and expressive motion and performance.
-keywords: [design, award-winning-websites, interaction-design, scrollytelling, frontend-design]
+summary: Documents recurrent structural and experiential patterns in award-winning
+  websites—linear narrative scrollytelling, modular section layouts, spatially immersive
+  canvases, minimal editorial systems, and expressive brutalist compositions—and the
+  hero treatments and interaction grammars common across diverse visual styles. Maps
+  key trade-offs between cinematic immersion and legibility, novelty and predictability,
+  and expressive motion and performance.
+keywords:
+- design
+- award-winning-websites
+- interaction-design
+- scrollytelling
+- frontend-design
+permalink: pearl/compound/research/design/frontend-design/award-winning-websites-anatomy
 ---
 
 # Anatomy of Award‑Winning Websites: Structural and Experiential Patterns in Awwwards/FWA/SOTD Winners

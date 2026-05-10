@@ -1,3 +1,9 @@
+---
+title: bundle-size
+type: note
+permalink: pearl/proof/beads-gui-yf3a/bundle-size
+---
+
 # Bundle-size proof — beads-gui-yf3a
 
 Generated: 2026-04-26T13:47:15Z

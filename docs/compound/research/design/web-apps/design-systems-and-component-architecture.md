@@ -1,8 +1,18 @@
 ---
-title: "Design Systems and Component Architecture for Web Applications"  
-date: 2026-03-25  
-summary: "Surveys the full landscape of design system practice for web applications—from Atomic Design methodology and design token standards to component API patterns, CSS architecture, accessibility, governance models, and AI-assisted generation—mapping major production systems including Spectrum, Carbon, Polaris, and Primer against the theoretical and tooling ecosystems that structure the field."  
-keywords: [web-apps, design-systems, atomic-design, design-tokens, component-architecture]  
+title: Design Systems and Component Architecture for Web Applications
+date: 2026-03-25
+summary: Surveys the full landscape of design system practice for web applications—from
+  Atomic Design methodology and design token standards to component API patterns,
+  CSS architecture, accessibility, governance models, and AI-assisted generation—mapping
+  major production systems including Spectrum, Carbon, Polaris, and Primer against
+  the theoretical and tooling ecosystems that structure the field.
+keywords:
+- web-apps
+- design-systems
+- atomic-design
+- design-tokens
+- component-architecture
+permalink: pearl/compound/research/design/web-apps/design-systems-and-component-architecture
 ---
 
 # Design Systems and Component Architecture for Web Applications

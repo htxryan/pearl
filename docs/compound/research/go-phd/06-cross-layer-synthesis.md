@@ -1,3 +1,9 @@
+---
+title: 06-cross-layer-synthesis
+type: note
+permalink: pearl/compound/research/go-phd/06-cross-layer-synthesis
+---
+
 # Go's Architecture of Deliberate Constraints: Cross-Layer Synthesis
 
 *2026-03-09*

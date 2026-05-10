@@ -1,8 +1,19 @@
 ---
-title: "Interaction Design and Micro-interactions for Web Applications"
+title: Interaction Design and Micro-interactions for Web Applications
 date: 2026-03-25
-summary: Surveys the theoretical and empirical landscape of interaction design and micro-interactions for web applications, spanning affordance theory (Gibson, Norman), direct manipulation (Shneiderman), Saffer's micro-interaction framework, feedback timing constraints, Fitts's Law adaptations for touch, gesture vocabulary, animation as feedback, input device differences, and the delight-versus-utility tension — with case studies from Stripe, Linear, and Figma.
-keywords: [web-apps, interaction-design, micro-interactions, affordances, feedback-loops]
+summary: Surveys the theoretical and empirical landscape of interaction design and
+  micro-interactions for web applications, spanning affordance theory (Gibson, Norman),
+  direct manipulation (Shneiderman), Saffer's micro-interaction framework, feedback
+  timing constraints, Fitts's Law adaptations for touch, gesture vocabulary, animation
+  as feedback, input device differences, and the delight-versus-utility tension —
+  with case studies from Stripe, Linear, and Figma.
+keywords:
+- web-apps
+- interaction-design
+- micro-interactions
+- affordances
+- feedback-loops
+permalink: pearl/compound/research/design/web-apps/interaction-design-and-micro-interactions
 ---
 
 # Interaction Design and Micro-interactions for Web Applications

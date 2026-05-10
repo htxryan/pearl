@@ -1,3 +1,9 @@
+---
+title: data-exposure
+type: note
+permalink: pearl/compound/research/security/data-exposure
+---
+
 # Data Exposure Patterns
 
 *February 23, 2026*

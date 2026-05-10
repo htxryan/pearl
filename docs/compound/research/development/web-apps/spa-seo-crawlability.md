@@ -1,8 +1,22 @@
 ---
 title: SEO and Crawlability for Single-Page Applications
 date: 2026-03-26
-summary: A comprehensive survey of the techniques, architectures, and trade-offs involved in making JavaScript-heavy single-page applications discoverable by search engines, social media crawlers, and AI agents — spanning rendering strategies, structured data, performance signals, and the emerging LLM-crawler ecosystem.
-keywords: [seo, crawlability, spa, server-side-rendering, core-web-vitals, javascript-rendering, structured-data, prerendering, ai-crawlers, edge-rendering]
+summary: A comprehensive survey of the techniques, architectures, and trade-offs involved
+  in making JavaScript-heavy single-page applications discoverable by search engines,
+  social media crawlers, and AI agents — spanning rendering strategies, structured
+  data, performance signals, and the emerging LLM-crawler ecosystem.
+keywords:
+- seo
+- crawlability
+- spa
+- server-side-rendering
+- core-web-vitals
+- javascript-rendering
+- structured-data
+- prerendering
+- ai-crawlers
+- edge-rendering
+permalink: pearl/compound/research/development/web-apps/spa-seo-crawlability
 ---
 
 # SEO and Crawlability for Single-Page Applications

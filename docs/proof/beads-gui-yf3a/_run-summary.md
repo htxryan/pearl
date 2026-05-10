@@ -1,3 +1,9 @@
+---
+title: _run-summary
+type: note
+permalink: pearl/proof/beads-gui-yf3a/run-summary
+---
+
 # Proof-it run summary — shadcn/BaseUI migration
 
 Date: 2026-04-25T23:40:42.841Z

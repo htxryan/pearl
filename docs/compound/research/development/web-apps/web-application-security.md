@@ -1,8 +1,21 @@
 ---
 title: Web Application Security Architecture
 date: 2026-03-26
-summary: A comprehensive survey of security architectures, threat models, and defense mechanisms in modern web applications, spanning authentication, authorization, injection prevention, client-side security, supply chain integrity, and security testing methodologies.
-keywords: [web-security, authentication, authorization, xss, csrf, owasp, injection, supply-chain, api-security, zero-trust]
+summary: A comprehensive survey of security architectures, threat models, and defense
+  mechanisms in modern web applications, spanning authentication, authorization, injection
+  prevention, client-side security, supply chain integrity, and security testing methodologies.
+keywords:
+- web-security
+- authentication
+- authorization
+- xss
+- csrf
+- owasp
+- injection
+- supply-chain
+- api-security
+- zero-trust
+permalink: pearl/compound/research/development/web-apps/web-application-security
 ---
 
 # Web Application Security Architecture

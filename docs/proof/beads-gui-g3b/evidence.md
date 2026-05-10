@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-g3b/evidence
+---
+
 # Epic: Playwright E2E Test Suite — Verification Evidence
 
 **Issue**: beads-gui-g3b

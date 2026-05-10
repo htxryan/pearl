@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-g8x/proof
+---
+
 # Proof: beads-gui-g8x — Onboarding Setup Wizard
 
 ## What was built

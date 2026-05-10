@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-eshr/evidence
+---
+
 # beads-gui-eshr — Pearl-managed migration freeze fix
 
 **PR:** https://github.com/htxryan/pearl/pull/42

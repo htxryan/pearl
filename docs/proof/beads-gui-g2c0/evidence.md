@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-g2c0/evidence
+---
+
 # Proof: Polish 2 (beads-gui-g2c0)
 
 **Date**: 2026-04-26

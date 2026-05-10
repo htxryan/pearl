@@ -1,8 +1,17 @@
 ---
-title: "Cognitive Load and Attention Design in Web Applications"
+title: Cognitive Load and Attention Design in Web Applications
 date: 2026-03-25
-summary: "Surveys the intersection of cognitive psychology, attention science, and web interface design, mapping foundational theories of working memory, visual attention, and decision architecture onto the empirical landscape of human-computer interaction research."
-keywords: [web-apps, cognitive-load, attention, hicks-law, progressive-disclosure]
+summary: Surveys the intersection of cognitive psychology, attention science, and
+  web interface design, mapping foundational theories of working memory, visual attention,
+  and decision architecture onto the empirical landscape of human-computer interaction
+  research.
+keywords:
+- web-apps
+- cognitive-load
+- attention
+- hicks-law
+- progressive-disclosure
+permalink: pearl/compound/research/design/web-apps/cognitive-load-and-attention-design
 ---
 
 # Cognitive Load and Attention Design in Web Applications

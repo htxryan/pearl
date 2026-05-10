@@ -1,9 +1,19 @@
 ---
-title: "Test Infrastructure as Code: Provisioning, Isolation, and Orchestration for Reproducible Testing"
+title: 'Test Infrastructure as Code: Provisioning, Isolation, and Orchestration for
+  Reproducible Testing'
 date: 2026-04-10
-summary: >
-  Survey of test infrastructure as code practices covering container-based disposable infrastructure, database isolation patterns, fixture orchestration, and service virtualization for reproducible integration testing.
-keywords: [test-driven-development, test-infrastructure, testcontainers, isolation, reproducibility]
+summary: 'Survey of test infrastructure as code practices covering container-based
+  disposable infrastructure, database isolation patterns, fixture orchestration, and
+  service virtualization for reproducible integration testing.
+
+  '
+keywords:
+- test-driven-development
+- test-infrastructure
+- testcontainers
+- isolation
+- reproducibility
+permalink: pearl/compound/research/tdd/test-infrastructure-as-code
 ---
 
 # Test Infrastructure as Code: Provisioning, Isolation, and Orchestration for Reproducible Testing

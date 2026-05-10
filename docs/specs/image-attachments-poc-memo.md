@@ -1,3 +1,9 @@
+---
+title: image-attachments-poc-memo
+type: note
+permalink: pearl/specs/image-attachments-poc-memo
+---
+
 # Image Attachments — POC Memo
 
 **Date**: 2026-04-19

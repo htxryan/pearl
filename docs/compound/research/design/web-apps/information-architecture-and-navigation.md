@@ -1,8 +1,18 @@
 ---
-title: "Information Architecture and Navigation Patterns for Web Applications"
+title: Information Architecture and Navigation Patterns for Web Applications
 date: 2026-03-25
-summary: "Surveys the theoretical foundations, taxonomic frameworks, empirical evidence, and implementation patterns of information architecture and navigation design for web applications, from Rosenfeld-Morville organization theory and Kevin Lynch's wayfinding concepts through to contemporary SPA navigation, command palettes, and AI-driven personalization."
-keywords: [web-apps, information-architecture, navigation, wayfinding, mental-models]
+summary: Surveys the theoretical foundations, taxonomic frameworks, empirical evidence,
+  and implementation patterns of information architecture and navigation design for
+  web applications, from Rosenfeld-Morville organization theory and Kevin Lynch's
+  wayfinding concepts through to contemporary SPA navigation, command palettes, and
+  AI-driven personalization.
+keywords:
+- web-apps
+- information-architecture
+- navigation
+- wayfinding
+- mental-models
+permalink: pearl/compound/research/design/web-apps/information-architecture-and-navigation
 ---
 
 # Information Architecture and Navigation Patterns for Web Applications

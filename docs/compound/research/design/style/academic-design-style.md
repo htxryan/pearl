@@ -1,8 +1,19 @@
 ---
-title: "Academic Design Style: A Comprehensive Survey"
+title: 'Academic Design Style: A Comprehensive Survey'
 date: 2026-02-22
-summary: Surveys academic design as a unified visual language spanning five centuries—from Renaissance humanist typography through Enlightenment encyclopedias to twentieth-century codification by Tschichold and Morison—encompassing university visual identity, scholarly journal typography, academic poster design, conference materials, and textbook layout. Provides a taxonomic framework covering serif typeface traditions, heraldic systems, hierarchical clarity, and information density conventions.
-keywords: [design, academic-design, typography, scholarly-publishing, visual-identity]
+summary: Surveys academic design as a unified visual language spanning five centuries—from
+  Renaissance humanist typography through Enlightenment encyclopedias to twentieth-century
+  codification by Tschichold and Morison—encompassing university visual identity,
+  scholarly journal typography, academic poster design, conference materials, and
+  textbook layout. Provides a taxonomic framework covering serif typeface traditions,
+  heraldic systems, hierarchical clarity, and information density conventions.
+keywords:
+- design
+- academic-design
+- typography
+- scholarly-publishing
+- visual-identity
+permalink: pearl/compound/research/design/style/academic-design-style
 ---
 
 # Academic Design Style: A Comprehensive Survey

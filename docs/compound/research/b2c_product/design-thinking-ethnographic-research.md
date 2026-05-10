@@ -1,8 +1,18 @@
 ---
 title: Design Thinking & Ethnographic Research for Consumer Product Discovery
 date: 2026-03-18
-summary: Surveys design thinking and ethnographic research as intertwined frameworks for discovering unmet consumer needs, covering IDEO's foundational practice, the Double Diamond model, contextual inquiry, and the gap between stated preference and revealed behavior. Synthesizes evidence from Nielsen Norman Group research and the academic and practitioner literature.
-keywords: [b2c_product, design-thinking, ethnography, consumer-discovery, user-research]
+summary: Surveys design thinking and ethnographic research as intertwined frameworks
+  for discovering unmet consumer needs, covering IDEO's foundational practice, the
+  Double Diamond model, contextual inquiry, and the gap between stated preference
+  and revealed behavior. Synthesizes evidence from Nielsen Norman Group research and
+  the academic and practitioner literature.
+keywords:
+- b2c_product
+- design-thinking
+- ethnography
+- consumer-discovery
+- user-research
+permalink: pearl/compound/research/b2c-product/design-thinking-ethnographic-research
 ---
 
 # Design Thinking & Ethnographic Research for Consumer Product Discovery

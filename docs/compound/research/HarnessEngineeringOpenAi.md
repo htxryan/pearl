@@ -1,3 +1,9 @@
+---
+title: HarnessEngineeringOpenAi
+type: note
+permalink: pearl/compound/research/harness-engineering-open-ai
+---
+
 # Harness engineering: leveraging Codex in an agent-first world
 
 *Enforcing architecture and taste*

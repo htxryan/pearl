@@ -1,3 +1,9 @@
+---
+title: beads-gui
+type: note
+permalink: pearl/specs/beads-gui
+---
+
 # Beads GUI — System Specification
 
 **Version**: 1.1 (post-advisory)  

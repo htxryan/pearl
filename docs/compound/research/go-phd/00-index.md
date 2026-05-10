@@ -1,3 +1,9 @@
+---
+title: 00-index
+type: note
+permalink: pearl/compound/research/go-phd/00-index
+---
+
 # Go's Architecture of Deliberate Constraints
 
 *A PhD-Level Survey of the Go Programming Language*

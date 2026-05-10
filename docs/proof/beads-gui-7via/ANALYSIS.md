@@ -1,3 +1,9 @@
+---
+title: ANALYSIS
+type: note
+permalink: pearl/proof/beads-gui-7via/analysis
+---
+
 # Prove It: Page Transitions & Route Animations (beads-gui-7via)
 
 ## Summary

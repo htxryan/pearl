@@ -1,3 +1,9 @@
+---
+title: 04-garbage-collector
+type: note
+permalink: pearl/compound/research/go-phd/04-garbage-collector
+---
+
 # Go's Garbage Collector: Engineering Ultra-Low-Latency GC Without Generational Collection
 
 *2026-03-09*

@@ -1,8 +1,17 @@
 ---
-title: "Responsive and Adaptive Design for Web Applications"
+title: Responsive and Adaptive Design for Web Applications
 date: 2026-03-25
-summary: "Surveys the full landscape of responsive and adaptive web design from Ethan Marcotte's 2010 three-pillar formulation through container queries, intrinsic design, fluid sizing functions, preference-based media queries, server-side adaptation via User-Agent Client Hints, and emerging foldable-device APIs."
-keywords: [web-apps, responsive-design, container-queries, intrinsic-design, progressive-enhancement]
+summary: Surveys the full landscape of responsive and adaptive web design from Ethan
+  Marcotte's 2010 three-pillar formulation through container queries, intrinsic design,
+  fluid sizing functions, preference-based media queries, server-side adaptation via
+  User-Agent Client Hints, and emerging foldable-device APIs.
+keywords:
+- web-apps
+- responsive-design
+- container-queries
+- intrinsic-design
+- progressive-enhancement
+permalink: pearl/compound/research/design/web-apps/responsive-and-adaptive-design
 ---
 
 # Responsive and Adaptive Design for Web Applications

@@ -1,3 +1,9 @@
+---
+title: 02-tokens
+type: note
+permalink: pearl/design-system/02-tokens
+---
+
 # 02 — Tokens
 
 The atomic layer. Every visual property in Pearl resolves to a token. This is the constrained decision space: pick from these scales; don't invent one-offs.

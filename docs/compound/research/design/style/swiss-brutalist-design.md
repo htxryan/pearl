@@ -1,8 +1,20 @@
 ---
-title: "Swiss Brutalist Design: A Comprehensive Survey"
+title: 'Swiss Brutalist Design: A Comprehensive Survey'
 date: 2026-02-22
-summary: "Examines Swiss Brutalist Design at the intersection of Swiss International Typographic Style and Brutalism—tracing lineage from Emil Ruder and Muller-Brockmann through the Smithsons' architectural \"as found\" material honesty to contemporary syntheses by Experimental Jetset and Wolfgang Weingart. Catalogs specific typographic, chromatic, spatial, and compositional parameters across four sub-approaches: Orthodox Swiss Brutalism, Neo-Brutalist Expressionism, Systematic Minimalism, and Typographic Brutalism."
-keywords: [design, swiss-brutalism, brutalism, typography, graphic-design]
+summary: 'Examines Swiss Brutalist Design at the intersection of Swiss International
+  Typographic Style and Brutalism—tracing lineage from Emil Ruder and Muller-Brockmann
+  through the Smithsons'' architectural "as found" material honesty to contemporary
+  syntheses by Experimental Jetset and Wolfgang Weingart. Catalogs specific typographic,
+  chromatic, spatial, and compositional parameters across four sub-approaches: Orthodox
+  Swiss Brutalism, Neo-Brutalist Expressionism, Systematic Minimalism, and Typographic
+  Brutalism.'
+keywords:
+- design
+- swiss-brutalism
+- brutalism
+- typography
+- graphic-design
+permalink: pearl/compound/research/design/style/swiss-brutalist-design
 ---
 
 # Swiss Brutalist Design: A Comprehensive Survey

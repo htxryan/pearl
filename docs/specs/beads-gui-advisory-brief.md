@@ -1,3 +1,9 @@
+---
+title: beads-gui-advisory-brief
+type: note
+permalink: pearl/specs/beads-gui-advisory-brief
+---
+
 # Advisory Fleet Brief — Beads GUI
 
 **Advisors consulted**: Security & Reliability, Scalability & Performance, Organizational & Delivery, Simplicity & Alternatives (all via Claude Sonnet 4.6)  

@@ -2,6 +2,7 @@
 spec: marketing-site
 generated: 2026-04-29
 phase: architect-gate-2
+permalink: pearl/specs/marketing-site-advisory-brief
 ---
 
 # Advisory Fleet Brief — Pearl Marketing Site

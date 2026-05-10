@@ -1,3 +1,9 @@
+---
+title: 001-dolt-embedded-mode
+type: note
+permalink: pearl/adr/001-dolt-embedded-mode
+---
+
 # ADR-001: Dolt Embedded Mode with Replica
 
 ## Status

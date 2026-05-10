@@ -1,3 +1,9 @@
+---
+title: proof
+type: note
+permalink: pearl/proof/beads-gui-wanj/proof
+---
+
 # Proof: Pearl-managed Dolt migration works end-to-end
 
 **Bead:** `beads-gui-wanj`

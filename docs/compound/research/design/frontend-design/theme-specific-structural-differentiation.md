@@ -1,8 +1,18 @@
 ---
 title: Theme-Specific Structural Differentiation in Multi-Theme Websites
 date: 2026-02-23
-summary: "Examines how multi-theme websites achieve structurally distinct \"worlds\"—brutalist and luxury aesthetics—through layout grids, hero compositions, navigation behaviors, card geometry, and interaction patterns rather than font and color substitutions alone. Identifies three approach families: token-centric theming, component-level structural theming, and world-model theming."
-keywords: [design, theming, design-systems, brutalism, luxury-design]
+summary: 'Examines how multi-theme websites achieve structurally distinct "worlds"—brutalist
+  and luxury aesthetics—through layout grids, hero compositions, navigation behaviors,
+  card geometry, and interaction patterns rather than font and color substitutions
+  alone. Identifies three approach families: token-centric theming, component-level
+  structural theming, and world-model theming.'
+keywords:
+- design
+- theming
+- design-systems
+- brutalism
+- luxury-design
+permalink: pearl/compound/research/design/frontend-design/theme-specific-structural-differentiation
 ---
 
 # Theme-Specific Structural Differentiation in Multi‑Theme Websites

@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-fca/proof
+---
+
 # Proof: beads-gui-fca — Issue dependency autocomplete search
 
 ## Summary

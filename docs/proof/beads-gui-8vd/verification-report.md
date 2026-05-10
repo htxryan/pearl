@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-8vd/verification-report
+---
+
 # Verification Report: UX Excellence (beads-gui-8vd)
 
 **Date**: 2026-04-12

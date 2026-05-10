@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-v72/proof
+---
+
 # Proof: beads-gui-v72 — Accessible focus management on route changes
 
 ## Evidence

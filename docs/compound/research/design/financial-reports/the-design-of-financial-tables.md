@@ -1,8 +1,17 @@
 ---
-title: "The Design of Financial Tables"
+title: The Design of Financial Tables
 date: 2026-03-19
-summary: "Synthesises the design literature spanning traditional typography, HCI research, LaTeX package documentation, and financial publishing practice into a unified framework for financial table design covering typographic treatment, structural grammar, and visual hierarchy."
-keywords: [design, financial-reports, tables, typography, visual-hierarchy]
+summary: Synthesises the design literature spanning traditional typography, HCI research,
+  LaTeX package documentation, and financial publishing practice into a unified framework
+  for financial table design covering typographic treatment, structural grammar, and
+  visual hierarchy.
+keywords:
+- design
+- financial-reports
+- tables
+- typography
+- visual-hierarchy
+permalink: pearl/compound/research/design/financial-reports/the-design-of-financial-tables
 ---
 
 # The Design of Financial Tables

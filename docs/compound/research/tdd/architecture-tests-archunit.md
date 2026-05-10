@@ -1,9 +1,18 @@
 ---
-title: "Architecture Tests: Expressing Architectural Invariants as Executable Tests"
+title: 'Architecture Tests: Expressing Architectural Invariants as Executable Tests'
 date: 2026-04-10
-summary: >
-  Survey of architecture testing tools that convert structural rules into executable test assertions, covering ArchUnit, fitness functions, and counterparts across Java, Python, TypeScript, and Go ecosystems.
-keywords: [test-driven-development, architecture-tests, archunit, fitness-functions, dependency-analysis]
+summary: 'Survey of architecture testing tools that convert structural rules into
+  executable test assertions, covering ArchUnit, fitness functions, and counterparts
+  across Java, Python, TypeScript, and Go ecosystems.
+
+  '
+keywords:
+- test-driven-development
+- architecture-tests
+- archunit
+- fitness-functions
+- dependency-analysis
+permalink: pearl/compound/research/tdd/architecture-tests-archunit
 ---
 
 # Architecture Tests: Expressing Architectural Invariants as Executable Tests

@@ -1,3 +1,9 @@
+---
+title: overview
+type: note
+permalink: pearl/compound/research/security/overview
+---
+
 # Security Review Overview
 
 *February 23, 2026*

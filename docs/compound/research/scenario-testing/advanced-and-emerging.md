@@ -1,3 +1,9 @@
+---
+title: advanced-and-emerging
+type: note
+permalink: pearl/compound/research/scenario-testing/advanced-and-emerging
+---
+
 # Scenario Testing for CS Development: Advanced & Emerging Techniques
 
 *2026-03-07*

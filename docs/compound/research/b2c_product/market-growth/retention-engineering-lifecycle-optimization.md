@@ -1,8 +1,18 @@
 ---
 title: Retention Engineering & Lifecycle Optimization
 date: 2026-03-18
-summary: Retention engineering has emerged as the dominant paradigm for sustainable product growth, displacing the acquisition-first models that characterized the previous decade of mobile and SaaS expansion. This paper surveys measurement science, behavioral economics, machine learning, and lifecycle communication frameworks for maximizing the fraction of acquired users who continue deriving value over time.
-keywords: [b2c_product, retention, lifecycle-optimization, churn, user-engagement]
+summary: Retention engineering has emerged as the dominant paradigm for sustainable
+  product growth, displacing the acquisition-first models that characterized the previous
+  decade of mobile and SaaS expansion. This paper surveys measurement science, behavioral
+  economics, machine learning, and lifecycle communication frameworks for maximizing
+  the fraction of acquired users who continue deriving value over time.
+keywords:
+- b2c_product
+- retention
+- lifecycle-optimization
+- churn
+- user-engagement
+permalink: pearl/compound/research/b2c-product/market-growth/retention-engineering-lifecycle-optimization
 ---
 
 # Retention Engineering & Lifecycle Optimization

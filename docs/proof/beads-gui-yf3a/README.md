@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/proof/beads-gui-yf3a/readme
+---
+
 # Proof — shadcn/ui + BaseUI primitive migration
 
 **Meta-epic**: `beads-gui-yf3a` — *Adopt shadcn/ui with BaseUI primitives*

@@ -1,3 +1,9 @@
+---
+title: template
+type: note
+permalink: pearl/adr/template
+---
+
 # ADR-NNN: Title
 
 ## Status

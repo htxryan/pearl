@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-08z/evidence
+---
+
 # Proof: Config + Mode Detection Verification (beads-gui-08z)
 
 **Date**: 2026-04-12

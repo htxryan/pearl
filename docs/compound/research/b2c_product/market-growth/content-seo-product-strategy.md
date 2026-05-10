@@ -1,8 +1,19 @@
 ---
-title: "Content and SEO as Product Strategy"
+title: Content and SEO as Product Strategy
 date: 2026-03-21
-summary: A comprehensive survey of content-led acquisition strategies in which content or search-engine-optimized pages function as the product itself, covering programmatic SEO at scale, template-driven growth, the tool-as-content pattern, user-generated content flywheels, and the structural conditions under which SEO constitutes a durable competitive moat for indie and bootstrapped products.
-keywords: [b2c_product, programmatic-seo, content-led-growth, seo-moat, tool-as-content, template-growth]
+summary: A comprehensive survey of content-led acquisition strategies in which content
+  or search-engine-optimized pages function as the product itself, covering programmatic
+  SEO at scale, template-driven growth, the tool-as-content pattern, user-generated
+  content flywheels, and the structural conditions under which SEO constitutes a durable
+  competitive moat for indie and bootstrapped products.
+keywords:
+- b2c_product
+- programmatic-seo
+- content-led-growth
+- seo-moat
+- tool-as-content
+- template-growth
+permalink: pearl/compound/research/b2c-product/market-growth/content-seo-product-strategy
 ---
 
 # Content and SEO as Product Strategy

@@ -1,8 +1,20 @@
 ---
-title: "Visual Brand Identity at Speed for B2C Product Innovation"
+title: Visual Brand Identity at Speed for B2C Product Innovation
 date: 2026-03-21
-summary: "Surveys the theory, tooling, and practice of creating professional visual brand systems rapidly for B2C products. Covers color theory for brand perception, typography selection for digital products, logo design at indie scale, brand system architecture (tokens, components, guidelines), AI-powered brand generation, cross-touchpoint coherence, and the one-person company visual strategy. Synthesizes academic research on visual cognition and brand formation with practical frameworks for solo builders and small teams."
-keywords: [b2c_product, visual-brand-identity, brand-design, ai-branding, indie-brand]
+summary: Surveys the theory, tooling, and practice of creating professional visual
+  brand systems rapidly for B2C products. Covers color theory for brand perception,
+  typography selection for digital products, logo design at indie scale, brand system
+  architecture (tokens, components, guidelines), AI-powered brand generation, cross-touchpoint
+  coherence, and the one-person company visual strategy. Synthesizes academic research
+  on visual cognition and brand formation with practical frameworks for solo builders
+  and small teams.
+keywords:
+- b2c_product
+- visual-brand-identity
+- brand-design
+- ai-branding
+- indie-brand
+permalink: pearl/compound/research/b2c-product/visual-brand-identity-at-speed
 ---
 
 # Visual Brand Identity at Speed for B2C Product Innovation

@@ -1,3 +1,9 @@
+---
+title: dolt-mode-abstraction
+type: note
+permalink: pearl/specs/dolt-mode-abstraction
+---
+
 # Dolt Mode Abstraction — System Specification
 
 > **Note**: Embedded mode has been deprecated. See [ADR-006](../adr/006-deprecate-embedded-mode.md).

@@ -1,3 +1,9 @@
+---
+title: architecture
+type: note
+permalink: pearl/architecture
+---
+
 # Architecture
 
 Pearl is a pnpm monorepo with three packages that together provide a rich web UI for the Beads issue tracker.

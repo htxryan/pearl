@@ -1,8 +1,18 @@
 ---
 title: Consumer Behavioral Psychology for B2C Digital Product Design
 date: 2026-03-18
-summary: Maps seven major behavioral psychology frameworks—Fogg Behavior Model, Habit Loop and Hook Model, Self-Determination Theory, Identity Economics, Loss Aversion, Variable Reinforcement, and Social Proof—against practical design problems in consumer software. Surfaces a recurring tension between effective short-run engagement mechanisms and long-run user trust.
-keywords: [b2c_product, consumer-psychology, behavior-design, habit-formation, engagement]
+summary: Maps seven major behavioral psychology frameworks—Fogg Behavior Model, Habit
+  Loop and Hook Model, Self-Determination Theory, Identity Economics, Loss Aversion,
+  Variable Reinforcement, and Social Proof—against practical design problems in consumer
+  software. Surfaces a recurring tension between effective short-run engagement mechanisms
+  and long-run user trust.
+keywords:
+- b2c_product
+- consumer-psychology
+- behavior-design
+- habit-formation
+- engagement
+permalink: pearl/compound/research/b2c-product/consumer-behavioral-psychology
 ---
 
 # Consumer Behavioral Psychology for B2C Digital Product Design

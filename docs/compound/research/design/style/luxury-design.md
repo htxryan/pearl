@@ -1,8 +1,19 @@
 ---
-title: "Luxury Design Style: A Comprehensive Survey"
+title: 'Luxury Design Style: A Comprehensive Survey'
 date: 2026-02-22
-summary: "Surveys luxury design as a codified visual language shaped by European court culture, artisanal craft, and modern brand strategy—drawing on Barthes, Baudrillard, Bourdieu, Veblen, and Kapferer—across a six-category taxonomy: heritage, fashion-forward, quiet luxury, experiential, contemporary minimalist, and artisanal/craft. Provides exact specifications including font families, tracking values, color hex codes, whitespace ratios, and finishing techniques."
-keywords: [design, luxury-design, brand-design, typography, visual-identity]
+summary: 'Surveys luxury design as a codified visual language shaped by European court
+  culture, artisanal craft, and modern brand strategy—drawing on Barthes, Baudrillard,
+  Bourdieu, Veblen, and Kapferer—across a six-category taxonomy: heritage, fashion-forward,
+  quiet luxury, experiential, contemporary minimalist, and artisanal/craft. Provides
+  exact specifications including font families, tracking values, color hex codes,
+  whitespace ratios, and finishing techniques.'
+keywords:
+- design
+- luxury-design
+- brand-design
+- typography
+- visual-identity
+permalink: pearl/compound/research/design/style/luxury-design
 ---
 
 # Luxury Design Style: A Comprehensive Survey

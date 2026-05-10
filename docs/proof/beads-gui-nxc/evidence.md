@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-nxc/evidence
+---
+
 # Proof: Embedded Replica Sync Verification
 
 **Epic**: beads-gui-nxc  

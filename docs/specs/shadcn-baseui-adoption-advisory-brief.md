@@ -1,3 +1,9 @@
+---
+title: shadcn-baseui-adoption-advisory-brief
+type: note
+permalink: pearl/specs/shadcn-baseui-adoption-advisory-brief
+---
+
 # Advisory Brief — shadcn/BaseUI Adoption Spec
 
 *2026-04-25 · Architect Phase 2 · External advisory fleet output*

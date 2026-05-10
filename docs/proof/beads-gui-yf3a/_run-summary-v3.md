@@ -1,3 +1,9 @@
+---
+title: _run-summary-v3
+type: note
+permalink: pearl/proof/beads-gui-yf3a/run-summary-v3
+---
+
 # Proof-it run summary (v3) — focused gaps fix
 
 Date: 2026-04-25T23:49:53.284Z

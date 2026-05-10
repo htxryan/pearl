@@ -1,3 +1,9 @@
+---
+title: 002-react19-vite-frontend
+type: note
+permalink: pearl/adr/002-react19-vite-frontend
+---
+
 # ADR-002: React 19 + Vite Frontend SPA
 
 ## Status

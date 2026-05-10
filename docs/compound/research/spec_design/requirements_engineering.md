@@ -1,3 +1,9 @@
+---
+title: requirements_engineering
+type: note
+permalink: pearl/compound/research/spec-design/requirements-engineering
+---
+
 # Requirements Engineering as a Discipline
 
 *25 February 2026*

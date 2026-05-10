@@ -1,3 +1,9 @@
+---
+title: troubleshooting
+type: note
+permalink: pearl/troubleshooting
+---
+
 # Troubleshooting
 
 Common issues and solutions for Pearl and the Beads issue tracker.

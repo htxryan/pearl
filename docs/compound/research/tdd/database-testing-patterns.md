@@ -1,9 +1,18 @@
 ---
-title: "Database Testing Patterns: Isolation, Migration, and Test Data Management"
+title: 'Database Testing Patterns: Isolation, Migration, and Test Data Management'
 date: 2026-04-10
-summary: >
-  Survey of patterns for testing relational databases with high fidelity and fast feedback, covering isolation strategies, migration testing, test data management, and execution infrastructure including Testcontainers and template databases.
-keywords: [test-driven-development, database-testing, isolation, migration, testcontainers]
+summary: 'Survey of patterns for testing relational databases with high fidelity and
+  fast feedback, covering isolation strategies, migration testing, test data management,
+  and execution infrastructure including Testcontainers and template databases.
+
+  '
+keywords:
+- test-driven-development
+- database-testing
+- isolation
+- migration
+- testcontainers
+permalink: pearl/compound/research/tdd/database-testing-patterns
 ---
 
 # Database Testing Patterns: Isolation, Migration, and Test Data Management

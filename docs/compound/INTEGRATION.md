@@ -1,7 +1,8 @@
 ---
-version: "2.7.1"
-last-updated: "2026-04-10"
-summary: "Memory system, hooks, beads integration, and agent guidance"
+version: 2.7.1
+last-updated: '2026-04-10'
+summary: Memory system, hooks, beads integration, and agent guidance
+permalink: pearl/compound/integration
 ---
 
 # Integration

@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-sh4/proof
+---
+
 # Proof: beads-gui-sh4 — Confirmation dialogs for destructive actions
 
 ## Evidence

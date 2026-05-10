@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-zr5/verification-report
+---
+
 # E4: Issue Detail Panel - Verification Report
 
 **Epic**: beads-gui-zr5 (E4: Issue Detail Panel)

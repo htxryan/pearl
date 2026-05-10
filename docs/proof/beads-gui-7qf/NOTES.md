@@ -1,3 +1,9 @@
+---
+title: NOTES
+type: note
+permalink: pearl/proof/beads-gui-7qf/notes
+---
+
 # Proof: beads-gui-7qf — Mobile Responsive Layout
 
 ## Evidence Summary

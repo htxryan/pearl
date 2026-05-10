@@ -1,3 +1,9 @@
+---
+title: data-model
+type: note
+permalink: pearl/data-model
+---
+
 # Data Model
 
 Pearl stores data in [Dolt](https://www.dolthub.com/), a MySQL-compatible database with Git-like version control. The schema is created by the `bd` CLI; Pearl extends it with additional columns and tables as needed.
