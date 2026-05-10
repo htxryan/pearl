@@ -1,3 +1,9 @@
+---
+title: 06-accessibility
+type: note
+permalink: pearl/design-system/06-accessibility
+---
+
 # 06 — Accessibility
 
 Accessibility is a design property, not an audit step. If it's not designed in from the token layer up, no amount of ARIA will make the UI usable. Pearl aims for WCAG 2.2 AA across the product, with higher bars for keyboard ergonomics.

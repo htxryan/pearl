@@ -1,3 +1,9 @@
+---
+title: post-launch-monitoring
+type: note
+permalink: pearl/runbooks/post-launch-monitoring
+---
+
 # Post-Launch Monitoring Runbook (E5)
 
 > Bead: `beads-gui-etar` — Marketing site E5: Launch & integration verification (IV)

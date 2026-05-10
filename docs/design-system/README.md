@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/design-system/readme
+---
+
 # Pearl Design System
 
 This is the source of truth for how Pearl looks, moves, and feels. It exists so the product stays coherent as features accumulate and so anyone — human or agent — can make a change without first guessing the rules.

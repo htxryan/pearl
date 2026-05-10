@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-5uz/verification-report
+---
+
 # E7: Integration Verification - Verification Report
 
 **Epic**: beads-gui-5uz (E7: Integration Verification)

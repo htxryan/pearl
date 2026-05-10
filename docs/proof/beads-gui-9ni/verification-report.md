@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-9ni/verification-report
+---
+
 # E3: Issue List View - Verification Report
 
 **Epic**: beads-gui-9ni (E3: Issue List View)

@@ -1,8 +1,23 @@
 ---
-title: "Landing Page & Conversion Science for B2C Product Innovation"
+title: Landing Page & Conversion Science for B2C Product Innovation
 date: 2026-03-21
-summary: "A comprehensive survey of the theoretical foundations, empirical evidence, and practitioner tooling behind landing page conversion optimization for B2C products. Covers above-the-fold psychology, CTA design, social proof, pricing page architecture, hero section patterns, low-traffic experimentation, mobile-first design, form friction reduction, trust signals, and rapid page creation frameworks."
-keywords: [b2c_product, landing-page, conversion-science, cta-design, social-proof, pricing-page, ab-testing, mobile-first, persuasion-psychology, ux-writing]
+summary: A comprehensive survey of the theoretical foundations, empirical evidence,
+  and practitioner tooling behind landing page conversion optimization for B2C products.
+  Covers above-the-fold psychology, CTA design, social proof, pricing page architecture,
+  hero section patterns, low-traffic experimentation, mobile-first design, form friction
+  reduction, trust signals, and rapid page creation frameworks.
+keywords:
+- b2c_product
+- landing-page
+- conversion-science
+- cta-design
+- social-proof
+- pricing-page
+- ab-testing
+- mobile-first
+- persuasion-psychology
+- ux-writing
+permalink: pearl/compound/research/b2c-product/landing-page-conversion-science
 ---
 
 # Landing Page & Conversion Science for B2C Product Innovation

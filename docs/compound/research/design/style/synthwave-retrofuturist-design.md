@@ -1,8 +1,19 @@
 ---
-title: "Synthwave Retro-Futurist Design: A Comprehensive Survey"
+title: 'Synthwave Retro-Futurist Design: A Comprehensive Survey'
 date: 2026-02-22
-summary: Surveys synthwave retro-futurism—reconstructing the imagined futures of the 1980s through neon cityscapes, perspective grids, chrome typography, and saturated gradients—tracing its lineage from Miami Vice, Blade Runner, and Memphis Design through Fisher, Reynolds, and Tanner's nostalgia-cycle theories. Establishes a six-sub-approach taxonomy (Outrun/Retrowave, Synthwave Noir, Vaporwave, Neon Minimalism, Cyberpunk Fusion, Retro-Tech) with precise design specifications.
-keywords: [design, synthwave, retrofuturism, visual-culture, aesthetic-movements]
+summary: Surveys synthwave retro-futurism—reconstructing the imagined futures of the
+  1980s through neon cityscapes, perspective grids, chrome typography, and saturated
+  gradients—tracing its lineage from Miami Vice, Blade Runner, and Memphis Design
+  through Fisher, Reynolds, and Tanner's nostalgia-cycle theories. Establishes a six-sub-approach
+  taxonomy (Outrun/Retrowave, Synthwave Noir, Vaporwave, Neon Minimalism, Cyberpunk
+  Fusion, Retro-Tech) with precise design specifications.
+keywords:
+- design
+- synthwave
+- retrofuturism
+- visual-culture
+- aesthetic-movements
+permalink: pearl/compound/research/design/style/synthwave-retrofuturist-design
 ---
 
 # Synthwave Retro-Futurist Design: A Comprehensive Survey

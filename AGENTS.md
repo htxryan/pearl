@@ -136,3 +136,7 @@ Use CLI (`ca learn`) — never manual edits.
 
 See [documentation](https://github.com/Nathandela/compound-agent) for more details.
 <!-- compound-agent:end -->
+
+## Basic Memory
+
+This repository is registered with [Basic Memory](https://docs.basicmemory.com/) under project **`pearl`** (notes in `docs/`). Use the `basic-memory` MCP server (configured at the user level for Claude Code and Codex CLI) to search, read, and write structured notes for this project.

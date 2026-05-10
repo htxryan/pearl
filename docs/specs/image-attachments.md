@@ -1,3 +1,9 @@
+---
+title: image-attachments
+type: note
+permalink: pearl/specs/image-attachments
+---
+
 # Image Attachments — System Specification
 
 **Version**: 1.1 (post-advisory, pre-Gate-2)

@@ -1,3 +1,9 @@
+---
+title: natural_language_formal_semantics_abuguity_in_specifications
+type: note
+permalink: pearl/compound/research/spec-design/natural-language-formal-semantics-abuguity-in-specifications
+---
+
 # Natural Language, Formal Semantics, and Ambiguity in Specifications
 
 *25 February 2026*

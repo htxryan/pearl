@@ -1,3 +1,9 @@
+---
+title: auth-patterns
+type: note
+permalink: pearl/compound/research/security/auth-patterns
+---
+
 # Authentication & Authorization Patterns
 
 *February 23, 2026*

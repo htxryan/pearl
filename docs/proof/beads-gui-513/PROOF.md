@@ -1,3 +1,9 @@
+---
+title: PROOF
+type: note
+permalink: pearl/proof/beads-gui-513/proof
+---
+
 # Proof: beads-gui-513 — Comprehensive error boundary with retry
 
 ## Evidence

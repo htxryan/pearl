@@ -1,3 +1,9 @@
+---
+title: index
+type: note
+permalink: pearl/research/index
+---
+
 # Research Index
 
 Research surveys produced by `/compound:get-a-phd` and the `compound:research` skill. Stored here so future sessions can find prior work without re-running expensive research.

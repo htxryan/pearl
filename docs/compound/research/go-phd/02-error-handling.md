@@ -1,3 +1,9 @@
+---
+title: 02-error-handling
+type: note
+permalink: pearl/compound/research/go-phd/02-error-handling
+---
+
 # Go's Error Handling: Explicit Returns vs the World
 
 *2026-03-09*

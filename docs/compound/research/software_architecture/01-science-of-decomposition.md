@@ -1,3 +1,9 @@
+---
+title: 01-science-of-decomposition
+type: note
+permalink: pearl/compound/research/software-architecture/01-science-of-decomposition
+---
+
 # The Science of Software Decomposition: A PhD-Level Survey
 
 *March 2026*

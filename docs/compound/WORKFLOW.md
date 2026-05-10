@@ -1,7 +1,8 @@
 ---
-version: "2.7.1"
-last-updated: "2026-04-10"
-summary: "The 5-phase compound-agent workflow and cook-it orchestrator"
+version: 2.7.1
+last-updated: '2026-04-10'
+summary: The 5-phase compound-agent workflow and cook-it orchestrator
+permalink: pearl/compound/workflow
 ---
 
 # Workflow

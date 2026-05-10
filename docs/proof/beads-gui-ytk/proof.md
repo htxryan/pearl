@@ -1,3 +1,9 @@
+---
+title: proof
+type: note
+permalink: pearl/proof/beads-gui-ytk/proof
+---
+
 # Proof: E2E Write Tests — Dual Mode (beads-gui-ytk)
 
 ## Summary

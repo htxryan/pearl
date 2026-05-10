@@ -1,3 +1,9 @@
+---
+title: image-attachments-advisory-brief
+type: note
+permalink: pearl/specs/image-attachments-advisory-brief
+---
+
 # Image Attachments — Advisory Brief
 
 **Date**: 2026-04-19

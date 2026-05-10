@@ -1,8 +1,16 @@
 ---
-title: "Financial Data Visualization for Investment Vehicle Factsheets"
+title: Financial Data Visualization for Investment Vehicle Factsheets
 date: 2026-03-19
-summary: "Synthesizes academic research across nine domains relevant to factsheet visualization including performance charts, risk visualization, and evidence-based chart selection grounded in perceptual psychology."
-keywords: [design, financial-reports, data-visualization, factsheets, perceptual-psychology]
+summary: Synthesizes academic research across nine domains relevant to factsheet visualization
+  including performance charts, risk visualization, and evidence-based chart selection
+  grounded in perceptual psychology.
+keywords:
+- design
+- financial-reports
+- data-visualization
+- factsheets
+- perceptual-psychology
+permalink: pearl/compound/research/design/financial-reports/financial-data-visualisation-for-investment-vehicle-factsheets
 ---
 
 # Financial Data Visualization for Investment Vehicle Factsheets

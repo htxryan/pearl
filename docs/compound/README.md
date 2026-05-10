@@ -1,7 +1,8 @@
 ---
-version: "2.7.1"
-last-updated: "2026-04-10"
-summary: "Overview and getting started guide for compound-agent"
+version: 2.7.1
+last-updated: '2026-04-10'
+summary: Overview and getting started guide for compound-agent
+permalink: pearl/compound/readme
 ---
 
 # Compound Agent

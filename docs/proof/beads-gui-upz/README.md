@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/proof/beads-gui-upz/readme
+---
+
 # Proof: beads-gui-upz - Epic hierarchy bug fix
 
 ## Bug

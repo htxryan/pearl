@@ -1,8 +1,19 @@
 ---
-title: "Product-Led Growth (PLG): Mechanisms, Frameworks, and Empirical Evidence"
+title: 'Product-Led Growth (PLG): Mechanisms, Frameworks, and Empirical Evidence'
 date: 2026-03-18
-summary: Product-led growth is a go-to-market strategy in which the product itself serves as the primary vehicle for customer acquisition, activation, retention, and expansion, supplanting or supplementing traditional sales and marketing functions. This paper surveys theoretical foundations, empirical evidence, and practitioner frameworks across a six-motion PLG taxonomy including freemium, open-source-led, usage-based, and product-led sales hybrid models.
-keywords: [b2c_product, product-led-growth, plg, freemium, saas]
+summary: Product-led growth is a go-to-market strategy in which the product itself
+  serves as the primary vehicle for customer acquisition, activation, retention, and
+  expansion, supplanting or supplementing traditional sales and marketing functions.
+  This paper surveys theoretical foundations, empirical evidence, and practitioner
+  frameworks across a six-motion PLG taxonomy including freemium, open-source-led,
+  usage-based, and product-led sales hybrid models.
+keywords:
+- b2c_product
+- product-led-growth
+- plg
+- freemium
+- saas
+permalink: pearl/compound/research/b2c-product/market-growth/product-led-growth
 ---
 
 # Product-Led Growth (PLG): Mechanisms, Frameworks, and Empirical Evidence

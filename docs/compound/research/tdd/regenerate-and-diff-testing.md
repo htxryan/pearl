@@ -1,9 +1,19 @@
 ---
-title: "Regenerate-and-Diff: Enforcing Source-of-Truth Synchronization Through Generative Testing"
+title: 'Regenerate-and-Diff: Enforcing Source-of-Truth Synchronization Through Generative
+  Testing'
 date: 2026-04-10
-summary: >
-  Survey of the regenerate-and-diff testing pattern that enforces synchronization between generated artifacts and their authoritative sources, covering its instantiations across code generation, infrastructure tooling, and API development.
-keywords: [test-driven-development, regenerate-and-diff, snapshot-testing, code-generation, synchronization]
+summary: 'Survey of the regenerate-and-diff testing pattern that enforces synchronization
+  between generated artifacts and their authoritative sources, covering its instantiations
+  across code generation, infrastructure tooling, and API development.
+
+  '
+keywords:
+- test-driven-development
+- regenerate-and-diff
+- snapshot-testing
+- code-generation
+- synchronization
+permalink: pearl/compound/research/tdd/regenerate-and-diff-testing
 ---
 
 # Regenerate-and-Diff: Enforcing Source-of-Truth Synchronization Through Generative Testing

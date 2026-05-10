@@ -1,8 +1,18 @@
 ---
-title: "Positioning Theory & Category Design for B2C Product Innovation"
+title: Positioning Theory & Category Design for B2C Product Innovation
 date: 2026-03-21
-summary: A comprehensive survey of positioning theory from Ries & Trout's classical foundations through April Dunford's "Obviously Awesome" framework, Play Bigger category design, Ehrenberg-Bass mental availability, naming science, and perceptual mapping -- examining how B2C products carve mental real estate against incumbents, with comparative synthesis and open problems including AI-mediated brand discovery.
-keywords: [b2c_product, positioning-theory, category-design, brand-positioning, naming-science]
+summary: A comprehensive survey of positioning theory from Ries & Trout's classical
+  foundations through April Dunford's "Obviously Awesome" framework, Play Bigger category
+  design, Ehrenberg-Bass mental availability, naming science, and perceptual mapping
+  -- examining how B2C products carve mental real estate against incumbents, with
+  comparative synthesis and open problems including AI-mediated brand discovery.
+keywords:
+- b2c_product
+- positioning-theory
+- category-design
+- brand-positioning
+- naming-science
+permalink: pearl/compound/research/b2c-product/positioning-theory-category-design
 ---
 
 # Positioning Theory & Category Design for B2C Product Innovation

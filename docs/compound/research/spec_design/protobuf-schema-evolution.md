@@ -1,9 +1,19 @@
 ---
-title: "Schema Evolution and Breaking Change Detection: From Protobuf to Universal API Contracts"
+title: 'Schema Evolution and Breaking Change Detection: From Protobuf to Universal
+  API Contracts'
 date: 2026-04-10
-summary: >
-  Survey of static breaking change detection across schema-driven API technologies including Protobuf (Buf), OpenAPI, GraphQL, Avro, and Thrift, covering compatibility theory, migration patterns, and automated enforcement in CI/CD pipelines.
-keywords: [spec-design, schema-evolution, protobuf, breaking-changes, api-contracts]
+summary: 'Survey of static breaking change detection across schema-driven API technologies
+  including Protobuf (Buf), OpenAPI, GraphQL, Avro, and Thrift, covering compatibility
+  theory, migration patterns, and automated enforcement in CI/CD pipelines.
+
+  '
+keywords:
+- spec-design
+- schema-evolution
+- protobuf
+- breaking-changes
+- api-contracts
+permalink: pearl/compound/research/spec-design/protobuf-schema-evolution
 ---
 
 # Schema Evolution and Breaking Change Detection: From Protobuf to Universal API Contracts

@@ -1,8 +1,17 @@
 ---
 title: Jobs-to-be-Done Theory for B2C Product Innovation
 date: 2026-03-18
-summary: Surveys the three principal JTBD schools—Christensen's Jobs Theory, Ulwick's Outcome-Driven Innovation, and Moesta's Switch Interview—alongside the Forces of Progress model and the debate with user-persona frameworks. Identifies where the frameworks converge, where they conflict, and what remains empirically unresolved.
-keywords: [b2c_product, jobs-to-be-done, product-innovation, customer-discovery, demand-side]
+summary: Surveys the three principal JTBD schools—Christensen's Jobs Theory, Ulwick's
+  Outcome-Driven Innovation, and Moesta's Switch Interview—alongside the Forces of
+  Progress model and the debate with user-persona frameworks. Identifies where the
+  frameworks converge, where they conflict, and what remains empirically unresolved.
+keywords:
+- b2c_product
+- jobs-to-be-done
+- product-innovation
+- customer-discovery
+- demand-side
+permalink: pearl/compound/research/b2c-product/jobs-to-be-done-theory
 ---
 
 # Jobs-to-be-Done Theory for B2C Product Innovation

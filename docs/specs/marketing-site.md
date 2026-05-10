@@ -5,6 +5,7 @@ phase: architect-decompose
 owner: htxryan
 created: 2026-04-29
 revised: 2026-04-29 (advisory amendments applied)
+permalink: pearl/specs/marketing-site
 ---
 
 # Pearl Marketing Site — System Specification

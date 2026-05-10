@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/proof/beads-gui-745/readme
+---
+
 # Proof: beads-gui-745 - Epic: P2 Polish
 
 ## Summary

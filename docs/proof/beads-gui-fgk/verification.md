@@ -1,3 +1,9 @@
+---
+title: verification
+type: note
+permalink: pearl/proof/beads-gui-fgk/verification
+---
+
 # Visual Craft Verification Evidence — beads-gui-fgk
 
 **Date**: 2026-04-11

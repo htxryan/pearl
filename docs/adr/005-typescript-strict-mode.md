@@ -1,3 +1,9 @@
+---
+title: 005-typescript-strict-mode
+type: note
+permalink: pearl/adr/005-typescript-strict-mode
+---
+
 # ADR-005: TypeScript Strict Mode Across All Packages
 
 ## Status

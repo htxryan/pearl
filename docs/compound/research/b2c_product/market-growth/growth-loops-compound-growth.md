@@ -1,8 +1,18 @@
 ---
 title: Growth Loops & Compound Growth Architecture
 date: 2026-03-18
-summary: Growth loops represent a fundamental paradigm shift from linear funnel models to closed, self-reinforcing systems in which the output of one cycle becomes the input for the next, producing compound rather than linear returns. This survey synthesizes practitioner frameworks, empirical case studies, and quantitative benchmarks across six loop architecture categories.
-keywords: [b2c_product, growth-loops, compound-growth, viral-loops, network-effects]
+summary: Growth loops represent a fundamental paradigm shift from linear funnel models
+  to closed, self-reinforcing systems in which the output of one cycle becomes the
+  input for the next, producing compound rather than linear returns. This survey synthesizes
+  practitioner frameworks, empirical case studies, and quantitative benchmarks across
+  six loop architecture categories.
+keywords:
+- b2c_product
+- growth-loops
+- compound-growth
+- viral-loops
+- network-effects
+permalink: pearl/compound/research/b2c-product/market-growth/growth-loops-compound-growth
 ---
 
 # Growth Loops & Compound Growth Architecture

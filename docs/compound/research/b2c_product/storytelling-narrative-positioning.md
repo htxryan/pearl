@@ -1,8 +1,20 @@
 ---
-title: "Storytelling & Narrative Positioning for B2C Product Innovation"
+title: Storytelling & Narrative Positioning for B2C Product Innovation
 date: 2026-03-21
-summary: "Surveys the theoretical foundations, practitioner frameworks, and empirical evidence for storytelling and narrative positioning in B2C product innovation, covering founder stories, building-in-public, Product Hunt launch narratives, email sequence storytelling, content-as-brand strategy, and the authenticity-persuasion tension. Synthesizes narrative transportation theory, the elaboration likelihood model, and parasocial relationship research with case studies from indie founders including Pieter Levels, Sahil Lavingia, Buffer, and Basecamp."
-keywords: [b2c_product, storytelling, narrative-positioning, founder-story, building-in-public]
+summary: Surveys the theoretical foundations, practitioner frameworks, and empirical
+  evidence for storytelling and narrative positioning in B2C product innovation, covering
+  founder stories, building-in-public, Product Hunt launch narratives, email sequence
+  storytelling, content-as-brand strategy, and the authenticity-persuasion tension.
+  Synthesizes narrative transportation theory, the elaboration likelihood model, and
+  parasocial relationship research with case studies from indie founders including
+  Pieter Levels, Sahil Lavingia, Buffer, and Basecamp.
+keywords:
+- b2c_product
+- storytelling
+- narrative-positioning
+- founder-story
+- building-in-public
+permalink: pearl/compound/research/b2c-product/storytelling-narrative-positioning
 ---
 
 # Storytelling & Narrative Positioning for B2C Product Innovation

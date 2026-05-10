@@ -1,9 +1,19 @@
 ---
-title: "Accessibility and Inclusive Design for Web Applications"
+title: Accessibility and Inclusive Design for Web Applications
 date: 2026-03-25
-summary: A comprehensive survey spanning disability models, WCAG 2.2/3.0, ARIA, screen reader mechanics, keyboard navigation, cognitive and motor accessibility, automated and manual testing, legal frameworks, overlays, and inclusive design methodology.
-keywords: [web-apps, accessibility, wcag, aria, inclusive-design, cognitive-accessibility]
+summary: A comprehensive survey spanning disability models, WCAG 2.2/3.0, ARIA, screen
+  reader mechanics, keyboard navigation, cognitive and motor accessibility, automated
+  and manual testing, legal frameworks, overlays, and inclusive design methodology.
+keywords:
+- web-apps
+- accessibility
+- wcag
+- aria
+- inclusive-design
+- cognitive-accessibility
+permalink: pearl/compound/research/design/web-apps/accessibility-and-inclusive-design
 ---
+
 ```
 
 Now I'll write the body. Full paper content. Here:

@@ -1,3 +1,9 @@
+---
+title: logic_and_proof_theory_under_the_curry_howard_correspondence
+type: note
+permalink: pearl/compound/research/spec-design/logic-and-proof-theory-under-the-curry-howard-correspondence
+---
+
 # Logic and Proof Theory under the Curry–Howard Correspondence
 
 *February 25, 2026*

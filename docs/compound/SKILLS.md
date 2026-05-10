@@ -1,7 +1,8 @@
 ---
-version: "2.7.1"
-last-updated: "2026-04-10"
-summary: "Phase skills and agent role skills reference"
+version: 2.7.1
+last-updated: '2026-04-10'
+summary: Phase skills and agent role skills reference
+permalink: pearl/compound/skills
 ---
 
 # Skills Reference

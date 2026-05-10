@@ -1,3 +1,9 @@
+---
+title: 003-biome-unified-tooling
+type: note
+permalink: pearl/adr/003-biome-unified-tooling
+---
+
 # ADR-003: Biome Unified Linter and Formatter
 
 ## Status

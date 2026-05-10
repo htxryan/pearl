@@ -1,3 +1,9 @@
+---
+title: design_by_contract
+type: note
+permalink: pearl/compound/research/spec-design/design-by-contract
+---
+
 # Design by Contract and Behavioral Specification
 
 *25 February 2026*

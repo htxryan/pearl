@@ -1,3 +1,9 @@
+---
+title: domain_driven_design_strategic_modeling
+type: note
+permalink: pearl/compound/research/spec-design/domain-driven-design-strategic-modeling
+---
+
 # Domain-Driven Design Strategic Modeling: Ubiquitous Language, Bounded Contexts, and Pre‑Specification Domain Modeling
 
 *February 25, 2026*

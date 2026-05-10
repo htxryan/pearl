@@ -1,8 +1,19 @@
 ---
-title: "Content Strategy and UX Writing for Web Applications"
+title: Content Strategy and UX Writing for Web Applications
 date: 2026-03-26
-summary: "Surveys the full landscape of content strategy, UX writing, and microcopy in modern web applications—covering voice and tone systems, microcopy taxonomy, error message design, onboarding copy, behavioral science in copy, accessibility, localization, content governance, content testing, and AI-assisted content generation—synthesizing evidence from cognitive science, rhetoric, and applied design research."
-keywords: [web-apps, ux-writing, content-strategy, microcopy, error-messages, onboarding-copy]
+summary: Surveys the full landscape of content strategy, UX writing, and microcopy
+  in modern web applications—covering voice and tone systems, microcopy taxonomy,
+  error message design, onboarding copy, behavioral science in copy, accessibility,
+  localization, content governance, content testing, and AI-assisted content generation—synthesizing
+  evidence from cognitive science, rhetoric, and applied design research.
+keywords:
+- web-apps
+- ux-writing
+- content-strategy
+- microcopy
+- error-messages
+- onboarding-copy
+permalink: pearl/compound/research/design/web-apps/content-strategy-ux-writing
 ---
 
 # Content Strategy and UX Writing for Web Applications

@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-0wv/verification-report
+---
+
 # Prove It: Rock Solid Functionality Verification
 **Epic:** beads-gui-0wv
 **Date:** 2026-04-12

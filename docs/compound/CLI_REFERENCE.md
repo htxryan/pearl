@@ -1,7 +1,8 @@
 ---
-version: "2.7.1"
-last-updated: "2026-04-10"
-summary: "Complete CLI command reference for compound-agent"
+version: 2.7.1
+last-updated: '2026-04-10'
+summary: Complete CLI command reference for compound-agent
+permalink: pearl/compound/cli-reference
 ---
 
 # CLI Reference

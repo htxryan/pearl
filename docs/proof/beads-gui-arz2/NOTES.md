@@ -1,3 +1,9 @@
+---
+title: NOTES
+type: note
+permalink: pearl/proof/beads-gui-arz2/notes
+---
+
 # Proof: beads-gui-arz2 — Wire notifyCommentAdded into comment mutation hook
 
 ## Nature of Change

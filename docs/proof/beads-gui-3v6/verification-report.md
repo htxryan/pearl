@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-3v6/verification-report
+---
+
 # E5: Kanban Board View - Verification Report
 
 **Epic**: beads-gui-3v6 (E5: Kanban Board View)

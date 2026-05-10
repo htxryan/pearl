@@ -1,3 +1,9 @@
+---
+title: 05-states
+type: note
+permalink: pearl/design-system/05-states
+---
+
 # 05 — States
 
 Every data-dependent view has five possible states. Happy-path-only UIs are the single most common AI-laziness failure. This doc is the checklist and the template.

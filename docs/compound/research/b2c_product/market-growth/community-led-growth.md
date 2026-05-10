@@ -1,8 +1,18 @@
 ---
-title: "Community-Led Growth (CLG): Mechanics, Frameworks, and Evidence"
+title: 'Community-Led Growth (CLG): Mechanics, Frameworks, and Evidence'
 date: 2026-03-18
-summary: Community-Led Growth is a go-to-market and retention strategy in which an organized community of users, contributors, advocates, and peers functions as the primary engine driving customer acquisition, product adoption, and expansion. Companies with mature community programs report 21% higher revenue growth, 37% higher customer retention, and 32% lower customer acquisition costs versus comparator firms.
-keywords: [b2c_product, community-led-growth, community-building, user-communities, retention]
+summary: Community-Led Growth is a go-to-market and retention strategy in which an
+  organized community of users, contributors, advocates, and peers functions as the
+  primary engine driving customer acquisition, product adoption, and expansion. Companies
+  with mature community programs report 21% higher revenue growth, 37% higher customer
+  retention, and 32% lower customer acquisition costs versus comparator firms.
+keywords:
+- b2c_product
+- community-led-growth
+- community-building
+- user-communities
+- retention
+permalink: pearl/compound/research/b2c-product/market-growth/community-led-growth
 ---
 
 # Community-Led Growth (CLG): Mechanics, Frameworks, and Evidence

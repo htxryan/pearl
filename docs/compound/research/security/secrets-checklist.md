@@ -1,3 +1,9 @@
+---
+title: secrets-checklist
+type: note
+permalink: pearl/compound/research/security/secrets-checklist
+---
+
 # Secrets Detection Checklist
 
 *February 23, 2026*

@@ -1,3 +1,9 @@
+---
+title: BuildingACCompilerAnthropic
+type: note
+permalink: pearl/compound/research/building-accompiler-anthropic
+---
+
 # Building a C compiler with a team of parallel Claudes
 *Author: Nicholas Carlini – Safeguards team, Anthropic*
 *Published: Feb 05, 2026* [page:1]

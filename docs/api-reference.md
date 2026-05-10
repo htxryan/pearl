@@ -1,3 +1,9 @@
+---
+title: api-reference
+type: note
+permalink: pearl/api-reference
+---
+
 # API Reference
 
 All endpoints are served under `/api/` on the Fastify server (default port 3456). Request/response types are defined in `packages/shared/src/index.ts`.

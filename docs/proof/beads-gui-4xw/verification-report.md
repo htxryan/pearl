@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-4xw/verification-report
+---
+
 # E1: Backend Foundation - Verification Report
 
 **Epic**: beads-gui-4xw (E1: Backend Foundation)

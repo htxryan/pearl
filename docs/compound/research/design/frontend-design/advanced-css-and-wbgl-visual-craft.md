@@ -1,8 +1,19 @@
 ---
 title: Advanced CSS and WebGL Visual Craft for Production Websites
 date: 2026-02-23
-summary: Documents the modern browser-native toolkit for visually distinctive production web interfaces—CSS blend modes, clip-paths, conic gradients, SVG filter pipelines, scroll-linked animations, backdrop filtering, and WebGL shaders—distinguishing baseline interoperable features from experimental ones. Characterizes trade-offs in performance, accessibility, implementation complexity, and ecosystem maturity across approach families.
-keywords: [design, css, webgl, frontend-craft, visual-effects]
+summary: Documents the modern browser-native toolkit for visually distinctive production
+  web interfaces—CSS blend modes, clip-paths, conic gradients, SVG filter pipelines,
+  scroll-linked animations, backdrop filtering, and WebGL shaders—distinguishing baseline
+  interoperable features from experimental ones. Characterizes trade-offs in performance,
+  accessibility, implementation complexity, and ecosystem maturity across approach
+  families.
+keywords:
+- design
+- css
+- webgl
+- frontend-craft
+- visual-effects
+permalink: pearl/compound/research/design/frontend-design/advanced-css-and-wbgl-visual-craft
 ---
 
 # Advanced CSS and WebGL Visual Craft for Production Websites

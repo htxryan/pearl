@@ -1,3 +1,9 @@
+---
+title: 05-concurrency-model
+type: note
+permalink: pearl/compound/research/go-phd/05-concurrency-model
+---
+
 # Go's Concurrency Model: From CSP Theory to M:N Runtime Scheduling
 
 *2026-03-09*

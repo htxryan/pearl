@@ -1,8 +1,16 @@
 ---
-title: "A Philosophy of Software Design: Principles, Evidence, and Competing Perspectives"
+title: 'A Philosophy of Software Design: Principles, Evidence, and Competing Perspectives'
 date: 2026-03-26
-summary: A systematic survey of the design principles from John Ousterhout's "A Philosophy of Software Design", contextualized within the broader software engineering literature on complexity management, modularity, and interface design.
-keywords: [software-design, complexity-management, modularity, information-hiding, deep-modules]
+summary: A systematic survey of the design principles from John Ousterhout's "A Philosophy
+  of Software Design", contextualized within the broader software engineering literature
+  on complexity management, modularity, and interface design.
+keywords:
+- software-design
+- complexity-management
+- modularity
+- information-hiding
+- deep-modules
+permalink: pearl/compound/research/development/software-design/philosophy-of-software-design
 ---
 
 # A Philosophy of Software Design: Principles, Evidence, and Competing Perspectives

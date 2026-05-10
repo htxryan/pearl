@@ -1,8 +1,19 @@
 ---
-title: "The Trust Deficit Economy: Consumer Product Opportunities in a Low-Trust World"
+title: 'The Trust Deficit Economy: Consumer Product Opportunities in a Low-Trust World'
 date: 2026-03-18
-summary: "Treats the historically anomalous collapse of institutional trust—Edelman 2025 Trust Index scores of 37–48 in the world's largest economies—as a market-structuring force and surveys six consumer product categories that have emerged from the trust deficit: institutional-skepticism products, content verification, peer-to-peer trust platforms, transparency tools, privacy-as-product, and expert credentialing. Synthesizes Fukuyama, Putnam, Luhmann, and Akerlof with current market data."
-keywords: [b2c_product, trust-economy, institutional-trust, transparency, verification]
+summary: 'Treats the historically anomalous collapse of institutional trust—Edelman
+  2025 Trust Index scores of 37–48 in the world''s largest economies—as a market-structuring
+  force and surveys six consumer product categories that have emerged from the trust
+  deficit: institutional-skepticism products, content verification, peer-to-peer trust
+  platforms, transparency tools, privacy-as-product, and expert credentialing. Synthesizes
+  Fukuyama, Putnam, Luhmann, and Akerlof with current market data.'
+keywords:
+- b2c_product
+- trust-economy
+- institutional-trust
+- transparency
+- verification
+permalink: pearl/compound/research/b2c-product/trust-deficit-economy
 ---
 
 # The Trust Deficit Economy: Consumer Product Opportunities in a Low-Trust World

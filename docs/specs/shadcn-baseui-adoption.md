@@ -1,3 +1,9 @@
+---
+title: shadcn-baseui-adoption
+type: note
+permalink: pearl/specs/shadcn-baseui-adoption
+---
+
 # Spec: Adopt shadcn/ui with BaseUI primitives
 
 *2026-04-25 · Pearl frontend · Architect output (system-level spec)*

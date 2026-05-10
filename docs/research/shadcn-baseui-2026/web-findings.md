@@ -1,3 +1,9 @@
+---
+title: web-findings
+type: note
+permalink: pearl/research/shadcn-baseui-2026/web-findings
+---
+
 # shadcn/ui + Base UI Variant: Migration Recipe (2026-01)
 
 > Practitioner reference for the architect decomposing a Radix-to-BaseUI migration.

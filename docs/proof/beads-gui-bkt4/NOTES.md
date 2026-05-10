@@ -1,3 +1,9 @@
+---
+title: NOTES
+type: note
+permalink: pearl/proof/beads-gui-bkt4/notes
+---
+
 # Proof: beads-gui-bkt4 — Agentic Codebase Improvements
 
 ## Why Browser Screenshots Are Not Applicable

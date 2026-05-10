@@ -1,3 +1,9 @@
+---
+title: verification-evidence
+type: note
+permalink: pearl/proof/beads-gui-a61/verification-evidence
+---
+
 # Prove It: GitHub Actions CI Pipeline (beads-gui-a61)
 
 Verification date: 2026-04-12

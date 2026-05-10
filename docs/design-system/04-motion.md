@@ -1,3 +1,9 @@
+---
+title: 04-motion
+type: note
+permalink: pearl/design-system/04-motion
+---
+
 # 04 — Motion
 
 Motion in Pearl is functional, not decorative. Its job is to make state changes legible — to tell the user *what just happened* and *where something came from* — without stealing time or attention.

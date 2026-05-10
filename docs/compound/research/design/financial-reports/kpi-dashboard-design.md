@@ -1,8 +1,18 @@
 ---
-title: "The KPI Dashboard as Design Problem: Grid, Hierarchy, and Metric Architecture for Financial Factsheets"
+title: 'The KPI Dashboard as Design Problem: Grid, Hierarchy, and Metric Architecture
+  for Financial Factsheets'
 date: 2026-03-19
-summary: "Examines the KPI tile grid pattern in investment factsheets, drawing on cognitive psychology, information design theory, and industry practice to show the canonical 3x2 grid represents a near-optimal convergence of working memory limits and page geometry."
-keywords: [design, financial-reports, kpi-dashboard, grid-design, cognitive-science]
+summary: Examines the KPI tile grid pattern in investment factsheets, drawing on cognitive
+  psychology, information design theory, and industry practice to show the canonical
+  3x2 grid represents a near-optimal convergence of working memory limits and page
+  geometry.
+keywords:
+- design
+- financial-reports
+- kpi-dashboard
+- grid-design
+- cognitive-science
+permalink: pearl/compound/research/design/financial-reports/kpi-dashboard-design
 ---
 
 # The KPI Dashboard as Design Problem: Grid, Hierarchy, and Metric Architecture for Financial Factsheets

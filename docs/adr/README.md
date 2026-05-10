@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/adr/readme
+---
+
 # Architecture Decision Records
 
 This directory contains Architecture Decision Records (ADRs) for the pearl project.

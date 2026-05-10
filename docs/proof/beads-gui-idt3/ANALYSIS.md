@@ -1,3 +1,9 @@
+---
+title: ANALYSIS
+type: note
+permalink: pearl/proof/beads-gui-idt3/analysis
+---
+
 # Prove It: Mobile & Responsive Layout Verification
 
 **Epic:** beads-gui-idt3

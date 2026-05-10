@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-j0y/evidence
+---
+
 # Proof: Server Mode — Pure Connect to External Dolt
 
 **Epic:** beads-gui-j0y

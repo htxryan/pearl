@@ -1,3 +1,9 @@
+---
+title: AgenticAiCodebaseGuide
+type: note
+permalink: pearl/compound/research/agentic-ai-codebase-guide
+---
+
 # Building Agentic AI-Prone Codebases: A Comprehensive Developer's Guide
 
 A codebase optimized for agentic AI differs fundamentally from one designed purely for human teams. While human developers accumulate project knowledge over time, AI agents operate within fixed context windows and must work with explicit, accessible information. This guide distills research-backed practices and real-world patterns for structuring and maintaining codebases that leverage agentic AI at its best.

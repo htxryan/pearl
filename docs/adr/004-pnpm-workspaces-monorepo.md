@@ -1,3 +1,9 @@
+---
+title: 004-pnpm-workspaces-monorepo
+type: note
+permalink: pearl/adr/004-pnpm-workspaces-monorepo
+---
+
 # ADR-004: pnpm Workspaces for Monorepo Package Management
 
 ## Status

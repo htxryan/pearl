@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-51r/verification-report
+---
+
 # E2: Frontend Shell - Verification Report
 
 **Epic**: beads-gui-51r (E2: Frontend Shell)

@@ -1,3 +1,9 @@
+---
+title: verification-report
+type: note
+permalink: pearl/proof/beads-gui-7qj/verification-report
+---
+
 # E6: Dependency Graph View - Verification Report
 
 **Epic**: beads-gui-7qj (E6: Dependency Graph View)

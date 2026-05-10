@@ -1,3 +1,9 @@
+---
+title: codebase-inventory
+type: note
+permalink: pearl/research/shadcn-baseui-2026/codebase-inventory
+---
+
 # shadcn/BaseUI Migration Impact Inventory
 
 **Repo:** `/Users/redhale/src/pearl`  
@@ -851,4 +857,3 @@
 - **CreateIssueDialog:** Uses 4 primitives (Dialog, CustomSelect, DatePicker, LabelPicker) in one component; requires integrated testing after swap.
 - **Integration Tests:** Tests like `golden-path.test.tsx` may touch multiple primitives; need verification after each primitive swap.
 - **Theme Hook:** The `useTheme()` hook applies dark-mode via `classList.toggle("dark")`. Shadcn Dialog/Popover may assume different theme application; verify compatibility early.
-

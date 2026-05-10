@@ -1,8 +1,18 @@
 ---
-title: "Color Theory for Digital Interfaces"
+title: Color Theory for Digital Interfaces
 date: 2026-03-25
-summary: "Surveys color theory for digital interfaces from perceptual neuroscience through modern CSS color spaces, covering OKLCH, APCA contrast, dark mode design, accessibility for color vision deficiency, semantic color systems, and production-ready palette generation strategies across contemporary design systems."
-keywords: [web-apps, color-theory, oklch, contrast, dark-mode, accessibility]
+summary: Surveys color theory for digital interfaces from perceptual neuroscience
+  through modern CSS color spaces, covering OKLCH, APCA contrast, dark mode design,
+  accessibility for color vision deficiency, semantic color systems, and production-ready
+  palette generation strategies across contemporary design systems.
+keywords:
+- web-apps
+- color-theory
+- oklch
+- contrast
+- dark-mode
+- accessibility
+permalink: pearl/compound/research/design/web-apps/color-theory-for-digital-interfaces
 ---
 
 # Color Theory for Digital Interfaces

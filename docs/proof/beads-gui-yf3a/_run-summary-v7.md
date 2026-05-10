@@ -1,3 +1,9 @@
+---
+title: _run-summary-v7
+type: note
+permalink: pearl/proof/beads-gui-yf3a/run-summary-v7
+---
+
 # Proof-it run summary (v7) — fix theme IDs + virtualization
 
 Date: 2026-04-26T13:52:47.879Z

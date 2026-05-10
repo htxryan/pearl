@@ -1,8 +1,18 @@
 ---
 title: Computational Motion Design for Interactive Media
 date: 2026-02-22
-summary: Surveys computational motion design at the intersection of physics simulation, procedural animation, and real-time graphics—particle systems, fluid-like effects, shader-driven motion, procedural generation, physics-based easing, and perception-driven controllers. Proposes a six-class taxonomy and comparative trade-off analysis across visual richness, control, performance, and perceived animacy.
-keywords: [design, motion-design, webgl, shaders, computational-graphics]
+summary: Surveys computational motion design at the intersection of physics simulation,
+  procedural animation, and real-time graphics—particle systems, fluid-like effects,
+  shader-driven motion, procedural generation, physics-based easing, and perception-driven
+  controllers. Proposes a six-class taxonomy and comparative trade-off analysis across
+  visual richness, control, performance, and perceived animacy.
+keywords:
+- design
+- motion-design
+- webgl
+- shaders
+- computational-graphics
+permalink: pearl/compound/research/design/frontend-design/computational-motion-design
 ---
 
 # Computational Motion Design for Interactive Media

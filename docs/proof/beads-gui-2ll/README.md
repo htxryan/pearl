@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: pearl/proof/beads-gui-2ll/readme
+---
+
 # Proof: E2E Write Tests Verification (beads-gui-2ll)
 
 **Date**: 2026-04-12

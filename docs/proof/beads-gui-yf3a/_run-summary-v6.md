@@ -1,3 +1,9 @@
+---
+title: _run-summary-v6
+type: note
+permalink: pearl/proof/beads-gui-yf3a/run-summary-v6
+---
+
 # Proof-it run summary (v6) — fixes + theme matrix + a11y + perf
 
 Date: 2026-04-26T13:01:49.826Z

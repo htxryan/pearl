@@ -1,8 +1,16 @@
 ---
-title: "Information Density & Layered Reading in Financial Documents"
+title: Information Density & Layered Reading in Financial Documents
 date: 2026-03-19
-summary: "Synthesises evidence from cognitive psychology, information design theory, eye-tracking research, and regulatory scholarship to articulate a principled resolution of the density-quality tension in financial factsheets through layered reading architecture."
-keywords: [design, financial-reports, information-density, layered-reading, cognitive-load]
+summary: Synthesises evidence from cognitive psychology, information design theory,
+  eye-tracking research, and regulatory scholarship to articulate a principled resolution
+  of the density-quality tension in financial factsheets through layered reading architecture.
+keywords:
+- design
+- financial-reports
+- information-density
+- layered-reading
+- cognitive-load
+permalink: pearl/compound/research/design/financial-reports/information-density-and-layered-reading-in-financial-documents
 ---
 
 # Information Density & Layered Reading in Financial Documents

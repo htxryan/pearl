@@ -1,3 +1,9 @@
+---
+title: setup-guide
+type: note
+permalink: pearl/setup-guide
+---
+
 # Setup Guide
 
 This guide covers both end-user setup (running Pearl) and contributor setup (developing Pearl).

@@ -1,8 +1,18 @@
 ---
 title: Experimentation Culture & Growth Analytics
 date: 2026-03-18
-summary: The systematic use of controlled experiments to drive product and business decisions has become one of the defining capabilities of high-performing technology organizations. This paper surveys experimentation methods, organizational frameworks, and analytical tooling constituting the discipline of experimentation culture and growth analytics.
-keywords: [b2c_product, experimentation, a-b-testing, growth-analytics, product-analytics]
+summary: The systematic use of controlled experiments to drive product and business
+  decisions has become one of the defining capabilities of high-performing technology
+  organizations. This paper surveys experimentation methods, organizational frameworks,
+  and analytical tooling constituting the discipline of experimentation culture and
+  growth analytics.
+keywords:
+- b2c_product
+- experimentation
+- a-b-testing
+- growth-analytics
+- product-analytics
+permalink: pearl/compound/research/b2c-product/market-growth/experimentation-growth-analytics
 ---
 
 # Experimentation Culture & Growth Analytics

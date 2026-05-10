@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-w90/evidence
+---
+
 # Proof: Server Mode Verification (beads-gui-w90)
 
 **Date**: 2026-04-12

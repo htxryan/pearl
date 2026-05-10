@@ -1,3 +1,9 @@
+---
+title: index
+type: note
+permalink: pearl/research/shadcn-baseui-2026/index
+---
+
 # shadcn/ui + BaseUI Adoption — Research Survey
 
 *2026-04-25 · Pearl frontend · Architect phase input*

@@ -1,8 +1,19 @@
 ---
-title: "State Management Architecture for Web Applications"
+title: State Management Architecture for Web Applications
 date: 2026-03-26
-summary: A comprehensive survey of client-side and server-side state management architectures in modern web applications, covering the theoretical foundations in finite automata and reactive programming, the taxonomy of approaches from flux/redux through signals and CRDTs, and the emerging convergence toward fine-grained reactivity and local-first paradigms.
-keywords: [state-management, web-applications, reactivity, client-state, server-state, signals]
+summary: A comprehensive survey of client-side and server-side state management architectures
+  in modern web applications, covering the theoretical foundations in finite automata
+  and reactive programming, the taxonomy of approaches from flux/redux through signals
+  and CRDTs, and the emerging convergence toward fine-grained reactivity and local-first
+  paradigms.
+keywords:
+- state-management
+- web-applications
+- reactivity
+- client-state
+- server-state
+- signals
+permalink: pearl/compound/research/development/web-apps/state-management-architecture
 ---
 
 # State Management Architecture for Web Applications

@@ -1,8 +1,19 @@
 ---
-title: "Editorial Design Style: A Comprehensive Survey"
+title: 'Editorial Design Style: A Comprehensive Survey'
 date: 2026-02-22
-summary: Surveys editorial design—organizing text, image, and white space across sequential pages to sustain attention across dozens or hundreds of pages—from Gutenberg through the golden age of American magazines to the contemporary hybrid print-digital landscape. Proposes a six-part taxonomy of editorial approaches with precise design specifications (typefaces, type scales, grid measurements, color palettes) drawn from canonical publications.
-keywords: [design, editorial-design, typography, grid-systems, magazine-design]
+summary: Surveys editorial design—organizing text, image, and white space across sequential
+  pages to sustain attention across dozens or hundreds of pages—from Gutenberg through
+  the golden age of American magazines to the contemporary hybrid print-digital landscape.
+  Proposes a six-part taxonomy of editorial approaches with precise design specifications
+  (typefaces, type scales, grid measurements, color palettes) drawn from canonical
+  publications.
+keywords:
+- design
+- editorial-design
+- typography
+- grid-systems
+- magazine-design
+permalink: pearl/compound/research/design/style/editorial-design
 ---
 
 # Editorial Design Style: A Comprehensive Survey

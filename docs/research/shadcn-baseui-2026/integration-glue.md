@@ -1,3 +1,9 @@
+---
+title: integration-glue
+type: note
+permalink: pearl/research/shadcn-baseui-2026/integration-glue
+---
+
 # Integration Glue: Tailwind v4 + shadcn/ui (BaseUI variant) + React 19
 
 Research date: 2026-04-25  

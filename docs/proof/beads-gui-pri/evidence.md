@@ -1,3 +1,9 @@
+---
+title: evidence
+type: note
+permalink: pearl/proof/beads-gui-pri/evidence
+---
+
 # Proof: Config + Dolt Mode Detection (beads-gui-pri)
 
 ## Changes Made

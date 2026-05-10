@@ -1,3 +1,9 @@
+---
+title: polish-report-cycle-1
+type: note
+permalink: pearl/specs/polish-report-cycle-1
+---
+
 # Polish Report -- Cycle 1
 
 Generated: 2026-04-30T17:33:26Z
@@ -18,4 +24,3 @@ What would you like to work on?
 ## gemini
 
 (no output -- reviewer may have crashed or timed out)
-
